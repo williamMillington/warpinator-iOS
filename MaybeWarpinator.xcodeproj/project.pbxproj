@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,6 +13,33 @@
 		79360EBB27069897008349D2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79360EB927069897008349D2 /* Main.storyboard */; };
 		79360EBD27069899008349D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 79360EBC27069899008349D2 /* Assets.xcassets */; };
 		79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79360EBE27069899008349D2 /* LaunchScreen.storyboard */; };
+		79360ECD270928B3008349D2 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 79360ECC270928B3008349D2 /* GRPC */; };
+		79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 79360ECF270A1C73008349D2 /* TestFileToSend.rtf */; };
+		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
+		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
+		797C12B7270FC83700A2795C /* AuthenticationServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B6270FC83700A2795C /* AuthenticationServer.swift */; };
+		797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B9270FC86A00A2795C /* Authenticator.swift */; };
+		797C12BD2711102700A2795C /* Transfer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* Transfer.swift */; };
+		797C12C227150FB700A2795C /* Clibsodium in Frameworks */ = {isa = PBXBuildFile; productRef = 797C12C127150FB700A2795C /* Clibsodium */; };
+		797C12C427150FB700A2795C /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = 797C12C327150FB700A2795C /* Sodium */; };
+		797C12CF2717594400A2795C /* certificate.pem in Resources */ = {isa = PBXBuildFile; fileRef = 797C12C7271749B600A2795C /* certificate.pem */; };
+		79B00222271766E9003CEBCC /* certificate_key.pem in Resources */ = {isa = PBXBuildFile; fileRef = 79B00221271766E8003CEBCC /* certificate_key.pem */; };
+		79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002252717BDF6003CEBCC /* CertificateServer.swift */; };
+		79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022A27190F18003CEBCC /* MDNSBrowser.swift */; };
+		79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022F2719FCCB003CEBCC /* MDNSListener.swift */; };
+		79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B00232271C9DEE003CEBCC /* RemoteManager.swift */; };
+		79B00237272440E4003CEBCC /* Shield in Frameworks */ = {isa = PBXBuildFile; productRef = 79B00236272440E4003CEBCC /* Shield */; };
+		79B0023E27270984003CEBCC /* certificate.cer in Resources */ = {isa = PBXBuildFile; fileRef = 79B0023D27270984003CEBCC /* certificate.cer */; };
+		79B0024127270993003CEBCC /* certificate_key.key in Resources */ = {isa = PBXBuildFile; fileRef = 79B0024027270993003CEBCC /* certificate_key.key */; };
+		79B002452729B425003CEBCC /* KeyMaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002442729B425003CEBCC /* KeyMaster.swift */; };
+		79C002AC270A92EC002DB22B /* warp.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002A9270A92EC002DB22B /* warp.pb.swift */; };
+		79C002AD270A92EC002DB22B /* warp.proto in Sources */ = {isa = PBXBuildFile; fileRef = 79C002AA270A92EC002DB22B /* warp.proto */; };
+		79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002AB270A92EC002DB22B /* warp.grpc.swift */; };
+		79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002B0270BC1A9002DB22B /* TestServiceProvider.swift */; };
+		79C002B4270BCC4E002DB22B /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002B3270BCC4E002DB22B /* Server.swift */; };
+		79C002B8270E0C16002DB22B /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002B7270E0C16002DB22B /* Utils.swift */; };
+		79C002BB270E670C002DB22B /* MainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BA270E670C002DB22B /* MainService.swift */; };
+		79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +51,29 @@
 		79360EBC27069899008349D2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		79360EBF27069899008349D2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		79360EC127069899008349D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		79360ECF270A1C73008349D2 /* TestFileToSend.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = TestFileToSend.rtf; sourceTree = "<group>"; };
+		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
+		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
+		797C12B6270FC83700A2795C /* AuthenticationServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationServer.swift; sourceTree = "<group>"; };
+		797C12B9270FC86A00A2795C /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
+		797C12BC2711102700A2795C /* Transfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transfer.swift; sourceTree = "<group>"; };
+		797C12C7271749B600A2795C /* certificate.pem */ = {isa = PBXFileReference; lastKnownFileType = file; name = certificate.pem; path = MaybeWarpinator/Resources/certificate.pem; sourceTree = SOURCE_ROOT; };
+		79B00221271766E8003CEBCC /* certificate_key.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = certificate_key.pem; sourceTree = "<group>"; };
+		79B002252717BDF6003CEBCC /* CertificateServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateServer.swift; sourceTree = "<group>"; };
+		79B0022A27190F18003CEBCC /* MDNSBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSBrowser.swift; sourceTree = "<group>"; };
+		79B0022F2719FCCB003CEBCC /* MDNSListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSListener.swift; sourceTree = "<group>"; };
+		79B00232271C9DEE003CEBCC /* RemoteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManager.swift; sourceTree = "<group>"; };
+		79B0023D27270984003CEBCC /* certificate.cer */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = certificate.cer; sourceTree = "<group>"; };
+		79B0024027270993003CEBCC /* certificate_key.key */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = certificate_key.key; sourceTree = "<group>"; };
+		79B002442729B425003CEBCC /* KeyMaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyMaster.swift; sourceTree = "<group>"; };
+		79C002A9270A92EC002DB22B /* warp.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.pb.swift; path = MaybeWarpinator/__gRPC/warp.pb.swift; sourceTree = SOURCE_ROOT; };
+		79C002AA270A92EC002DB22B /* warp.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.protobuf; name = warp.proto; path = MaybeWarpinator/__gRPC/warp.proto; sourceTree = SOURCE_ROOT; };
+		79C002AB270A92EC002DB22B /* warp.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.grpc.swift; path = MaybeWarpinator/__gRPC/warp.grpc.swift; sourceTree = SOURCE_ROOT; };
+		79C002B0270BC1A9002DB22B /* TestServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestServiceProvider.swift; sourceTree = "<group>"; };
+		79C002B3270BCC4E002DB22B /* Server.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Server.swift; sourceTree = "<group>"; };
+		79C002B7270E0C16002DB22B /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		79C002BA270E670C002DB22B /* MainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainService.swift; sourceTree = "<group>"; };
+		79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorServiceProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +81,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79360ECD270928B3008349D2 /* GRPC in Frameworks */,
+				797C12C227150FB700A2795C /* Clibsodium in Frameworks */,
+				797C12C427150FB700A2795C /* Sodium in Frameworks */,
+				79B00237272440E4003CEBCC /* Shield in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -40,8 +94,10 @@
 		79360EA727069897008349D2 = {
 			isa = PBXGroup;
 			children = (
+				79B00232271C9DEE003CEBCC /* RemoteManager.swift */,
 				79360EB227069897008349D2 /* MaybeWarpinator */,
 				79360EB127069897008349D2 /* Products */,
+				79C0029C270A90EC002DB22B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -56,15 +112,76 @@
 		79360EB227069897008349D2 /* MaybeWarpinator */ = {
 			isa = PBXGroup;
 			children = (
+				79B0022927190924003CEBCC /* Networking */,
+				797C12C6271749A100A2795C /* Resources */,
+				79C002A8270A92C9002DB22B /* gRPC */,
+				79360ED2270A1C7A008349D2 /* Transfer_Files */,
 				79360EB327069897008349D2 /* AppDelegate.swift */,
-				79360EB527069897008349D2 /* SceneDelegate.swift */,
-				79360EB727069897008349D2 /* ViewController.swift */,
-				79360EB927069897008349D2 /* Main.storyboard */,
 				79360EBC27069899008349D2 /* Assets.xcassets */,
-				79360EBE27069899008349D2 /* LaunchScreen.storyboard */,
+				797C12B6270FC83700A2795C /* AuthenticationServer.swift */,
+				797C12B9270FC86A00A2795C /* Authenticator.swift */,
+				79B002442729B425003CEBCC /* KeyMaster.swift */,
+				79B002252717BDF6003CEBCC /* CertificateServer.swift */,
 				79360EC127069899008349D2 /* Info.plist */,
+				79360EBE27069899008349D2 /* LaunchScreen.storyboard */,
+				79360EB927069897008349D2 /* Main.storyboard */,
+				79C002BA270E670C002DB22B /* MainService.swift */,
+				79360ED4270A29B0008349D2 /* Remote.swift */,
+				79360EB527069897008349D2 /* SceneDelegate.swift */,
+				79C002B3270BCC4E002DB22B /* Server.swift */,
+				79C002B0270BC1A9002DB22B /* TestServiceProvider.swift */,
+				797C12BC2711102700A2795C /* Transfer.swift */,
+				79C002B7270E0C16002DB22B /* Utils.swift */,
+				79360EB727069897008349D2 /* ViewController.swift */,
+				797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */,
+				79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */,
 			);
 			path = MaybeWarpinator;
+			sourceTree = "<group>";
+		};
+		79360ED2270A1C7A008349D2 /* Transfer_Files */ = {
+			isa = PBXGroup;
+			children = (
+				79360ECF270A1C73008349D2 /* TestFileToSend.rtf */,
+			);
+			path = Transfer_Files;
+			sourceTree = "<group>";
+		};
+		797C12C6271749A100A2795C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				79B0024027270993003CEBCC /* certificate_key.key */,
+				79B0023D27270984003CEBCC /* certificate.cer */,
+				797C12C7271749B600A2795C /* certificate.pem */,
+				79B00221271766E8003CEBCC /* certificate_key.pem */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		79B0022927190924003CEBCC /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				79B0022A27190F18003CEBCC /* MDNSBrowser.swift */,
+				79B0022F2719FCCB003CEBCC /* MDNSListener.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		79C0029C270A90EC002DB22B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		79C002A8270A92C9002DB22B /* gRPC */ = {
+			isa = PBXGroup;
+			children = (
+				79C002AB270A92EC002DB22B /* warp.grpc.swift */,
+				79C002A9270A92EC002DB22B /* warp.pb.swift */,
+				79C002AA270A92EC002DB22B /* warp.proto */,
+			);
+			path = gRPC;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -81,8 +198,15 @@
 			buildRules = (
 			);
 			dependencies = (
+				79C002A5270A9144002DB22B /* PBXTargetDependency */,
 			);
 			name = MaybeWarpinator;
+			packageProductDependencies = (
+				79360ECC270928B3008349D2 /* GRPC */,
+				797C12C127150FB700A2795C /* Clibsodium */,
+				797C12C327150FB700A2795C /* Sodium */,
+				79B00236272440E4003CEBCC /* Shield */,
+			);
 			productName = MaybeWarpinator;
 			productReference = 79360EB027069897008349D2 /* MaybeWarpinator.app */;
 			productType = "com.apple.product-type.application";
@@ -93,6 +217,9 @@
 		79360EA827069897008349D2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				KnownAssetTags = (
+					New,
+				);
 				LastSwiftUpdateCheck = 1220;
 				LastUpgradeCheck = 1220;
 				TargetAttributes = {
@@ -110,6 +237,11 @@
 				Base,
 			);
 			mainGroup = 79360EA727069897008349D2;
+			packageReferences = (
+				79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */,
+				797C12C027150FB700A2795C /* XCRemoteSwiftPackageReference "swift-sodium" */,
+				79B00235272440E4003CEBCC /* XCRemoteSwiftPackageReference "Shield" */,
+			);
 			productRefGroup = 79360EB127069897008349D2 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -125,7 +257,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */,
+				79B0023E27270984003CEBCC /* certificate.cer in Resources */,
+				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
+				797C12CF2717594400A2795C /* certificate.pem in Resources */,
+				79B0024127270993003CEBCC /* certificate_key.key in Resources */,
+				79B00222271766E9003CEBCC /* certificate_key.pem in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -137,13 +274,38 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */,
 				79360EB827069897008349D2 /* ViewController.swift in Sources */,
+				79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */,
+				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
+				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
+				79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */,
+				797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */,
+				797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */,
+				79C002AD270A92EC002DB22B /* warp.proto in Sources */,
+				79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */,
+				79C002B8270E0C16002DB22B /* Utils.swift in Sources */,
+				79B002452729B425003CEBCC /* KeyMaster.swift in Sources */,
+				79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */,
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
+				79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */,
+				797C12B7270FC83700A2795C /* AuthenticationServer.swift in Sources */,
+				79C002BB270E670C002DB22B /* MainService.swift in Sources */,
+				79C002B4270BCC4E002DB22B /* Server.swift in Sources */,
+				797C12BD2711102700A2795C /* Transfer.swift in Sources */,
+				79C002AC270A92EC002DB22B /* warp.pb.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		79C002A5270A9144002DB22B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 79C002A4270A9144002DB22B /* GRPC */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		79360EB927069897008349D2 /* Main.storyboard */ = {
@@ -216,7 +378,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -271,7 +433,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -341,6 +503,61 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/grpc/grpc-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.2;
+			};
+		};
+		797C12C027150FB700A2795C /* XCRemoteSwiftPackageReference "swift-sodium" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jedisct1/swift-sodium.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.1;
+			};
+		};
+		79B00235272440E4003CEBCC /* XCRemoteSwiftPackageReference "Shield" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/outfoxx/Shield.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		79360ECC270928B3008349D2 /* GRPC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */;
+			productName = GRPC;
+		};
+		797C12C127150FB700A2795C /* Clibsodium */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 797C12C027150FB700A2795C /* XCRemoteSwiftPackageReference "swift-sodium" */;
+			productName = Clibsodium;
+		};
+		797C12C327150FB700A2795C /* Sodium */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 797C12C027150FB700A2795C /* XCRemoteSwiftPackageReference "swift-sodium" */;
+			productName = Sodium;
+		};
+		79B00236272440E4003CEBCC /* Shield */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 79B00235272440E4003CEBCC /* XCRemoteSwiftPackageReference "Shield" */;
+			productName = Shield;
+		};
+		79C002A4270A9144002DB22B /* GRPC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */;
+			productName = GRPC;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 79360EA827069897008349D2 /* Project object */;
 }
