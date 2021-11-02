@@ -16,37 +16,30 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     public var interceptors: WarpServerInterceptorFactoryProtocol?
     
-    
+    // API v1
     public func checkDuplexConnection(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
-        print(DEBUG_TAG+"duplex is being checked!")
         
-//        let id = request.id
+        let id = request.id
         let duplexCheck = true
         
-//        var haveDuplex = HaveDuplex()
-//        haveDuplex.response = duplexCheck
+        print(DEBUG_TAG+"duplex is being checked by \(id)")
         
         return context.eventLoop.makeCompletedFuture( Result(catching: {
             var duplexExists = HaveDuplex()
             duplexExists.response = duplexCheck
             return duplexExists
         }))
-        
-//        return context.eventLoop.makeCompletedFuture(Result(catching: {
-//            var duplexExists = HaveDuplex()
-//            duplexExists.response = duplexCheck
-//            return duplexExists
-//        }))
-        
     }
     
+    // API v2
     public func waitingForDuplex(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
-        print(DEBUG_TAG+"duplex is being waited for!")
         
         let id = request.id
         let duplexCheck = true
+        
+        print(DEBUG_TAG+"duplex is being waited for by: \(id)")
         
         return context.eventLoop.makeCompletedFuture( Result(catching: {
             var duplexExists = HaveDuplex()

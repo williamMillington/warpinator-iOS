@@ -34,6 +34,7 @@ class MDNSBrowser {
         
         let parameters = NWParameters()
         parameters.includePeerToPeer = true
+        parameters.allowLocalEndpointReuse = true
         
         browser = NWBrowser(for: .bonjourWithTXTRecord(type: SERVICE_TYPE, domain: SERVICE_DOMAIN), using: parameters)
         browser?.stateUpdateHandler = self.stateDidUpdate(newState:)

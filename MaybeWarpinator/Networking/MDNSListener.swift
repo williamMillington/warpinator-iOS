@@ -77,7 +77,7 @@ class MDNSListener {
         
         let properties: [String:String] = ["hostname" : "\(uuid)",
                                            "auth-port" : "\(Server.registration_port)",
-                                           "api-version": "2",
+                                           "api-version": "1",
                                            "type" : "real"]
         
         listener?.service = NWListener.Service(name: uuid, type: SERVICE_TYPE,
@@ -110,10 +110,6 @@ class MDNSListener {
     }
     
     
-    
-    
-    
-    
     private func stateDidUpdate(newState: NWListener.State ) {
         
         switch newState {
@@ -128,18 +124,23 @@ class MDNSListener {
     
     private func newConnectionEstablished(newConnection connection: NWConnection) {
         
+//        print("new fucking connection")
 //        print(DEBUG_TAG+"new connection: \n\(connection)")
+        
+//        delegate?.mDNSListenerDidEstablishIncomingConnection(connection)
         
         connections[connection.endpoint] = connection
         
         connection.stateUpdateHandler = { [self] newState in
-//            print("state updated")
             switch newState {
-            case.ready: print(DEBUG_TAG+"established connection is ready")
-                certificateServer.serveCertificate(to: connection)
+            case.ready: print(DEBUG_TAG+"established connection to \(connection.endpoint) is ready")
+                self.certificateServer.serveCertificate(to: connection) {
+                    self.connections.removeValue(forKey: connection.endpoint)
+                }
             default: print(DEBUG_TAG+"new connection \(connection.endpoint), state: \(newState)")
             }
         }
+        connection.start(queue: .main)
         
     }
 }

@@ -13,7 +13,7 @@ import Foundation
 class RemoteManager {
     
     
-    var remotes: [String: Remote] = [:]
+    var remotes: [String: RegisteredRemote] = [:]
     
     
     

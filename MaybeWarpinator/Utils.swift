@@ -22,7 +22,7 @@ public class Utils {
     /** Why the everloving fuck is this what a person needs to do to get a goddamn IP address on iOS  jesus christ if
      I wanted to use pointers I'd go back to university
      */
-    public static func getIPAddress() -> String {
+    public static func getIPV4Address() -> String {
         
         var addrList: UnsafeMutablePointer<ifaddrs>?
         

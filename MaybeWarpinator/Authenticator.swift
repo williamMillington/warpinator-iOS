@@ -43,11 +43,19 @@ class Authenticator {
     
     
     //
-    func unlockCertificate(_ certificateString: String){
-        
-        guard let decodedCertificateData = Data(base64Encoded: certificateString, options: .ignoreUnknownCharacters) else {
-            print(DEBUG_TAG+"error decoding certificateString"); return
+    func unlockCertificate(_ certificateString: String) -> NIOSSLCertificate? {
+        guard let decodedCertificateData = Data(base64Encoded: certificateString,
+                                                options: .ignoreUnknownCharacters) else {
+            print(DEBUG_TAG+"error decoding certificateString"); return nil
         }
+        
+        return unlockCertificate(decodedCertificateData)
+    }
+    
+    
+    
+    // MARK: - unbox cert
+    func unlockCertificate(_ certificateData: Data) -> NIOSSLCertificate? {
         
         
         let keyCode = "Warpinator"
@@ -58,7 +66,7 @@ class Authenticator {
 
         let sKey = SecretBox.Key(encryptedKeyBytes)
         
-        let decodedBytes: [UInt8] = Array( decodedCertificateData )
+        let decodedBytes: [UInt8] = Array( certificateData )
         var nonce: [UInt8] = []
         var cipherText: [UInt8] = []
 
@@ -82,27 +90,40 @@ class Authenticator {
                 let certificate = try NIOSSLCertificate(bytes: bytes, format: .pem)
                 
                 print(DEBUG_TAG+"Success creating certificate from bytes: \(certificate)")
-                
+                return certificate
                 
             } catch {
                 print(DEBUG_TAG+"problem creating certificate \(error.localizedDescription)")
             }
         } else {  print(DEBUG_TAG+"Failed to unbox certificate")  }
         
+        return nil
     }
     
     
     
     
     
-    //
+    
+    
+    
+    
+    
+    
+    
+    // MARK: Get boxed cert
     func getBoxedCertificate() -> Bytes {
         
         let key = SHA256.hash(data: Array("Warpinator".utf8) )
         let keyBytes: [UInt8] = key.compactMap( {  return UInt8($0) })
         
         
-        let certBytes = Authenticator.shared.getServerCertificateBytes()!
+        guard let cert = getServerCertificate() else {
+            print("problem loading certificate"); return Bytes()
+        }
+        
+//        let certBytes = Authenticator.shared.getServerCertificateBytes()!
+        let certBytes = try! cert.toDERBytes()
         
         
         let sodium = Sodium()
@@ -114,96 +135,70 @@ class Authenticator {
     }
     
     
-    //
+    // MARK: - get server bytes
     func getServerCertificateBytes() -> Data? {
         
-        do {
-            
-            if let certBytes = try? KeyMaster.readCertificate(forKey: uuid) {
-                return certBytes
-                
-            } else {
-                print(DEBUG_TAG+"no certificate in keychain")
-                
-                let certBytes = generateNewCertificate(forHostname: uuid)
-                
-                try KeyMaster.saveCertificate(data: certBytes, forKey: uuid)
-                
-                
-                return certBytes
-            }
-            
-        } catch let error as KeyMaster.KeyMasterError {
-            print("getServerCertificateBytes KeyMaster error: \(error)")
-        } catch {
-            print("couldn't create NIOSSLCertificate from data \(error)")
-        }
-        return nil
-    }
-    
-    
-    
-    //
-    func getServerCertificate() -> NIOSSLCertificate? {
-//
         
-//        return loadCertificateFromFile()
-        return loadCertificateFromKeychain()
+        guard let certificate = loadServerCertificateFromFile() else {
+            print(DEBUG_TAG+"Error loading certificate from file"); return nil
+        }
+        
+        return Data( try! certificate.toDERBytes() )
+        
+        
+        
         
 //        do {
 //
-//            let certificate: NIOSSLCertificate
 //            if let certBytes = try? KeyMaster.readCertificate(forKey: uuid) {
-//
-//                certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .der)
+//                return certBytes
 //
 //            } else {
 //                print(DEBUG_TAG+"no certificate in keychain")
 //
 //                let certBytes = generateNewCertificate(forHostname: uuid)
 //
-//                certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .der)
-//
 //                try KeyMaster.saveCertificate(data: certBytes, forKey: uuid)
 //
+//                return certBytes
 //            }
 //
-//            return certificate
-//
 //        } catch let error as KeyMaster.KeyMasterError {
-//            print("getServerCertificate KeyMaster error: \(error)")
+//            print("getServerCertificateBytes KeyMaster error: \(error)")
 //        } catch {
 //            print("couldn't create NIOSSLCertificate from data \(error)")
 //        }
-//
-//
-//
 //        return nil
     }
     
+    // MARK: - get server bundle
+    func getServerCertificateBundle() -> [NIOSSLCertificate] {
+
+        return loadCertificateBundleFromFile()
+//        return loadCertificateFromKeychain()
+    }
     
+    // MARK: - get server cert
+    func getSigningAuthority() -> [NIOSSLCertificate] {
+
+        return loadCAFromFile()
+//        return loadCertificateFromKeychain()
+        
+    }
+    
+    // MARK: - get server cert
+    func getServerCertificate() -> NIOSSLCertificate? {
+
+        return loadCAFromFile()[0] //loadServerCertificateFromFile()
+//        return loadCertificateFromKeychain()
+        
+    }
+    
+    // get server PK
     func getServerPrivateKey() -> NIOSSLPrivateKey? {
 
-//        return loadPrivateKeyFromFile()
-        return loadPrivateKeyFromFile()
+        return loadServerPrivateKeyFromFile()
         
-//        do {
-//
-//            let seckey = try KeyMaster.readPrivateKey(forKey: uuid)
-//            let pkBytes = try seckey.encode()
-//
-//            let privateKey = try NIOSSLPrivateKey(bytes: Array(pkBytes), format: .der)
-//
-//            return privateKey
-//
-//        } catch let error as KeyMaster.KeyMasterError {
-//            print(DEBUG_TAG+"getServerPrivateKey PK KeyMaster error: \(error)")
-//        } catch {
-//            print(DEBUG_TAG+"couldn't create NIOSSLPrivateKey from data \(error)")
-//        }
-//
-//
-//        return nil
     }
     
     
@@ -214,7 +209,6 @@ class Authenticator {
         
         print(DEBUG_TAG+"generating new server certificate...")
         
-        
         var sanitizedHostname = hostname.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression)
 //        print(DEBUG_TAG+"\tsanitized hostname: \(sanitizedHostname)")
         
@@ -224,7 +218,7 @@ class Authenticator {
         
         sanitizedHostname = "WarpinatorIOS"
         
-        let keypair = try! SecKeyPair.Builder(type: .rsa, keySize: 2048).generate()
+        let keypair = try! SecKeyPair.Builder(type: .rsa, keySize: 2048)  .generate()
 
         let publicKey = keypair.publicKey
         let publicKeyEncoded = try! publicKey.encode()
@@ -256,7 +250,7 @@ class Authenticator {
         
         
         
-        let ipAddress = Utils.getIPAddress()
+        let ipAddress = Utils.getIPV4Address()
         let ipAddressExtension = GeneralName.ipAddress( Data(bytes: ipAddress.bytes, count: ipAddress.bytes.count) )
         
         let certBuilder = try! Certificate.Builder(serialNumber: certSerial,
@@ -266,8 +260,9 @@ class Authenticator {
                                               notBefore: startTime,
                                               notAfter: endTime)
             .addSubjectAlternativeNames(names: ipAddressExtension)
-            .extendedKeyUsage(keyPurposes: .init(arrayLiteral: OID("id-kp-serverAuth") ) , isCritical: true)
-        
+            .extendedKeyUsage(keyPurposes:   .init(arrayLiteral: OID("1.3.6.1.5.5.7.3.1")  ),
+                              isCritical: true)
+            
         
         
         let digestAlgorithm = Digester.Algorithm.sha256
@@ -281,21 +276,36 @@ class Authenticator {
             try? KeyMaster.deletePrivateKey(forKey: uuid)
         }
         
-        do {
-            let keydata = try privateKey.encode() as CFData
-            let attrs = try privateKey.attributes() as CFDictionary
-            
-            let secKey =  SecKeyCreateWithData(keydata,
-                                               attrs, nil)!
-            
-            try KeyMaster.savePrivateKey( secKey, forKey: uuid)
-            
-        } catch let error as KeyMaster.KeyMasterError {
-            print(DEBUG_TAG+"generateNewCertificate KeyMaster error: \(error)")
-        } catch {
-            print(DEBUG_TAG+"some other error occured: \(error)")
-        }
         
+        
+//        do {
+//            let keydata = try privateKey.encode() as CFData
+//            let attrs = try privateKey.attributes() as CFDictionary
+//
+//            let secKey =  SecKeyCreateWithData(keydata,
+//                                               attrs, nil)!
+//
+//            try KeyMaster.savePrivateKey( secKey, forKey: uuid)
+//
+//        } catch let error as KeyMaster.KeyMasterError {
+//            print(DEBUG_TAG+"generateNewCertificate KeyMaster error: \(error)")
+//        } catch {
+//            print(DEBUG_TAG+"some other error occured: \(error)")
+//        }
+        
+        
+        print(DEBUG_TAG+"Certificate Data: ")
+        print(DEBUG_TAG+"\t Serial Number: \( certificate.tbsCertificate.serialNumber)")
+        print(DEBUG_TAG+"\t SignatureAlgorithm: \( certificate.tbsCertificate.signature.algorithm)")
+        print(DEBUG_TAG+"\t Issuer: \( certificate.tbsCertificate.issuer[0][0])")
+        print(DEBUG_TAG+"\t Validity: \( certificate.tbsCertificate.validity)")
+        print(DEBUG_TAG+"\t Subject: \( certificate.tbsCertificate.subject[0][0])")
+        print(DEBUG_TAG+"\t Subject PUB KEY info: \( certificate.tbsCertificate.subjectPublicKeyInfo)")
+        for ext in certificate.tbsCertificate.extensions! {
+            print(DEBUG_TAG+"\t Extension: \(ext)")
+        }
+        print(DEBUG_TAG+"\t Signature: \( certificate.tbsCertificate.signature)")
+
         
         return try! certificate.encoded()
     }
@@ -308,46 +318,107 @@ class Authenticator {
 extension Authenticator {
     
     //
-    private  func loadCertificateFromFile() -> NIOSSLCertificate? {
+    private func loadCertificateBundleFromFile() -> [NIOSSLCertificate] {
         
-        let certificateFilePath = Bundle.main.path(forResource: "certificate",
-                                                   ofType: "cer")!
+        let filename = "serverbundle"
+        let ext = "pem"
+        
+        let filepath = Bundle.main.path(forResource: filename,
+                                        ofType: ext)!
+        
+        print(DEBUG_TAG+"loading certificate bundle from \(filename).\(ext)")
         
         do {
             
-            let certURL = URL(fileURLWithPath: certificateFilePath)
+            let certURL = URL(fileURLWithPath: filepath)
             let certBytes = try! Data(contentsOf: certURL)
             
-            print(DEBUG_TAG+"loading certificate")
+            let CA_chain = try NIOSSLCertificate.fromPEMBytes(Array(certBytes))
+            return CA_chain
+            
+        } catch {
+            print(DEBUG_TAG+"Error loading certificate bundle from file \(error)")
+        }
+        
+        return []
+    }
+    
+    //
+    private func loadCAFromFile() -> [NIOSSLCertificate] {
+        
+        let filename = "root"
+        let ext = "pem"
+        
+        let filepath = Bundle.main.path(forResource: filename,
+                                        ofType: ext)!
+        
+        print(DEBUG_TAG+"loading trust roots from \(filename).\(ext)")
+        
+        do {
+            
+            let certURL = URL(fileURLWithPath: filepath)
+            let certBytes = try! Data(contentsOf: certURL)
+            
+            let CA_chain = try NIOSSLCertificate.fromPEMBytes(Array(certBytes))
+            return CA_chain
+            
+        } catch {
+            print(DEBUG_TAG+"Error loading CA from file \(error)")
+        }
+        
+        return []
+    }
+    
+    //
+    private  func loadServerCertificateFromFile() -> NIOSSLCertificate? {
+        
+        let filename = "server"
+        let ext = "crt"
+        
+        let filepath = Bundle.main.path(forResource: filename,
+                                        ofType: ext)!
+        
+        print(DEBUG_TAG+"loading certificate from \(filename).\(ext)")
+        do {
+            
+            let certURL = URL(fileURLWithPath: filepath)
+            let certBytes = try! Data(contentsOf: certURL)
+            
             let certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .pem)
             
             return certificate
             
         } catch {
-            print("Error loading certificate from file \(error)")
+            print(DEBUG_TAG+"Error loading certificate from file \(error)")
         }
         return nil
     }
     
     
     //
-    private  func loadPrivateKeyFromFile() -> NIOSSLPrivateKey? {
+    private  func loadServerPrivateKeyFromFile() -> NIOSSLPrivateKey? {
         
-        let privateKeyPath  = Bundle.main.path(forResource: "certificate_key",
-                                               ofType: "key")!
+//        let filename = "server"
+//        let ext = "pem"
+        let filename = "rootkey"
+        let ext = "key"
+        
+        let filepath = Bundle.main.path(forResource: filename,
+                                        ofType: ext)!
+        
+        print(DEBUG_TAG+"loading private key from \(filename).\(ext)")
         
         do {
             
-            let keyURL = URL(fileURLWithPath: privateKeyPath)
+            let keyURL = URL(fileURLWithPath: filepath)
             let keyBytes = try! Data(contentsOf: keyURL)
             
-            print(DEBUG_TAG+"loading private key")
             let privateKey = try NIOSSLPrivateKey(bytes: Array(keyBytes), format: .pem)
             
             return privateKey
             
         } catch {
-            print("Error loading private key from file \(error)")
+            print(DEBUG_TAG+"Error loading private key from file \(error)")
         }
         return nil
     }
@@ -381,9 +452,9 @@ extension Authenticator {
             return certificate
 
         } catch let error as KeyMaster.KeyMasterError {
-            print("getServerCertificate KeyMaster error: \(error)")
+            print(DEBUG_TAG+"getServerCertificate KeyMaster error: \(error)")
         } catch {
-            print("couldn't create NIOSSLCertificate from data \(error)")
+            print(DEBUG_TAG+"couldn't create NIOSSLCertificate from data \(error)")
         }
 
 

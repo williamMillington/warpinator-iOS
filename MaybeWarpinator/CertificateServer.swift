@@ -25,21 +25,20 @@ class CertificateServer {
     var connections: [NWEndpoint: NWConnection] = [:]
     
     
-    func serveCertificate(to conn: NWConnection, onComplete: @escaping () -> Void = {} ){
-        
-        print(DEBUG_TAG+"\tattempting to serve certificate to: ")
-        
+    func serveCertificate(to connection: NWConnection, onComplete: @escaping () -> Void = {} ){
         
         // check if we're already tracking this connection.
         // But my intention is to remove connections upon success, so...this shouldn't
         // happen?
-        if !connections.keys.contains(conn.endpoint) {
-//            print("added connection")
-            connections[conn.endpoint] = conn
-        }
+//        if !connections.keys.contains(conn.endpoint) {
+//            print("holding connection")
+//            connections[conn.endpoint] = conn
+//        }
+////
+//        let connection = connections[conn.endpoint]!
+//        connection.parameters.allowLocalEndpointReuse = true
         
-        let connection = connections[conn.endpoint]!
-        connection.parameters.allowLocalEndpointReuse = true
+        print(DEBUG_TAG+"\tattempting to serve certificate to: \(connection.endpoint)")
         
         
 //        print("\t\(connection.endpoint)")
@@ -63,7 +62,11 @@ class CertificateServer {
         
         connection.receiveMessage { (data, context, isComplete, error) in
             
-//            print("received something...")
+            print("receiving something...")
+            
+            if let error = error {
+                print(self.DEBUG_TAG+"ERROR: \(error)")
+            }
             
             if isComplete {
                 guard data != nil else {
@@ -74,12 +77,26 @@ class CertificateServer {
 //                guard let certificate = Authenticator.shared.getServerCertificate() else { return }
 //                let certificateBytes = try! certificate.toDERBytes()
                 
-                guard let bytes = Authenticator.shared.getServerCertificateBytes() else { return }
-                let certificateBytes = Array(bytes)
+//                guard let bytes = Authenticator.shared.getServerCertificateBytes() else { return }
+//                let certificateBytes = Array(bytes)
 //                let certificateBytes = try! certificate.toDERBytes()
                 
+                let filename = "root"
+                let ext = "pem"
+                
+                let filepath = Bundle.main.path(forResource: filename,
+                                                ofType: ext)!
+                
+                print(self.DEBUG_TAG+"loading certificate bundle from \(filename).\(ext)")
+                
+                let certURL = URL(fileURLWithPath: filepath)
+                let certBytes = try! Data(contentsOf: certURL)
+                
+//                let certstring = String(bytes: Array(certBytes), encoding: .utf8)!
+                
+                let certificateBytes =  Array(certBytes) // certstring.bytes
+                
                 let sodium = Sodium()
-//                let sNonce = sodium.secretBox.nonce()
                 let sealedBox: (Bytes, SecretBox.Nonce)? = sodium.secretBox.seal(message: certificateBytes,
                                                                                 secretKey: sKey)
                 
@@ -88,20 +105,16 @@ class CertificateServer {
                 var messageBytes: [UInt8] = []
                 
                 for byte in nonce {
-//                    print("NONCE: byte appended")
                     messageBytes.append(byte)
                 }
                 for byte in encryptedText {
-//                    print("MSG_TEXT: byte appended")
                     messageBytes.append(byte)
                 }
                 
                 
-//                print("MESSAGEBYTES: \(messageBytes)")
-                
                 let messageBytesEncoded = Data(messageBytes).base64EncodedString()
                 
-                print("MESSAGEBYTESEncoded: \(messageBytesEncoded)")
+                print("MESSAGEBYTESEncoded: \(messageBytesEncoded.count)")
                 
                 connection.send(content: Data(bytes: messageBytesEncoded.bytes, count: messageBytesEncoded.bytes.count),
                                 completion: NWConnection.SendCompletion.contentProcessed { (error) in
@@ -110,14 +123,13 @@ class CertificateServer {
                                     } else {
                                         print("Cert sent successfully")
                                     }
+                                    print("releasing connection")
                                     // release the connection here when transfer completed or failed
-                                    self.connections.removeValue(forKey: connection.endpoint)
+//                                    self.connections.removeValue(forKey: connection.endpoint)
+                                    onComplete()
                 })
                 
             }
-            
         }
-        
     }
-    
 }

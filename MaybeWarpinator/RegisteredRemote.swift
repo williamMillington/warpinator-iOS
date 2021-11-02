@@ -46,7 +46,6 @@ public struct UnregisteredRemote {
     
     var serviceAvailable: Bool = false
     
-    
 }
 
 

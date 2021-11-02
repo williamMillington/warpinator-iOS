@@ -15,6 +15,7 @@ class MainService {
     public static var shared: MainService!
     
     var server: Server = Server()
+    var registrationServer = RegistrationServer()
     var remoteManager: RemoteManager = RemoteManager()
     
     init(){
@@ -25,6 +26,7 @@ class MainService {
     
     func start(){
 
+        registrationServer.start()
         server.start()
         
         

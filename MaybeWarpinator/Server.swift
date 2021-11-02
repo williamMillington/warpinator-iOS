@@ -9,13 +9,13 @@ import UIKit
 
 import GRPC
 import NIO
-import NIOSSL
-import SwiftProtobuf
+//import NIOSSL
+//import SwiftProtobuf
 
 import Network
 
-import CryptoKit
-import Sodium
+//import CryptoKit
+//import Sodium
 
 
 public class Server: NSObject {
@@ -34,12 +34,14 @@ public class Server: NSObject {
     
     
     public var transfer_port: Int = Server.transfer_port
-    public var registration_port: Int = Server.registration_port
+    private var registration_port: Int = Server.registration_port
     
-    public var uuid: String = "WarpinatorIOS"
     public var displayName: String = "iOS_Device"
     
-    public lazy var hostname = uuid
+    public static var SERVER_UUID: String = "WarpinatorIOS"
+    
+    private lazy var uuid: String = Server.SERVER_UUID
+    public lazy var hostname = Server.SERVER_UUID
     
     var myService: NetService?
     let serviceBrowser = NetServiceBrowser()
@@ -49,13 +51,13 @@ public class Server: NSObject {
     var certificateServer = CertificateServer()
     
     
-    private var gRPCServer: GRPC.Server?
+    private var transferServer: GRPC.Server?
+    private var eventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     
     private var registrationServer: GRPC.Server?
     private var eventLoopGroup2: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-    
-    private var eventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+
     
     private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
@@ -65,7 +67,8 @@ public class Server: NSObject {
     var mDNSListener: MDNSListener?
     
     
-    var remotes: [String: Remote] = [:]
+    var registrationConnections: [NWEndpoint: NWConnection] = [:]
+    var remotes: [String: RegisteredRemote] = [:]
     
     
     func start(){
@@ -80,147 +83,115 @@ public class Server: NSObject {
         
 //        publishWarpinatorService()
         
-        startRegistrationServer()
+//        startRegistrationServer()
         startWarpinatorServer()
         
-        mDNSBrowser = MDNSBrowser()
-        mDNSBrowser?.delegate = self
-        
-        mDNSListener = MDNSListener()
-        mDNSListener?.delegate = self
-        mDNSListener?.start()  //publishServiceAndListen()
+//        mDNSBrowser = MDNSBrowser()
+//        mDNSBrowser?.delegate = self
+//
+//        mDNSListener = MDNSListener()
+//        mDNSListener?.delegate = self
+//        mDNSListener?.start()  //publishServiceAndListen()
         
     }
     
     
     
-//    func publishWarpinatorService(){
-//
-//        myService = NetService(domain: "", type: SERVICE_TYPE,
-//                             name: uuid, port: Int32(registration_port))
-//
-//
-////        let properties: [String:String] = ["hostname":"mebbe_werpinator"]
-////        let txtRecord = NWTXTRecord(properties)
-////        let recordData = try! JSONEncoder().encode(properties)
-//
-//
-////        myService?.setTXTRecord( NetService.data(fromTXTRecord: txtRecord) )
-//
-////        (DEBUG_TAG+"My service hostname is: \(myService?.hostName)")
-//        myService?.includesPeerToPeer = true
-//
-//
-////        myService?.delegate = self
-//        myService?.publish(options: NetService.Options.listenForConnections)
-//
+    // MARK: - Registration Server
+//    func startRegistrationServer(){
+//        
+//        let serverBuilder = GRPC.Server.insecure(group: eventLoopGroup2)
+//        
+//        
+//        let registrationServerFuture = serverBuilder.withServiceProviders([warpinatorRegistrationProvider])
+//            .bind(host: "\(Utils.getIPV4Address())", port: registration_port)
+//            
+//        
+//        registrationServerFuture.whenComplete { result in
+////            print(self.DEBUG_TAG+"fetch registration server object")
+//            if let server = try? result.get() {
+////                print(self.DEBUG_TAG+"registration server stored")
+//                self.registrationServer = server
+//            } else { print(self.DEBUG_TAG+"Failed to get registration server") }
+//        }
+//        
+//        registrationServerFuture.map {
+//            $0.channel.localAddress
+//        }.whenSuccess { address in
+//            print(self.DEBUG_TAG+"registration server started on: \(String(describing: address))")
+//        }
+//        
+//        
+//        let closefuture = registrationServerFuture.flatMap {
+//            $0.onClose
+//        }
+//        
+//        closefuture.whenCompleteBlocking(onto: .main) { _ in
+//            print(self.DEBUG_TAG+" registration server exited")
+//        }
+//        closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
+//            try! self.eventLoopGroup2.syncShutdownGracefully()
+//        }
 //    }
     
     
     
-    func startRegistrationServer(){
-        
-        let serverBuilder = GRPC.Server.insecure(group: eventLoopGroup2)
-        
-        let keepalive = ServerConnectionKeepalive(interval: .seconds(30) )
-        let gRPCRegistrationServerFuture = serverBuilder.withServiceProviders([warpinatorRegistrationProvider])
-            .withKeepalive(keepalive)
-            .bind(host: "\(Utils.getIPAddress())", port: registration_port)
-        
-        
-        gRPCRegistrationServerFuture.whenComplete { result in
-            print(self.DEBUG_TAG+"fetch registration server object")
-            if let server = try? result.get() {
-                print(self.DEBUG_TAG+"registration server stored")
-                self.registrationServer = server
-            } else { print(self.DEBUG_TAG+"Failed to get registration server") }
-        }
-        
-        gRPCRegistrationServerFuture.map {
-            $0.channel.localAddress
-        }.whenSuccess { address in
-            print(self.DEBUG_TAG+"registration server started on: \(String(describing: address))")
-        }
-        
-        
-        let closefuture = gRPCRegistrationServerFuture.flatMap {
-            $0.onClose
-        }
-        
-        closefuture.whenCompleteBlocking(onto: .main) { _ in
-            print(self.DEBUG_TAG+"server exited")
-        }
-        closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
-            try! self.eventLoopGroup2.syncShutdownGracefully()
-        }
-    }
     
     
     
-    
-    
-    
-    
+    // MARK: - Transfer Server
     func startWarpinatorServer(){
         
-        guard let certificate = Authenticator.shared.getServerCertificate() else { return }
-        guard let privateKey = Authenticator.shared.getServerPrivateKey() else { return }
+        
+//        let _ = Authenticator.shared.generateNewCertificate(forHostname: "\(Server.SERVER_UUID)")
         
         
-        
-        var tlsConfig = TLSConfiguration.makeServerConfiguration(certificateChain: [.certificate(certificate) ] ,
-                                                                 privateKey: .privateKey(privateKey) )
-        tlsConfig.additionalTrustRoots = [ .certificates([certificate]) ]
-        tlsConfig.certificateVerification = CertificateVerification.noHostnameVerification
+//        let authority = Authenticator.shared.getServerCertificateBundle()      //getSigningAuthority()
+        guard let serverCertificate = Authenticator.shared.getServerCertificate() else { return }
+        guard let serverPrivateKey = Authenticator.shared.getServerPrivateKey() else { return }
         
         
-        let gRPCConfig = GRPCTLSConfiguration.makeServerConfigurationBackedByNIOSSL(configuration: tlsConfig)
+//        print(DEBUG_TAG+"CA is \(authority)")
+        print(DEBUG_TAG+"certificate is \(serverCertificate)")
+        print(DEBUG_TAG+"privatekey is \(serverPrivateKey)")
         
-        
-        let serverBuilder = GRPC.Server.usingTLS(with: gRPCConfig,
-                                                 on: eventLoopGroup)
         
         let keepalive = ServerConnectionKeepalive(interval: .seconds(30) )
-        let gRPCServerFuture = serverBuilder.withServiceProviders([warpinatorProvider])
+        let serverBuilder = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
+                                                               certificateChain: [ serverCertificate  ],
+                                                               privateKey: serverPrivateKey)
+            .withTLS(trustRoots: .certificates( [serverCertificate] ) )
+            .withServiceProviders([warpinatorProvider])
             .withKeepalive(keepalive)
-            .bind(host: "\(Utils.getIPAddress())", port: transfer_port)
+        
+        let transferFuture = serverBuilder
+            .bind(host: "\(Utils.getIPV4Address())", port: transfer_port)
         
         
         
         
-        
-        gRPCServerFuture.whenComplete { result in
-            print("fetch server object")
+        transferFuture.whenComplete { result in
+//            print("fetch transfer server object")
             if let server = try? result.get() {
-                print("server stored")
-                self.gRPCServer = server
-            } else { print(self.DEBUG_TAG+"Failed to get server") }
+//                print("transfer server stored")
+                self.transferServer = server
+            } else { print(self.DEBUG_TAG+"Failed to get transfer server") }
         }
         
-//        do {
-//            let certificate = try NIOSSLCertificate.fromPEMFile(certificateFilePath)
-//        } catch {
-//            print(DEBUG_TAG+"Error getting certificate from file")
-//        }
- 
-//        gRPCServer = GRPC.Server.insecure(group: group)
-//            .withServiceProviders([warpinatorProvider])
-//            .bind(host: "localhost", port: transfer_port)
-            
         
-        gRPCServerFuture.map {
+        transferFuture.map {
             $0.channel.localAddress
         }.whenSuccess { address in
-            print(self.DEBUG_TAG+"gRPC server started on port: \(String(describing: address))")
+            print(self.DEBUG_TAG+"transfer server started on port: \(String(describing: address))")
         }
         
         
-        let closefuture = gRPCServerFuture.flatMap {
+        let closefuture = transferFuture.flatMap {
             $0.onClose
         }
         
         closefuture.whenCompleteBlocking(onto: .main) { _ in
-            print(self.DEBUG_TAG+"server exited")
+            print(self.DEBUG_TAG+"transfer server exited")
         }
         closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
             try! self.eventLoopGroup.syncShutdownGracefully()
@@ -229,14 +200,9 @@ public class Server: NSObject {
     
     
     // MARK: - Add remote
-    func addRemote(_ remote: Remote){
-        
-//        remote.group = eventLoopGroup
+    func addRemote(_ remote: RegisteredRemote){
         remotes[remote.uuid] = remote
-        
-        remote.connect()
     }
-    
     
 }
 
@@ -251,7 +217,25 @@ extension Server: MDNSListenerDelegate {
         mDNSBrowser?.startBrowsing()
     }
     
-    func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection) {}
+    func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection) {
+        print(DEBUG_TAG+"BOOM nothing")
+//        print(DEBUG_TAG+"listener established connection")
+//
+//        registrationConnections[connection.endpoint] = connection
+//
+//        connection.stateUpdateHandler = { [self] newState in
+////            print("state updated")
+//            switch newState {
+//            case.ready: print(DEBUG_TAG+"established connection to \(connection.endpoint) is ready")
+//                self.certificateServer.serveCertificate(to: connection) {
+//                    self.registrationConnections.removeValue(forKey: connection.endpoint)
+//                }
+//            default: print(DEBUG_TAG+"new connection \(connection.endpoint), state: \(newState)")
+//            }
+//        }
+//        connection.start(queue: .main)
+        
+    }
 }
 
 
@@ -261,27 +245,25 @@ extension Server: MDNSBrowserDelegate {
     
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
-        print(DEBUG_TAG+"mDNSBrowser did add result:")
-        print("\t\(result.endpoint)")
-        print("\t\(result.metadata)")
-        print("\t\(result.interfaces)")
-        
         switch result.endpoint {
         case .hostPort(host: _, port: _): break
             
         case .service(name: let name, type: _, domain: _, interface: _):
             if name == uuid {
-                print(DEBUG_TAG+"C'est moi (\(result.endpoint)"); return
+                print(DEBUG_TAG+"Found myself (\(result.endpoint)"); return
             } else {
                 print(DEBUG_TAG+"service discovered: \(name)")
             }
         default: print(DEBUG_TAG+"unknown service endpoint: \(result.endpoint)"); return
         }
         
-        print(DEBUG_TAG+"adding remote")
         
-//        let remote = Remote(connection: connection)
-        let remote = Remote(endpoint: result.endpoint)
+        print(DEBUG_TAG+"mDNSBrowser did add result:")
+        print("\t\(result.endpoint)")
+        print("\t\(result.metadata)")
+        print("\t\(result.interfaces)")
+        
+        let remote = RegisteredRemote(endpoint: result.endpoint)
         
         
 //        if case let NWEndpoint.hostPort(host: host, port: port) = result.endpoint {
@@ -289,224 +271,28 @@ extension Server: MDNSBrowserDelegate {
 //            remote.port = port
 //        }
         
-        var hostname = ""
+        
+        // if the metadata has a record "type",
+        // and if type is 'flush', then ignore this service
+        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
+           let type = record.dictionary["type"],
+           type == "flush" {
+            print(DEBUG_TAG+"service is flushing; ignore"); return
+        }
+        
         if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata {
             if let hn = record.dictionary["hostname"] {
-                hostname = hn
+                remote.hostname = hn
             }
         }
         
-        remote.hostname = hostname
+        print(DEBUG_TAG+"adding remote")
+        
+//        remote.hostname = hostname
         remote.serviceAvailable = true
         
         addRemote(remote)
         remote.connect()
-////        if let addressData = sender.addresses?.first {
-////            remote.IPAddress = String(data: addressData, encoding: .utf8) ?? "No address"
-////            remote.port = sender.port
-////        }
-////
-////        remote.hostname = sender.hostName ?? "No hostname"
-////        remote.port = sender.port
-////        remote.serviceName = serviceName
-////        remote.uuid = serviceName
-//
-//        remote.serviceAvailable = true
-//
-//        addRemote(remote)
-        
-        
     }
     
-    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// MARK: - NetServiceDelegate
-//extension Server: NetServiceDelegate {
-//
-//    public func netServiceWillPublish(_ sender: NetService) {
-//        print("Will publish \(sender.name)")
-//    }
-//
-//    public func netServiceDidPublish(_ sender: NetService) {
-//        print("Did publish \(sender.name)")
-//    }
-//
-//    public func netServiceWillResolve(_ sender: NetService) {
-////        print("\tWill attempt to resolve \(sender.name)")
-//
-//
-//        if let _ = savedServices[sender.name] {
-//            print("\t\tService under name: \(sender.name) is already saved")
-//        } else {
-//            print("\t\tAdding service under name: \(sender.name)")
-//            savedServices[sender.name] = sender
-//        }
-//    }
-//
-//    public func netServiceDidResolveAddress(_ sender: NetService) {
-////        print("=================================================================================")
-//        print("\tDid resolve \(sender.name)")
-//        print("\t\thostname: \"\(sender.hostName ?? "No name")\"")
-//        print("\t\tdomain: \"\(sender.domain)\"")
-//        print("\t\tport: \"\(sender.port)\"")
-//        print("\t\ttype: \"\(sender.type)\"")
-//
-//        let serviceName = sender.name
-//
-//
-//        if let remote = remotes.first(where: { (key: String, remote: Remote) in
-//            return key == serviceName
-//        })?.value {
-//
-//            print("\t\tRemote exists, updating...")
-//
-//            remote.hostname = sender.hostName ?? remote.hostname
-//            remote.serviceAvailable = true
-//
-//            if remote.status == Remote.RemoteStatus.Disconnected ||
-//                remote.status == Remote.RemoteStatus.Error {
-//
-//                if let addressData = sender.addresses?.first {
-//                    remote.IPAddress = String(data: addressData, encoding: .utf8) ?? "No address"
-//                    remote.port = sender.port
-//                }
-//
-////                remote.connect()
-//            }
-//
-//
-//        } else {
-//
-//            print("\t\tCreating remote...")
-//            let remote = Remote()
-//
-//            if let addressData = sender.addresses?.first {
-//                remote.IPAddress = String(data: addressData, encoding: .utf8) ?? "No address"
-//                remote.port = sender.port
-//            }
-//
-//            remote.hostname = sender.hostName ?? "No hostname"
-//            remote.port = sender.port
-//            remote.serviceName = serviceName
-//            remote.uuid = serviceName
-//            remote.serviceAvailable = true
-//
-//
-//            addRemote(remote)
-//        }
-//
-//    }
-//
-//
-//
-//    public func netService(_ sender: NetService, didNotResolve errorDict: [String : NSNumber]) {
-//        print("Failed to resolve: \(sender.name)")
-//
-//        for (_,error) in errorDict.enumerated() {
-//            print("\t\(error)")
-//        }
-//    }
-//
-//    public func netService(_ sender: NetService, didAcceptConnectionWith inputStream: InputStream, outputStream: OutputStream) {
-//            print("\(sender.name) accepted stream connection")
-//    }
-//
-//}
-//
-//
-//
-//
-//// MARK: -NetServiceBrowserDelegate
-//extension Server: NetServiceBrowserDelegate {
-//
-//    public func netServiceBrowser(_ browser: NetServiceBrowser, didFind service: NetService, moreComing: Bool) {
-//
-//        print("found service")
-//
-//        if service.name != uuid {
-//            print("\tFound external service: \(service.name)")
-//
-//            if service.port == -1 {
-//                print("\t\tResolving...")
-//                service.delegate = self
-//                service.resolve(withTimeout: 5)
-//            }
-//        } else {
-//            print("found myself: \(service.name)")
-//        }
-//
-//    }
-//
-//    public func netServiceBrowser(_ browser: NetServiceBrowser, didFindDomain domainString: String, moreComing: Bool) {
-//
-//        print("Found domain: \(domainString)")
-//        print("\tinitiating search for services of type \(SERVICE_TYPE) on \(domainString)...")
-//
-//    }
-//
-//
-//    public func netServiceBrowser(_ browser: NetServiceBrowser, didRemove service: NetService, moreComing: Bool) {
-//
-//        print("Removed service: \(service.name)")
-//        savedServices.removeValue(forKey: service.name)
-//    }
-//
-//    public func netServiceBrowser(_ browser: NetServiceBrowser, didRemoveDomain domainString: String, moreComing: Bool) {
-//
-//        print("Removed domain: \(domainString)")
-//
-//    }
-//
-//
-//    public func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String : NSNumber]) {
-//        print("Encountered error: ")
-//        for (_, error) in errorDict.enumerated() {
-//            print(error)
-//        }
-//    }
-//
-//    public func netServiceBrowserWillSearch(_ browser: NetServiceBrowser) {
-//        print("Searching...")
-//    }
-//
-//    public func netServiceBrowserDidStopSearch(_ browser: NetServiceBrowser) {
-//        print("...stopped searching.")
-//    }
-//
-//}
