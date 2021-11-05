@@ -15,48 +15,199 @@ import Network
 
 
 
+enum RegistrationError: Error {
+    case TimeOut
+    case ConnectionError
+    case CertificateError
+}
 
-
-class RegistrationConnection {
+// MARK: - RegistrationConnection
+protocol RegistrationConnection {
     
-    private var DEBUG_TAG: String = "RegistrationConnection"
+    var details: RemoteDetails { get }
+    var registrationServer: RegistrationServer { get }
+    
+    var uuid: Int { get }
+    var attempts: Int { get set }
+    
+    func register()
+}
+
+
+
+// MARK: - UDPConnection
+class UDPConnection: RegistrationConnection {
+    
+    private let DEBUG_TAG: String = "UDPConnection: "
+    
+    var details: RemoteDetails
+    var registrationServer: RegistrationServer
+    
+    var uuid: Int {
+        return details.endpoint.hashValue
+    }
+    
+    var attempts: Int = 0
     
     var endpoint: NWEndpoint
-    var connection: NWConnection?
+    var connection: NWConnection
     
-    var onReady: ()->Void
     
-    init?(to destinationEndpoint: NWEndpoint, onReady: @escaping ()->Void = {} ){
+    init(_ candidate: RemoteDetails, server: RegistrationServer) {
+        self.details = candidate
+        registrationServer = server
         
-        self.onReady = onReady
-        
-        switch destinationEndpoint {
-        case .hostPort(host: _, port: _):
-            print(DEBUG_TAG+"creating connection to host/port")
-            endpoint = destinationEndpoint
-        case .service(name: _, type: _, domain: _, interface: _):
-            print(DEBUG_TAG+"creating connection to service")
-            endpoint = destinationEndpoint
-        default: print(DEBUG_TAG+"unknown service endpoint type: \(destinationEndpoint)"); return nil
-        }
+        endpoint = candidate.endpoint
         
         let params = NWParameters.udp
         params.allowLocalEndpointReuse = true
         params.allowFastOpen = true
         
         connection = NWConnection(to: endpoint, using: params)
-        connection?.stateUpdateHandler = { newState in
+        connection.stateUpdateHandler = { newState in
             switch newState {
             case .ready: print(self.DEBUG_TAG+"connection to \(self.endpoint) ready");
-                self.onReady()
+                self.sendCertificateRequest()
             default: print(self.DEBUG_TAG+"connection to \(self.endpoint) state updated: \(newState)")
             }
         }
-        connection?.start(queue: .main)
+        
+    }
+    
+    
+    func register(){
+        
+        details.status = .InProgress
+        
+        connection.start(queue: .main)
+    }
+    
+    
+    private func sendCertificateRequest(  ){
+        print(DEBUG_TAG+"api_v1_fetching certificate")
+
+        let requestStringBytes = "REQUEST".bytes
+        connection.send(content: requestStringBytes,
+                        completion: NWConnection.SendCompletion.contentProcessed { error in
+
+                            if error == nil {
+                                self.receiveCertificate()
+                            } else {
+                                print(self.DEBUG_TAG+"request failed: \(String(describing: error))")
+                            }
+
+                        })
+    }
+    
+    
+    private func receiveCertificate(){
+        
+        // RECEIVING CERTIFICATE
+        connection.receiveMessage  { (data, context, isComplete, error) in
+
+            if isComplete {
+
+                if let concrete_data = data,
+                   let decodedCertificateData = Data(base64Encoded: concrete_data, options: .ignoreUnknownCharacters  ) {
+
+                    guard let certificate = Authenticator.shared.unlockCertificate(decodedCertificateData) else {
+                        print(self.DEBUG_TAG+"failed to unlock certificate"); return
+                    }
+                    
+                    self.registrationServer.registrationSucceeded(forRemote: self.details, certificate: certificate)
+//                                        self.openChannel(withCertificate: certificate)
+
+                } else {  print("Failed to decode certificate")  }
+
+            } else {   print("No data received") }
+        }
+        
     }
     
 }
 
+
+
+
+// MARK: - GRPCConnection
+class GRPCConnection: RegistrationConnection {
+    
+    private let DEBUG_TAG: String = "GRPCConnection: "
+    
+    var details: RemoteDetails
+    var registrationServer: RegistrationServer
+    
+    var uuid: Int {
+        return details.endpoint.hashValue
+    }
+    
+    var attempts: Int = 0
+    
+    var channel: ClientConnection
+    var warpClient: WarpRegistrationClient
+    
+    let group = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    
+    
+    init(_ candidate: RemoteDetails, server: RegistrationServer) {
+        self.details = candidate
+        registrationServer = server
+        
+        
+        let port = details.authPort
+        let hostname = details.hostname
+        
+        channel = ClientConnection.insecure(group: group).connect(host: hostname, port: port)
+        warpClient = WarpRegistrationClient(channel: channel)
+    }
+    
+    
+    func register(){
+        
+        details.status = .InProgress
+        
+        sendCertificateRequest()
+    }
+    
+    
+    func sendCertificateRequest() {
+        print("attempting api2 request")
+        
+        let request: RegRequest = .with {
+            $0.hostname = Server.SERVER_UUID
+            $0.ip = Utils.getIPV4Address()
+        }
+        let options = CallOptions(timeLimit: .timeout( .seconds(5)) )
+
+        let registrationRequest = warpClient.requestCertificate(request, callOptions: options)
+
+        registrationRequest.response.whenSuccess { result in
+            print(self.DEBUG_TAG+"request succeeded ")
+//            print("cert is \(result.lockedCert)")
+            if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
+                self.registrationServer.registrationSucceeded(forRemote: self.details, certificate: certificate)
+            } else {
+                self.registrationServer.registrationFailed(forRemote: self.details, .CertificateError)
+            }
+        }
+        
+        registrationRequest.response.whenFailure { error in
+            print(self.DEBUG_TAG+"request failed with error: \(error)")
+            self.registrationServer.registrationFailed(forRemote: self.details, .ConnectionError)
+        }
+    }
+    
+}
+
+
+
+
+
+
+
+
+
+// MARK: - Registration Server
 class RegistrationServer {
     
     private let DEBUG_TAG: String = "RegistrationServer: "
@@ -79,18 +230,18 @@ class RegistrationServer {
     var mDNSBrowser: MDNSBrowser?
     var mDNSListener: MDNSListener?
     
-    var registrationCandidates: [String: UnregisteredRemote] = [:]
+    var registrationCandidates: [Int: RegistrationConnection] = [:]
     
     private var registrationServer: GRPC.Server?
     private var eventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
                                                                                           networkPreference: .best)
 
-    
     private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
     
     
     
+    // MARK: - start server
     func start(){
         
         mDNSBrowser = MDNSBrowser()
@@ -102,10 +253,8 @@ class RegistrationServer {
         
         
         
-        let serverBuilder = GRPC.Server.insecure(group: eventLoopGroup)
-        
-        
-        let registrationServerFuture = serverBuilder.withServiceProviders([warpinatorRegistrationProvider])
+        let registrationServerFuture = GRPC.Server.insecure(group: eventLoopGroup)
+            .withServiceProviders([warpinatorRegistrationProvider])
             .bind(host: "\(Utils.getIPV4Address())", port: registration_port)
             
         
@@ -138,23 +287,36 @@ class RegistrationServer {
     
     
     
-    func register(_ candidate: UnregisteredRemote){
+    // MARK: - register
+    func register(_ candidate: RemoteDetails){
         
-//        // establish connection with unregistered remote
-//        let params = NWParameters.udp
-//        params.allowLocalEndpointReuse = true
-//        params.allowFastOpen = true
-//
-//        let connection = NWConnection(to: endpoint, using: params)
-//        connection?.stateUpdateHandler = { newState in
-//            switch newState {
-//            case .ready: print(self.DEBUG_TAG+"connection ready");
-//
-//                self.api_v1_fetchCertificate()
-//            default: print(self.DEBUG_TAG+"state updated: \(newState)")
-//            }
-//        }
-//        connection?.start(queue: .main)
+        print(DEBUG_TAG+"attempting to register remote")
+        
+        // api_1: use udp to authenticate
+        // api_2: use GRPC call
+        let newConnection: RegistrationConnection
+        if candidate.api == "1" {
+            newConnection = UDPConnection(candidate, server: self)
+        } else {
+            newConnection = GRPCConnection(candidate, server: self)
+        }
+        
+        registrationCandidates[newConnection.uuid] = newConnection
+        
+        
+        newConnection.register()
+        
+    }
+    
+    
+    // MARK: - registrations success
+    func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
+        
+        print(DEBUG_TAG+"registration succeeded")
+        
+        
+        
+        
         
         
         
@@ -162,7 +324,22 @@ class RegistrationServer {
     
     
     
+    // MARK: - registrations failure
+    func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError){
+        
+        print(DEBUG_TAG+"registration succeeded")
+        
+        
+        
+    }
+    
+    
 }
+
+
+
+
+
 
 
 
@@ -176,7 +353,6 @@ extension RegistrationServer: MDNSListenerDelegate {
     }
     
     func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection) {
-        
             print(DEBUG_TAG+"BOOM nothing")
     }
 }
@@ -198,8 +374,6 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         
         switch result.endpoint {
-        case .hostPort(host: _, port: _): break
-            
         case .service(name: let name, type: _, domain: _, interface: _):
             if name == uuid {
                 print(DEBUG_TAG+"Found myself (\(result.endpoint)"); return
@@ -216,17 +390,27 @@ extension RegistrationServer: MDNSBrowserDelegate {
         print("\t\(result.interfaces)")
         
         
-        var candidate = UnregisteredRemote(endpoint: result.endpoint)
+        var details = RemoteDetails(endpoint: result.endpoint)
+        details.api = "1"
+        details.authPort = 42000 //"42000"
         
-        
-        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata {
-            if let hn = record.dictionary["hostname"] {
-                candidate.hostname = hn
+        // parse TXT record for metadata
+        if case let NWBrowser.Result.Metadata.bonjour(TXTrecord) = result.metadata {
+            
+            for (key, value) in TXTrecord.dictionary {
+                switch key {
+                case "hostname": details.hostname = value
+                case "api-version": details.api = value
+                case "auth-port": details.authPort = Int(value) ?? 42000
+                case "type": break
+                default: print("unknown TXT record type: \(key)-\(value)")
+                }
             }
         }
+        details.status = .Disconnected
         
-        print(DEBUG_TAG+"adding remote")
-
+        
+        register(details)
     }
     
 }

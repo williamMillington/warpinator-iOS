@@ -28,10 +28,6 @@
 		79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B00232271C9DEE003CEBCC /* RemoteManager.swift */; };
 		79B00237272440E4003CEBCC /* Shield in Frameworks */ = {isa = PBXBuildFile; productRef = 79B00236272440E4003CEBCC /* Shield */; };
 		79B002452729B425003CEBCC /* KeyMaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002442729B425003CEBCC /* KeyMaster.swift */; };
-		79B00256272DC0CA003CEBCC /* certificate_key.pem in Resources */ = {isa = PBXBuildFile; fileRef = 79B00252272DC0C9003CEBCC /* certificate_key.pem */; };
-		79B00257272DC0CA003CEBCC /* certificate_key.key in Resources */ = {isa = PBXBuildFile; fileRef = 79B00253272DC0C9003CEBCC /* certificate_key.key */; };
-		79B00258272DC0CA003CEBCC /* certificate.cer in Resources */ = {isa = PBXBuildFile; fileRef = 79B00254272DC0C9003CEBCC /* certificate.cer */; };
-		79B00259272DC0CA003CEBCC /* certificate.pem in Resources */ = {isa = PBXBuildFile; fileRef = 79B00255272DC0C9003CEBCC /* certificate.pem */; };
 		79B0029A272F7451003CEBCC /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 79B00298272F7451003CEBCC /* root.pem */; };
 		79B0029B272F7451003CEBCC /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 79B00299272F7451003CEBCC /* rootkey.key */; };
 		79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0029D27308798003CEBCC /* RegistrationServer.swift */; };
@@ -65,10 +61,6 @@
 		79B0022F2719FCCB003CEBCC /* MDNSListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSListener.swift; sourceTree = "<group>"; };
 		79B00232271C9DEE003CEBCC /* RemoteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManager.swift; sourceTree = "<group>"; };
 		79B002442729B425003CEBCC /* KeyMaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyMaster.swift; sourceTree = "<group>"; };
-		79B00252272DC0C9003CEBCC /* certificate_key.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = certificate_key.pem; sourceTree = "<group>"; };
-		79B00253272DC0C9003CEBCC /* certificate_key.key */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = certificate_key.key; sourceTree = "<group>"; };
-		79B00254272DC0C9003CEBCC /* certificate.cer */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = certificate.cer; sourceTree = "<group>"; };
-		79B00255272DC0C9003CEBCC /* certificate.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = certificate.pem; sourceTree = "<group>"; };
 		79B00298272F7451003CEBCC /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
 		79B00299272F7451003CEBCC /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
 		79B0029D27308798003CEBCC /* RegistrationServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationServer.swift; sourceTree = "<group>"; };
@@ -100,7 +92,6 @@
 		79360EA727069897008349D2 = {
 			isa = PBXGroup;
 			children = (
-				79B00232271C9DEE003CEBCC /* RemoteManager.swift */,
 				79360EB227069897008349D2 /* MaybeWarpinator */,
 				79360EB127069897008349D2 /* Products */,
 				79C0029C270A90EC002DB22B /* Frameworks */,
@@ -132,8 +123,9 @@
 				79360EBE27069899008349D2 /* LaunchScreen.storyboard */,
 				79360EB927069897008349D2 /* Main.storyboard */,
 				79C002BA270E670C002DB22B /* MainService.swift */,
-				79B0029D27308798003CEBCC /* RegistrationServer.swift */,
+				79B00232271C9DEE003CEBCC /* RemoteManager.swift */,
 				79360ED4270A29B0008349D2 /* RegisteredRemote.swift */,
+				79B0029D27308798003CEBCC /* RegistrationServer.swift */,
 				79360EB527069897008349D2 /* SceneDelegate.swift */,
 				79C002B3270BCC4E002DB22B /* Server.swift */,
 				79C002B0270BC1A9002DB22B /* TestServiceProvider.swift */,
@@ -159,10 +151,6 @@
 			children = (
 				79B00298272F7451003CEBCC /* root.pem */,
 				79B00299272F7451003CEBCC /* rootkey.key */,
-				79B00253272DC0C9003CEBCC /* certificate_key.key */,
-				79B00252272DC0C9003CEBCC /* certificate_key.pem */,
-				79B00254272DC0C9003CEBCC /* certificate.cer */,
-				79B00255272DC0C9003CEBCC /* certificate.pem */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -266,15 +254,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */,
-				79B00258272DC0CA003CEBCC /* certificate.cer in Resources */,
-				79B00259272DC0CA003CEBCC /* certificate.pem in Resources */,
-				79B00256272DC0CA003CEBCC /* certificate_key.pem in Resources */,
 				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
 				79B0029A272F7451003CEBCC /* root.pem in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
 				79B0029B272F7451003CEBCC /* rootkey.key in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
-				79B00257272DC0CA003CEBCC /* certificate_key.key in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
