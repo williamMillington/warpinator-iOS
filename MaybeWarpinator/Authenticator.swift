@@ -135,56 +135,30 @@ class Authenticator {
     }
     
     
-    // MARK: - get server bytes
-    func getServerCertificateBytes() -> Data? {
-        
-        
-        guard let certificate = loadServerCertificateFromFile() else {
-            print(DEBUG_TAG+"Error loading certificate from file"); return nil
-        }
-        
-        return Data( try! certificate.toDERBytes() )
-        
-        
-        
-        
-//        do {
+    // MARK get server bytes
+//    func getServerCertificateBytes() -> Data? {
 //
-//            if let certBytes = try? KeyMaster.readCertificate(forKey: uuid) {
-//                return certBytes
 //
-//            } else {
-//                print(DEBUG_TAG+"no certificate in keychain")
-//
-//                let certBytes = generateNewCertificate(forHostname: uuid)
-//
-//                try KeyMaster.saveCertificate(data: certBytes, forKey: uuid)
-//
-//                return certBytes
-//            }
-//
-//        } catch let error as KeyMaster.KeyMasterError {
-//            print("getServerCertificateBytes KeyMaster error: \(error)")
-//        } catch {
-//            print("couldn't create NIOSSLCertificate from data \(error)")
+//        guard let certificate = loadServerCertificateFromFile() else {
+//            print(DEBUG_TAG+"Error loading certificate from file"); return nil
 //        }
-//        return nil
-    }
+//
+//        return Data( try! certificate.toDERBytes() )
+//
+//    }
     
-    // MARK: - get server bundle
-    func getServerCertificateBundle() -> [NIOSSLCertificate] {
-
-        return loadCertificateBundleFromFile()
-//        return loadCertificateFromKeychain()
-    }
+    // MARK get server bundle
+//    func getServerCertificateBundle() -> [NIOSSLCertificate] {
+//
+//        return loadCertificateBundleFromFile()
+////        return loadCertificateFromKeychain()
+//    }
     
-    // MARK: - get server cert
-    func getSigningAuthority() -> [NIOSSLCertificate] {
-
-        return loadCAFromFile()
-//        return loadCertificateFromKeychain()
-        
-    }
+    // MARK - get server cert
+//    func getSigningAuthority() -> [NIOSSLCertificate] {
+//        return loadCAFromFile()
+////        return loadCertificateFromKeychain()
+//    }
     
     // MARK: - get server cert
     func getServerCertificate() -> NIOSSLCertificate? {
@@ -196,9 +170,7 @@ class Authenticator {
     
     // get server PK
     func getServerPrivateKey() -> NIOSSLPrivateKey? {
-
         return loadServerPrivateKeyFromFile()
-        
     }
     
     
@@ -318,32 +290,32 @@ class Authenticator {
 extension Authenticator {
     
     //
-    private func loadCertificateBundleFromFile() -> [NIOSSLCertificate] {
-        
-        let filename = "serverbundle"
-        let ext = "pem"
-        
-        let filepath = Bundle.main.path(forResource: filename,
-                                        ofType: ext)!
-        
-        print(DEBUG_TAG+"loading certificate bundle from \(filename).\(ext)")
-        
-        do {
-            
-            let certURL = URL(fileURLWithPath: filepath)
-            let certBytes = try! Data(contentsOf: certURL)
-            
-            let CA_chain = try NIOSSLCertificate.fromPEMBytes(Array(certBytes))
-            return CA_chain
-            
-        } catch {
-            print(DEBUG_TAG+"Error loading certificate bundle from file \(error)")
-        }
-        
-        return []
-    }
+//    private func loadCertificateBundleFromFile() -> [NIOSSLCertificate] {
+//
+//        let filename = "serverbundle"
+//        let ext = "pem"
+//
+//        let filepath = Bundle.main.path(forResource: filename,
+//                                        ofType: ext)!
+//
+//        print(DEBUG_TAG+"loading certificate bundle from \(filename).\(ext)")
+//
+//        do {
+//
+//            let certURL = URL(fileURLWithPath: filepath)
+//            let certBytes = try! Data(contentsOf: certURL)
+//
+//            let CA_chain = try NIOSSLCertificate.fromPEMBytes(Array(certBytes))
+//            return CA_chain
+//
+//        } catch {
+//            print(DEBUG_TAG+"Error loading certificate bundle from file \(error)")
+//        }
+//
+//        return []
+//    }
     
-    //
+    //MARK: certificate
     private func loadCAFromFile() -> [NIOSSLCertificate] {
         
         let filename = "root"
@@ -370,32 +342,32 @@ extension Authenticator {
     }
     
     //
-    private  func loadServerCertificateFromFile() -> NIOSSLCertificate? {
-        
-        let filename = "server"
-        let ext = "crt"
-        
-        let filepath = Bundle.main.path(forResource: filename,
-                                        ofType: ext)!
-        
-        print(DEBUG_TAG+"loading certificate from \(filename).\(ext)")
-        do {
-            
-            let certURL = URL(fileURLWithPath: filepath)
-            let certBytes = try! Data(contentsOf: certURL)
-            
-            let certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .pem)
-            
-            return certificate
-            
-        } catch {
-            print(DEBUG_TAG+"Error loading certificate from file \(error)")
-        }
-        return nil
-    }
+//    private  func loadServerCertificateFromFile() -> NIOSSLCertificate? {
+//
+//        let filename = "server"
+//        let ext = "crt"
+//
+//        let filepath = Bundle.main.path(forResource: filename,
+//                                        ofType: ext)!
+//
+//        print(DEBUG_TAG+"loading certificate from \(filename).\(ext)")
+//        do {
+//
+//            let certURL = URL(fileURLWithPath: filepath)
+//            let certBytes = try! Data(contentsOf: certURL)
+//
+//            let certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .pem)
+//
+//            return certificate
+//
+//        } catch {
+//            print(DEBUG_TAG+"Error loading certificate from file \(error)")
+//        }
+//        return nil
+//    }
     
     
-    //
+    //MARK: private key
     private  func loadServerPrivateKeyFromFile() -> NIOSSLPrivateKey? {
         
 //        let filename = "server"

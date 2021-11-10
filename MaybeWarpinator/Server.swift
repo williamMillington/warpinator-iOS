@@ -64,7 +64,7 @@ public class Server: NSObject {
     
     
 //    var registrationConnections: [NWEndpoint: NWConnection] = [:]
-//    var remotes: [String: RegisteredRemote] = [:]
+//    var remotes: [String: Remote] = [:]
     
     
     var remoteManager: RemoteManager? {
@@ -202,7 +202,7 @@ public class Server: NSObject {
     
     
     // MARK Add remote
-//    func addRemote(_ remote: RegisteredRemote){
+//    func addRemote(_ remote: Remote){
 //        remotes[remote.uuid] = remote
 //    }
     

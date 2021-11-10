@@ -13,10 +13,10 @@ import Network
 class RemoteManager {
     
     
-    var remotes: [String: RegisteredRemote] = [:]
+    var remotes: [String: Remote] = [:]
     
     
-    func addRemote(_ remote: RegisteredRemote){
+    func addRemote(_ remote: Remote){
         
         remotes[remote.details.uuid] = remote
         
@@ -34,7 +34,7 @@ class RemoteManager {
     
     
     @discardableResult
-    func containsRemote(for uuid: String) -> RegisteredRemote? {
+    func containsRemote(for uuid: String) -> Remote? {
         
         if let remote = remotes.first(where: { (key, entry) in
             return entry.details.uuid == uuid })?.value {

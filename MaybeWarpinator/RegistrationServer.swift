@@ -64,7 +64,7 @@ class UDPConnection: RegistrationConnection {
         params.allowLocalEndpointReuse = true
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-            print(DEBUG_TAG+"restrict connection to v4")
+//            print(DEBUG_TAG+"restrict connection to v4")
             inetOptions.version = .v4
         }
         
@@ -327,7 +327,7 @@ class RegistrationServer {
         print(DEBUG_TAG+"registration succeeded")
         
         
-        let newRemote = RegisteredRemote(details: details, certificate: certificate)
+        let newRemote = Remote(details: details, certificate: certificate)
         
         
         remoteManager?.addRemote(newRemote)

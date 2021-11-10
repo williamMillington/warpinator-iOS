@@ -86,10 +86,10 @@ class MDNSListener {
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
         let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
+                                           "auth-port" : "\(Server.registration_port)",
+                                           "api-version": "2",
 //                                           "auth-port" : "\(Server.registration_port)",
-//                                           "api-version": "2",
-//                                           "auth-port" : "\(Server.registration_port)",
-                                           "api-version": "1",
+//                                           "api-version": "1",
                                            "type" : "real"]
         
         listener?.service = NWListener.Service(name: Server.SERVER_UUID, type: SERVICE_TYPE,
@@ -112,7 +112,7 @@ class MDNSListener {
         params.allowLocalEndpointReuse = true
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-            print(DEBUG_TAG+"set connection as v4")
+//            print(DEBUG_TAG+"set connection as v4")
             inetOptions.version = .v4
         }
                 

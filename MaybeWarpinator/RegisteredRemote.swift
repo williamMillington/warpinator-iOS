@@ -55,19 +55,14 @@ public struct RemoteDetails {
 
 
 // MARK: - Registered Remote
-public class RegisteredRemote {
+public class Remote {
     
     lazy var DEBUG_TAG: String = "REMOTE (hostname: \"\(details.hostname)\"): "
     
     var details: RemoteDetails
     
-//    public var serviceName: String = "No_ServiceName"
-//    public var username: String = "No_Username"
-//    public var hostname: String = "No_Hostname"
     public var displayName: String = "No_Display_Name"
-//    public var uuid: String = "NO_UUID"
     public var picture: UIImage?
-//    public var serviceAvailable: Bool = false
     
     var transfers: [Transfer] = []
     
@@ -82,29 +77,9 @@ public class RegisteredRemote {
     var duplexAttempts: Int = 0
     
     init(details: RemoteDetails, certificate: NIOSSLCertificate){
-//        self.init(endpoint: details.endpoint)
         self.details = details
         authenticationCertificate = certificate
     }
-    
-    
-//    convenience init(details: RemoteDetails, client: WarpClient){
-//        self.init(details: details)
-//        warpClient = client 
-//    }
-    
-//    convenience init(fromResult result: NWBrowser.Result){
-//        self.init(endpoint: result.endpoint)
-//
-//        switch endpoint {
-//        case .service(name: let name, type: _, domain: _, interface: _):
-//            hostname = name
-//            break
-//        default: print("not a service nor host/port pair")
-//        }
-//
-//    }
-    
     
     func connect(){
         
@@ -113,22 +88,30 @@ public class RegisteredRemote {
         
         if warpClient == nil {
             
-            var logger = Logger(label: "warpinator.RegisteredRemote", factory: StreamLogHandler.standardOutput)
+            var logger = Logger(label: "warpinator.Remote", factory: StreamLogHandler.standardOutput)
             logger.logLevel = .trace
             
             
-            let keepalive = ClientConnectionKeepalive(interval: .seconds(30) )
+            let keepalive = ClientConnectionKeepalive(interval: .milliseconds(10000) )
             let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
                 .withTLS(trustRoots: .certificates([authenticationCertificate!]) )
                 .withConnectivityStateDelegate(self)
-//                .withBackgroundActivityLogger(logger)
+                .withBackgroundActivityLogger(logger)
                 .withKeepalive(keepalive)
+                
+                
 //                .withTLS(certificateVerification: .noHostnameVerification)
                 
             
             let hostname = details.hostname
             let port = details.port
             
+            
+//            if let case NWEndpoint.hostPort(host: host, port: port) = details.endpoint {
+//
+//                print(DEBUG_TAG+"endpoint is type host/port")
+//
+//            }
             
             
             print(DEBUG_TAG+"Connecting to \(hostname):\(port)")
@@ -138,6 +121,7 @@ public class RegisteredRemote {
             if let channel = channel {
                 print(self.DEBUG_TAG+"channel created")
                 warpClient = WarpClient(channel: channel)
+                
                 details.status = .VerifyingDuplex
 //                ping()
                 verifyDuplex() //.Connected
@@ -145,83 +129,13 @@ public class RegisteredRemote {
                 details.status = .Error
             }
         }
-//        let params = NWParameters.udp
-//        params.allowLocalEndpointReuse = true
-//        params.allowFastOpen = true
-//
-//        connection = NWConnection(to: endpoint, using: params)
-//        connection?.stateUpdateHandler = { newState in
-//            switch newState {
-//            case .ready: print(self.DEBUG_TAG+"connection ready");
-//
-//                self.api_v1_fetchCertificate()
-//            default: print(self.DEBUG_TAG+"state updated: \(newState)")
-//            }
-//        }
-//        connection?.start(queue: .main)
-        
     }
     
     
-    // MARK: - Open Channel
+    // MARK Open Channel
     private func openChannel(withCertificate certificate: NIOSSLCertificate, onComplete: @escaping ()->Void = {} ){
         
-//        print(DEBUG_TAG+"opening channel to \(String(describing: connection?.endpoint))")
-//
-//
-//        let hostname = details.hostname
-//
-//
-//        let port = details.port // 42000
-//
-//        let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
-//            .withTLS(trustRoots:  .certificates([certificate])   )
-////            .withKeepalive( ClientConnectionKeepalive(interval: .seconds(30) ) )
-//            .withConnectivityStateDelegate(self)
-//
-//        guard hostname != "" else {
-//            print("no hostname")
-//            return
-//        }
-//
-//        channel = channelBuilder.connect(host: hostname, port: port)
-//
-//        if let channel = channel {
-//            warpClient = WarpClient(channel: channel)
-//        } else {
-//            print("channel setup failed")
-//        }
-        
-//        print(DEBUG_TAG+"client connection: \(warpClient.debugDescription)")
-        
-//        waitForDuplex()
-//        onComplete()
-        
     }
-    
-    
-//    private func waitForDuplex(onComplete: @escaping ()->Void = {} ){
-//
-//        print(DEBUG_TAG+"waiting for duplex...")
-//
-//        guard let client = warpClient else {
-//            print(DEBUG_TAG+"no client connection"); return
-//        }
-//
-//        let lookupname: LookupName = .with({
-//            $0.id =  Server.SERVER_UUID
-//            $0.readableName = "Warpinator iOS"
-//        })
-//
-//        let duplex = client.checkDuplexConnection(lookupname)
-//
-//        duplex.response.whenComplete { result in
-//            print("waitForDuplex: result is \(result)")
-//        }
-//
-//        print("duplex is \(duplex.response)")
-//
-//    }
     
     
     
@@ -253,7 +167,7 @@ public class RegisteredRemote {
         }
         
         
-        print(DEBUG_TAG+"time limit is \(duplex.options.timeLimit)")
+//        print(DEBUG_TAG+"time limit is \(duplex.options.timeLimit)")
         
         
         duplex.response.whenComplete { result in
@@ -341,24 +255,17 @@ public class RegisteredRemote {
     
     
     
-    
-    
-    
-    
-    
-    
 }
 
 
 
 
-extension RegisteredRemote: ConnectivityStateDelegate {
+extension Remote: ConnectivityStateDelegate {
     public func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
         print(DEBUG_TAG+"channel state has moved from \(oldState) to \(newState)")
         switch newState {
+//        case .connecting: ping()
         case .ready: print(DEBUG_TAG+"channel ready")
-//            verifyDuplex()
-//            waitForDuplex()
         default: break
         }
         

@@ -29,7 +29,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         if let remote = remoteManager?.containsRemote(for: id) {
             print(DEBUG_TAG+"(API_V1) Remote known")
             if remote.details.status == .VerifyingDuplex || remote.details.status == .Connected {
-                print(DEBUG_TAG+"(API_V1) Duplex verified")
+                print(DEBUG_TAG+"(API_V1) Duplex verified by remote")
                 duplexCheck = true
             }
         }
@@ -53,7 +53,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         if let remote = remoteManager?.containsRemote(for: id) {
             print(DEBUG_TAG+"(API_V2) Remote known")
             if remote.details.status == .VerifyingDuplex || remote.details.status == .Connected {
-                print(DEBUG_TAG+"(API_V2) Duplex verified")
+                print(DEBUG_TAG+"(API_V2) Duplex verified by remote")
                 duplexCheck = true
             }
         }
