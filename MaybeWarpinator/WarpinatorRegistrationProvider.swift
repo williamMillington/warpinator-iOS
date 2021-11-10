@@ -18,10 +18,11 @@ class WarpinatorRegistrationProvider: WarpRegistrationProvider {
     
     var interceptors: WarpRegistrationServerInterceptorFactoryProtocol?
     
+    var remoteManager: RemoteManager? 
+    
     public func requestCertificate(request: RegRequest, context: StatusOnlyCallContext) -> EventLoopFuture<RegResponse> {
         
         print(DEBUG_TAG+"serving locked certificate")
-        
         
         var response = RegResponse()
         

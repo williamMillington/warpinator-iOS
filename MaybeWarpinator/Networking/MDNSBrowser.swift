@@ -30,13 +30,20 @@ class MDNSBrowser {
     
     func startBrowsing(){
         
-        print("started browsing")
+        print(DEBUG_TAG+"started browsing")
         
-        let parameters = NWParameters()
-        parameters.includePeerToPeer = true
-        parameters.allowLocalEndpointReuse = true
+        let params = NWParameters()
+        params.includePeerToPeer = true
+        params.allowLocalEndpointReuse = true
         
-        browser = NWBrowser(for: .bonjourWithTXTRecord(type: SERVICE_TYPE, domain: SERVICE_DOMAIN), using: parameters)
+        
+        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            print(DEBUG_TAG+"restrict connections to v4")
+            inetOptions.version = .v4
+        }
+        
+        
+        browser = NWBrowser(for: .bonjourWithTXTRecord(type: SERVICE_TYPE, domain: SERVICE_DOMAIN), using: params)
         browser?.stateUpdateHandler = self.stateDidUpdate(newState:)
         browser?.browseResultsChangedHandler = self.resultsDidChange(results:changes:)
         

@@ -16,14 +16,23 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     public var interceptors: WarpServerInterceptorFactoryProtocol?
     
-    // API v1
+    var remoteManager: RemoteManager?
+    
+    // MARK: Duplex API v1
     public func checkDuplexConnection(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
-        
         let id = request.id
-        let duplexCheck = true
+        var duplexCheck = false
         
-        print(DEBUG_TAG+"duplex is being checked by \(id)")
+        print(DEBUG_TAG+"(API_V1) Duplex is being checked by \(request.readableName) (\(request.id))")
+        
+        if let remote = remoteManager?.containsRemote(for: id) {
+            print(DEBUG_TAG+"(API_V1) Remote known")
+            if remote.details.status == .VerifyingDuplex || remote.details.status == .Connected {
+                print(DEBUG_TAG+"(API_V1) Duplex verified")
+                duplexCheck = true
+            }
+        }
         
         return context.eventLoop.makeCompletedFuture( Result(catching: {
             var duplexExists = HaveDuplex()
@@ -32,14 +41,23 @@ public class WarpinatorServiceProvider: WarpProvider {
         }))
     }
     
-    // API v2
+    // MARK: Duplex API v2
     public func waitingForDuplex(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
         
         let id = request.id
-        let duplexCheck = true
+        var duplexCheck = false
         
-        print(DEBUG_TAG+"duplex is being waited for by: \(id)")
+        print(DEBUG_TAG+"(API_V2) Duplex is being waited for by \(request.readableName) (\(request.id))")
+        
+        if let remote = remoteManager?.containsRemote(for: id) {
+            print(DEBUG_TAG+"(API_V2) Remote known")
+            if remote.details.status == .VerifyingDuplex || remote.details.status == .Connected {
+                print(DEBUG_TAG+"(API_V2) Duplex verified")
+                duplexCheck = true
+            }
+        }
+        
         
         return context.eventLoop.makeCompletedFuture( Result(catching: {
             var duplexExists = HaveDuplex()
@@ -51,9 +69,9 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     public func getRemoteMachineInfo(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<RemoteMachineInfo> {
         
-        print("machine info is being retrieved!")
+        print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
         
-        let displayName = "" //Server.shared.displayName
+        let displayName = "\(Server.displayName)" //Server.shared.displayName
         let userName = "iOS_Username"
         
         var info = RemoteMachineInfo()
@@ -64,6 +82,8 @@ public class WarpinatorServiceProvider: WarpProvider {
     }
     
     public func getRemoteMachineAvatar(request: LookupName, context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
+        
+        print(DEBUG_TAG+"Avatar is being retrieved by \(request.readableName) (\(request.id))")
         
         return context.eventLoop.makeSucceededFuture(GRPC.GRPCStatus.ok)
     }
@@ -120,6 +140,17 @@ public class WarpinatorServiceProvider: WarpProvider {
     }
     
     public func ping(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
+        
+        var debugString = "Server Ping from "
+        
+        if let remote = remoteManager?.containsRemote(for: request.id) {
+            debugString = debugString + "remote: \(remote.details.hostname)"
+        } else {
+            debugString = debugString + "UNKNOWN REMOTE: \(request.readableName)"
+        }
+        
+        print(DEBUG_TAG+debugString)
+        
         return context.eventLoop.makeCompletedFuture(Result(catching: {
             return VoidType()
         }))

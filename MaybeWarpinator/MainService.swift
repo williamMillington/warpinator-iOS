@@ -16,6 +16,7 @@ class MainService {
     
     var server: Server = Server()
     var registrationServer = RegistrationServer()
+    
     var remoteManager: RemoteManager = RemoteManager()
     
     init(){
@@ -26,8 +27,11 @@ class MainService {
     
     func start(){
 
-        registrationServer.start()
         server.start()
+        server.remoteManager = remoteManager
+        
+        registrationServer.start()
+        registrationServer.remoteManager = remoteManager
         
         
     }

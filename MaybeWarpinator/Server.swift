@@ -36,40 +36,42 @@ public class Server: NSObject {
     public var transfer_port: Int = Server.transfer_port
     private var registration_port: Int = Server.registration_port
     
-    public var displayName: String = "iOS_Device"
+    public static var displayName: String = "iOS_DeviceName"
     
     public static var SERVER_UUID: String = "WarpinatorIOS"
     
     private lazy var uuid: String = Server.SERVER_UUID
     public lazy var hostname = Server.SERVER_UUID
     
-    var myService: NetService?
-    let serviceBrowser = NetServiceBrowser()
-    var savedServices: [String: NetService] = [:]
     
-    
-    var certificateServer = CertificateServer()
+//    var certificateServer = CertificateServer()
     
     
     private var transferServer: GRPC.Server?
     private var eventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     
-    private var registrationServer: GRPC.Server?
-    private var eventLoopGroup2: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+//    private var registrationServer: GRPC.Server?
+//    private var eventLoopGroup2: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
 
     
     private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
-    private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
+//    private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
     
     
-    var mDNSBrowser: MDNSBrowser?
-    var mDNSListener: MDNSListener?
+//    var mDNSBrowser: MDNSBrowser?
+//    var mDNSListener: MDNSListener?
     
     
-    var registrationConnections: [NWEndpoint: NWConnection] = [:]
-    var remotes: [String: RegisteredRemote] = [:]
+//    var registrationConnections: [NWEndpoint: NWConnection] = [:]
+//    var remotes: [String: RegisteredRemote] = [:]
     
+    
+    var remoteManager: RemoteManager? {
+        didSet {
+            warpinatorProvider.remoteManager = remoteManager 
+        }
+    }
     
     func start(){
         
@@ -97,7 +99,7 @@ public class Server: NSObject {
     
     
     
-    // MARK: - Registration Server
+    // MARK Registration Server
 //    func startRegistrationServer(){
 //        
 //        let serverBuilder = GRPC.Server.insecure(group: eventLoopGroup2)
@@ -139,7 +141,7 @@ public class Server: NSObject {
     
     
     
-    // MARK: - Transfer Server
+    // MARK: Transfer Server
     func startWarpinatorServer(){
         
         
@@ -199,26 +201,26 @@ public class Server: NSObject {
     }
     
     
-    // MARK: - Add remote
-    func addRemote(_ remote: RegisteredRemote){
-        remotes[remote.uuid] = remote
-    }
+    // MARK Add remote
+//    func addRemote(_ remote: RegisteredRemote){
+//        remotes[remote.uuid] = remote
+//    }
     
 }
 
 
 
 
-// MARK: - MDNSListenerDelegate
-extension Server: MDNSListenerDelegate {
-
-    func mDNSListenerIsReady() {
-        print("listener is ready")
-        mDNSBrowser?.startBrowsing()
-    }
-    
-    func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection) {
-        print(DEBUG_TAG+"BOOM nothing")
+// MARK  MDNSListenerDelegate
+//extension Server: MDNSListenerDelegate {
+//
+//    func mDNSListenerIsReady() {
+//        print("listener is ready")
+//        mDNSBrowser?.startBrowsing()
+//    }
+//
+//    func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection) {
+//        print(DEBUG_TAG+"BOOM nothing")
 //        print(DEBUG_TAG+"listener established connection")
 //
 //        registrationConnections[connection.endpoint] = connection
@@ -234,36 +236,36 @@ extension Server: MDNSListenerDelegate {
 //            }
 //        }
 //        connection.start(queue: .main)
-        
-    }
-}
+//
+//    }
+//}
 
 
 
-// MARK: - MDNSBrowserDelegate
-extension Server: MDNSBrowserDelegate {
+// MARK MDNSBrowserDelegate
+//extension Server: MDNSBrowserDelegate {
     
-    func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
+//    func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
-        switch result.endpoint {
-        case .hostPort(host: _, port: _): break
-            
-        case .service(name: let name, type: _, domain: _, interface: _):
-            if name == uuid {
-                print(DEBUG_TAG+"Found myself (\(result.endpoint)"); return
-            } else {
-                print(DEBUG_TAG+"service discovered: \(name)")
-            }
-        default: print(DEBUG_TAG+"unknown service endpoint: \(result.endpoint)"); return
-        }
+//        switch result.endpoint {
+//        case .hostPort(host: _, port: _): break
+//
+//        case .service(name: let name, type: _, domain: _, interface: _):
+//            if name == uuid {
+//                print(DEBUG_TAG+"Found myself (\(result.endpoint)"); return
+//            } else {
+//                print(DEBUG_TAG+"service discovered: \(name)")
+//            }
+//        default: print(DEBUG_TAG+"unknown service endpoint: \(result.endpoint)"); return
+//        }
+//
+//
+//        print(DEBUG_TAG+"mDNSBrowser did add result:")
+//        print("\t\(result.endpoint)")
+//        print("\t\(result.metadata)")
+//        print("\t\(result.interfaces)")
         
-        
-        print(DEBUG_TAG+"mDNSBrowser did add result:")
-        print("\t\(result.endpoint)")
-        print("\t\(result.metadata)")
-        print("\t\(result.interfaces)")
-        
-        let remote = RegisteredRemote(endpoint: result.endpoint)
+//        let remote = RegisteredRemote(endpoint: result.endpoint)
         
         
 //        if case let NWEndpoint.hostPort(host: host, port: port) = result.endpoint {
@@ -274,25 +276,25 @@ extension Server: MDNSBrowserDelegate {
         
         // if the metadata has a record "type",
         // and if type is 'flush', then ignore this service
-        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
-           let type = record.dictionary["type"],
-           type == "flush" {
-            print(DEBUG_TAG+"service is flushing; ignore"); return
-        }
+//        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
+//           let type = record.dictionary["type"],
+//           type == "flush" {
+//            print(DEBUG_TAG+"service is flushing; ignore"); return
+//        }
         
-        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata {
-            if let hn = record.dictionary["hostname"] {
-                remote.hostname = hn
-            }
-        }
-        
-        print(DEBUG_TAG+"adding remote")
-        
-//        remote.hostname = hostname
-        remote.serviceAvailable = true
-        
-        addRemote(remote)
-        remote.connect()
-    }
-    
-}
+//        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata {
+//            if let hn = record.dictionary["hostname"] {
+//                remote.hostname = hn
+//            }
+//        }
+//
+//        print(DEBUG_TAG+"adding remote")
+//
+////        remote.hostname = hostname
+//        remote.serviceAvailable = true
+//
+//        addRemote(remote)
+//        remote.connect()
+//    }
+//
+//}

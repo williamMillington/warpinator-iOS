@@ -34,10 +34,10 @@ class MDNSListener {
 //    public var transfer_port: Int = 42000
 //    public var registration_port: Int = 42001
     
-    public var uuid: String = "WarpinatorIOS"
+//    public var uuid: String = "WarpinatorIOS"
     public var displayName: String = "iOS Device"
     
-    public lazy var hostname = uuid
+    public lazy var hostname = Server.SERVER_UUID //uuid
     
     private var certificateServer = CertificateServer()
     
@@ -52,7 +52,7 @@ class MDNSListener {
 //            flushpublish()
 //            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
 //                self.listener?.cancel()
-                self.publishServiceAndListen()
+                publishServiceAndListen()
 //            }
             
 //
@@ -69,18 +69,30 @@ class MDNSListener {
         flushing = false
         
         let port = NWEndpoint.Port(rawValue: UInt16( Server.transfer_port) )!
+        
+        let params = NWParameters.udp
+        params.includePeerToPeer = true
+        params.allowLocalEndpointReuse = true
+        
+        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            print(DEBUG_TAG+"restrict connections to v4")
+            inetOptions.version = .v4
+        }
+                
         listener = nil
-        listener = try! NWListener(using: .udp, on: port )
+        listener = try! NWListener(using: params, on: port )
         
         listener?.stateUpdateHandler = stateDidUpdate(newState:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
-        let properties: [String:String] = ["hostname" : "\(uuid)",
-                                           "auth-port" : "\(Server.registration_port)",
+        let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
+//                                           "auth-port" : "\(Server.registration_port)",
+//                                           "api-version": "2",
+//                                           "auth-port" : "\(Server.registration_port)",
                                            "api-version": "1",
                                            "type" : "real"]
         
-        listener?.service = NWListener.Service(name: uuid, type: SERVICE_TYPE,
+        listener?.service = NWListener.Service(name: Server.SERVER_UUID, type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN, txtRecord:  NWTXTRecord(properties) )
         
         listener?.start(queue: .main)
@@ -94,27 +106,43 @@ class MDNSListener {
         flushing = true
         
         let port = NWEndpoint.Port(rawValue: UInt16( Server.transfer_port ) )!
-        listener = try! NWListener(using: .udp, on: port )
+        
+        let params = NWParameters.udp
+        params.includePeerToPeer = true
+        params.allowLocalEndpointReuse = true
+        
+        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            print(DEBUG_TAG+"set connection as v4")
+            inetOptions.version = .v4
+        }
+                
+        listener = nil
+        listener = try! NWListener(using: params, on: port )
         
         listener?.stateUpdateHandler = stateDidUpdate(newState:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
         
-        let properties: [String:String] = ["hostname" : "\(uuid)",
+        let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
                                            "type" : "flush"]
         
-        listener?.service = NWListener.Service(name: uuid, type: SERVICE_TYPE,
+        listener?.service = NWListener.Service(name: Server.SERVER_UUID, type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN, txtRecord:  NWTXTRecord(properties) )
         listener?.start(queue: .main)
         
     }
     
     
+    // MARK: stateDidUpdate
     private func stateDidUpdate(newState: NWListener.State ) {
         
+        
         switch newState {
-        case .failed(_): break
-        case .ready: //print(DEBUG_TAG+"listener is ready!")
+        case .failed(let error):
+            print(DEBUG_TAG+"failed due to error\(error)")
+        case .waiting(let error):
+            print(DEBUG_TAG+"waiting due to error\(error)")
+        case .ready: print(DEBUG_TAG+"listener is ready!")
             delegate?.mDNSListenerIsReady() // break //print(DEBUG_TAG+"listener ready")
         default: print(DEBUG_TAG+"statedidupdate: unforeseen case: \(newState)")
         }
@@ -122,6 +150,7 @@ class MDNSListener {
     }
     
     
+    // MARK: newConnectionEstablished
     private func newConnectionEstablished(newConnection connection: NWConnection) {
         
 //        print("new fucking connection")

@@ -60,8 +60,13 @@ class UDPConnection: RegistrationConnection {
         endpoint = candidate.endpoint
         
         let params = NWParameters.udp
+        params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
-        params.allowFastOpen = true
+        
+        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            print(DEBUG_TAG+"restrict connection to v4")
+            inetOptions.version = .v4
+        }
         
         connection = NWConnection(to: endpoint, using: params)
         connection.stateUpdateHandler = { newState in
@@ -77,7 +82,7 @@ class UDPConnection: RegistrationConnection {
     
     func register(){
         
-        details.status = .InProgress
+        details.status = .FetchingCredentials
         
         connection.start(queue: .main)
     }
@@ -164,7 +169,7 @@ class GRPCConnection: RegistrationConnection {
     
     func register(){
         
-        details.status = .InProgress
+        details.status = .FetchingCredentials
         
         sendCertificateRequest()
     }
@@ -219,8 +224,8 @@ class RegistrationServer {
     private lazy var uuid: String = Server.SERVER_UUID
     
     
-    var mDNSServiceBrowser: MDNSBrowser?
-    var mDNSServiceListener: MDNSListener?
+//    var mDNSServiceBrowser: MDNSBrowser?
+//    var mDNSServiceListener: MDNSListener?
     
     var registrationConnections: [NWEndpoint: NWConnection] = [:]
     
@@ -240,12 +245,18 @@ class RegistrationServer {
     private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
     
     
+    var remoteManager: RemoteManager? {
+        didSet {
+            warpinatorRegistrationProvider.remoteManager = remoteManager
+        }
+    }
     
     // MARK: - start server
     func start(){
         
         mDNSBrowser = MDNSBrowser()
         mDNSBrowser?.delegate = self
+//        mDNSBrowser?.startBrowsing()
         
         mDNSListener = MDNSListener()
         mDNSListener?.delegate = self
@@ -257,6 +268,7 @@ class RegistrationServer {
             .withServiceProviders([warpinatorRegistrationProvider])
             .bind(host: "\(Utils.getIPV4Address())", port: registration_port)
             
+        
         
         registrationServerFuture.whenComplete { result in
             if let server = try? result.get() {
@@ -315,7 +327,11 @@ class RegistrationServer {
         print(DEBUG_TAG+"registration succeeded")
         
         
+        let newRemote = RegisteredRemote(details: details, certificate: certificate)
         
+        
+        remoteManager?.addRemote(newRemote)
+        newRemote.connect()
         
         
         
@@ -327,8 +343,7 @@ class RegistrationServer {
     // MARK: - registrations failure
     func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError){
         
-        print(DEBUG_TAG+"registration succeeded")
-        
+        print(DEBUG_TAG+"registration failed, error: \(error)")
         
         
     }
@@ -349,7 +364,7 @@ class RegistrationServer {
 extension RegistrationServer: MDNSListenerDelegate {
 
     func mDNSListenerIsReady() {
-        mDNSServiceBrowser?.startBrowsing()
+        mDNSBrowser?.startBrowsing()
     }
     
     func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection) {
@@ -362,6 +377,7 @@ extension RegistrationServer: MDNSListenerDelegate {
 // MARK: - MDNSBrowserDelegate
 extension RegistrationServer: MDNSBrowserDelegate {
     
+    // MARK: didAddResult
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
         // if the metadata has a record "type",
@@ -373,8 +389,11 @@ extension RegistrationServer: MDNSBrowserDelegate {
         }
         
         
+        var serviceName = "unknown_service"
         switch result.endpoint {
         case .service(name: let name, type: _, domain: _, interface: _):
+            
+            serviceName = name
             if name == uuid {
                 print(DEBUG_TAG+"Found myself (\(result.endpoint)"); return
             } else {
@@ -390,9 +409,25 @@ extension RegistrationServer: MDNSBrowserDelegate {
         print("\t\(result.interfaces)")
         
         
+        if let remote = remoteManager?.containsRemote(for: serviceName) {
+                print(DEBUG_TAG+"Service already known")
+            if remote.details.status == .Disconnected ||
+                remote.details.status == .Error {
+                print(DEBUG_TAG+"\tstatus is disconnected/error: reconnecting...")
+                remote.connect()
+                return
+            }
+            
+        }
+        
+        
         var details = RemoteDetails(endpoint: result.endpoint)
+        details.serviceName = serviceName
+        details.uuid = serviceName
         details.api = "1"
+        details.port = 42000
         details.authPort = 42000 //"42000"
+        details.status = .Disconnected
         
         // parse TXT record for metadata
         if case let NWBrowser.Result.Metadata.bonjour(TXTrecord) = result.metadata {
@@ -407,7 +442,6 @@ extension RegistrationServer: MDNSBrowserDelegate {
                 }
             }
         }
-        details.status = .Disconnected
         
         
         register(details)
