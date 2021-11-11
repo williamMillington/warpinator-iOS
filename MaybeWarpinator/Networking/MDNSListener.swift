@@ -75,7 +75,7 @@ class MDNSListener {
         params.allowLocalEndpointReuse = true
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-            print(DEBUG_TAG+"restrict connections to v4")
+//            print(DEBUG_TAG+"restrict connections to v4")
             inetOptions.version = .v4
         }
                 
@@ -87,9 +87,9 @@ class MDNSListener {
         
         let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
                                            "auth-port" : "\(Server.registration_port)",
-                                           "api-version": "2",
+//                                           "api-version": "2",
 //                                           "auth-port" : "\(Server.registration_port)",
-//                                           "api-version": "1",
+                                           "api-version": "1",
                                            "type" : "real"]
         
         listener?.service = NWListener.Service(name: Server.SERVER_UUID, type: SERVICE_TYPE,
@@ -158,6 +158,8 @@ class MDNSListener {
         
 //        delegate?.mDNSListenerDidEstablishIncomingConnection(connection)
         
+        connection.parameters.allowLocalEndpointReuse = true
+        
         connections[connection.endpoint] = connection
         
         connection.stateUpdateHandler = { [self] newState in
@@ -165,8 +167,9 @@ class MDNSListener {
             case.ready: print(DEBUG_TAG+"established connection to \(connection.endpoint) is ready")
                 self.certificateServer.serveCertificate(to: connection) {
                     self.connections.removeValue(forKey: connection.endpoint)
+                    connection.cancel()
                 }
-            default: print(DEBUG_TAG+"new connection \(connection.endpoint), state: \(newState)")
+            default: print(DEBUG_TAG+"\(connection.endpoint) updated state state: \(newState)")
             }
         }
         connection.start(queue: .main)

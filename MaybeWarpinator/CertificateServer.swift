@@ -62,7 +62,7 @@ class CertificateServer {
         
         connection.receiveMessage { (data, context, isComplete, error) in
             
-            print("receiving something...")
+//            print("receiving something...")
             
             if let error = error {
                 print(self.DEBUG_TAG+"ERROR: \(error)")
@@ -87,7 +87,7 @@ class CertificateServer {
                 let filepath = Bundle.main.path(forResource: filename,
                                                 ofType: ext)!
                 
-                print(self.DEBUG_TAG+"loading certificate from \(filename).\(ext)")
+//                print(self.DEBUG_TAG+"loading certificate from \(filename).\(ext)")
                 
                 let certURL = URL(fileURLWithPath: filepath)
                 let certBytes = try! Data(contentsOf: certURL)
@@ -114,7 +114,7 @@ class CertificateServer {
                 
                 let messageBytesEncoded = Data(messageBytes).base64EncodedString()
                 
-                print("MESSAGEBYTESEncoded: \(messageBytesEncoded.count)")
+//                print(DEBUG_TAG+"MESSAGEBYTESEncoded: \(messageBytesEncoded.count)")
                 
                 connection.send(content: Data(bytes: messageBytesEncoded.bytes, count: messageBytesEncoded.bytes.count),
                                 completion: NWConnection.SendCompletion.contentProcessed { (error) in

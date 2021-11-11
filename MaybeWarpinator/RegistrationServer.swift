@@ -224,9 +224,6 @@ class RegistrationServer {
     private lazy var uuid: String = Server.SERVER_UUID
     
     
-//    var mDNSServiceBrowser: MDNSBrowser?
-//    var mDNSServiceListener: MDNSListener?
-    
     var registrationConnections: [NWEndpoint: NWConnection] = [:]
     
     var certificateServer = CertificateServer()
@@ -307,11 +304,11 @@ class RegistrationServer {
         // api_1: use udp to authenticate
         // api_2: use GRPC call
         let newConnection: RegistrationConnection
-        if candidate.api == "1" {
+//        if candidate.api == "1" {
             newConnection = UDPConnection(candidate, server: self)
-        } else {
-            newConnection = GRPCConnection(candidate, server: self)
-        }
+//        } else {
+//            newConnection = GRPCConnection(candidate, server: self)
+//        }
         
         registrationCandidates[newConnection.uuid] = newConnection
         
