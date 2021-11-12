@@ -158,7 +158,13 @@ public class Server: NSObject {
         print(DEBUG_TAG+"privatekey is \(serverPrivateKey)")
         
         
-        let keepalive = ServerConnectionKeepalive(interval: .seconds(30) )
+        let keepalive = ServerConnectionKeepalive(interval: .milliseconds(10_000),
+                                                  timeout: .milliseconds(5000),
+                                                  permitWithoutCalls: true,
+                                                  maximumPingsWithoutData: 0,
+                                                  minimumSentPingIntervalWithoutData: .milliseconds(5000),
+                                                  minimumReceivedPingIntervalWithoutData: .milliseconds(5000) )
+        
         let serverBuilder = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
                                                                certificateChain: [ serverCertificate  ],
                                                                privateKey: serverPrivateKey)

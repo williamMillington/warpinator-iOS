@@ -19,6 +19,7 @@ public class WarpinatorServiceProvider: WarpProvider {
     var remoteManager: RemoteManager?
     
     // MARK: Duplex API v1
+    // receive request for status of connection to remote specified in LookupName
     public func checkDuplexConnection(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
         let id = request.id
@@ -42,8 +43,8 @@ public class WarpinatorServiceProvider: WarpProvider {
     }
     
     // MARK: Duplex API v2
+    // receive request for status of connection to remote specified in LookupName
     public func waitingForDuplex(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
-        
         
         let id = request.id
         var duplexCheck = false
@@ -67,6 +68,8 @@ public class WarpinatorServiceProvider: WarpProvider {
         
     }
     
+    // MARK: get info
+    // receive request for information about this device
     public func getRemoteMachineInfo(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<RemoteMachineInfo> {
         
         print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
@@ -81,6 +84,9 @@ public class WarpinatorServiceProvider: WarpProvider {
         return context.eventLoop.makeSucceededFuture(info)
     }
     
+    
+    // MARK: get avatar image
+    // receive request for avatar image
     public func getRemoteMachineAvatar(request: LookupName, context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
         
         print(DEBUG_TAG+"Avatar is being retrieved by \(request.readableName) (\(request.id))")
@@ -90,55 +96,93 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     
     
+    // MARK: process transfer request
+    // receive request from remote to transfer data to this device
     public func processTransferOpRequest(request: TransferOpRequest, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
         let remoteUUID: String = request.info.ident
         
-//        guard var remote = MainService.shared.remotes[remoteUUID] else {
-//            print("No remote with uuid \"\(remoteUUID)\" exists")
-//            let voidType = VoidType()
-//            return context.eventLoop.makeSucceededFuture(voidType)
-//        }
-        
-        var transfer = Transfer(direction: Transfer.Direction.RECEIVING,
-                                status: Transfer.Status.WAITING_FOR_PERMISSION,
-                                remoteUUID: remoteUUID,
-                                startTime: Double(request.info.timestamp),
-                                totalSize: Double(request.size),
-                                fileCount: Double(request.count),
-                                singleName: request.nameIfSingle,
-                                singleMime: request.mimeIfSingle,
-                                topDirBaseNames: request.topDirBasenames )
         
         
+        guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
+            print("No remote with uuid \"\(remoteUUID)\" exists")
+            let error = RegistrationError.ConnectionError
+            return context.eventLoop.makeFailedFuture(error)
+        }
+        
+        let transfer = TransferOperation()
+        transfer.owningRemote = remote
+        transfer.status = .INITIALIZING
+        transfer.remoteUUID = remoteUUID
+        transfer.startTime = request.info.timestamp
+        transfer.totalSize =  Double(request.size)
+        transfer.fileCount = Int(request.count)
+        transfer.singleName = request.nameIfSingle
+        transfer.singleMime = request.mimeIfSingle
+        transfer.topDirBaseNames = request.topDirBasenames
+        transfer.prepareReceive()
+        
+        print(DEBUG_TAG+"processing request, compression is \( request.info.useCompression ? "on" : "off" )")
+        
+        remote.addTransferOperation(transfer)
+        
+//            direction: TransferOperation.Direction.RECEIVING,
+//                                status: TransferOperation.Status.WAITING_FOR_PERMISSION,
+//                                remoteUUID: remoteUUID,
+//                                startTime: Double(request.info.timestamp),
+//                                totalSize: Double(request.size),
+//                                fileCount: Double(request.count),
+//                                singleName: request.nameIfSingle,
+//                                singleMime: request.mimeIfSingle,
+//                                topDirBaseNames: request.topDirBasenames )
+        
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            transfer.startReceive()
+        }
         
         
         return context.eventLoop.makeSucceededFuture(VoidType())
     }
     
+    
+    // MARK: pause transer
+    // receive instruction to pause operation (transfer) specified in OpInfo
     public func pauseTransferOp(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         return context.eventLoop.makeCompletedFuture(Result(catching: {
             return VoidType()
         }))
     }
     
+    
+    // MARK: start transer
+    // called by remote to indicate that they are ready to begin receiving transfer (specified in OpInfo)
     public func startTransfer(request: OpInfo, context: StreamingResponseCallContext<FileChunk>) -> EventLoopFuture<GRPCStatus> {
         
         return context.eventLoop.makeSucceededFuture(GRPC.GRPCStatus.ok)
     }
     
+    
+    // MARK: cancel transer
+    // receive instruction to cancel operation (transfer) specified in OpInfo
     public func cancelTransferOpRequest(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         return context.eventLoop.makeCompletedFuture(Result(catching: {
             return VoidType()
         }))
     }
     
+    
+    // MARK: stop transer
+    // receive instruction to stop operation (transfer) specified in OpInfo
     public func stopTransfer(request: StopInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         return context.eventLoop.makeCompletedFuture(Result(catching: {
             return VoidType()
         }))
     }
     
+    
+    // MARK: ping
+    // receive ping from LookupName
     public func ping(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
         var debugString = "Server Ping from "
@@ -155,6 +199,5 @@ public class WarpinatorServiceProvider: WarpProvider {
             return VoidType()
         }))
     }
-    
     
 }

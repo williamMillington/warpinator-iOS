@@ -7,6 +7,13 @@ syntax = "proto3";
 //
 // Never change the existing members and member values of messages, only add new ones.
 
+
+
+
+
+
+
+// MARK: - Service: Warp
 service Warp {
     // Sender methods
     // api v1 duplex method (ping style)
@@ -89,6 +96,11 @@ message FileTime {
     uint32 mtime_usec = 2;
 }
 
+
+
+// MARK: - Service: WarpRegistration
+
+// MARK: API_V2 Registration
 service WarpRegistration {
     rpc RequestCertificate(RegRequest) returns (RegResponse) {}
 }

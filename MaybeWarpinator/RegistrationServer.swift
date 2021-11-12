@@ -82,6 +82,7 @@ class UDPConnection: RegistrationConnection {
     
     func register(){
         
+        print(DEBUG_TAG+"Registering with \(details.endpoint)")
         details.status = .FetchingCredentials
         
         connection.start(queue: .main)
@@ -89,7 +90,7 @@ class UDPConnection: RegistrationConnection {
     
     
     private func sendCertificateRequest(  ){
-        print(DEBUG_TAG+"api_v1_fetching certificate")
+//        print(DEBUG_TAG+"api_v1_fetching certificate")
 
         let requestStringBytes = "REQUEST".bytes
         connection.send(content: requestStringBytes,
@@ -120,7 +121,6 @@ class UDPConnection: RegistrationConnection {
                     }
                     
                     self.registrationServer.registrationSucceeded(forRemote: self.details, certificate: certificate)
-//                                        self.openChannel(withCertificate: certificate)
 
                 } else {  print("Failed to decode certificate")  }
 
@@ -168,16 +168,13 @@ class GRPCConnection: RegistrationConnection {
     
     
     func register(){
-        
+        print(DEBUG_TAG+"Registering with \(details.endpoint)")
         details.status = .FetchingCredentials
-        
         sendCertificateRequest()
     }
     
     
     func sendCertificateRequest() {
-        print("attempting api2 request")
-        
         let request: RegRequest = .with {
             $0.hostname = Server.SERVER_UUID
             $0.ip = Utils.getIPV4Address()
@@ -187,8 +184,6 @@ class GRPCConnection: RegistrationConnection {
         let registrationRequest = warpClient.requestCertificate(request, callOptions: options)
 
         registrationRequest.response.whenSuccess { result in
-            print(self.DEBUG_TAG+"request succeeded ")
-//            print("cert is \(result.lockedCert)")
             if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
                 self.registrationServer.registrationSucceeded(forRemote: self.details, certificate: certificate)
             } else {
@@ -197,15 +192,10 @@ class GRPCConnection: RegistrationConnection {
         }
         
         registrationRequest.response.whenFailure { error in
-            print(self.DEBUG_TAG+"request failed with error: \(error)")
             self.registrationServer.registrationFailed(forRemote: self.details, .ConnectionError)
         }
     }
-    
 }
-
-
-
 
 
 
@@ -223,18 +213,15 @@ class RegistrationServer {
     
     private lazy var uuid: String = Server.SERVER_UUID
     
-    
     var registrationConnections: [NWEndpoint: NWConnection] = [:]
     
     var certificateServer = CertificateServer()
-    
     
     var mDNSBrowser: MDNSBrowser?
     var mDNSListener: MDNSListener?
     
     var registrationCandidates: [Int: RegistrationConnection] = [:]
     
-    private var registrationServer: GRPC.Server?
     private var eventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
                                                                                           networkPreference: .best)
 
@@ -260,18 +247,17 @@ class RegistrationServer {
         mDNSListener?.start()
         
         
-        
         let registrationServerFuture = GRPC.Server.insecure(group: eventLoopGroup)
             .withServiceProviders([warpinatorRegistrationProvider])
             .bind(host: "\(Utils.getIPV4Address())", port: registration_port)
             
         
         
-        registrationServerFuture.whenComplete { result in
-            if let server = try? result.get() {
-                self.registrationServer = server
-            } else { print(self.DEBUG_TAG+"Failed to get registration server") }
-        }
+//        registrationServerFuture.whenComplete { result in
+//            if let server = try? result.get() {
+//                self.registrationServer = server
+//            } else { print(self.DEBUG_TAG+"Failed to get registration server") }
+//        }
         
         registrationServerFuture.map {
             $0.channel.localAddress
@@ -299,16 +285,16 @@ class RegistrationServer {
     // MARK: - register
     func register(_ candidate: RemoteDetails){
         
-        print(DEBUG_TAG+"attempting to register remote")
+//        print(DEBUG_TAG+"attempting to register remote")
         
         // api_1: use udp to authenticate
         // api_2: use GRPC call
         let newConnection: RegistrationConnection
-//        if candidate.api == "1" {
+        if candidate.api == "1" {
             newConnection = UDPConnection(candidate, server: self)
-//        } else {
-//            newConnection = GRPCConnection(candidate, server: self)
-//        }
+        } else {
+            newConnection = GRPCConnection(candidate, server: self)
+        }
         
         registrationCandidates[newConnection.uuid] = newConnection
         
@@ -321,18 +307,12 @@ class RegistrationServer {
     // MARK: - registrations success
     func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
         
-        print(DEBUG_TAG+"registration succeeded")
-        
+//        print(DEBUG_TAG+"registration succeeded")
         
         let newRemote = Remote(details: details, certificate: certificate)
         
-        
         remoteManager?.addRemote(newRemote)
         newRemote.connect()
-        
-        
-        
-        
     }
     
     
@@ -341,7 +321,6 @@ class RegistrationServer {
     func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError){
         
         print(DEBUG_TAG+"registration failed, error: \(error)")
-        
         
     }
     

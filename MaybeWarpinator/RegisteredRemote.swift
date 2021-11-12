@@ -23,7 +23,7 @@ import Sodium
 import Logging
 
 
-// Remote Details
+//MARK: Remote Details
 public struct RemoteDetails {
     public enum ConnectionStatus {
         case Connected, Disconnected
@@ -35,6 +35,10 @@ public struct RemoteDetails {
     lazy var DEBUG_TAG: String = "RemoteDetails (hostname: \"\(hostname)\"): "
     
     var endpoint: NWEndpoint
+    
+    var displayName: String = "No_DisplayName"
+    var username: String = "No_Username"
+    
     
     var serviceName: String = "No_ServiceName"
     var hostname: String = "No_Hostname"
@@ -64,13 +68,12 @@ public class Remote {
     public var displayName: String = "No_Display_Name"
     public var picture: UIImage?
     
-    var transfers: [Transfer] = []
+    var transferOperations: [TransferOperation] = []
     
     var channel: ClientConnection?
     var warpClient: WarpClientProtocol?
     
     let group = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-    
     
     var authenticationCertificate: NIOSSLCertificate?
     
@@ -78,6 +81,14 @@ public class Remote {
     
     
     var logger = Logger(label: "warpinator.Remote", factory: StreamLogHandler.standardOutput)
+    
+    
+    var lookupName: LookupName {
+        return LookupName.with {
+            $0.id =  Server.SERVER_UUID
+            $0.readableName = "Warpinator iOS"
+        }
+    }
     
     
     init(details: RemoteDetails, certificate: NIOSSLCertificate){
@@ -89,51 +100,52 @@ public class Remote {
     //MARK: connect
     func connect(){
         
-        
         details.status = .OpeningConnection
         
         if warpClient == nil {
             
-            logger.logLevel = .critical
+            logger.logLevel = .debug
             
             
-//            let keepalive = ClientConnectionKeepalive(interval: .milliseconds(10000), timeout: .milliseconds(10000) )
+//            let keepalive = ClientConnectionKeepalive(timeout: .seconds(30))
+            let keepalive = ClientConnectionKeepalive(interval: .milliseconds(10_000), timeout: .milliseconds(5000),
+                                                      permitWithoutCalls: true,
+                                                      maximumPingsWithoutData: 0,
+                                                      minimumSentPingIntervalWithoutData: .milliseconds(5000))
             let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
                 .withTLS(trustRoots: .certificates([authenticationCertificate!]) )
                 .withConnectivityStateDelegate(self)
                 .withBackgroundActivityLogger(logger)
+                .withKeepalive(keepalive)
                 
-//                .withKeepalive(keepalive)
-                
-                
-//                .withTLS(certificateVerification: .noHostnameVerification)
                 
             
-            var hostname = details.hostname
+            let hostname = details.hostname
             let port = details.port
             
-            print(DEBUG_TAG+"endpoint: \(details.endpoint)")
-            if case let NWEndpoint.hostPort(host: host, port: port) = details.endpoint {
-                print(DEBUG_TAG+"endpoint is type host/port \(host):\(port) ")
-            }
+//            print(DEBUG_TAG+"endpoint: \(details.endpoint)")
+//            if case let NWEndpoint.hostPort(host: host, port: port) = details.endpoint {
+//                print(DEBUG_TAG+"endpoint is type host/port \(host):\(port) ")
+//            }
+//
+//            if case let NWEndpoint.service(name: name, type: type, domain: domain, interface: interface) = details.endpoint {
+//                print(DEBUG_TAG+"endpoint is type service \(name):\(type):\(domain):\(interface) ")
+//                hostname = name
+//            }
             
-            if case let NWEndpoint.service(name: name, type: type, domain: domain, interface: interface) = details.endpoint {
-                print(DEBUG_TAG+"endpoint is type service \(name):\(type):\(domain):\(interface) ")
-                hostname = name
-            }
+//            hostname = "sfjhkldafnadfhncafhacsiuewiuwiuyweuiyweriuyweriuyweriuy"
             
-            hostname = "sfjhkldafnadfhncafhacsiuewiuwiuyweuiyweriuyweriuyweriuy"
+//            print(DEBUG_TAG+"Connecting to \(hostname):\(port)")
             
-            print(DEBUG_TAG+"Connecting to \(hostname):\(port)")
-            
-            channel = channelBuilder.connect(host: "192.168.2.14", port: port)
+//            channel = channelBuilder.connect(host: "192.168.2.14", port: port)
+            channel = channelBuilder.connect(host: hostname, port: port)
             
             if let channel = channel {
                 print(self.DEBUG_TAG+"channel created")
                 warpClient = WarpClient(channel: channel)
                 
                 details.status = .VerifyingDuplex
-                ping()
+//                ping()
                 verifyDuplex() //.Connected
             } else {
                 details.status = .Error
@@ -152,7 +164,9 @@ public class Remote {
     // MARK: veryifyDuplex
     private func verifyDuplex(onComplete: @escaping ()->Void = {} ){
         
-        print(DEBUG_TAG+"verifying duplex...")
+        duplexAttempts += 1
+        
+        print(DEBUG_TAG+"verifying duplex, attempt: \(duplexAttempts)")
         
         details.status = .VerifyingDuplex
         
@@ -160,66 +174,52 @@ public class Remote {
             print(DEBUG_TAG+"no client connection"); return
         }
         
-        
-        let lookupname: LookupName = .with({
-            $0.id =  Server.SERVER_UUID
-            $0.readableName = "Warpinator iOS"
-        })
-        
-        
         var duplex: UnaryCall<LookupName, HaveDuplex> // = client.waitingForDuplex(lookupname)
         if details.api == "1" {
             print(DEBUG_TAG+"checkDuplexConnection")
-            duplex = client.checkDuplexConnection(lookupname)
+            duplex = client.checkDuplexConnection(lookupName)
         } else {
             print(DEBUG_TAG+"waitingForDuplex")
-            duplex = client.waitingForDuplex(lookupname)
+            duplex = client.waitingForDuplex(lookupName)
         }
         
         
-//        print(DEBUG_TAG+"time limit is \(duplex.options.timeLimit)")
-        let _ = duplex.response.always { result in
-            print(self.DEBUG_TAG+"Well hey fucking something happened")
-        }
-        
-        duplex.status.always{ status in
-            print(self.DEBUG_TAG+"SOMething shappned muthafuckers")
-        }
-        
-        
-        duplex.response.whenComplete { result in
+        duplex.response.whenSuccess { haveDuplex in
             
-            print(self.DEBUG_TAG+"Duplex response received")
-            
-            if let response = try? result.get().response {
-                
-                if response {
+            if haveDuplex.response {
                     print(self.DEBUG_TAG+"duplex verified")
                     self.onDuplexVerified()
                 } else {
                     print(self.DEBUG_TAG+"could not verify duplex")
                     
-                    // 3 tries
-                    guard self.duplexAttempts < 10 else {  return }
+                    // 5 tries
+                    guard self.duplexAttempts < 10 else {
+                        print(self.DEBUG_TAG+"Duplex has failed.")
+                        self.details.status = .Error
+                        return }
                     print(self.DEBUG_TAG+"\ttrying again...")
                     
                     // try again in 1 second
-                    self.duplexAttempts += 1
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                         self.verifyDuplex()
                     }
-                    
                 }
-            } else {
-                print(self.DEBUG_TAG+"Error receiving duplex response")
-            }
         }
         
-        
         duplex.response.whenFailure { error in
-            
             print(self.DEBUG_TAG+"Duplex failed: \(error)")
             
+            // 5 tries
+            guard self.duplexAttempts < 10 else {
+                print(self.DEBUG_TAG+"Duplex has failed.")
+                self.details.status = .Error
+                return }
+            print(self.DEBUG_TAG+"\ttrying again...")
+            
+            // try again in 1 second
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.verifyDuplex()
+            }
         }
     }
     
@@ -232,53 +232,139 @@ public class Remote {
         
         details.status = .Connected
         
-        ping()
-        
+//        ping()
     }
     
     
-    // MARK: Ping
+    
+    
+}
+
+
+
+
+
+
+
+//MARK: Warpinator RPC calls
+extension Remote {
+    
+    
+    // MARK: -Ping
     public func ping(){
         
-        let lookupname: LookupName = .with({
-            $0.id =  Server.SERVER_UUID
-            $0.readableName = "Warpinator iOS"
-        })
+//        let lookupname: LookupName = .with({
+//            $0.id =  Server.SERVER_UUID
+//            $0.readableName = "Warpinator iOS"
+//        })
         
-        let calloptions = CallOptions(logger: logger)
+//        let calloptions = CallOptions(logger: logger)
         
         guard let client = warpClient else {
             print(DEBUG_TAG+"no client connection"); return
         }
         
         // if we're currently transferring something, no need to ping.
-        // But still schedule another ping
-        if transfers.count == 0 {
+        if transferOperations.count == 0 {
             
             print(self.DEBUG_TAG+"pinging")
             
-            let pingResponse = client.ping(lookupname, callOptions: calloptions)
+            let pingResponse = client.ping(self.lookupName) //, callOptions: calloptions)
             
             pingResponse.response.whenFailure { _ in
                 print(self.DEBUG_TAG+"ping failed")
                 self.details.status = .Disconnected
             }
-            
-            
         }
         
         // ping again in 20 seconds
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             if self.details.status == .Connected {
                 self.ping()
             }
         }
     }
     
+    //MARK: -updateRemoteInfo
+    func updateRemoteInfo(){
+        
+        print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
+        
+        guard let client = warpClient else { return }
+        
+        let info = client.getRemoteMachineInfo(lookupName)
+        
+        info.response.whenSuccess { info in
+            self.details.displayName = info.displayName
+            self.details.username = info.userName
+        }
+        info.response.whenFailure { error in
+            print(self.DEBUG_TAG+"failed to retrieve machine info")
+        }
+        
+    }
+    
+    
+    
+    
+    func addTransferOperation(_ operation: TransferOperation){
+        
+        transferOperations.append(operation)
+        operation.status = .WAITING_FOR_PERMISSION
+    }
+    
+    
+    
+    func beginReceiving(for operation: TransferOperation){
+        
+        
+        print(DEBUG_TAG+"initiating transfer operation")
+        
+        let operationInfo = OpInfo.with {
+            $0.ident = Server.SERVER_UUID
+            $0.timestamp = operation.startTime
+            $0.readableName = Server.SERVER_UUID
+            $0.useCompression = false
+        }
+        
+        guard let client = warpClient else { return }
+        
+        
+        let dataStream = client.startTransfer(operationInfo) { (chunk) in
+            
+            operation.readChunk(chunk)
+            
+        }
+        
+        
+        dataStream.status.whenSuccess{ status in
+            operation.finishReceive()
+            print(self.DEBUG_TAG+"transfer finished")
+        }
+        
+        dataStream.status.whenFailure{ error in
+            print(self.DEBUG_TAG+"transfer failed: \(error)")
+        }
+        
+        
+        
+        
+        
+    }
+    
+    
     
     
 }
+
+
+
+
+
+
+
+
 
 
 

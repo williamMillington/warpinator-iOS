@@ -15,7 +15,7 @@ import Sodium
 
 protocol MDNSListenerDelegate {
     func mDNSListenerIsReady()
-    func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection)
+//    func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection)
 }
 
 
@@ -31,13 +31,9 @@ class MDNSListener {
     private let SERVICE_TYPE = "_warpinator._tcp"
     private let SERVICE_DOMAIN = ""
     
-//    public var transfer_port: Int = 42000
-//    public var registration_port: Int = 42001
-    
-//    public var uuid: String = "WarpinatorIOS"
     public var displayName: String = "iOS Device"
     
-    public lazy var hostname = Server.SERVER_UUID //uuid
+    public lazy var hostname = Server.SERVER_UUID
     
     private var certificateServer = CertificateServer()
     
@@ -87,9 +83,9 @@ class MDNSListener {
         
         let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
                                            "auth-port" : "\(Server.registration_port)",
-//                                           "api-version": "2",
+                                           "api-version": "2",
 //                                           "auth-port" : "\(Server.registration_port)",
-                                           "api-version": "1",
+//                                           "api-version": "1",
                                            "type" : "real"]
         
         listener?.service = NWListener.Service(name: Server.SERVER_UUID, type: SERVICE_TYPE,
@@ -119,9 +115,8 @@ class MDNSListener {
         listener = nil
         listener = try! NWListener(using: params, on: port )
         
-        listener?.stateUpdateHandler = stateDidUpdate(newState:)
+//        listener?.stateUpdateHandler = stateDidUpdate(newState:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
-        
         
         let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
                                            "type" : "flush"]
@@ -136,13 +131,12 @@ class MDNSListener {
     // MARK: stateDidUpdate
     private func stateDidUpdate(newState: NWListener.State ) {
         
-        
         switch newState {
         case .failed(let error):
             print(DEBUG_TAG+"failed due to error\(error)")
         case .waiting(let error):
             print(DEBUG_TAG+"waiting due to error\(error)")
-        case .ready: print(DEBUG_TAG+"listener is ready!")
+        case .ready: print(DEBUG_TAG+"listener is ready")
             delegate?.mDNSListenerIsReady() // break //print(DEBUG_TAG+"listener ready")
         default: print(DEBUG_TAG+"statedidupdate: unforeseen case: \(newState)")
         }
@@ -153,7 +147,6 @@ class MDNSListener {
     // MARK: newConnectionEstablished
     private func newConnectionEstablished(newConnection connection: NWConnection) {
         
-//        print("new fucking connection")
 //        print(DEBUG_TAG+"new connection: \n\(connection)")
         
 //        delegate?.mDNSListenerDidEstablishIncomingConnection(connection)

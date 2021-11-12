@@ -32,12 +32,14 @@ class TransferOperation {
     
     var direction: Direction
     var status: Status
+    
+    weak var owningRemote: Remote?
     var remoteUUID: String
     
-    var startTime: Double
+    var startTime: UInt64
     
     var totalSize: Double
-    var bytesTransferred: Double = 0
+    var bytesTransferred: Int = 0
     var bytesPerSecond: Double = 0
     var cancelled: Bool = false
     
@@ -52,6 +54,7 @@ class TransferOperation {
     
     var currentRelativePath: String = ""
     
+    var currentFile: TransferFile?
     
     
     init(){
@@ -97,13 +100,13 @@ extension TransferOperation {
     
     func prepareReceive(){
         
+        print(DEBUG_TAG+" preparing to receive...")
         
+        // check if filename is taken
         
-        
-        
-        
-        
-        
+        // prepare file
+        // - access filesystem
+        // - check space exists
         
         
         
@@ -111,8 +114,36 @@ extension TransferOperation {
     
     
     func startReceive(){
+        print(DEBUG_TAG+" starting to receive: ")
+        
+        status = .TRANSFERRING
+        owningRemote?.beginReceiving(for: self)
+    }
+    
+    
+    func readChunk(_ chunk: FileChunk){
+        
+        print(DEBUG_TAG+" reading chunk")
+        
+        // starting a new file
+        if chunk.relativePath != currentRelativePath {
+            
+            print(DEBUG_TAG+" creating new file")
+            // close out old file
+            currentFile?.finish()
+            
+            currentRelativePath = chunk.relativePath
+            
+            let file = TransferFile(filename: currentRelativePath)
+            currentFile = file
+            
+        }
+        
+        currentFile?.write(chunk.chunk)
+        bytesTransferred += chunk.chunk.count
         
     }
+    
     
     
     func stopReceiving(){
@@ -121,6 +152,9 @@ extension TransferOperation {
     
     
     func finishReceive(){
+        print(DEBUG_TAG+" finished receiving transfer")
+        currentFile?.finish()
+        status = .FINISHED
         
     }
     
