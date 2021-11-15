@@ -26,10 +26,10 @@ import Logging
 //MARK: Remote Details
 public struct RemoteDetails {
     public enum ConnectionStatus {
-        case Connected, Disconnected
         case Canceled
-        case OpeningConnection, FetchingCredentials, VerifyingDuplex
+        case OpeningConnection, FetchingCredentials, AquiringDuplex, DuplexAquired
         case Error
+        case Connected, Disconnected
     }
     
     lazy var DEBUG_TAG: String = "RemoteDetails (hostname: \"\(hostname)\"): "
@@ -73,7 +73,7 @@ public class Remote {
     var channel: ClientConnection?
     var warpClient: WarpClientProtocol?
     
-    let group = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    let group = MultiThreadedEventLoopGroup(numberOfThreads: 5) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     var authenticationCertificate: NIOSSLCertificate?
     
@@ -106,57 +106,32 @@ public class Remote {
             
             logger.logLevel = .debug
             
-            
-//            let keepalive = ClientConnectionKeepalive(timeout: .seconds(30))
-            let keepalive = ClientConnectionKeepalive(interval: .milliseconds(10_000), timeout: .milliseconds(5000),
-                                                      permitWithoutCalls: true,
-                                                      maximumPingsWithoutData: 0,
-                                                      minimumSentPingIntervalWithoutData: .milliseconds(5000))
             let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
                 .withTLS(trustRoots: .certificates([authenticationCertificate!]) )
                 .withConnectivityStateDelegate(self)
-                .withBackgroundActivityLogger(logger)
-                .withKeepalive(keepalive)
+//                .withBackgroundActivityLogger(logger)
                 
                 
             
             let hostname = details.hostname
+//            let hostname = "192.168.2.18"
+//            let hostname = "192.168.2.14"
             let port = details.port
             
-//            print(DEBUG_TAG+"endpoint: \(details.endpoint)")
-//            if case let NWEndpoint.hostPort(host: host, port: port) = details.endpoint {
-//                print(DEBUG_TAG+"endpoint is type host/port \(host):\(port) ")
-//            }
-//
-//            if case let NWEndpoint.service(name: name, type: type, domain: domain, interface: interface) = details.endpoint {
-//                print(DEBUG_TAG+"endpoint is type service \(name):\(type):\(domain):\(interface) ")
-//                hostname = name
-//            }
-            
-//            hostname = "sfjhkldafnadfhncafhacsiuewiuwiuyweuiyweriuyweriuyweriuy"
-            
-//            print(DEBUG_TAG+"Connecting to \(hostname):\(port)")
-            
-//            channel = channelBuilder.connect(host: "192.168.2.14", port: port)
             channel = channelBuilder.connect(host: hostname, port: port)
             
             if let channel = channel {
                 print(self.DEBUG_TAG+"channel created")
                 warpClient = WarpClient(channel: channel)
                 
-                details.status = .VerifyingDuplex
+//                details.status = .VerifyingDuplex
 //                ping()
                 verifyDuplex() //.Connected
             } else {
                 details.status = .Error
             }
+            
         }
-    }
-    
-    
-    // MARK Open Channel
-    private func openChannel(withCertificate certificate: NIOSSLCertificate, onComplete: @escaping ()->Void = {} ){
-        
     }
     
     
@@ -168,7 +143,7 @@ public class Remote {
         
         print(DEBUG_TAG+"verifying duplex, attempt: \(duplexAttempts)")
         
-        details.status = .VerifyingDuplex
+        details.status = .AquiringDuplex
         
         guard let client = warpClient else {
             print(DEBUG_TAG+"no client connection"); return
@@ -187,8 +162,7 @@ public class Remote {
         duplex.response.whenSuccess { haveDuplex in
             
             if haveDuplex.response {
-                    print(self.DEBUG_TAG+"duplex verified")
-                    self.onDuplexVerified()
+                    self.onDuplexAquired()
                 } else {
                     print(self.DEBUG_TAG+"could not verify duplex")
                     
@@ -225,14 +199,21 @@ public class Remote {
     
     
     
-    // MARK: veryifyDuplex
-    private func onDuplexVerified(){
+    // MARK: onDuplexVerified
+    private func onDuplexAquired(){
         
         print(self.DEBUG_TAG+"duplex verified after \(duplexAttempts) attempts")
         
-        details.status = .Connected
+        details.status = .DuplexAquired
         
+        updateRemoteInfo()
+        
+        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5){
+//            self.ping()
+//        }
 //        ping()
+        
     }
     
     
@@ -253,13 +234,6 @@ extension Remote {
     // MARK: -Ping
     public func ping(){
         
-//        let lookupname: LookupName = .with({
-//            $0.id =  Server.SERVER_UUID
-//            $0.readableName = "Warpinator iOS"
-//        })
-        
-//        let calloptions = CallOptions(logger: logger)
-        
         guard let client = warpClient else {
             print(DEBUG_TAG+"no client connection"); return
         }
@@ -273,18 +247,19 @@ extension Remote {
             
             pingResponse.response.whenFailure { _ in
                 print(self.DEBUG_TAG+"ping failed")
-                self.details.status = .Disconnected
+//                self.details.status = .Disconnected
             }
         }
         
-        // ping again in 20 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+        // ping again in 10 seconds
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             if self.details.status == .Connected {
                 self.ping()
             }
         }
     }
+    
     
     //MARK: -updateRemoteInfo
     func updateRemoteInfo(){
@@ -298,16 +273,21 @@ extension Remote {
         info.response.whenSuccess { info in
             self.details.displayName = info.displayName
             self.details.username = info.userName
+            self.details.status = .Connected
+            
+            print(self.DEBUG_TAG+"Remote display name: \(self.details.displayName)")
+            print(self.DEBUG_TAG+"Remote username: \(self.details.username)")
         }
         info.response.whenFailure { error in
             print(self.DEBUG_TAG+"failed to retrieve machine info")
         }
         
+        
     }
     
     
     
-    
+    // MARK: addTransfer
     func addTransferOperation(_ operation: TransferOperation){
         
         transferOperations.append(operation)
@@ -317,7 +297,6 @@ extension Remote {
     
     
     func beginReceiving(for operation: TransferOperation){
-        
         
         print(DEBUG_TAG+"initiating transfer operation")
         
@@ -332,9 +311,7 @@ extension Remote {
         
         
         let dataStream = client.startTransfer(operationInfo) { (chunk) in
-            
             operation.readChunk(chunk)
-            
         }
         
         
@@ -368,15 +345,31 @@ extension Remote {
 
 
 
-
 extension Remote: ConnectivityStateDelegate {
+    
+    //MARK: connectivityStateDidChange
     public func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
-        print(DEBUG_TAG+"channel state has moved from \(oldState) to \(newState)")
+        print(DEBUG_TAG+"channel state has moved from \(oldState) to \(newState)".uppercased())
         switch newState {
 //        case .connecting: ping()
         case .ready: print(DEBUG_TAG+"channel ready")
+//            verifyDuplex()
         default: break
         }
         
     }
+}
+
+
+extension Remote: ClientErrorDelegate {
+    //MARK: didCatchError
+    public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
+        print(DEBUG_TAG+"ERROR: Error caught: \(error)")
+        print(DEBUG_TAG+"ERROR: file: \(file)")
+        print(DEBUG_TAG+"ERROR: line: \(line)")
+    }
+    
+    
+    
+    
 }

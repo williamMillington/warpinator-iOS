@@ -9,7 +9,6 @@ import Foundation
 
 
 
-
 class TransferFile {
     
     lazy var DEBUG_TAG: String = "TransferFile \(filename): "
@@ -53,9 +52,9 @@ class TransferFile {
                 
         
         
-        print(DEBUG_TAG+"check operation success")
+        print(DEBUG_TAG+"check that file is created")
         if fileManager.fileExists(atPath: filepath) {
-            print(DEBUG_TAG+"\toperation successful")
+            print(DEBUG_TAG+"\toperation was successful")
         } else {
             print(DEBUG_TAG+"\toperation WAS NOT successful")
         }

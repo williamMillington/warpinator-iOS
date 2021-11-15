@@ -11,8 +11,6 @@ import NIO
 
 class ViewController: UIViewController {
 
-//    let server: Server = Server()
-    
     var mainService: MainService = MainService()
     
     override func viewDidLoad() {
@@ -21,7 +19,6 @@ class ViewController: UIViewController {
         
         view.backgroundColor = .blue
         
-//        server.start()
         
         MainService.shared.start()
         

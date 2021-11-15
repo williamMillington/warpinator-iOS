@@ -38,7 +38,7 @@ class MDNSBrowser {
         
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-            print(DEBUG_TAG+"restrict connections to v4")
+//            print(DEBUG_TAG+"restrict connections to v4")
             inetOptions.version = .v4
         }
         

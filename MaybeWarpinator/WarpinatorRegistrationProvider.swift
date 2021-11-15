@@ -23,7 +23,7 @@ class WarpinatorRegistrationProvider: WarpRegistrationProvider {
     
     public func requestCertificate(request: RegRequest, context: StatusOnlyCallContext) -> EventLoopFuture<RegResponse> {
         
-        print(DEBUG_TAG+"serving locked certificate")
+        print(DEBUG_TAG+"serving locked certificate to \(request.hostname)(\(request.ip))")
         
         var response = RegResponse()
         

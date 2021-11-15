@@ -10,6 +10,30 @@ import GRPC
 import NIO
 
 
+
+enum DuplexError: GRPCErrorProtocol {
+    case UnknownRemote
+    case DuplexNotEstablished
+    func makeGRPCStatus() -> GRPCStatus {
+        switch self {
+        case .UnknownRemote: return GRPCStatus(code: GRPCStatus.Code.failedPrecondition,
+                                               message: "This remote is not known to the server")
+        case .DuplexNotEstablished: return GRPCStatus(code: GRPCStatus.Code.failedPrecondition,
+                                                      message: "This remote has not yet established duplex")
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .UnknownRemote: return  "This remote is not known to the server"
+        case .DuplexNotEstablished: return "This remote has not yet established duplex"
+        }
+    }
+    
+    
+}
+
+
 public class WarpinatorServiceProvider: WarpProvider {
     
     private let DEBUG_TAG: String = "WarpinatorServiceProvider: "
@@ -29,7 +53,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         if let remote = remoteManager?.containsRemote(for: id) {
             print(DEBUG_TAG+"(API_V1) Remote known")
-            if remote.details.status == .VerifyingDuplex || remote.details.status == .Connected {
+            if remote.details.status == .DuplexAquired || remote.details.status == .Connected {
                 print(DEBUG_TAG+"(API_V1) Duplex verified by remote")
                 duplexCheck = true
             }
@@ -53,12 +77,11 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         if let remote = remoteManager?.containsRemote(for: id) {
             print(DEBUG_TAG+"(API_V2) Remote known")
-            if remote.details.status == .VerifyingDuplex || remote.details.status == .Connected {
+            if remote.details.status == .DuplexAquired || remote.details.status == .Connected {
                 print(DEBUG_TAG+"(API_V2) Duplex verified by remote")
                 duplexCheck = true
             }
         }
-        
         
         return context.eventLoop.makeCompletedFuture( Result(catching: {
             var duplexExists = HaveDuplex()
@@ -125,16 +148,6 @@ public class WarpinatorServiceProvider: WarpProvider {
         print(DEBUG_TAG+"processing request, compression is \( request.info.useCompression ? "on" : "off" )")
         
         remote.addTransferOperation(transfer)
-        
-//            direction: TransferOperation.Direction.RECEIVING,
-//                                status: TransferOperation.Status.WAITING_FOR_PERMISSION,
-//                                remoteUUID: remoteUUID,
-//                                startTime: Double(request.info.timestamp),
-//                                totalSize: Double(request.size),
-//                                fileCount: Double(request.count),
-//                                singleName: request.nameIfSingle,
-//                                singleMime: request.mimeIfSingle,
-//                                topDirBaseNames: request.topDirBasenames )
         
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {

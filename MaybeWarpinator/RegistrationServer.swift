@@ -222,8 +222,7 @@ class RegistrationServer {
     
     var registrationCandidates: [Int: RegistrationConnection] = [:]
     
-    private var eventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
-                                                                                          networkPreference: .best)
+    private var registrationServerELG: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
 
     private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
@@ -247,17 +246,11 @@ class RegistrationServer {
         mDNSListener?.start()
         
         
-        let registrationServerFuture = GRPC.Server.insecure(group: eventLoopGroup)
+        
+        let registrationServerFuture = GRPC.Server.insecure(group: registrationServerELG)
             .withServiceProviders([warpinatorRegistrationProvider])
             .bind(host: "\(Utils.getIPV4Address())", port: registration_port)
             
-        
-        
-//        registrationServerFuture.whenComplete { result in
-//            if let server = try? result.get() {
-//                self.registrationServer = server
-//            } else { print(self.DEBUG_TAG+"Failed to get registration server") }
-//        }
         
         registrationServerFuture.map {
             $0.channel.localAddress
@@ -274,7 +267,7 @@ class RegistrationServer {
             print(self.DEBUG_TAG+" registration server exited")
         }
         closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
-            try! self.eventLoopGroup.syncShutdownGracefully()
+            try! self.registrationServerELG.syncShutdownGracefully()
         }
         
     }
@@ -361,7 +354,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
         if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
            let type = record.dictionary["type"],
            type == "flush" {
-            print(DEBUG_TAG+"service is flushing; ignore"); return
+            print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
         }
         
         
@@ -371,7 +364,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
             
             serviceName = name
             if name == uuid {
-                print(DEBUG_TAG+"Found myself (\(result.endpoint)"); return
+                print(DEBUG_TAG+"Found myself (\(result.endpoint))"); return
             } else {
                 print(DEBUG_TAG+"service discovered: \(name)")
             }
@@ -387,9 +380,11 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         if let remote = remoteManager?.containsRemote(for: serviceName) {
                 print(DEBUG_TAG+"Service already known")
-            if remote.details.status == .Disconnected ||
-                remote.details.status == .Error {
-                print(DEBUG_TAG+"\tstatus is disconnected/error: reconnecting...")
+            if remote.details.status != .Connected
+                && remote.details.status != .AquiringDuplex
+                && remote.details.status != .DuplexAquired
+                && remote.details.status != .OpeningConnection {
+                print(DEBUG_TAG+"\tstatus is not connected: reconnecting...")
                 remote.connect()
                 return
             }
