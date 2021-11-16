@@ -296,6 +296,20 @@ extension Remote {
     
     
     
+    // MARK: findTransfer
+    func findTransferFor(startTime time: UInt64 ) -> TransferOperation? {
+        for operation in transferOperations {
+            if operation.startTime == time {
+                return operation
+            }
+        }
+        
+        return nil
+    }
+    
+    
+    
+    
     func beginReceiving(for operation: TransferOperation){
         
         print(DEBUG_TAG+"initiating transfer operation")

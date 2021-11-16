@@ -48,7 +48,7 @@ class WarpinatorRegistrationProvider: WarpRegistrationProvider {
         let filepath = Bundle.main.path(forResource: filename,
                                         ofType: ext)!
         
-        print(self.DEBUG_TAG+"loading certificate from \(filename).\(ext)")
+//        print(self.DEBUG_TAG+"loading certificate from \(filename).\(ext)")
         
         let certURL = URL(fileURLWithPath: filepath)
         let certBytes = try! Data(contentsOf: certURL)

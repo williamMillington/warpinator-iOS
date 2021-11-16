@@ -7,6 +7,19 @@
 
 import Foundation
 
+import GRPC
+
+
+
+
+enum TransferError: Error {
+    case TransferNotFound
+    case TransferInterrupted
+}
+
+
+
+
 
 class TransferOperation {
     
@@ -27,7 +40,7 @@ class TransferOperation {
         case FILE, DIRECTORY
     }
     
-    private static var chunk_size: Int = 1024 * 512  // 512 kB
+    private var chunk_size: Int = 1024 * 512  // 512 kB
     
     
     var direction: Direction
@@ -75,15 +88,83 @@ extension TransferOperation {
     
     func prepareToSend() {
         
-    }
-    
-    
-    func startSending() {
+        
+        status = .WAITING_FOR_PERMISSION
+        direction = .SENDING
+        startTime = UInt64( Date().timeIntervalSince1970 * 1000 )
+        
+        fileCount = 1
+        bytesTransferred = 0
+        
+//        guard let file = currentFile else { return }
+//        file.
+        
+        
+        
         
     }
     
     
+    func startSending(using context: StreamingResponseCallContext<FileChunk>) {
+        
+        let filename = "TestFileToSend"
+        let ext = "rtf"
+        
+        let filepath = Bundle.main.path(forResource: filename,
+                                        ofType: ext)!
+        let fileURL = URL(fileURLWithPath: filepath)
+        
+        let fileData = try! Data(contentsOf: fileURL)
+        let fileBytes = Array(fileData)
+        
+        var total = fileData.count
+        var sent = 0
+        
+        var readHead = 0
+        var dataBuffer: [UInt8] = Array(repeating: 0, count: chunk_size)
+        
+        func arraySlice(from array: [UInt8], startingAt index: Int, size: Int ) -> [UInt8] {
+            var endIndex = index + size
+            if ((endIndex) >= array.count){
+                endIndex = array.count
+            }
+            return  Array( array[index...endIndex] )
+        }
+        
+        
+        while sent < total {
+            
+            let datachunk = arraySlice(from: fileBytes, startingAt: readHead, size: chunk_size)
+            readHead = readHead + datachunk.count
+            
+            let fileChunk: FileChunk = .with {
+                $0.relativePath = filename
+                $0.fileType = TransferFile.FileType.FILE.rawValue
+                $0.chunk = Data(bytes: datachunk, count: datachunk.count)
+                $0.fileMode = 0644
+            }
+            
+            let response = context.sendResponse(fileChunk)
+            
+            response.whenComplete { _ in
+                
+            }
+            
+            
+        }
+    }
+    
+    
+    
+    
+    
+    
     func stopSending(){
+        
+    }
+    
+    
+    func calculateTotalSize(){
         
     }
     
@@ -107,7 +188,6 @@ extension TransferOperation {
         // prepare file
         // - access filesystem
         // - check space exists
-        
         
         
     }

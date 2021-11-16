@@ -11,6 +11,12 @@ import Foundation
 
 class TransferFile {
     
+    enum FileType: Int32 {
+        case FILE = 1
+        case DIRECTORY = 2
+    }
+    
+    
     lazy var DEBUG_TAG: String = "TransferFile \(filename): "
     
     let filename: String
@@ -26,8 +32,8 @@ class TransferFile {
         }
         
         return FileHandle(forUpdatingAtPath: filepath)!
-        
     }
+    
     
     
     init(filename name: String){
@@ -51,7 +57,6 @@ class TransferFile {
         fileManager.createFile(atPath: filepath, contents: nil)
                 
         
-        
         print(DEBUG_TAG+"check that file is created")
         if fileManager.fileExists(atPath: filepath) {
             print(DEBUG_TAG+"\toperation was successful")
@@ -60,7 +65,6 @@ class TransferFile {
         }
         
     }
-    
     
     
     func write(_ data: Data){

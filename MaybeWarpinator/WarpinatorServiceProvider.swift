@@ -125,10 +125,8 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         let remoteUUID: String = request.info.ident
         
-        
-        
         guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
-            print("No remote with uuid \"\(remoteUUID)\" exists")
+            print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
             let error = RegistrationError.ConnectionError
             return context.eventLoop.makeFailedFuture(error)
         }
@@ -150,7 +148,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         remote.addTransferOperation(transfer)
         
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             transfer.startReceive()
         }
         
@@ -162,15 +160,37 @@ public class WarpinatorServiceProvider: WarpProvider {
     // MARK: pause transer
     // receive instruction to pause operation (transfer) specified in OpInfo
     public func pauseTransferOp(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
-        return context.eventLoop.makeCompletedFuture(Result(catching: {
-            return VoidType()
-        }))
+        
+        
+        // TODO: implement pause transfer function
+        
+        
+        return context.eventLoop.makeCompletedFuture(Result(catching: { return VoidType() }))
     }
     
     
     // MARK: start transer
     // called by remote to indicate that they are ready to begin receiving transfer (specified in OpInfo)
     public func startTransfer(request: OpInfo, context: StreamingResponseCallContext<FileChunk>) -> EventLoopFuture<GRPCStatus> {
+        
+        // TODO: implement start transfer function
+        
+        let remoteUUID: String = request.ident
+        
+        guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
+            print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
+            let error = TransferError.TransferNotFound
+            return context.eventLoop.makeFailedFuture(error)
+        }
+        
+        
+        guard let transfer = remote.findTransferFor(startTime: request.timestamp) else {
+            print(DEBUG_TAG+"Remote has no transfer with requested timestamp")
+            let error = TransferError.TransferNotFound
+            return context.eventLoop.makeFailedFuture(error)
+        }
+        
+        transfer.startSending()
         
         return context.eventLoop.makeSucceededFuture(GRPC.GRPCStatus.ok)
     }
@@ -179,18 +199,20 @@ public class WarpinatorServiceProvider: WarpProvider {
     // MARK: cancel transer
     // receive instruction to cancel operation (transfer) specified in OpInfo
     public func cancelTransferOpRequest(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
-        return context.eventLoop.makeCompletedFuture(Result(catching: {
-            return VoidType()
-        }))
+        
+        // TODO: implement cnacel transfer function
+        
+        return context.eventLoop.makeCompletedFuture(Result(catching: {  return VoidType()   }))
     }
     
     
     // MARK: stop transer
     // receive instruction to stop operation (transfer) specified in OpInfo
     public func stopTransfer(request: StopInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
-        return context.eventLoop.makeCompletedFuture(Result(catching: {
-            return VoidType()
-        }))
+        
+        // TODO: implement stop transfer function
+        
+        return context.eventLoop.makeCompletedFuture(Result(catching: {  return VoidType()  }))
     }
     
     
@@ -198,7 +220,7 @@ public class WarpinatorServiceProvider: WarpProvider {
     // receive ping from LookupName
     public func ping(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        var debugString = "Server Ping from "
+        var debugString = "Receiving ping from "
         
         if let remote = remoteManager?.containsRemote(for: request.id) {
             debugString = debugString + "remote: \(remote.details.hostname)"
