@@ -131,25 +131,25 @@ public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        let transfer = TransferOperation()
-        transfer.owningRemote = remote
-        transfer.status = .INITIALIZING
-        transfer.remoteUUID = remoteUUID
-        transfer.startTime = request.info.timestamp
-        transfer.totalSize =  Double(request.size)
-        transfer.fileCount = Int(request.count)
-        transfer.singleName = request.nameIfSingle
-        transfer.singleMime = request.mimeIfSingle
-        transfer.topDirBaseNames = request.topDirBasenames
-        transfer.prepareReceive()
+        let operation = ReceiveFileOperation()
+        operation.owningRemote = remote
+        operation.status = .INITIALIZING
+        operation.remoteUUID = remoteUUID
+        operation.startTime = request.info.timestamp
+        operation.totalSize =  Double(request.size)
+        operation.fileCount = Int(request.count)
+        operation.singleName = request.nameIfSingle
+        operation.singleMime = request.mimeIfSingle
+        operation.topDirBaseNames = request.topDirBasenames
+        operation.prepareReceive()
         
         print(DEBUG_TAG+"processing request, compression is \( request.info.useCompression ? "on" : "off" )")
         
-        remote.addTransferOperation(transfer)
+        remote.addReceivingOperation(operation)
         
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            transfer.startReceive()
+            operation.startReceive()
         }
         
         
@@ -184,13 +184,13 @@ public class WarpinatorServiceProvider: WarpProvider {
         }
         
         
-        guard let transfer = remote.findTransferFor(startTime: request.timestamp) else {
-            print(DEBUG_TAG+"Remote has no transfer with requested timestamp")
+        guard let transfer = remote.findSendOperation(withStartTime: request.timestamp) else {
+            print(DEBUG_TAG+"Remote has no sending operations with requested timestamp")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        transfer.startSending()
+        transfer.send(using: context)
         
         return context.eventLoop.makeSucceededFuture(GRPC.GRPCStatus.ok)
     }

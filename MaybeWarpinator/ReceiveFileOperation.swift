@@ -1,5 +1,5 @@
 //
-//  TransferOperation.swift
+//  ReceiveFileOperation.swift
 //  MaybeWarpinator
 //
 //  Created by William Millington on 2021-10-08.
@@ -17,13 +17,15 @@ enum TransferError: Error {
     case TransferInterrupted
 }
 
+enum FileType: Int32 {
+    case FILE = 1
+    case DIRECTORY = 2
+}
 
 
-
-
-class TransferOperation {
+class ReceiveFileOperation: TransferOperation {
     
-    lazy var DEBUG_TAG: String = "TransferOperation (\(remoteUUID),\(direction)):"
+    lazy var DEBUG_TAG: String = "ReceiveFileOperation (\(remoteUUID),\(direction)):"
     
     public enum Direction: String {
         case SENDING, RECEIVING
@@ -36,9 +38,6 @@ class TransferOperation {
         case FAILED
     }
     
-    public enum FileType {
-        case FILE, DIRECTORY
-    }
     
     private var chunk_size: Int = 1024 * 512  // 512 kB
     
@@ -67,7 +66,7 @@ class TransferOperation {
     
     var currentRelativePath: String = ""
     
-    var currentFile: TransferFile?
+    var currentFile: FileReceiver?
     
     
     init(){
@@ -82,102 +81,8 @@ class TransferOperation {
 
 
 
-
-//MARK: - Send
-extension TransferOperation {
-    
-    func prepareToSend() {
-        
-        
-        status = .WAITING_FOR_PERMISSION
-        direction = .SENDING
-        startTime = UInt64( Date().timeIntervalSince1970 * 1000 )
-        
-        fileCount = 1
-        bytesTransferred = 0
-        
-//        guard let file = currentFile else { return }
-//        file.
-        
-        
-        
-        
-    }
-    
-    
-    func startSending(using context: StreamingResponseCallContext<FileChunk>) {
-        
-        let filename = "TestFileToSend"
-        let ext = "rtf"
-        
-        let filepath = Bundle.main.path(forResource: filename,
-                                        ofType: ext)!
-        let fileURL = URL(fileURLWithPath: filepath)
-        
-        let fileData = try! Data(contentsOf: fileURL)
-        let fileBytes = Array(fileData)
-        
-        var total = fileData.count
-        var sent = 0
-        
-        var readHead = 0
-        var dataBuffer: [UInt8] = Array(repeating: 0, count: chunk_size)
-        
-        func arraySlice(from array: [UInt8], startingAt index: Int, size: Int ) -> [UInt8] {
-            var endIndex = index + size
-            if ((endIndex) >= array.count){
-                endIndex = array.count
-            }
-            return  Array( array[index...endIndex] )
-        }
-        
-        
-        while sent < total {
-            
-            let datachunk = arraySlice(from: fileBytes, startingAt: readHead, size: chunk_size)
-            readHead = readHead + datachunk.count
-            
-            let fileChunk: FileChunk = .with {
-                $0.relativePath = filename
-                $0.fileType = TransferFile.FileType.FILE.rawValue
-                $0.chunk = Data(bytes: datachunk, count: datachunk.count)
-                $0.fileMode = 0644
-            }
-            
-            let response = context.sendResponse(fileChunk)
-            
-            response.whenComplete { _ in
-                
-            }
-            
-            
-        }
-    }
-    
-    
-    
-    
-    
-    
-    func stopSending(){
-        
-    }
-    
-    
-    func calculateTotalSize(){
-        
-    }
-    
-}
-
-
-
-
-
-
-
 //MARK: - Receive
-extension TransferOperation {
+extension ReceiveFileOperation {
     
     func prepareReceive(){
         
@@ -214,7 +119,7 @@ extension TransferOperation {
             
             currentRelativePath = chunk.relativePath
             
-            let file = TransferFile(filename: currentRelativePath)
+            let file = FileReceiver(filename: currentRelativePath)
             currentFile = file
             
         }
@@ -249,4 +154,57 @@ extension TransferOperation {
     }
     
     
+}
+
+
+
+
+
+class FileReceiver {
+    
+    
+    
+    lazy var DEBUG_TAG: String = "FileReceiver \(filename): "
+    
+    let filename: String
+    
+    let fileURL: URL
+    let filepath: String
+    var fileHandle: FileHandle  {
+        do {
+            return try FileHandle(forUpdating: fileURL)
+        } catch {  print(DEBUG_TAG+"couldn't aquire FileHandle: \(error)")  }
+        
+        return FileHandle(forUpdatingAtPath: filepath)!
+    }
+    
+    init(filename name: String){
+        
+        self.filename = name
+        
+        let fileManager = FileManager.default
+        
+        let fileParentURL = fileManager.documentsDirectory
+        fileURL = fileParentURL.appendingPathComponent(filename)
+        
+        filepath = fileURL.path
+        
+        // file already exists
+        if fileManager.fileExists(atPath: filepath) {
+            print(DEBUG_TAG+"deleting preexisting file")
+            try! fileManager.removeItem(at: fileURL)
+        }
+        
+        fileManager.createFile(atPath: filepath, contents: nil)
+    }
+    
+    func write(_ data: Data){
+        print(DEBUG_TAG+"\twriting to file...")
+        fileHandle.seekToEndOfFile()
+        fileHandle.write(data)
+    }
+    
+    func finish(){
+        fileHandle.closeFile()
+    }
 }

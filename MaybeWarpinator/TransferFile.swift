@@ -1,5 +1,5 @@
 //
-//  TransferFile.swift
+//  FileSender.swift
 //  MaybeWarpinator
 //
 //  Created by William Millington on 2021-11-12.
@@ -9,7 +9,7 @@ import Foundation
 
 
 
-class TransferFile {
+class FileSender {
     
     enum FileType: Int32 {
         case FILE = 1
@@ -17,7 +17,7 @@ class TransferFile {
     }
     
     
-    lazy var DEBUG_TAG: String = "TransferFile \(filename): "
+    lazy var DEBUG_TAG: String = "FileSender \(filename): "
     
     let filename: String
     

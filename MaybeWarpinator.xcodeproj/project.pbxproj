@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		79343EAD2742A7B7008E0890 /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 79343EAB2742A7B7008E0890 /* root.pem */; };
 		79343EAE2742A7B7008E0890 /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 79343EAC2742A7B7008E0890 /* rootkey.key */; };
+		79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79343EB22743502B008E0890 /* SendFileOperation.swift */; };
 		79360EB427069897008349D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB327069897008349D2 /* AppDelegate.swift */; };
 		79360EB627069897008349D2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB527069897008349D2 /* SceneDelegate.swift */; };
 		79360EB827069897008349D2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB727069897008349D2 /* ViewController.swift */; };
@@ -17,11 +18,11 @@
 		79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79360EBE27069899008349D2 /* LaunchScreen.storyboard */; };
 		79360ECD270928B3008349D2 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 79360ECC270928B3008349D2 /* GRPC */; };
 		79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 79360ECF270A1C73008349D2 /* TestFileToSend.rtf */; };
-		79360ED5270A29B0008349D2 /* RegisteredRemote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* RegisteredRemote.swift */; };
+		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
 		797C12B7270FC83700A2795C /* AuthenticationServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B6270FC83700A2795C /* AuthenticationServer.swift */; };
 		797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B9270FC86A00A2795C /* Authenticator.swift */; };
-		797C12BD2711102700A2795C /* TransferOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* TransferOperation.swift */; };
+		797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* ReceiveFileOperation.swift */; };
 		797C12C227150FB700A2795C /* Clibsodium in Frameworks */ = {isa = PBXBuildFile; productRef = 797C12C127150FB700A2795C /* Clibsodium */; };
 		797C12C427150FB700A2795C /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = 797C12C327150FB700A2795C /* Sodium */; };
 		79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002252717BDF6003CEBCC /* CertificateServer.swift */; };
@@ -39,13 +40,14 @@
 		79C002B8270E0C16002DB22B /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002B7270E0C16002DB22B /* Utils.swift */; };
 		79C002BB270E670C002DB22B /* MainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BA270E670C002DB22B /* MainService.swift */; };
 		79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */; };
-		79CCFB9F273ED5EF00852EBD /* TransferFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CCFB9E273ED5EF00852EBD /* TransferFile.swift */; };
+		79CCFB9F273ED5EF00852EBD /* FileSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CCFB9E273ED5EF00852EBD /* FileSender.swift */; };
 		79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		79343EAB2742A7B7008E0890 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
 		79343EAC2742A7B7008E0890 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
+		79343EB22743502B008E0890 /* SendFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFileOperation.swift; sourceTree = "<group>"; };
 		79360EB027069897008349D2 /* MaybeWarpinator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MaybeWarpinator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79360EB327069897008349D2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		79360EB527069897008349D2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -55,11 +57,11 @@
 		79360EBF27069899008349D2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		79360EC127069899008349D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		79360ECF270A1C73008349D2 /* TestFileToSend.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = TestFileToSend.rtf; sourceTree = "<group>"; };
-		79360ED4270A29B0008349D2 /* RegisteredRemote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisteredRemote.swift; sourceTree = "<group>"; };
+		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
 		797C12B6270FC83700A2795C /* AuthenticationServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationServer.swift; sourceTree = "<group>"; };
 		797C12B9270FC86A00A2795C /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
-		797C12BC2711102700A2795C /* TransferOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferOperation.swift; sourceTree = "<group>"; };
+		797C12BC2711102700A2795C /* ReceiveFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveFileOperation.swift; sourceTree = "<group>"; };
 		79B002252717BDF6003CEBCC /* CertificateServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateServer.swift; sourceTree = "<group>"; };
 		79B0022A27190F18003CEBCC /* MDNSBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSBrowser.swift; sourceTree = "<group>"; };
 		79B0022F2719FCCB003CEBCC /* MDNSListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSListener.swift; sourceTree = "<group>"; };
@@ -74,7 +76,7 @@
 		79C002B7270E0C16002DB22B /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		79C002BA270E670C002DB22B /* MainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainService.swift; sourceTree = "<group>"; };
 		79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorServiceProvider.swift; sourceTree = "<group>"; };
-		79CCFB9E273ED5EF00852EBD /* TransferFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferFile.swift; sourceTree = "<group>"; };
+		79CCFB9E273ED5EF00852EBD /* FileSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSender.swift; sourceTree = "<group>"; };
 		79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Misc.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -129,13 +131,14 @@
 				79360EB927069897008349D2 /* Main.storyboard */,
 				79C002BA270E670C002DB22B /* MainService.swift */,
 				79B00232271C9DEE003CEBCC /* RemoteManager.swift */,
-				79360ED4270A29B0008349D2 /* RegisteredRemote.swift */,
+				79360ED4270A29B0008349D2 /* Remote.swift */,
 				79B0029D27308798003CEBCC /* RegistrationServer.swift */,
 				79360EB527069897008349D2 /* SceneDelegate.swift */,
 				79C002B3270BCC4E002DB22B /* Server.swift */,
 				79C002B0270BC1A9002DB22B /* TestServiceProvider.swift */,
-				797C12BC2711102700A2795C /* TransferOperation.swift */,
-				79CCFB9E273ED5EF00852EBD /* TransferFile.swift */,
+				797C12BC2711102700A2795C /* ReceiveFileOperation.swift */,
+				79343EB22743502B008E0890 /* SendFileOperation.swift */,
+				79CCFB9E273ED5EF00852EBD /* FileSender.swift */,
 				79C002B7270E0C16002DB22B /* Utils.swift */,
 				79360EB727069897008349D2 /* ViewController.swift */,
 				797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */,
@@ -286,8 +289,8 @@
 				79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */,
 				79360EB827069897008349D2 /* ViewController.swift in Sources */,
 				79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */,
-				79360ED5270A29B0008349D2 /* RegisteredRemote.swift in Sources */,
-				79CCFB9F273ED5EF00852EBD /* TransferFile.swift in Sources */,
+				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
+				79CCFB9F273ED5EF00852EBD /* FileSender.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
 				79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */,
 				797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */,
@@ -305,7 +308,8 @@
 				797C12B7270FC83700A2795C /* AuthenticationServer.swift in Sources */,
 				79C002BB270E670C002DB22B /* MainService.swift in Sources */,
 				79C002B4270BCC4E002DB22B /* Server.swift in Sources */,
-				797C12BD2711102700A2795C /* TransferOperation.swift in Sources */,
+				797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */,
+				79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */,
 				79C002AC270A92EC002DB22B /* warp.pb.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
