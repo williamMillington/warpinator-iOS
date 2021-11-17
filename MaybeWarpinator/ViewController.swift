@@ -10,7 +10,9 @@ import GRPC
 import NIO
 
 class ViewController: UIViewController {
-
+    
+    private let DEBUG_TAG: String = "ViewController: "
+    
     var coordinator: MainCoordinator?
     
     var mainService: MainService = MainService()
@@ -28,8 +30,10 @@ class ViewController: UIViewController {
     var remotesStack: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.distribution = .fill
+        stack.alignment = .fill
         stack.axis = .vertical
-        stack.backgroundColor = .purple
+        stack.backgroundColor = UIColor.blue.withAlphaComponent(0.2)
         return stack
     }()
     
@@ -66,7 +70,11 @@ class ViewController: UIViewController {
         NSLayoutConstraint.activate(viewConstraints)
         
         
+        MainService.shared.remoteManager.remotesViewController = self
+        
         MainService.shared.start()
+        
+        
         
     }
 
@@ -86,12 +94,27 @@ class ViewController: UIViewController {
     
     
     
-    func connectionAdded(){
+    func connectionAdded(_ remoteViewModel: RemoteViewModel){
+        
+        print(DEBUG_TAG+"Adding view for connection")
+        
+        let remoteView = ListedRemoteView(withViewModel: remoteViewModel)
         
         
+        remotesStack.addSubview(remoteView)
     }
     
     
+    func connectionRemoved(withh uuid: String){
+        
+        for view in remotesStack.arrangedSubviews as! [ListedRemoteView]{
+            if view.viewModel!.remote.details.uuid == uuid {
+                remotesStack.removeArrangedSubview(view)
+                return
+            }
+        }
+        
+    }
     
     
     

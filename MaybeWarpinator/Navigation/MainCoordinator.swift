@@ -63,19 +63,6 @@ class MainCoordinator: NSObject, Coordinator {
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     func coordinatorDidFinish(_ child: Coordinator){
         for (i, coordinator) in childCoordinators.enumerated() {
             if coordinator === child {

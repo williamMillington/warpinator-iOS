@@ -24,8 +24,8 @@ import Logging
 
 
 //MARK: Remote Details
-public struct RemoteDetails {
-    public enum ConnectionStatus {
+struct RemoteDetails {
+    enum ConnectionStatus {
         case Canceled
         case OpeningConnection, FetchingCredentials, AquiringDuplex, DuplexAquired
         case Error
@@ -56,6 +56,26 @@ public struct RemoteDetails {
 }
 
 
+class RemoteViewModel {
+    
+    var remote: Remote
+    var onUpdated: ()->() = {}
+    
+    
+    init(_ remote: Remote) {
+        self.remote = remote
+    }
+    
+    
+    func update(){
+            onUpdated()
+    }
+    
+}
+
+
+
+
 
 
 
@@ -65,6 +85,9 @@ public class Remote {
     lazy var DEBUG_TAG: String = "REMOTE (hostname: \"\(details.hostname)\"): "
     
     var details: RemoteDetails
+    
+    weak var viewModel: RemoteViewModel?
+    
     
     public var displayName: String = "No_Display_Name"
     public var picture: UIImage?
