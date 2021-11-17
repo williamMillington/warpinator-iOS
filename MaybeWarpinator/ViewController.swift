@@ -11,6 +11,8 @@ import NIO
 
 class ViewController: UIViewController {
 
+    var coordinator: MainCoordinator?
+    
     var mainService: MainService = MainService()
     
     var refreshButton: UIButton = {
@@ -35,7 +37,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        view.backgroundColor = .green
+        view.backgroundColor = .white
         
         var viewConstraints: [NSLayoutConstraint] = []
         

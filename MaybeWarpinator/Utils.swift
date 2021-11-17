@@ -13,6 +13,14 @@ import UIKit
 public class Utils {
     
     
+    
+    static func lockOrientation(_ orientation: UIInterfaceOrientationMask){
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+            appDelegate.orientationLock = orientation
+        }
+    }
+    
+    
     public static func getDeviceName() -> String {
         return "MyDeviceName"
     }

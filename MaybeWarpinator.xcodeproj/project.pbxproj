@@ -35,6 +35,8 @@
 		79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8A0E927449EB500369E62 /* String+substring.swift */; };
 		79B8A0ED27449EE300369E62 /* ExtensionManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8A0EC27449EE300369E62 /* ExtensionManagement.swift */; };
 		79B8A0F42745587C00369E62 /* ListedRemoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8A0F32745587C00369E62 /* ListedRemoteView.swift */; };
+		79B8A0F7274561C600369E62 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8A0F6274561C600369E62 /* Coordinator.swift */; };
+		79B8A0FB2745623900369E62 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8A0FA2745623900369E62 /* MainCoordinator.swift */; };
 		79C002AC270A92EC002DB22B /* warp.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002A9270A92EC002DB22B /* warp.pb.swift */; };
 		79C002AD270A92EC002DB22B /* warp.proto in Sources */ = {isa = PBXBuildFile; fileRef = 79C002AA270A92EC002DB22B /* warp.proto */; };
 		79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002AB270A92EC002DB22B /* warp.grpc.swift */; };
@@ -74,6 +76,8 @@
 		79B8A0E927449EB500369E62 /* String+substring.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+substring.swift"; sourceTree = "<group>"; };
 		79B8A0EC27449EE300369E62 /* ExtensionManagement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtensionManagement.swift; sourceTree = "<group>"; };
 		79B8A0F32745587C00369E62 /* ListedRemoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedRemoteView.swift; sourceTree = "<group>"; };
+		79B8A0F6274561C600369E62 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
+		79B8A0FA2745623900369E62 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		79C002A9270A92EC002DB22B /* warp.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.pb.swift; path = MaybeWarpinator/__gRPC/warp.pb.swift; sourceTree = SOURCE_ROOT; };
 		79C002AA270A92EC002DB22B /* warp.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.protobuf; name = warp.proto; path = MaybeWarpinator/__gRPC/warp.proto; sourceTree = SOURCE_ROOT; };
 		79C002AB270A92EC002DB22B /* warp.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.grpc.swift; path = MaybeWarpinator/__gRPC/warp.grpc.swift; sourceTree = SOURCE_ROOT; };
@@ -121,6 +125,7 @@
 		79360EB227069897008349D2 /* MaybeWarpinator */ = {
 			isa = PBXGroup;
 			children = (
+				79B8A0F92745620D00369E62 /* Navigation */,
 				79D089DE273F0B9400B14FAB /* Extensions */,
 				79B0022927190924003CEBCC /* Networking */,
 				797C12C6271749A100A2795C /* Resources */,
@@ -178,6 +183,15 @@
 				79B0022F2719FCCB003CEBCC /* MDNSListener.swift */,
 			);
 			path = Networking;
+			sourceTree = "<group>";
+		};
+		79B8A0F92745620D00369E62 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				79B8A0F6274561C600369E62 /* Coordinator.swift */,
+				79B8A0FA2745623900369E62 /* MainCoordinator.swift */,
+			);
+			path = Navigation;
 			sourceTree = "<group>";
 		};
 		79C0029C270A90EC002DB22B /* Frameworks */ = {
@@ -308,11 +322,13 @@
 				797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */,
 				79C002AD270A92EC002DB22B /* warp.proto in Sources */,
 				79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */,
+				79B8A0FB2745623900369E62 /* MainCoordinator.swift in Sources */,
 				79B8A0F42745587C00369E62 /* ListedRemoteView.swift in Sources */,
 				79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */,
 				79C002B8270E0C16002DB22B /* Utils.swift in Sources */,
 				79B002452729B425003CEBCC /* KeyMaster.swift in Sources */,
 				79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */,
+				79B8A0F7274561C600369E62 /* Coordinator.swift in Sources */,
 				79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */,
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
