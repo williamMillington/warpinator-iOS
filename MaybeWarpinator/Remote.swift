@@ -121,8 +121,6 @@ public class Remote {
                 hostname = details.hostname
             }
             
-//            let hostname = "192.168.2.18"
-//            let hostname = "192.168.2.14"
             let port = details.port
             
             channel = channelBuilder.connect(host: hostname, port: port)
@@ -131,9 +129,7 @@ public class Remote {
                 print(self.DEBUG_TAG+"channel created")
                 warpClient = WarpClient(channel: channel)
                 
-//                details.status = .VerifyingDuplex
-//                ping()
-                verifyDuplex() //.Connected
+                verifyDuplex()
             } else {
                 details.status = .Error
             }
@@ -271,8 +267,7 @@ extension Remote {
             }
         }
         
-        // ping again in 10 seconds
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+        // ping again in 5 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             if self.details.status == .Connected {
                 self.ping()

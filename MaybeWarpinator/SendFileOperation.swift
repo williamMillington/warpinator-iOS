@@ -68,13 +68,15 @@ class SendFileOperation: TransferOperation {
     }
     
     
+    
+    
+    
     init(for filename: String, ext: String){
         
         direction = .SENDING
         status = .INITIALIZING
         remoteUUID = Server.SERVER_UUID
         startTime = UInt64( Date().timeIntervalSince1970 * 1000 )
-        
         
         currentFile = FileSender(filename: filename, extension: ext)
         
@@ -144,6 +146,8 @@ class SendFileOperation: TransferOperation {
 
 
 
+
+
 // MARK: FileSender
 class FileSender {
     
@@ -201,7 +205,6 @@ class FileSender {
             $0.relativePath = relativeFilePath
             $0.fileType = FileType.FILE.rawValue
             $0.chunk = Data(bytes: datachunk, count: datachunk.count)
-//            $0.fileMode = 0644
         }
         
         sent += datachunk.count
@@ -210,14 +213,6 @@ class FileSender {
         
         return fileChunk
     }
-    
-    
-    
-    func finish(){
-//        fileHandle.closeFile()
-    }
-    
-    
     
     
     
