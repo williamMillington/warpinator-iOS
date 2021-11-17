@@ -215,26 +215,23 @@ public class Remote {
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 5){
 //            self.ping()
 //        }
-        print(DEBUG_TAG+"Sending file in: ")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3){
-            print(self.DEBUG_TAG+" \t3")
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4){
-            print(self.DEBUG_TAG+" \t2")
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5){
-            print(self.DEBUG_TAG+" \t1")
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6){
-            print(self.DEBUG_TAG+"\t\tSending file.....")
-            self.sendFile()
-        }
+//        print(DEBUG_TAG+"Sending file in: ")
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 3){
+//            print(self.DEBUG_TAG+" \t3")
+//        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 4){
+//            print(self.DEBUG_TAG+" \t2")
+//        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5){
+//            print(self.DEBUG_TAG+" \t1")
+//        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 6){
+//            print(self.DEBUG_TAG+"\t\tSending file.....")
+//            self.sendFile()
+//        }
         
         
     }
-    
-    
-    
     
 }
 
