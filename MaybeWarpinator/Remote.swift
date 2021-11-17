@@ -77,6 +77,8 @@ public class Remote {
     
     let group = MultiThreadedEventLoopGroup(numberOfThreads: 5) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
+    
+    var registrationConnection: RegistrationConnection?
     var authenticationCertificate: NIOSSLCertificate?
     
     var duplexAttempts: Int = 0
@@ -93,10 +95,36 @@ public class Remote {
     }
     
     
+    init(details: RemoteDetails){
+        self.details = details
+        
+    }
+    
     init(details: RemoteDetails, certificate: NIOSSLCertificate){
         self.details = details
         authenticationCertificate = certificate
     }
+    
+    
+    
+    
+    func register(){
+        
+        
+        if details.api == "1" {
+            registrationConnection = UDPConnection(details, manager: self)
+        } else {
+            registrationConnection = GRPCConnection(details, manager: self)
+        }
+        
+        registrationConnection?.register()
+    }
+    
+    
+    
+    
+    
+    
     
     
     //MARK: connect
@@ -451,3 +479,28 @@ extension Remote: ClientErrorDelegate {
     
     
 }
+
+
+
+// MARK: - RegistrationManager
+extension Remote: RegistrationManager{
+    // MARK: - registrations success
+    func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
+        
+        print(DEBUG_TAG+"registration succeeded, certificate retrieved")
+        authenticationCertificate = certificate
+        
+        connect()
+    }
+    
+    
+    
+    // MARK: - registrations failure
+    func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError){
+        
+        print(DEBUG_TAG+"registration failed, error: \(error)")
+        
+    }
+}
+
+

@@ -125,6 +125,7 @@
 		79360EB227069897008349D2 /* MaybeWarpinator */ = {
 			isa = PBXGroup;
 			children = (
+				79B8A0FD2745674700369E62 /* View */,
 				79B8A0F92745620D00369E62 /* Navigation */,
 				79D089DE273F0B9400B14FAB /* Extensions */,
 				79B0022927190924003CEBCC /* Networking */,
@@ -192,6 +193,13 @@
 				79B8A0FA2745623900369E62 /* MainCoordinator.swift */,
 			);
 			path = Navigation;
+			sourceTree = "<group>";
+		};
+		79B8A0FD2745674700369E62 /* View */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = View;
 			sourceTree = "<group>";
 		};
 		79C0029C270A90EC002DB22B /* Frameworks */ = {

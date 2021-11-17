@@ -12,23 +12,30 @@ import Network
 
 class RemoteManager {
     
+    private let DEBUG_TAG: String = "RemoteManager: "
     
     var remotes: [String: Remote] = [:]
     
+    weak var remotesViewController: ViewController?
+    
     
     func addRemote(_ remote: Remote){
-        
+        print(DEBUG_TAG+"adding remote")
         remotes[remote.details.uuid] = remote
         
+        remote.register()
     }
     
+    
     func removeRemote(withUUID uuid: String){
-        
+            print(DEBUG_TAG+"removing remote...")
         guard remotes[uuid] != nil else {
+            print(DEBUG_TAG+"\t remote not found")
             return
         }
         
         remotes.removeValue(forKey: uuid)
+        print(DEBUG_TAG+"\t remote removed")
         
     }
     

@@ -15,13 +15,14 @@ class MainCoordinator: NSObject, Coordinator {
     var navController: UINavigationController
     
     
+    
+    
     init(withNavigationController controller: UINavigationController){
         navController = controller
         
 //        navController.setToolbarHidden(true, animated: false)
         navController.setNavigationBarHidden(true, animated: false)
         
-//        soundManager = AKSoundManager()
         
         Utils.lockOrientation(.portrait)
     }
@@ -52,9 +53,26 @@ class MainCoordinator: NSObject, Coordinator {
     }
     
     
-    func exit() {
-            print("No exit from MainMenu ")
+    
+    func userSelected(_ remote: RemoteDetails){
+        
+        
+        
+        
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     

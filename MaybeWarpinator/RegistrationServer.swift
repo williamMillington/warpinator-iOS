@@ -25,7 +25,7 @@ enum RegistrationError: Error {
 protocol RegistrationConnection {
     
     var details: RemoteDetails { get }
-    var registrationServer: RegistrationServer { get }
+    var registrationServer: RegistrationManager { get }
     
     var uuid: Int { get }
     var attempts: Int { get set }
@@ -34,6 +34,12 @@ protocol RegistrationConnection {
 }
 
 
+// MARK:  RegistrationManager
+protocol RegistrationManager {
+    func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate)
+    func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError)
+}
+
 
 // MARK: - UDPConnection
 class UDPConnection: RegistrationConnection {
@@ -41,7 +47,7 @@ class UDPConnection: RegistrationConnection {
     private let DEBUG_TAG: String = "UDPConnection: "
     
     var details: RemoteDetails
-    var registrationServer: RegistrationServer
+    var registrationServer: RegistrationManager
     
     var uuid: Int {
         return details.endpoint.hashValue
@@ -53,9 +59,9 @@ class UDPConnection: RegistrationConnection {
     var connection: NWConnection
     
     
-    init(_ candidate: RemoteDetails, server: RegistrationServer) {
+    init(_ candidate: RemoteDetails, manager: RegistrationManager) {
         self.details = candidate
-        registrationServer = server
+        registrationServer = manager
         
         endpoint = candidate.endpoint
         
@@ -151,7 +157,9 @@ class GRPCConnection: RegistrationConnection {
     private let DEBUG_TAG: String = "GRPCConnection: "
     
     var details: RemoteDetails
-    var registrationServer: RegistrationServer
+    var registrationServer: RegistrationManager
+    
+    
     
     var uuid: Int {
         return details.endpoint.hashValue
@@ -165,9 +173,9 @@ class GRPCConnection: RegistrationConnection {
     let group = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     
-    init(_ candidate: RemoteDetails, server: RegistrationServer) {
+    init(_ candidate: RemoteDetails, manager: RegistrationManager) {
         self.details = candidate
-        registrationServer = server
+        registrationServer = manager
         
         
         let port = details.authPort
@@ -219,19 +227,17 @@ class RegistrationServer {
     private let DEBUG_TAG: String = "RegistrationServer: "
     
     public static let REGISTRATION_PORT: Int = 42001
-    
     private var registration_port: Int = RegistrationServer.REGISTRATION_PORT
     
     private lazy var uuid: String = Server.SERVER_UUID
     
-    var registrationConnections: [NWEndpoint: NWConnection] = [:]
-    
-    var certificateServer = CertificateServer()
     
     var mDNSBrowser: MDNSBrowser?
     var mDNSListener: MDNSListener?
     
-    var registrationCandidates: [Int: RegistrationConnection] = [:]
+    var certificateServer = CertificateServer()
+    
+    
     
     private var registrationServerELG: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
 
@@ -250,12 +256,10 @@ class RegistrationServer {
         
         mDNSBrowser = MDNSBrowser()
         mDNSBrowser?.delegate = self
-//        mDNSBrowser?.startBrowsing()
         
         mDNSListener = MDNSListener()
         mDNSListener?.delegate = self
         mDNSListener?.start()
-        
         
         
         let registrationServerFuture = GRPC.Server.insecure(group: registrationServerELG)
@@ -282,60 +286,8 @@ class RegistrationServer {
         }
         
     }
-    
-    
-    
-    
-    // MARK: - register
-    func register(_ candidate: RemoteDetails){
-        
-//        print(DEBUG_TAG+"attempting to register remote")
-        
-        // api_1: use udp to authenticate
-        // api_2: use GRPC call
-        let newConnection: RegistrationConnection
-        if candidate.api == "1" {
-            newConnection = UDPConnection(candidate, server: self)
-        } else {
-            newConnection = GRPCConnection(candidate, server: self)
-        }
-        
-        registrationCandidates[newConnection.uuid] = newConnection
-        
-        
-        newConnection.register()
-        
-    }
-    
-    
-    // MARK: - registrations success
-    func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
-        
-//        print(DEBUG_TAG+"registration succeeded")
-        
-        let newRemote = Remote(details: details, certificate: certificate)
-        
-        remoteManager?.addRemote(newRemote)
-        newRemote.connect()
-    }
-    
-    
-    
-    // MARK: - registrations failure
-    func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError){
-        
-        print(DEBUG_TAG+"registration failed, error: \(error)")
-        
-    }
-    
-    
+
 }
-
-
-
-
-
-
 
 
 
@@ -399,7 +351,6 @@ extension RegistrationServer: MDNSBrowserDelegate {
                 remote.connect()
                 return
             }
-            
         }
         
         
@@ -425,8 +376,9 @@ extension RegistrationServer: MDNSBrowserDelegate {
             }
         }
         
+        let newRemote = Remote(details: details)
         
-        register(details)
+        remoteManager?.addRemote(newRemote)
     }
     
 }

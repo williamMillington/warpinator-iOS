@@ -66,7 +66,7 @@ class ViewController: UIViewController {
         NSLayoutConstraint.activate(viewConstraints)
         
         
-//        MainService.shared.start()
+        MainService.shared.start()
         
     }
 
@@ -87,10 +87,6 @@ class ViewController: UIViewController {
     
     
     func connectionAdded(){
-        
-        
-        
-        
         
         
     }

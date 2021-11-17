@@ -19,6 +19,7 @@ class MainService {
     
     var remoteManager: RemoteManager = RemoteManager()
     
+    
     init(){
         
         MainService.shared = self
