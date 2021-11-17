@@ -71,7 +71,18 @@ class UDPConnection: RegistrationConnection {
         connection = NWConnection(to: endpoint, using: params)
         connection.stateUpdateHandler = { newState in
             switch newState {
-            case .ready: print(self.DEBUG_TAG+"connection to \(self.endpoint) ready");
+            case .ready:
+                
+                if let ip4_string = self.connection.currentPath?.remoteEndpoint?.debugDescription {
+//                    print(self.DEBUG_TAG+"connection to \(self.endpoint) ready (ipv4 address: \(ip4))");
+                    // ip4_string should be a string formatted as 0.0.0.0%en0:0000. IP address is section of string before the '%'
+                    let components = ip4_string.split(separator: Character("%"))
+                    let ip4_address: String = String(components[0])
+                    print(self.DEBUG_TAG+"extracted IP Address: \(ip4_address)")
+                    self.details.ipAddress = ip4_address //String(components[0])
+                }
+                
+                
                 self.sendCertificateRequest()
             default: print(self.DEBUG_TAG+"connection to \(self.endpoint) state updated: \(newState)")
             }

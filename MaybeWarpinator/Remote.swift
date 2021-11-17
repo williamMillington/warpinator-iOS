@@ -42,6 +42,7 @@ public struct RemoteDetails {
     
     var serviceName: String = "No_ServiceName"
     var hostname: String = "No_Hostname"
+    var ipAddress: String = "No_IPAddress"
     var port: Int = 0 //"No_Port"
     var authPort: Int = 0 //"No_Auth_Port"
     
@@ -112,9 +113,14 @@ public class Remote {
                 .withConnectivityStateDelegate(self)
 //                .withBackgroundActivityLogger(logger)
                 
-                
             
-            let hostname = details.hostname
+            let hostname: String
+            if details.api == "1" {
+                hostname = details.ipAddress
+            } else {
+                hostname = details.hostname
+            }
+            
 //            let hostname = "192.168.2.18"
 //            let hostname = "192.168.2.14"
             let port = details.port

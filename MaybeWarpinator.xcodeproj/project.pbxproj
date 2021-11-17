@@ -32,6 +32,8 @@
 		79B00237272440E4003CEBCC /* Shield in Frameworks */ = {isa = PBXBuildFile; productRef = 79B00236272440E4003CEBCC /* Shield */; };
 		79B002452729B425003CEBCC /* KeyMaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002442729B425003CEBCC /* KeyMaster.swift */; };
 		79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0029D27308798003CEBCC /* RegistrationServer.swift */; };
+		79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8A0E927449EB500369E62 /* String+substring.swift */; };
+		79B8A0ED27449EE300369E62 /* ExtensionManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8A0EC27449EE300369E62 /* ExtensionManagement.swift */; };
 		79C002AC270A92EC002DB22B /* warp.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002A9270A92EC002DB22B /* warp.pb.swift */; };
 		79C002AD270A92EC002DB22B /* warp.proto in Sources */ = {isa = PBXBuildFile; fileRef = 79C002AA270A92EC002DB22B /* warp.proto */; };
 		79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002AB270A92EC002DB22B /* warp.grpc.swift */; };
@@ -45,8 +47,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		79343EAB2742A7B7008E0890 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
-		79343EAC2742A7B7008E0890 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
+		79343EAB2742A7B7008E0890 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = text; path = root.pem; sourceTree = SOURCE_ROOT; };
+		79343EAC2742A7B7008E0890 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = text; path = rootkey.key; sourceTree = SOURCE_ROOT; };
 		79343EB22743502B008E0890 /* SendFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFileOperation.swift; sourceTree = "<group>"; };
 		79360EB027069897008349D2 /* MaybeWarpinator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MaybeWarpinator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79360EB327069897008349D2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -68,6 +70,8 @@
 		79B00232271C9DEE003CEBCC /* RemoteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManager.swift; sourceTree = "<group>"; };
 		79B002442729B425003CEBCC /* KeyMaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyMaster.swift; sourceTree = "<group>"; };
 		79B0029D27308798003CEBCC /* RegistrationServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationServer.swift; sourceTree = "<group>"; };
+		79B8A0E927449EB500369E62 /* String+substring.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+substring.swift"; sourceTree = "<group>"; };
+		79B8A0EC27449EE300369E62 /* ExtensionManagement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtensionManagement.swift; sourceTree = "<group>"; };
 		79C002A9270A92EC002DB22B /* warp.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.pb.swift; path = MaybeWarpinator/__gRPC/warp.pb.swift; sourceTree = SOURCE_ROOT; };
 		79C002AA270A92EC002DB22B /* warp.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.protobuf; name = warp.proto; path = MaybeWarpinator/__gRPC/warp.proto; sourceTree = SOURCE_ROOT; };
 		79C002AB270A92EC002DB22B /* warp.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.grpc.swift; path = MaybeWarpinator/__gRPC/warp.grpc.swift; sourceTree = SOURCE_ROOT; };
@@ -193,7 +197,9 @@
 		79D089DE273F0B9400B14FAB /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				79B8A0EC27449EE300369E62 /* ExtensionManagement.swift */,
 				79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */,
+				79B8A0E927449EB500369E62 /* String+substring.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -288,7 +294,9 @@
 			files = (
 				79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */,
 				79360EB827069897008349D2 /* ViewController.swift in Sources */,
+				79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */,
 				79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */,
+				79B8A0ED27449EE300369E62 /* ExtensionManagement.swift in Sources */,
 				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
 				79CCFB9F273ED5EF00852EBD /* FileSender.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
@@ -467,6 +475,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 96DC6YV3DR;
 				INFOPLIST_FILE = MaybeWarpinator/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -486,6 +495,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 96DC6YV3DR;
 				INFOPLIST_FILE = MaybeWarpinator/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

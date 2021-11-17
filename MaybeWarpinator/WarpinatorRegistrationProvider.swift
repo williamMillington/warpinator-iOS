@@ -76,12 +76,7 @@ class WarpinatorRegistrationProvider: WarpRegistrationProvider {
         let messageBytesEncoded = Data(messageBytes).base64EncodedString()
         
         
-        
         response.lockedCert = messageBytesEncoded
-        
-        
-        
-        
         
         return context.eventLoop.makeSucceededFuture( response )
     }
