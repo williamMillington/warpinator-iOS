@@ -13,64 +13,74 @@ class ListedRemoteView: UIView {
     
     var viewModel: RemoteViewModel?
     
-    let stackview: UIStackView = {
-       let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.alignment = .fill
-        stack.distribution = .fillEqually
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
-    
     let deviceNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Uknown Device"
         label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
-//        label.translatesAutoresizingMaskIntoConstraints = false
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
     
     let deviceStatusLabel: UILabel = {
         let label = UILabel()
         label.text = "Status..."
         label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
-//        label.translatesAutoresizingMaskIntoConstraints = false
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     
     override init(frame: CGRect){
         super.init(frame: frame)
-//        setup()
     }
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-//        setup()
     }
     
     
     convenience init(withViewModel model: RemoteViewModel){
         self.init()
         
-        viewModel = model
+        backgroundColor = UIColor.orange.withAlphaComponent(0.2)
         
+        viewModel = model
+        viewModel?.onUpdated = {
+            self.updateDisplay()
+        }
         
         var constraints: [NSLayoutConstraint] = []
         
-        addSubview(stackview)
+        addSubview(deviceNameLabel)
+        addSubview(deviceStatusLabel)
         
         constraints += [
-            stackview.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stackview.trailingAnchor.constraint(equalTo: trailingAnchor),
-            stackview.topAnchor.constraint(equalTo: topAnchor),
-            stackview.bottomAnchor.constraint(equalTo: bottomAnchor)
+            
+            deviceNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
+            deviceNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            
+            deviceStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
+            deviceStatusLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            
+            heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2)
+            
         ]
         
         NSLayoutConstraint.activate(constraints)
         
-        stackview.addArrangedSubview(deviceNameLabel)
-        stackview.addArrangedSubview(deviceStatusLabel)
+        
+        updateDisplay()
     }
+    
+    
+    func updateDisplay(){
+        
+        guard let viewModel = viewModel else { return }
+        
+        deviceNameLabel.text = viewModel.displayName
+        deviceStatusLabel.text = viewModel.status
+        
+    }
+    
+    
     
 }

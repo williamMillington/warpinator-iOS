@@ -259,7 +259,7 @@ class RegistrationServer {
         
         mDNSListener = MDNSListener()
         mDNSListener?.delegate = self
-        mDNSListener?.start()
+//        mDNSListener?.start()
         
         
         let registrationServerFuture = GRPC.Server.insecure(group: registrationServerELG)
@@ -284,6 +284,13 @@ class RegistrationServer {
         closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
             try! self.registrationServerELG.syncShutdownGracefully()
         }
+        
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            print(self.DEBUG_TAG+"mocking registration")
+            self.mockRegistration()
+        }
+        
         
     }
 
@@ -311,6 +318,8 @@ extension RegistrationServer: MDNSBrowserDelegate {
     
     // MARK: didAddResult
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
+        
+        return
         
         // if the metadata has a record "type",
         // and if type is 'flush', then ignore this service
@@ -381,4 +390,26 @@ extension RegistrationServer: MDNSBrowserDelegate {
         remoteManager?.addRemote(newRemote)
     }
     
+}
+
+
+
+//MARK: - Mocking
+extension RegistrationServer {
+    func mockRegistration(){
+        
+        for i in 0...5 {
+            
+            var mockDetails = RemoteDetails.MOCK_DETAILS
+            mockDetails.uuid = uuid + "__\(i)"
+            
+            let mockRemote = Remote(details: mockDetails)
+            
+            remoteManager?.addRemote(mockRemote)
+            
+        }
+        
+        
+        
+    }
 }

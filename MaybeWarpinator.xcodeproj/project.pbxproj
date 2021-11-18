@@ -25,6 +25,8 @@
 		797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* ReceiveFileOperation.swift */; };
 		797C12C227150FB700A2795C /* Clibsodium in Frameworks */ = {isa = PBXBuildFile; productRef = 797C12C127150FB700A2795C /* Clibsodium */; };
 		797C12C427150FB700A2795C /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = 797C12C327150FB700A2795C /* Sodium */; };
+		799E39E82745822700E60FFC /* ButtonScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39E72745822700E60FFC /* ButtonScrollView.swift */; };
+		799E39EB2746989000E60FFC /* AutoLayoutDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39EA2746989000E60FFC /* AutoLayoutDebugView.swift */; };
 		79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002252717BDF6003CEBCC /* CertificateServer.swift */; };
 		79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022A27190F18003CEBCC /* MDNSBrowser.swift */; };
 		79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022F2719FCCB003CEBCC /* MDNSListener.swift */; };
@@ -67,6 +69,8 @@
 		797C12B6270FC83700A2795C /* AuthenticationServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationServer.swift; sourceTree = "<group>"; };
 		797C12B9270FC86A00A2795C /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		797C12BC2711102700A2795C /* ReceiveFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveFileOperation.swift; sourceTree = "<group>"; };
+		799E39E72745822700E60FFC /* ButtonScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ButtonScrollView.swift; path = MaybeWarpinator/ButtonScrollView.swift; sourceTree = SOURCE_ROOT; };
+		799E39EA2746989000E60FFC /* AutoLayoutDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutDebugView.swift; sourceTree = "<group>"; };
 		79B002252717BDF6003CEBCC /* CertificateServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateServer.swift; sourceTree = "<group>"; };
 		79B0022A27190F18003CEBCC /* MDNSBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSBrowser.swift; sourceTree = "<group>"; };
 		79B0022F2719FCCB003CEBCC /* MDNSListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSListener.swift; sourceTree = "<group>"; };
@@ -197,6 +201,8 @@
 		79B8A0FD2745674700369E62 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				799E39EA2746989000E60FFC /* AutoLayoutDebugView.swift */,
+				799E39E72745822700E60FFC /* ButtonScrollView.swift */,
 				79B8A0F32745587C00369E62 /* ListedRemoteView.swift */,
 			);
 			path = View;
@@ -322,6 +328,7 @@
 				79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */,
 				79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */,
 				79B8A0ED27449EE300369E62 /* ExtensionManagement.swift in Sources */,
+				799E39EB2746989000E60FFC /* AutoLayoutDebugView.swift in Sources */,
 				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
 				79CCFB9F273ED5EF00852EBD /* FileSender.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
@@ -346,6 +353,7 @@
 				79C002B4270BCC4E002DB22B /* Server.swift in Sources */,
 				797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */,
 				79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */,
+				799E39E82745822700E60FFC /* ButtonScrollView.swift in Sources */,
 				79C002AC270A92EC002DB22B /* warp.pb.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -27,13 +27,28 @@ class ViewController: UIViewController {
         return button
     }()
     
+    
+    var remotesScroller = ButtonScrollView()
+    
     var remotesStack: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.distribution = .fill
         stack.alignment = .fill
+        stack.distribution = .fillProportionally
+        stack.spacing = 5
         stack.axis = .vertical
         stack.backgroundColor = UIColor.blue.withAlphaComponent(0.2)
+        
+        let expanderView = UIView()
+        expanderView.translatesAutoresizingMaskIntoConstraints = false
+        expanderView.backgroundColor = UIColor.blue.withAlphaComponent(0.2)
+        
+        // without this, height is constrained to 0 for some dumb reason,
+        // and breaks stackview's attempts to resize it
+        expanderView.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
+        
+        stack.addArrangedSubview(expanderView)
+        
         return stack
     }()
     
@@ -55,6 +70,7 @@ class ViewController: UIViewController {
             refreshButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             refreshButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             refreshButton.widthAnchor.constraint(equalTo: remotesStack.widthAnchor, multiplier: 0.5),
+            refreshButton.heightAnchor.constraint(lessThanOrEqualTo: refreshButton.widthAnchor, multiplier: 0.25),
 //            refreshButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: (sideMargin *  2)),
 //            refreshButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -(sideMargin *  2)),
 //            refreshButton.heightAnchor.constraint(equalToConstant: 50),
@@ -68,7 +84,6 @@ class ViewController: UIViewController {
         ]
         
         NSLayoutConstraint.activate(viewConstraints)
-        
         
         MainService.shared.remoteManager.remotesViewController = self
         
@@ -96,19 +111,23 @@ class ViewController: UIViewController {
     
     func connectionAdded(_ remoteViewModel: RemoteViewModel){
         
-        print(DEBUG_TAG+"Adding view for connection")
+        print(DEBUG_TAG+"Adding view for connection \(remoteViewModel.displayName)")
         
         let remoteView = ListedRemoteView(withViewModel: remoteViewModel)
+//        remoteView.translatesAutoresizingMaskIntoConstraints = false
         
         
-        remotesStack.addSubview(remoteView)
+//        remotesStack.addArrangedSubview(remoteView)
+        
+        // insert right before expanderview
+        remotesStack.insertArrangedSubview(remoteView, at: (remotesStack.arrangedSubviews.count - 1) )
     }
     
     
     func connectionRemoved(withh uuid: String){
         
         for view in remotesStack.arrangedSubviews as! [ListedRemoteView]{
-            if view.viewModel!.remote.details.uuid == uuid {
+            if view.viewModel!.uuid == uuid {
                 remotesStack.removeArrangedSubview(view)
                 return
             }

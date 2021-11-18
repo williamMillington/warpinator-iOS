@@ -25,12 +25,26 @@ import Logging
 
 //MARK: Remote Details
 struct RemoteDetails {
-    enum ConnectionStatus {
+    enum ConnectionStatus: String {
         case Canceled
         case OpeningConnection, FetchingCredentials, AquiringDuplex, DuplexAquired
         case Error
         case Connected, Disconnected
     }
+    
+    static var MOCK_DETAILS: RemoteDetails = {
+        let mockEndpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("So.me.Ho.st") ,
+                                               port: NWEndpoint.Port(integerLiteral: 8080))
+        let mock = RemoteDetails(DEBUG_TAG: "MOCK_REMOTE",
+                                 endpoint: mockEndpoint,
+                                 displayName: "Mock Remote",   username: "Mock User",
+                                 serviceName: "Mock Service",  hostname: "Mock Host",  ipAddress: "Som.eAd.dre.ss",
+                                 port: 8080,   authPort: 8081,
+                                 uuid: "Mock UUID",  api: "2",
+                                 status: .Disconnected,  serviceAvailable: false)
+        return mock
+    }()
+    
     
     lazy var DEBUG_TAG: String = "RemoteDetails (hostname: \"\(hostname)\"): "
     
@@ -58,9 +72,28 @@ struct RemoteDetails {
 
 class RemoteViewModel {
     
-    var remote: Remote
+    private var remote: Remote
     var onUpdated: ()->() = {}
     
+    public var displayName: String {
+        return remote.details.displayName
+    }
+    
+    public var userName: String {
+        return remote.details.username + "@" + remote.details.hostname
+    }
+    
+    public var iNetAddress: String {
+        return remote.details.ipAddress + ":\(remote.details.port)"
+    }
+    
+    public var uuid: String {
+        return remote.details.uuid
+    }
+    
+    public var status: String {
+        return remote.details.status.rawValue
+    }
     
     init(_ remote: Remote) {
         self.remote = remote

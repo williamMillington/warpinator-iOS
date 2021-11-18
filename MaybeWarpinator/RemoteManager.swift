@@ -23,7 +23,7 @@ class RemoteManager {
         print(DEBUG_TAG+"adding remote")
         remotes[remote.details.uuid] = remote
         
-        remote.register()
+//        remote.register()
         
         let viewmodel = RemoteViewModel(remote)
         
