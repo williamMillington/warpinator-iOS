@@ -69,7 +69,7 @@ struct RemoteDetails {
     
 }
 
-
+//MARK: RemoteViewModel
 class RemoteViewModel {
     
     private var remote: Remote
@@ -119,7 +119,7 @@ public class Remote {
     
     var details: RemoteDetails
     
-    weak var viewModel: RemoteViewModel?
+//    weak var viewModel: RemoteViewModel?
     
     
     public var displayName: String = "No_Display_Name"

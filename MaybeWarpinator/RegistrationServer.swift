@@ -401,7 +401,7 @@ extension RegistrationServer {
         for i in 0...5 {
             
             var mockDetails = RemoteDetails.MOCK_DETAILS
-            mockDetails.uuid = uuid + "__\(i)"
+            mockDetails.uuid = mockDetails.uuid + "__\(i)"
             
             let mockRemote = Remote(details: mockDetails)
             

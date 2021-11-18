@@ -15,9 +15,7 @@ class ViewController: UIViewController {
     
     var coordinator: MainCoordinator?
     
-    var mainService: MainService = MainService()
-    
-    var refreshButton: UIButton = {
+    let refreshButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitle("Refresh", for: .normal)
@@ -28,9 +26,9 @@ class ViewController: UIViewController {
     }()
     
     
-    var remotesScroller = ButtonScrollView()
+    let remotesScroller = ButtonScrollView()
     
-    var remotesStack: UIStackView = {
+    let remotesStack: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.alignment = .fill
@@ -84,11 +82,6 @@ class ViewController: UIViewController {
         ]
         
         NSLayoutConstraint.activate(viewConstraints)
-        
-        MainService.shared.remoteManager.remotesViewController = self
-        
-        MainService.shared.start()
-        
         
         
     }

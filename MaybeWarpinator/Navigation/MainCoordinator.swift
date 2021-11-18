@@ -16,6 +16,7 @@ class MainCoordinator: NSObject, Coordinator {
     var navController: UINavigationController
     
     
+    var mainService: MainService = MainService()
     
     
     init(withNavigationController controller: UINavigationController){
@@ -32,6 +33,10 @@ class MainCoordinator: NSObject, Coordinator {
     func start() {
         
         showMenu()
+        
+        
+        MainService.shared.start()
+        
     }
     
     
@@ -46,8 +51,9 @@ class MainCoordinator: NSObject, Coordinator {
         else {
             
             let mainMenuVC = ViewController()
-
             mainMenuVC.coordinator = self
+            
+            MainService.shared.remoteManager.remotesViewController = mainMenuVC
             
             navController.pushViewController(mainMenuVC, animated: false)
         }
@@ -60,8 +66,35 @@ class MainCoordinator: NSObject, Coordinator {
         
         print(DEBUG_TAG+"user selected remote \(remoteUUID)")
         
+        if let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) {
+            
+            let viewmodel = RemoteViewModel(remote)
+            
+            let remoteVC = RemoteViewController(withViewModel: viewmodel)
+            remoteVC.coordinator = self
+            
+            navController.pushViewController(remoteVC, animated: false)
+        }
+        
+        
         
     }
+    
+    
+    
+    func showRemote(_ viewModel: RemoteViewModel){
+        
+        
+        let mainMenuVC = ViewController()
+        mainMenuVC.coordinator = self
+        
+        
+        navController.pushViewController(mainMenuVC, animated: false)
+        
+        
+        
+    }
+    
     
     
     

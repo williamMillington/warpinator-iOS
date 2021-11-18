@@ -34,11 +34,6 @@ class MainService {
         registrationServer.start()
         registrationServer.remoteManager = remoteManager
         
-        
     }
-    
-    
-    
-    
     
 }
