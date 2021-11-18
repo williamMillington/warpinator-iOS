@@ -11,6 +11,8 @@ import UIKit
 
 class ListedRemoteView: UIView {
     
+    private let DEBUG_TAG: String = "ListedRemoteView: "
+    
     var viewModel: RemoteViewModel?
     
     let deviceNameLabel: UILabel = {
@@ -18,6 +20,7 @@ class ListedRemoteView: UIView {
         label.text = "Uknown Device"
         label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
         return label
     }()
     
@@ -26,8 +29,12 @@ class ListedRemoteView: UIView {
         label.text = "Status..."
         label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
         return label
     }()
+    
+    
+    var tapRecognizer: TapGestureRecognizerWithClosure?
     
     
     override init(frame: CGRect){
@@ -38,7 +45,7 @@ class ListedRemoteView: UIView {
     }
     
     
-    convenience init(withViewModel model: RemoteViewModel){
+    convenience init(withViewModel model: RemoteViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
         backgroundColor = UIColor.orange.withAlphaComponent(0.2)
@@ -67,6 +74,10 @@ class ListedRemoteView: UIView {
         
         NSLayoutConstraint.activate(constraints)
         
+        
+        tapRecognizer = TapGestureRecognizerWithClosure(action: action)
+        
+        addGestureRecognizer(tapRecognizer!)
         
         updateDisplay()
     }

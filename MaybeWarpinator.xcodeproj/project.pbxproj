@@ -27,6 +27,8 @@
 		797C12C427150FB700A2795C /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = 797C12C327150FB700A2795C /* Sodium */; };
 		799E39E82745822700E60FFC /* ButtonScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39E72745822700E60FFC /* ButtonScrollView.swift */; };
 		799E39EB2746989000E60FFC /* AutoLayoutDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39EA2746989000E60FFC /* AutoLayoutDebugView.swift */; };
+		799E39F027469CD800E60FFC /* OnTouchGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39EE27469CD800E60FFC /* OnTouchGestureRecognizer.swift */; };
+		799E39F127469CD800E60FFC /* TapGestureRecognizerWithClosure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39EF27469CD800E60FFC /* TapGestureRecognizerWithClosure.swift */; };
 		79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002252717BDF6003CEBCC /* CertificateServer.swift */; };
 		79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022A27190F18003CEBCC /* MDNSBrowser.swift */; };
 		79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022F2719FCCB003CEBCC /* MDNSListener.swift */; };
@@ -71,6 +73,8 @@
 		797C12BC2711102700A2795C /* ReceiveFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveFileOperation.swift; sourceTree = "<group>"; };
 		799E39E72745822700E60FFC /* ButtonScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ButtonScrollView.swift; path = MaybeWarpinator/ButtonScrollView.swift; sourceTree = SOURCE_ROOT; };
 		799E39EA2746989000E60FFC /* AutoLayoutDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutDebugView.swift; sourceTree = "<group>"; };
+		799E39EE27469CD800E60FFC /* OnTouchGestureRecognizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnTouchGestureRecognizer.swift; sourceTree = "<group>"; };
+		799E39EF27469CD800E60FFC /* TapGestureRecognizerWithClosure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TapGestureRecognizerWithClosure.swift; sourceTree = "<group>"; };
 		79B002252717BDF6003CEBCC /* CertificateServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateServer.swift; sourceTree = "<group>"; };
 		79B0022A27190F18003CEBCC /* MDNSBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSBrowser.swift; sourceTree = "<group>"; };
 		79B0022F2719FCCB003CEBCC /* MDNSListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSListener.swift; sourceTree = "<group>"; };
@@ -140,9 +144,10 @@
 				79360EBC27069899008349D2 /* Assets.xcassets */,
 				797C12B6270FC83700A2795C /* AuthenticationServer.swift */,
 				797C12B9270FC86A00A2795C /* Authenticator.swift */,
-				79B002442729B425003CEBCC /* KeyMaster.swift */,
 				79B002252717BDF6003CEBCC /* CertificateServer.swift */,
+				79CCFB9E273ED5EF00852EBD /* FileSender.swift */,
 				79360EC127069899008349D2 /* Info.plist */,
+				79B002442729B425003CEBCC /* KeyMaster.swift */,
 				79360EBE27069899008349D2 /* LaunchScreen.storyboard */,
 				79360EB927069897008349D2 /* Main.storyboard */,
 				79C002BA270E670C002DB22B /* MainService.swift */,
@@ -154,7 +159,6 @@
 				79C002B0270BC1A9002DB22B /* TestServiceProvider.swift */,
 				797C12BC2711102700A2795C /* ReceiveFileOperation.swift */,
 				79343EB22743502B008E0890 /* SendFileOperation.swift */,
-				79CCFB9E273ED5EF00852EBD /* FileSender.swift */,
 				79C002B7270E0C16002DB22B /* Utils.swift */,
 				79360EB727069897008349D2 /* ViewController.swift */,
 				797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */,
@@ -180,6 +184,15 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		799E39ED27469CC600E60FFC /* GestureRecognizers */ = {
+			isa = PBXGroup;
+			children = (
+				799E39EE27469CD800E60FFC /* OnTouchGestureRecognizer.swift */,
+				799E39EF27469CD800E60FFC /* TapGestureRecognizerWithClosure.swift */,
+			);
+			path = GestureRecognizers;
+			sourceTree = "<group>";
+		};
 		79B0022927190924003CEBCC /* Networking */ = {
 			isa = PBXGroup;
 			children = (
@@ -201,6 +214,7 @@
 		79B8A0FD2745674700369E62 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				799E39ED27469CC600E60FFC /* GestureRecognizers */,
 				799E39EA2746989000E60FFC /* AutoLayoutDebugView.swift */,
 				799E39E72745822700E60FFC /* ButtonScrollView.swift */,
 				79B8A0F32745587C00369E62 /* ListedRemoteView.swift */,
@@ -326,6 +340,8 @@
 				79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */,
 				79360EB827069897008349D2 /* ViewController.swift in Sources */,
 				79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */,
+				799E39F127469CD800E60FFC /* TapGestureRecognizerWithClosure.swift in Sources */,
+				799E39F027469CD800E60FFC /* OnTouchGestureRecognizer.swift in Sources */,
 				79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */,
 				79B8A0ED27449EE300369E62 /* ExtensionManagement.swift in Sources */,
 				799E39EB2746989000E60FFC /* AutoLayoutDebugView.swift in Sources */,

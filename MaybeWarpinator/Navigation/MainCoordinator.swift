@@ -10,6 +10,7 @@ import UIKit
 
 class MainCoordinator: NSObject, Coordinator {
     
+    private let DEBUG_TAG: String = "MainCoordinator: "
     
     var childCoordinators = [Coordinator]()
     var navController: UINavigationController
@@ -54,9 +55,10 @@ class MainCoordinator: NSObject, Coordinator {
     
     
     
-    func userSelected(_ remote: RemoteDetails){
+    func userSelected(_ remoteUUID: String){
         
         
+        print(DEBUG_TAG+"user selected remote \(remoteUUID)")
         
         
     }

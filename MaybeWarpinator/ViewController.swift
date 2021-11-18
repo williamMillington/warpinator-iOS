@@ -109,11 +109,13 @@ class ViewController: UIViewController {
     
     
     
-    func connectionAdded(_ remoteViewModel: RemoteViewModel){
+    func connectionAdded(_ viewModel: RemoteViewModel){
         
-        print(DEBUG_TAG+"Adding view for connection \(remoteViewModel.displayName)")
+        print(DEBUG_TAG+"Adding view for connection \(viewModel.displayName)")
         
-        let remoteView = ListedRemoteView(withViewModel: remoteViewModel)
+        let remoteView = ListedRemoteView(withViewModel: viewModel) {
+            self.coordinator?.userSelected(viewModel.uuid)
+        }
 //        remoteView.translatesAutoresizingMaskIntoConstraints = false
         
         
