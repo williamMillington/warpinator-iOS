@@ -91,6 +91,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         
     }
     
+    
     // MARK: get info
     // receive request for information about this device
     public func getRemoteMachineInfo(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<RemoteMachineInfo> {
@@ -185,6 +186,7 @@ public class WarpinatorServiceProvider: WarpProvider {
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
+        
         
         transfer.send(using: context)
         

@@ -12,10 +12,14 @@ enum TransferError: Error {
     case TransferInterrupted
 }
 
+
 enum FileType: Int32 {
     case FILE = 1
     case DIRECTORY = 2
 }
+
+
+typealias FileName = (name: String, ext: String)
 
 
 public enum TransferDirection: String {

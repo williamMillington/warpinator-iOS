@@ -35,14 +35,16 @@ class SendFileOperation: TransferOperation {
     
     var cancelled: Bool = false
     
-    var fileCount: Int = 1
+    var fileCount: Int = 0
     
     var singleName: String = ""
     var singleMime: String = ""
     
     var topDirBaseNames: [String] = []
     
-    var currentFile: FileSender
+    lazy var currentFile: FileSender = FileSender(for: files[0])
+    var files: [FileName]
+    
     
     
     var operationInfo: OpInfo {
@@ -55,25 +57,35 @@ class SendFileOperation: TransferOperation {
     
     
     
-    
-    
-    init(for filename: String, ext: String){
+    init(for filenames: [FileName] ) {
         
         direction = .SENDING
         status = .INITIALIZING
         remoteUUID = Server.SERVER_UUID
         startTime = UInt64( Date().timeIntervalSince1970 * 1000 )
         
-        currentFile = FileSender(filename: filename, extension: ext)
+        files = filenames
         
-        topDirBaseNames.append("iOS")
-        fileCount = 1
+        fileCount = files.count
+        
+        singleName = "\(filenames.count) files"
+        singleMime = "application/octet-stream"
+        
+        for filename in filenames {
+            topDirBaseNames.append("\(filename.name).\(filename.ext)")
+        }
+        
+    }
+    
+    
+    convenience init(for filename: FileName){
+        self.init(for: [filename])
+        
         totalSize = currentFile.fileBytes.count
         singleName = currentFile.relativeFilePath
         singleMime = currentFile.fileExtension
         
     }
-    
     
     
     // MARK: prepare
@@ -88,6 +100,8 @@ class SendFileOperation: TransferOperation {
     func send(using context: StreamingResponseCallContext<FileChunk>) {
         
         status = .TRANSFERRING
+        
+        currentFile.loadFileData()
         
         if let chunk = currentFile.readNextChunk() {
             
@@ -148,21 +162,29 @@ class FileSender {
         return filename + "." + fileExtension
     }
     
-    var fileBytes: [UInt8]
+    var fileBytes: [UInt8] = []
     
     var sent = 0
     var readHead = 0
     var hasNext = false
     
     
-    init(filename name: String, extension ext: String){
+    
+    init(for file: FileName){
         
-        filename = name
-        fileExtension = ext
+//    init(filename name: String, extension ext: String){
+        
+        filename = file.name
+        fileExtension = file.ext
         
         filepath = Bundle.main.path(forResource: filename,
                                     ofType: fileExtension)!
         fileURL = URL(fileURLWithPath: filepath)
+        
+    }
+    
+    
+    func loadFileData(){
         
         let fileData = try! Data(contentsOf: fileURL)
         fileBytes = Array(fileData)
@@ -170,7 +192,6 @@ class FileSender {
         
         print(DEBUG_TAG+"File loaded")
         print(DEBUG_TAG+"\tbytes: \(fileBytes.count)")
-        
     }
     
     

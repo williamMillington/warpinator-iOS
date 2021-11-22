@@ -443,9 +443,9 @@ extension Remote {
     
     
     //MARK: sendFile
-    func sendFile(_ filename: String, extenstion ext: String){
+    func sendFile(_ filename: FileName){
         
-        let operation = SendFileOperation(for: filename, ext: ext)
+        let operation = SendFileOperation(for: filename)
         
         let request: TransferOpRequest = .with {
             $0.info = operation.operationInfo
@@ -466,8 +466,9 @@ extension Remote {
         response?.response.whenComplete { result in
             print(self.DEBUG_TAG+"process request completed; result: \(result)")
         }
-        
     }
+    
+    
     
     
     // MARK: addSendOperation
