@@ -163,7 +163,6 @@ public class Remote {
     
     
     
-    
     func register(){
         
         
@@ -324,8 +323,6 @@ public class Remote {
 
 
 
-
-//MARK: - Warpinator RPC calls
 extension Remote {
     
     // MARK: Ping
@@ -380,29 +377,14 @@ extension Remote {
         
         
     }
-    
-    
-    
-    // MARK: addSendOperation
-    func addSendingOperation(_ operation: SendFileOperation){
-        
-        sendingOperations.append(operation)
-        operation.status = .WAITING_FOR_PERMISSION
-    }
-    
-    // MARK: findSendOperation
-    func findSendOperation(withStartTime time: UInt64 ) -> SendFileOperation? {
-        for operation in sendingOperations {
-            if operation.startTime == time {
-                return operation
-            }
-        }
-        return nil
-    }
-    
-    
-    
-    
+}
+
+
+
+
+
+//MARK: - Receiving
+extension Remote {
     // MARK: addReceiveOperation
     func addReceivingOperation(_ operation: ReceiveFileOperation){
         
@@ -420,12 +402,50 @@ extension Remote {
         return nil
     }
     
+    //MARK: beginReceiving
+    func beginReceiving(for operation: ReceiveFileOperation){
+        
+        print(DEBUG_TAG+"beginReceiving")
+        
+        let operationInfo = OpInfo.with {
+            $0.ident = Server.SERVER_UUID
+            $0.timestamp = operation.startTime
+            $0.readableName = Server.SERVER_UUID
+            $0.useCompression = false
+        }
+        
+        guard let client = warpClient else {
+            print(DEBUG_TAG+"Why the fuck is there no fucking client???");return
+            
+        }
+        
+        
+        let dataStream = client.startTransfer(operationInfo) { (chunk) in
+            operation.readChunk(chunk)
+        }
+        
+        
+        dataStream.status.whenSuccess{ status in
+            operation.finishReceive()
+            print(self.DEBUG_TAG+"transfer finished")
+        }
+        
+        dataStream.status.whenFailure{ error in
+            print(self.DEBUG_TAG+"transfer failed: \(error)")
+        }
+    }
+}
+
+
+
+// MARK: - Sending
+extension Remote {
     
     
     //MARK: sendFile
-    func sendFile(){
+    func sendFile(_ filename: String, extenstion ext: String){
         
-        let operation = SendFileOperation(for: "TestFileToSend", ext: "rtf")
+        let operation = SendFileOperation(for: filename, ext: ext)
         
         let request: TransferOpRequest = .with {
             $0.info = operation.operationInfo
@@ -447,50 +467,28 @@ extension Remote {
             print(self.DEBUG_TAG+"process request completed; result: \(result)")
         }
         
-        
     }
     
     
-    
-    
-    
-    //MARK: beginReceiving
-    func beginReceiving(for operation: ReceiveFileOperation){
+    // MARK: addSendOperation
+    func addSendingOperation(_ operation: SendFileOperation){
         
-        print(DEBUG_TAG+"initiating transfer operation")
-        
-        let operationInfo = OpInfo.with {
-            $0.ident = Server.SERVER_UUID
-            $0.timestamp = operation.startTime
-            $0.readableName = Server.SERVER_UUID
-            $0.useCompression = false
-        }
-        
-        guard let client = warpClient else { return }
-        
-        
-        let dataStream = client.startTransfer(operationInfo) { (chunk) in
-            operation.readChunk(chunk)
-        }
-        
-        
-        dataStream.status.whenSuccess{ status in
-            operation.finishReceive()
-            print(self.DEBUG_TAG+"transfer finished")
-        }
-        
-        dataStream.status.whenFailure{ error in
-            print(self.DEBUG_TAG+"transfer failed: \(error)")
-        }
-        
+        sendingOperations.append(operation)
+        operation.status = .WAITING_FOR_PERMISSION
     }
     
+    
+    // MARK: findSendOperation
+    func findSendOperation(withStartTime time: UInt64 ) -> SendFileOperation? {
+        for operation in sendingOperations {
+            if operation.startTime == time {
+                return operation
+            }
+        }
+        return nil
+    }
     
 }
-
-
-
-
 
 
 

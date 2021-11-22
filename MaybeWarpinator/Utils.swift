@@ -68,5 +68,32 @@ public class Utils {
     
     
     
+//    static func checkFolderExists(){
+//        
+//        let url = FileManager.default.extended.documentsDirectory
+//        
+//    }
+    
+    
+    static func queryAvailableDiskSpace() -> Int64 {
+        
+        let url = FileManager.default.extended.documentsDirectory
+        
+        do {
+            let values = try url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+            if let capacity = values.volumeAvailableCapacityForImportantUsage {
+                return capacity
+            }
+        } catch {
+            print("Error retrieving disk capacity: ")
+        }
+        
+        return 0
+    }
+    
+    
+    
+    
+    
     
 }

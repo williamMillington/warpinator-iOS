@@ -31,7 +31,7 @@ public struct ExtensionManager<Base> {
 }
 
 
-
+// MARK: - Foundation Types
 extension Int: ExtensionManagerCompatible {}
 
 extension Double: ExtensionManagerCompatible {} // also counts for TimeInterval
@@ -42,9 +42,13 @@ extension Array: ExtensionManagerCompatible {}
 
 extension String: ExtensionManagerCompatible {}
 
+
+
+// MARK: - Apple Types
 extension NSAttributedString: ExtensionManagerCompatible {}
 
 extension UIColor: ExtensionManagerCompatible {}
 
 extension UIViewController: ExtensionManagerCompatible {}
 
+extension FileManager: ExtensionManagerCompatible {}

@@ -8,8 +8,8 @@
 import Foundation
 
 
-extension FileManager{
-    
+
+extension ExtensionManager where Base == FileManager {
     var documentsDirectory: URL {
         return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }

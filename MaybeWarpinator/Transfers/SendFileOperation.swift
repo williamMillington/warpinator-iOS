@@ -10,34 +10,16 @@ import Foundation
 import GRPC
 
 
-protocol TransferOperation {
-    
-    var owningRemote: Remote? { get set }
-    
-}
-
 
 // MARK: SendFileOperation
 class SendFileOperation: TransferOperation {
     
     lazy var DEBUG_TAG: String = "SendFileOperation (\(remoteUUID),\(direction)):"
     
-    public enum Direction: String {
-        case SENDING, RECEIVING
-    }
-    
-    public enum Status {
-        case INITIALIZING
-        case WAITING_FOR_PERMISSION, PERMISSION_DECLINED
-        case TRANSFERRING, PAUSED, STOPPED, FINISHED, FINISHED_WITH_ERRORS
-        case FAILED
-    }
-    
     public static var chunk_size: Int = 1024 * 512  // 512 kB
     
-    
-    var direction: Direction
-    var status: Status
+    var direction: TransferDirection
+    var status: TransferStatus
     
     weak var owningRemote: Remote?
     var remoteUUID: String
@@ -47,6 +29,10 @@ class SendFileOperation: TransferOperation {
     var totalSize: Int = 0
     var bytesTransferred: Int = 0
     var bytesPerSecond: Double = 0
+    var progress: Double {
+        return Double(bytesTransferred) / totalSize
+    }
+    
     var cancelled: Bool = false
     
     var fileCount: Int = 1

@@ -131,16 +131,12 @@ public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        let operation = ReceiveFileOperation()
-        operation.owningRemote = remote
-        operation.status = .INITIALIZING
-        operation.remoteUUID = remoteUUID
-        operation.startTime = request.info.timestamp
-        operation.totalSize =  Double(request.size)
-        operation.fileCount = Int(request.count)
-        operation.singleName = request.nameIfSingle
-        operation.singleMime = request.mimeIfSingle
-        operation.topDirBaseNames = request.topDirBasenames
+        print(DEBUG_TAG+"Processing TransferOpRequest: ")
+        print(DEBUG_TAG+"\(request)")
+        
+        
+        
+        let operation = ReceiveFileOperation(request, forRemote: remote)
         operation.prepareReceive()
         
         print(DEBUG_TAG+"processing request, compression is \( request.info.useCompression ? "on" : "off" )")
@@ -148,7 +144,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         remote.addReceivingOperation(operation)
         
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             operation.startReceive()
         }
         
