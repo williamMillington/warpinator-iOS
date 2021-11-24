@@ -137,7 +137,6 @@ class RemoteViewController: UIViewController {
             transfersLabel.bottomAnchor.constraint(equalTo: transfersStack.topAnchor, constant: -10),
             transfersLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             
-            
             transfersStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             transfersStack.bottomAnchor.constraint(equalTo: sendFilesButton.topAnchor, constant: -10),
             transfersStack.widthAnchor.constraint(equalTo: sendFilesButton.widthAnchor),
@@ -152,8 +151,6 @@ class RemoteViewController: UIViewController {
         ]
         
         NSLayoutConstraint.activate(constraints)
-        
-        
         
     }
     

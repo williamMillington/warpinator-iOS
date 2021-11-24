@@ -44,28 +44,3 @@ protocol TransferOperation {
     var status: TransferStatus { get }
     var progress: Double { get }
 }
-
-
-
-class TransferOperationViewModel {
-    
-    private var operation: TransferOperation
-    
-    var fileCount: Int {
-        return operation.fileCount
-    }
-    
-    var progress: Double {
-        return operation.progress
-    }
-    
-    var status: TransferStatus {
-        return operation.status
-    }
-    
-    init(for operation: TransferOperation) {
-        self.operation = operation
-    }
-    
-    
-}
