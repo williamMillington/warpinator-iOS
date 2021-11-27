@@ -15,7 +15,9 @@ CN_CLIENT=localhost
 
 DAYS_VALID=30
 
-EXT_SubAltName="subjectAltName=IP:192.168.2.13"
+IP_ADDRESS="192.168.2.17"
+
+EXT_SubAltName="subjectAltName=IP:${IP_ADDRESS}"
 EXT_ExKeyUsage="extendedKeyUsage=serverAuth,clientAuth"
 
 # actual openssl location instead of LibreSSL, which does not have -addext

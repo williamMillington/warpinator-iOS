@@ -36,8 +36,10 @@ class RemoteViewModel {
         return remote.details.status.rawValue
     }
     
+    
     init(_ remote: Remote) {
         self.remote = remote
+        remote.addObserver(self)
     }
     
     
@@ -45,4 +47,10 @@ class RemoteViewModel {
             onUpdated()
     }
     
+    
+    deinit {
+        remote.removeObserver(self)
+    }
 }
+
+

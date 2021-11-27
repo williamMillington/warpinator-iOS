@@ -76,24 +76,21 @@ class MainCoordinator: NSObject, Coordinator {
             navController.pushViewController(remoteVC, animated: false)
         }
         
-        
-        
     }
     
     
     
-    func showRemote(_ viewModel: RemoteViewModel){
-        
-        
-        let mainMenuVC = ViewController()
-        mainMenuVC.coordinator = self
-        
-        
-        navController.pushViewController(mainMenuVC, animated: false)
-        
-        
-        
-    }
+//    func showRemote(_ viewModel: RemoteViewModel){
+//
+//
+//        let mainMenuVC = ViewController()
+//        mainMenuVC.coordinator = self
+//
+//
+//        navController.pushViewController(mainMenuVC, animated: false)
+//
+//
+//    }
     
     
     

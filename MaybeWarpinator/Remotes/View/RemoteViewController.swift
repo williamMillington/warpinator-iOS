@@ -75,7 +75,17 @@ class RemoteViewController: UIViewController {
     
     
     
-    let sendFilesButton:UIButton = {
+    
+    let backButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("back", for: .normal)
+        button.setTitleColor( .blue, for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = .white
+        return button
+    }()
+    
+    let sendFilesButton: UIButton = {
         let button = UIButton()
         button.setTitle("Send Files", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -93,9 +103,15 @@ class RemoteViewController: UIViewController {
         
         self.viewModel = viewModel
         
-        deviceNameLabel.text = viewModel.displayName
-        usernameLabel.text = viewModel.userName
-        ipaddressLabel.text = viewModel.iNetAddress
+        self.viewModel!.onUpdated = { [unowned self] in
+            deviceNameLabel.text = viewModel.displayName
+            usernameLabel.text = viewModel.userName
+            ipaddressLabel.text = viewModel.iNetAddress
+        }
+        
+//        deviceNameLabel.text = viewModel.displayName
+//        usernameLabel.text = viewModel.userName
+//        ipaddressLabel.text = viewModel.iNetAddress
     }
     
     
@@ -111,20 +127,29 @@ class RemoteViewController: UIViewController {
         
         view.backgroundColor = .white
         
+        view.addSubview(backButton)
+        
         view.addSubview(deviceNameLabel)
         view.addSubview(usernameLabel)
-        view.addSubview(sendFilesButton)
         view.addSubview(ipaddressLabel)
+        
+        
         
         view.addSubview(transfersLabel)
         view.addSubview(transfersStack)
+        
+        
+        view.addSubview(sendFilesButton)
         
         let topAnchor = view.safeAreaLayoutGuide.topAnchor
         let sideMargin: CGFloat = 10
         
         let constraints: [NSLayoutConstraint] = [
             
-            deviceNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 25),
+            backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
+            backButton.topAnchor.constraint(equalTo: topAnchor, constant: 25),
+            
+            deviceNameLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: 15),
             deviceNameLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             
             usernameLabel.topAnchor.constraint(equalTo: deviceNameLabel.bottomAnchor),

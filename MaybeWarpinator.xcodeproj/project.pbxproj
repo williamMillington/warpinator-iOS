@@ -10,8 +10,6 @@
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
 		79331B03274E91A600A4022F /* TransferViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331B02274E91A600A4022F /* TransferViewModels.swift */; };
 		79331B07274E91DB00A4022F /* RemoteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331B06274E91DB00A4022F /* RemoteViewModel.swift */; };
-		79343EAD2742A7B7008E0890 /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 79343EAB2742A7B7008E0890 /* root.pem */; };
-		79343EAE2742A7B7008E0890 /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 79343EAC2742A7B7008E0890 /* rootkey.key */; };
 		79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79343EB22743502B008E0890 /* SendFileOperation.swift */; };
 		79360EB427069897008349D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB327069897008349D2 /* AppDelegate.swift */; };
 		79360EB627069897008349D2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB527069897008349D2 /* SceneDelegate.swift */; };
@@ -22,6 +20,8 @@
 		79360ECD270928B3008349D2 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 79360ECC270928B3008349D2 /* GRPC */; };
 		79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 79360ECF270A1C73008349D2 /* TestFileToSend.rtf */; };
 		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
+		7936B06C2752AC93001FA7C9 /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 7936B06A2752AC92001FA7C9 /* root.pem */; };
+		7936B06D2752AC93001FA7C9 /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 7936B06B2752AC92001FA7C9 /* rootkey.key */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
 		797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B9270FC86A00A2795C /* Authenticator.swift */; };
 		797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* ReceiveFileOperation.swift */; };
@@ -61,8 +61,6 @@
 		79331AF8274E8F3500A4022F /* TransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewController.swift; sourceTree = "<group>"; };
 		79331B02274E91A600A4022F /* TransferViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModels.swift; sourceTree = "<group>"; };
 		79331B06274E91DB00A4022F /* RemoteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViewModel.swift; sourceTree = "<group>"; };
-		79343EAB2742A7B7008E0890 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = text; path = root.pem; sourceTree = SOURCE_ROOT; };
-		79343EAC2742A7B7008E0890 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = text; path = rootkey.key; sourceTree = SOURCE_ROOT; };
 		79343EB22743502B008E0890 /* SendFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFileOperation.swift; sourceTree = "<group>"; };
 		79360EB027069897008349D2 /* MaybeWarpinator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MaybeWarpinator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79360EB327069897008349D2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -74,6 +72,8 @@
 		79360EC127069899008349D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		79360ECF270A1C73008349D2 /* TestFileToSend.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = TestFileToSend.rtf; sourceTree = "<group>"; };
 		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
+		7936B06A2752AC92001FA7C9 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
+		7936B06B2752AC92001FA7C9 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
 		797C12B9270FC86A00A2795C /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		797C12BC2711102700A2795C /* ReceiveFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveFileOperation.swift; sourceTree = "<group>"; };
@@ -237,8 +237,8 @@
 			isa = PBXGroup;
 			children = (
 				79360ED2270A1C7A008349D2 /* Test_Files */,
-				79343EAB2742A7B7008E0890 /* root.pem */,
-				79343EAC2742A7B7008E0890 /* rootkey.key */,
+				7936B06A2752AC92001FA7C9 /* root.pem */,
+				7936B06B2752AC92001FA7C9 /* rootkey.key */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -383,10 +383,10 @@
 			files = (
 				79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */,
 				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
-				79343EAD2742A7B7008E0890 /* root.pem in Resources */,
+				7936B06C2752AC93001FA7C9 /* root.pem in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
-				79343EAE2742A7B7008E0890 /* rootkey.key in Resources */,
+				7936B06D2752AC93001FA7C9 /* rootkey.key in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

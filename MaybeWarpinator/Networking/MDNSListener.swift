@@ -157,7 +157,7 @@ class MDNSListener {
         
         connection.stateUpdateHandler = { [self] newState in
             switch newState {
-            case.ready: print(DEBUG_TAG+"established connection to \(connection.endpoint) is ready")
+            case .ready: print(DEBUG_TAG+"established connection to \(connection.endpoint) is ready")
                 self.certificateServer.serveCertificate(to: connection) {
                     self.connections.removeValue(forKey: connection.endpoint)
                     connection.cancel()

@@ -11,6 +11,7 @@ import NIO
 
 
 
+// MARK: Duplex Error
 enum DuplexError: GRPCErrorProtocol {
     case UnknownRemote
     case DuplexNotEstablished
@@ -149,24 +150,11 @@ public class WarpinatorServiceProvider: WarpProvider {
             operation.startReceive()
         }
         
-        
         return context.eventLoop.makeSucceededFuture(VoidType())
     }
     
     
-    // MARK: pause transer
-    // receive instruction to pause operation (transfer) specified in OpInfo
-    public func pauseTransferOp(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
-        
-        
-        // TODO: implement pause transfer function
-        
-        
-        return context.eventLoop.makeCompletedFuture(Result(catching: { return VoidType() }))
-    }
-    
-    
-    // MARK: start transer
+    // MARK: start transfer
     // called by remote to indicate that they are ready to begin receiving transfer (specified in OpInfo)
     public func startTransfer(request: OpInfo, context: StreamingResponseCallContext<FileChunk>) -> EventLoopFuture<GRPCStatus> {
         
@@ -233,4 +221,21 @@ public class WarpinatorServiceProvider: WarpProvider {
         }))
     }
     
+}
+
+
+
+
+
+// MARK: - Deprecated API
+extension WarpinatorServiceProvider {
+    
+    
+    
+    // MARK: pause
+    // receive instruction to pause operation (transfer) specified in OpInfo
+    public func pauseTransferOp(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
+        return context.eventLoop.makeCompletedFuture(Result(catching: { return VoidType() }))
+    }
+     
 }

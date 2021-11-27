@@ -81,8 +81,7 @@ public class Remote {
     
     var details: RemoteDetails
     
-//    weak var viewModel: RemoteViewModel?
-    
+    var observers: [RemoteViewModel] = []
     
     public var displayName: String = "No_Display_Name"
     public var picture: UIImage?
@@ -139,11 +138,6 @@ public class Remote {
     
     
     
-    
-    
-    
-    
-    
     //MARK: connect
     func connect(){
         
@@ -159,6 +153,7 @@ public class Remote {
 //                .withBackgroundActivityLogger(logger)
                 
             
+            // primitive check for android app, which will not accept hostname connections
             let hostname: String
             if details.api == "1" {
                 hostname = details.ipAddress
@@ -171,7 +166,7 @@ public class Remote {
             channel = channelBuilder.connect(host: hostname, port: port)
             
             if let channel = channel {
-                print(self.DEBUG_TAG+"channel created")
+                print(self.DEBUG_TAG+"channel created for \(hostname):\(port)")
                 warpClient = WarpClient(channel: channel)
                 
                 verifyDuplex()
@@ -383,7 +378,7 @@ extension Remote {
         
         
         let dataStream = client.startTransfer(operationInfo) { (chunk) in
-            operation.readChunk(chunk)
+            operation.processChunk(chunk)
         }
         
         
@@ -457,7 +452,29 @@ extension Remote {
 
 
 
-
+//MARK: observers
+extension Remote {
+    
+    func addObserver(_ model: RemoteViewModel){
+        observers.append(model)
+    }
+    
+    func removeObserver(_ model: RemoteViewModel){
+        
+        for (i, observer) in observers.enumerated() {
+            if observer === model {
+                observers.remove(at: i)
+            }
+        }
+    }
+    
+    func updateObservers(){
+        observers.forEach { observer in
+            observer.update()
+        }
+    }
+    
+}
 
 
 

@@ -78,6 +78,8 @@ class ReceiveFileOperation: TransferOperation {
 //MARK: - Receive
 extension ReceiveFileOperation {
     
+    
+    //MARK: prepare
     func prepareReceive(){
         
         print(DEBUG_TAG+" preparing to receive...")
@@ -106,7 +108,7 @@ extension ReceiveFileOperation {
     
     
     
-    
+    //MARK: start
     func startReceive(){
         print(DEBUG_TAG+" starting to receive: ")
         
@@ -115,8 +117,8 @@ extension ReceiveFileOperation {
     }
     
     
-    // MARK: readChunk
-    func readChunk(_ chunk: FileChunk){
+    // MARK: processChunk
+    func processChunk(_ chunk: FileChunk){
         
         print(DEBUG_TAG+" reading chunk:")
         print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
