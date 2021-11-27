@@ -79,7 +79,11 @@ public class Remote {
     
     lazy var DEBUG_TAG: String = "REMOTE (hostname: \"\(details.hostname)\"): "
     
-    var details: RemoteDetails
+    var details: RemoteDetails {
+        didSet {
+            self.updateObservers()
+        }
+    }
     
     var observers: [RemoteViewModel] = []
     
@@ -522,6 +526,7 @@ extension Remote: RegistrationManager{
     func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
         
         print(DEBUG_TAG+"registration succeeded, certificate retrieved")
+        self.details = details
         authenticationCertificate = certificate
         
         connect()

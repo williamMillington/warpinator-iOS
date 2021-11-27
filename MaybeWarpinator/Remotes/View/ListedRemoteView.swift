@@ -87,8 +87,13 @@ class ListedRemoteView: UIView {
         
         guard let viewModel = viewModel else { return }
         
-        deviceNameLabel.text = viewModel.displayName
-        deviceStatusLabel.text = viewModel.status
+        // Make sure we are updating UI on the main thread!
+        DispatchQueue.main.async {
+            self.deviceNameLabel.text = viewModel.displayName
+            self.deviceStatusLabel.text = viewModel.status
+        }
+        
+        
         
     }
     
