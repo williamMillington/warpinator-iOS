@@ -14,7 +14,7 @@ import Foundation
 class RemoteViewModel {
     
     private var remote: Remote
-    var onUpdated: ()->Void = {}
+    var onInfoUpdated: ()->Void = {}
     
     public var displayName: String {
         return remote.details.displayName
@@ -43,8 +43,8 @@ class RemoteViewModel {
     }
     
     
-    func update(){
-            onUpdated()
+    func updateInfo(){
+            onInfoUpdated()
     }
     
     

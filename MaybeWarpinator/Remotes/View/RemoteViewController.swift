@@ -82,6 +82,7 @@ class RemoteViewController: UIViewController {
         button.setTitleColor( .blue, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .white
+        button.addTarget(self, action: #selector(back), for: .touchUpInside)
         return button
     }()
     
@@ -103,10 +104,9 @@ class RemoteViewController: UIViewController {
         
         self.viewModel = viewModel
         
-        self.viewModel!.onUpdated = { [unowned self] in
-            deviceNameLabel.text = viewModel.displayName
-            usernameLabel.text = viewModel.userName
-            ipaddressLabel.text = viewModel.iNetAddress
+        
+        self.viewModel!.onInfoUpdated = { [unowned self] in
+            updateDisplay()
         }
         
 //        deviceNameLabel.text = viewModel.displayName
@@ -177,9 +177,28 @@ class RemoteViewController: UIViewController {
         
         NSLayoutConstraint.activate(constraints)
         
+        
+        self.updateDisplay()
     }
     
     
     
     
+    func updateDisplay(){
+        
+        guard let viewModel = viewModel else { return }
+        
+        // Make sure we are updating UI on the main thread!
+        DispatchQueue.main.async {
+            self.deviceNameLabel.text = viewModel.displayName
+            self.usernameLabel.text = viewModel.userName
+            self.ipaddressLabel.text = viewModel.iNetAddress
+        }
+        
+    }
+    
+    
+    @objc func back(){
+        coordinator?.showMenu()
+    }
 }

@@ -81,7 +81,7 @@ public class Remote {
     
     var details: RemoteDetails {
         didSet {
-            self.updateObservers()
+            self.updateObserversInfo()
         }
     }
     
@@ -274,9 +274,7 @@ public class Remote {
 //            self.sendFile()
 //        }
         
-        
     }
-    
 }
 
 
@@ -346,6 +344,8 @@ extension Remote {
 
 //MARK: - Receiving
 extension Remote {
+    
+    
     // MARK: addReceiveOperation
     func addReceivingOperation(_ operation: ReceiveFileOperation){
         
@@ -399,9 +399,28 @@ extension Remote {
 
 
 
+
 // MARK: - Sending
 extension Remote {
     
+    
+    // MARK: addSendOperation
+    func addSendingOperation(_ operation: SendFileOperation){
+        
+        sendingOperations.append(operation)
+        operation.status = .WAITING_FOR_PERMISSION
+    }
+    
+    
+    // MARK: findSendOperation
+    func findSendOperation(withStartTime time: UInt64 ) -> SendFileOperation? {
+        for operation in sendingOperations {
+            if operation.startTime == time {
+                return operation
+            }
+        }
+        return nil
+    }
     
     //MARK: sendFile
     func sendFile(_ filename: FileName){
@@ -421,33 +440,11 @@ extension Remote {
         
         addSendingOperation(operation)
         
-        
         let response = warpClient?.processTransferOpRequest(request)
         
         response?.response.whenComplete { result in
             print(self.DEBUG_TAG+"process request completed; result: \(result)")
         }
-    }
-    
-    
-    
-    
-    // MARK: addSendOperation
-    func addSendingOperation(_ operation: SendFileOperation){
-        
-        sendingOperations.append(operation)
-        operation.status = .WAITING_FOR_PERMISSION
-    }
-    
-    
-    // MARK: findSendOperation
-    func findSendOperation(withStartTime time: UInt64 ) -> SendFileOperation? {
-        for operation in sendingOperations {
-            if operation.startTime == time {
-                return operation
-            }
-        }
-        return nil
     }
     
 }
@@ -472,12 +469,11 @@ extension Remote {
         }
     }
     
-    func updateObservers(){
+    func updateObserversInfo(){
         observers.forEach { observer in
-            observer.update()
+            observer.updateInfo()
         }
     }
-    
 }
 
 
@@ -497,14 +493,11 @@ extension Remote: ConnectivityStateDelegate {
         switch newState {
 //        case .connecting: ping()
         case .ready: print(DEBUG_TAG+"channel ready")
-//            verifyDuplex()
         default: break
         }
         
     }
 }
-
-
 extension Remote: ClientErrorDelegate {
     //MARK: didCatchError
     public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
@@ -512,17 +505,15 @@ extension Remote: ClientErrorDelegate {
         print(DEBUG_TAG+"ERROR: file: \(file)")
         print(DEBUG_TAG+"ERROR: line: \(line)")
     }
-    
-    
-    
-    
 }
 
 
 
-// MARK: - RegistrationManager
+// MARK: - Registration
 extension Remote: RegistrationManager{
-    // MARK: - registrations success
+    
+    
+    // MARK: success
     func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
         
         print(DEBUG_TAG+"registration succeeded, certificate retrieved")
@@ -532,9 +523,7 @@ extension Remote: RegistrationManager{
         connect()
     }
     
-    
-    
-    // MARK: - registrations failure
+    // MARK: failure
     func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError){
         
         print(DEBUG_TAG+"registration failed, error: \(error)")

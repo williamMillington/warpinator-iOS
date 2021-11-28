@@ -51,9 +51,22 @@ class ListedRemoteView: UIView {
         backgroundColor = UIColor.orange.withAlphaComponent(0.2)
         
         viewModel = model
-        viewModel?.onUpdated = {
+        viewModel?.onInfoUpdated = {
             self.updateDisplay()
         }
+        
+        // add subviews and constraints
+        setUpView()
+        
+        // add onTap action
+        tapRecognizer = TapGestureRecognizerWithClosure(action: action)
+        addGestureRecognizer(tapRecognizer!)
+        
+        updateDisplay()
+    }
+    
+    
+    func setUpView(){
         
         var constraints: [NSLayoutConstraint] = []
         
@@ -73,13 +86,6 @@ class ListedRemoteView: UIView {
         ]
         
         NSLayoutConstraint.activate(constraints)
-        
-        
-        tapRecognizer = TapGestureRecognizerWithClosure(action: action)
-        
-        addGestureRecognizer(tapRecognizer!)
-        
-        updateDisplay()
     }
     
     
@@ -93,10 +99,6 @@ class ListedRemoteView: UIView {
             self.deviceStatusLabel.text = viewModel.status
         }
         
-        
-        
     }
-    
-    
     
 }
