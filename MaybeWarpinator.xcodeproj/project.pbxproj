@@ -22,6 +22,7 @@
 		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
 		7936B06C2752AC93001FA7C9 /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 7936B06A2752AC92001FA7C9 /* root.pem */; };
 		7936B06D2752AC93001FA7C9 /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 7936B06B2752AC92001FA7C9 /* rootkey.key */; };
+		7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B0702753B538001FA7C9 /* ListedTransferView.swift */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
 		797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B9270FC86A00A2795C /* Authenticator.swift */; };
 		797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* ReceiveFileOperation.swift */; };
@@ -74,6 +75,7 @@
 		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
 		7936B06A2752AC92001FA7C9 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
 		7936B06B2752AC92001FA7C9 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
+		7936B0702753B538001FA7C9 /* ListedTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedTransferView.swift; sourceTree = "<group>"; };
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
 		797C12B9270FC86A00A2795C /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		797C12BC2711102700A2795C /* ReceiveFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveFileOperation.swift; sourceTree = "<group>"; };
@@ -136,6 +138,7 @@
 			children = (
 				79331AF8274E8F3500A4022F /* TransferViewController.swift */,
 				79331B02274E91A600A4022F /* TransferViewModels.swift */,
+				7936B0702753B538001FA7C9 /* ListedTransferView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -400,6 +403,7 @@
 				79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */,
 				79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */,
 				79331B07274E91DB00A4022F /* RemoteViewModel.swift in Sources */,
+				7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */,
 				79360EB827069897008349D2 /* ViewController.swift in Sources */,
 				79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */,
 				799E39F127469CD800E60FFC /* TapGestureRecognizerWithClosure.swift in Sources */,

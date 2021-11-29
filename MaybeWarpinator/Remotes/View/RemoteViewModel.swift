@@ -37,6 +37,19 @@ class RemoteViewModel {
     }
     
     
+    public var transfers: [TransferOperationViewModel] {
+        
+        var viewmodels:[TransferOperationViewModel] = []
+        let operations: [TransferOperation] = remote.sendingOperations + remote.receivingOperations
+        
+        for operation in operations  {
+            viewmodels.append( TransferOperationViewModel(for: operation) )
+        }
+        
+        return viewmodels
+    }
+    
+    
     init(_ remote: Remote) {
         self.remote = remote
         remote.addObserver(self)

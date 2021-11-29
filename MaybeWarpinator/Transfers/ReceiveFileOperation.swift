@@ -25,7 +25,11 @@ class ReceiveFileOperation: TransferOperation {
     }
     
     var direction: TransferDirection
-    var status: TransferStatus
+    var status: TransferStatus {
+        didSet {
+            updateObserversInfo()
+        }
+    }
     
     var startTime: UInt64
     
@@ -52,6 +56,9 @@ class ReceiveFileOperation: TransferOperation {
     
     var completedFiles: [FileReceiver] = []
     var currentFile: FileReceiver?
+    
+    
+    var observers: [TransferOperationViewModel] = []
     
     
     init(_ request: TransferOpRequest, forRemote remote: Remote){
@@ -93,15 +100,7 @@ extension ReceiveFileOperation {
         
         print(DEBUG_TAG+"\t Space is available");
         
-        // single file check
-//        if fileCount == 1 {
-//
-//        }
-        
-        // check if filename is taken
-        
-        // - access filesystem
-        // - check space exists
+        updateObserversInfo()
         
     }
     
@@ -114,6 +113,8 @@ extension ReceiveFileOperation {
         
         status = .TRANSFERRING
         owningRemote?.beginReceiving(for: self)
+        
+//        updateObserversInfo()
     }
     
     
@@ -160,33 +161,64 @@ extension ReceiveFileOperation {
         }
         
         bytesTransferred += chunk.chunk.count
+        
+        updateObserversInfo()
     }
     
+    // MARK: finish
+    func finishReceive(){
+        print(DEBUG_TAG+" finished receiving transfer")
+        currentFile?.finish()
+        status = .FINISHED
+//        updateObserversInfo()
+    }
     
-    
+    // MARK: stop
     func stopReceiving(){
         
     }
     
     
-    func finishReceive(){
-        print(DEBUG_TAG+" finished receiving transfer")
-        currentFile?.finish()
-        status = .FINISHED
+    
+    // MARK: decline
+    func declineTransfer(){
         
     }
     
-    
+    // MARK: fail
     func failReceive(){
         
     }
     
     
-    func declineTransfer(){
-        
+    
+    
+    
+}
+
+
+
+//MARK: observers
+extension ReceiveFileOperation {
+    
+    func addObserver(_ model: TransferOperationViewModel){
+        observers.append(model)
     }
     
+    func removeObserver(_ model: TransferOperationViewModel){
+        
+        for (i, observer) in observers.enumerated() {
+            if observer === model {
+                observers.remove(at: i)
+            }
+        }
+    }
     
+    func updateObserversInfo(){
+        observers.forEach { observer in
+            observer.updateInfo()
+        }
+    }
 }
 
 

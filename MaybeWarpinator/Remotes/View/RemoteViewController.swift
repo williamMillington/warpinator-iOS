@@ -193,8 +193,13 @@ class RemoteViewController: UIViewController {
             self.deviceNameLabel.text = viewModel.displayName
             self.usernameLabel.text = viewModel.userName
             self.ipaddressLabel.text = viewModel.iNetAddress
+            
+            
+            for viewmodel in viewModel.transfers {
+                let view = ListedTransferView(withViewModel: viewmodel)
+                self.transfersStack.insertArrangedSubview(view, at: 0)
+            }
         }
-        
     }
     
     

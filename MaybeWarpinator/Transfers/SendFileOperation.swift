@@ -56,6 +56,8 @@ class SendFileOperation: TransferOperation {
     }
     
     
+    var observers: [TransferOperationViewModel] = [] 
+    
     
     init(for filenames: [FileName] ) {
         
@@ -143,6 +145,31 @@ class SendFileOperation: TransferOperation {
     
 }
 
+
+
+
+//MARK: observers
+extension SendFileOperation {
+    
+    func addObserver(_ model: TransferOperationViewModel){
+        observers.append(model)
+    }
+    
+    func removeObserver(_ model: TransferOperationViewModel){
+        
+        for (i, observer) in observers.enumerated() {
+            if observer === model {
+                observers.remove(at: i)
+            }
+        }
+    }
+    
+    func updateObserversInfo(){
+        observers.forEach { observer in
+            observer.updateInfo()
+        }
+    }
+}
 
 
 

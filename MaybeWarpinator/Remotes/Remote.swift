@@ -351,6 +351,7 @@ extension Remote {
         
         receivingOperations.append(operation)
         operation.status = .WAITING_FOR_PERMISSION
+        updateObserversInfo()
     }
     
     // MARK: findReceiveOperation
@@ -409,6 +410,7 @@ extension Remote {
         
         sendingOperations.append(operation)
         operation.status = .WAITING_FOR_PERMISSION
+        updateObserversInfo()
     }
     
     

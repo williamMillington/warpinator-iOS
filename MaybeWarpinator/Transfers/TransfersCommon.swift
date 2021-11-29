@@ -43,4 +43,11 @@ protocol TransferOperation {
     var fileCount: Int { get }
     var status: TransferStatus { get }
     var progress: Double { get }
+    
+    var observers: [TransferOperationViewModel] { get }
+    
+    func addObserver(_ model: TransferOperationViewModel)
+    func removeObserver(_ model: TransferOperationViewModel)
+    func updateObserversInfo()
 }
+ 
