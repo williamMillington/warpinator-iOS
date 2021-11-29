@@ -146,7 +146,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         remote.addReceivingOperation(operation)
         
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             operation.startReceive()
         }
         

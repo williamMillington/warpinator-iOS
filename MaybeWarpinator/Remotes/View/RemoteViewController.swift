@@ -108,10 +108,8 @@ class RemoteViewController: UIViewController {
         }
         
         
-        self.viewModel!.onTransferAdded = { viewmodel in
-            let ltview = ListedTransferView(withViewModel: viewmodel)
-            ltview.translatesAutoresizingMaskIntoConstraints = false
-            self.transfersStack.insertArrangedSubview(ltview, at: 0)
+        self.viewModel!.onTransferAdded = { [unowned self] viewmodel in
+            addTransferViewToStack(withViewModel: viewmodel)
         }
         
     }
@@ -163,13 +161,17 @@ class RemoteViewController: UIViewController {
             transfersLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             
             transfersStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            transfersStack.bottomAnchor.constraint(equalTo: sendFilesButton.topAnchor, constant: -10),
-            transfersStack.widthAnchor.constraint(equalTo: sendFilesButton.widthAnchor),
+//            transfersStack.widthAnchor.constraint(equalTo: sendFilesButton.widthAnchor),
             transfersStack.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6),
+            transfersStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
+            transfersStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
+            
+            transfersStack.bottomAnchor.constraint(equalTo: sendFilesButton.topAnchor, constant: -10),
             
             
             sendFilesButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            sendFilesButton.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(sideMargin*2)  ),
+            sendFilesButton.widthAnchor.constraint(equalTo: transfersStack.widthAnchor),
+//            sendFilesButton.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(sideMargin*2)  ),
             sendFilesButton.heightAnchor.constraint(equalTo: sendFilesButton.widthAnchor, multiplier: 0.2),
             sendFilesButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
             
@@ -179,14 +181,16 @@ class RemoteViewController: UIViewController {
         
         // load intial info
         updateDisplay()
+        
+        /* If this is not set, Autolayout will think that the stackview is height 0,
+         and will set all subsequent subviews to height == 0.
+         Then it will complain that some idiot set all the subview heights to 0. */
+        view.layoutIfNeeded()
+        
         for viewmodel in self.viewModel!.transfers {
-            let ltview = ListedTransferView(withViewModel: viewmodel)
-            ltview.translatesAutoresizingMaskIntoConstraints = false
-            transfersStack.insertArrangedSubview(ltview, at: 0)
+            addTransferViewToStack(withViewModel: viewmodel)
         }
     }
-    
-    
     
     
     func updateDisplay(){
@@ -197,6 +201,12 @@ class RemoteViewController: UIViewController {
         usernameLabel.text = viewModel.userName
         ipaddressLabel.text = viewModel.iNetAddress
         
+    }
+    
+    
+    private func addTransferViewToStack(withViewModel viewmodel: TransferOperationViewModel){
+        let ltview = ListedTransferView(withViewModel: viewmodel)
+        transfersStack.insertArrangedSubview(ltview, at: (transfersStack.arrangedSubviews.count - 1))
     }
     
     
