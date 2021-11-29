@@ -15,6 +15,7 @@ class RemoteViewModel {
     
     private var remote: Remote
     var onInfoUpdated: ()->Void = {}
+    var onTransferAdded: (TransferOperationViewModel)->Void = { viewmodel in }
     
     public var displayName: String {
         return remote.details.displayName
@@ -38,14 +39,14 @@ class RemoteViewModel {
     
     
     public var transfers: [TransferOperationViewModel] {
-        
+
         var viewmodels:[TransferOperationViewModel] = []
         let operations: [TransferOperation] = remote.sendingOperations + remote.receivingOperations
-        
+
         for operation in operations  {
             viewmodels.append( TransferOperationViewModel(for: operation) )
         }
-        
+
         return viewmodels
     }
     
@@ -57,9 +58,16 @@ class RemoteViewModel {
     
     
     func updateInfo(){
-            onInfoUpdated()
+        DispatchQueue.main.async { // execute UI on main thread
+            self.onInfoUpdated()
+        }
     }
     
+    func transferOperationAdded(_ operation: TransferOperation){
+        DispatchQueue.main.async { // execute UI on main thread
+            self.onTransferAdded(TransferOperationViewModel(for: operation))
+        }
+    }
     
     deinit {
         remote.removeObserver(self)

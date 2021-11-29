@@ -36,7 +36,9 @@ class TransferOperationViewModel {
     
     
     func updateInfo(){
-        onInfoUpdated()
+        DispatchQueue.main.async { // execute UI on main thread 
+            self.onInfoUpdated()
+        }
     }
     
     deinit {

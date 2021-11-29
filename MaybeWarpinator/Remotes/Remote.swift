@@ -81,7 +81,7 @@ public class Remote {
     
     var details: RemoteDetails {
         didSet {
-            self.updateObserversInfo()
+            self.informObserversInfoDidChange()
         }
     }
     
@@ -350,8 +350,10 @@ extension Remote {
     func addReceivingOperation(_ operation: ReceiveFileOperation){
         
         receivingOperations.append(operation)
+        informObserversOperationAdded(operation)
+        
         operation.status = .WAITING_FOR_PERMISSION
-        updateObserversInfo()
+//        informObserversInfoDidChange()
     }
     
     // MARK: findReceiveOperation
@@ -409,8 +411,10 @@ extension Remote {
     func addSendingOperation(_ operation: SendFileOperation){
         
         sendingOperations.append(operation)
+        informObserversOperationAdded(operation)
+        
         operation.status = .WAITING_FOR_PERMISSION
-        updateObserversInfo()
+
     }
     
     
@@ -471,11 +475,18 @@ extension Remote {
         }
     }
     
-    func updateObserversInfo(){
+    func informObserversInfoDidChange(){
         observers.forEach { observer in
             observer.updateInfo()
         }
     }
+    
+    func informObserversOperationAdded(_ operation: TransferOperation){
+        observers.forEach { observer in
+            observer.transferOperationAdded(operation)
+        }
+    }
+    
 }
 
 

@@ -74,8 +74,6 @@ class RemoteViewController: UIViewController {
     }()
     
     
-    
-    
     let backButton: UIButton = {
         let button = UIButton()
         button.setTitle("back", for: .normal)
@@ -109,9 +107,13 @@ class RemoteViewController: UIViewController {
             updateDisplay()
         }
         
-//        deviceNameLabel.text = viewModel.displayName
-//        usernameLabel.text = viewModel.userName
-//        ipaddressLabel.text = viewModel.iNetAddress
+        
+        self.viewModel!.onTransferAdded = { viewmodel in
+            let ltview = ListedTransferView(withViewModel: viewmodel)
+            ltview.translatesAutoresizingMaskIntoConstraints = false
+            self.transfersStack.insertArrangedSubview(ltview, at: 0)
+        }
+        
     }
     
     
@@ -133,13 +135,11 @@ class RemoteViewController: UIViewController {
         view.addSubview(usernameLabel)
         view.addSubview(ipaddressLabel)
         
-        
-        
         view.addSubview(transfersLabel)
         view.addSubview(transfersStack)
         
-        
         view.addSubview(sendFilesButton)
+        
         
         let topAnchor = view.safeAreaLayoutGuide.topAnchor
         let sideMargin: CGFloat = 10
@@ -177,8 +177,13 @@ class RemoteViewController: UIViewController {
         
         NSLayoutConstraint.activate(constraints)
         
-        
-        self.updateDisplay()
+        // load intial info
+        updateDisplay()
+        for viewmodel in self.viewModel!.transfers {
+            let ltview = ListedTransferView(withViewModel: viewmodel)
+            ltview.translatesAutoresizingMaskIntoConstraints = false
+            transfersStack.insertArrangedSubview(ltview, at: 0)
+        }
     }
     
     
@@ -188,18 +193,10 @@ class RemoteViewController: UIViewController {
         
         guard let viewModel = viewModel else { return }
         
-        // Make sure we are updating UI on the main thread!
-        DispatchQueue.main.async {
-            self.deviceNameLabel.text = viewModel.displayName
-            self.usernameLabel.text = viewModel.userName
-            self.ipaddressLabel.text = viewModel.iNetAddress
-            
-            
-            for viewmodel in viewModel.transfers {
-                let view = ListedTransferView(withViewModel: viewmodel)
-                self.transfersStack.insertArrangedSubview(view, at: 0)
-            }
-        }
+        deviceNameLabel.text = viewModel.displayName
+        usernameLabel.text = viewModel.userName
+        ipaddressLabel.text = viewModel.iNetAddress
+        
     }
     
     
