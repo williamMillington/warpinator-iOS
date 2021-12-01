@@ -24,6 +24,7 @@ class SendFileOperation: TransferOperation {
     weak var owningRemote: Remote?
     var remoteUUID: String
     
+    var UUID: UInt64 { return startTime }
     var startTime: UInt64
     
     var totalSize: Int = 0

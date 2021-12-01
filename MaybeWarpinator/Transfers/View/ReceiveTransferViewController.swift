@@ -11,7 +11,7 @@ class ReceiveTransferViewController: UIViewController {
 
     lazy var DEBUG_TAG: String = "ReceiveTransferViewController:"
     
-    var coordinator: MainCoordinator?
+    var coordinator: RemoteCoordinator?
     
     
     let transferDescriptionLabel: UILabel = {
@@ -50,6 +50,17 @@ class ReceiveTransferViewController: UIViewController {
         button.backgroundColor = .blue
         button.alpha = 0.5 // 'grayed' out while disabled
         button.isUserInteractionEnabled = false // disabled for inital setup
+        return button
+    }()
+    
+    
+    let backButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("back", for: .normal)
+        button.setTitleColor( .blue, for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = .white
+        button.addTarget(self, action: #selector(back), for: .touchUpInside)
         return button
     }()
     
@@ -107,6 +118,11 @@ class ReceiveTransferViewController: UIViewController {
         
         remoteDescriptionLabel.text = viewmodel?.deviceName ??  "No Device Name"
         
+    }
+    
+    
+    @objc func back(){
+        coordinator?.start()
     }
     
     

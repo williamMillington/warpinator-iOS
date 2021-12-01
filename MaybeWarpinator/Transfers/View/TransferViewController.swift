@@ -13,7 +13,7 @@ class TransferViewController: UIViewController {
     
     lazy var DEBUG_TAG: String = "TransferViewController:"
     
-    var coordinator: MainCoordinator?
+    var coordinator: RemoteCoordinator?
     
     let directionDescriptionLabel: UILabel = {
         let label = UILabel()

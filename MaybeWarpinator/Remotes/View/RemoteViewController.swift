@@ -10,7 +10,7 @@ import UIKit
 class RemoteViewController: UIViewController {
 
     
-    var coordinator: MainCoordinator?
+    var coordinator: RemoteCoordinator?
     
     
     let deviceNameLabel: UILabel = {
@@ -179,19 +179,31 @@ class RemoteViewController: UIViewController {
         
         NSLayoutConstraint.activate(constraints)
         
-        
-        // load intial info
-        /* If this is not set, Autolayout will think that the stackview is height 0,
+        /* If this is not called, Autolayout will think that the stackview is height 0,
          and will set all subsequent subviews to height == 0.
          Then it will complain that some idiot set all the subview heights to 0. */
         view.layoutIfNeeded()
         
+        
+        // load intial info
         
         updateDisplay()
         
         for viewmodel in self.viewModel!.transfers {
             addTransferViewToStack(withViewModel: viewmodel)
         }
+        
+        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+//
+//            let mocktransfer = MockReceiveTransfer()
+//            let vm = TransferOperationViewModel(for: mocktransfer)
+////            let view = ListedTransferView(withViewModel: vm, onTap: {
+////                se
+////            })
+//            self.addTransferViewToStack(withViewModel: vm)
+//        }
+        
     }
     
     
@@ -207,12 +219,14 @@ class RemoteViewController: UIViewController {
     
     
     private func addTransferViewToStack(withViewModel viewmodel: TransferOperationViewModel){
-        let ltview = ListedTransferView(withViewModel: viewmodel)
+        let ltview = ListedTransferView(withViewModel: viewmodel, onTap: {
+            self.coordinator?.userSelectedTransfer(withUUID: viewmodel.UUID )
+        })
         transfersStack.insertArrangedSubview(ltview, at: (transfersStack.arrangedSubviews.count - 1))
     }
     
     
     @objc func back(){
-        coordinator?.showMenu()
+        coordinator?.back()
     }
 }

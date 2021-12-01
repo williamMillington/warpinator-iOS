@@ -290,7 +290,7 @@ class RegistrationServer {
     
     func mockStart(){
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             print(self.DEBUG_TAG+"mocking registration")
             self.mockRegistration()
         }

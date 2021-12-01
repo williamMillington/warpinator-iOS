@@ -27,15 +27,15 @@ class MainCoordinator: NSObject, Coordinator {
         
         
         Utils.lockOrientation(.portrait)
+        MainService.shared.start()
     }
     
     
     func start() {
         
-//        showMenu()
-//        MainService.shared.start()
+        showMenu()
         
-        mockTransferReceive()
+//        mockTransferReceive()
         
     }
     
@@ -68,12 +68,19 @@ class MainCoordinator: NSObject, Coordinator {
         
         if let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) {
             
-            let viewmodel = RemoteViewModel(remote)
+            print(DEBUG_TAG+"remote found")
             
-            let remoteVC = RemoteViewController(withViewModel: viewmodel)
-            remoteVC.coordinator = self
+            let remoteCoordinator = RemoteCoordinator(for: remote, parent: self, withNavigationController: navController)
             
-            navController.pushViewController(remoteVC, animated: false)
+            childCoordinators.append(remoteCoordinator)
+            remoteCoordinator.start()
+            
+//            let viewmodel = RemoteViewModel(remote)
+//
+//            let remoteVC = RemoteViewController(withViewModel: viewmodel)
+//            remoteVC.coordinator = self
+//
+//            navController.pushViewController(remoteVC, animated: false)
         }
         
     }
@@ -90,7 +97,7 @@ class MainCoordinator: NSObject, Coordinator {
         let vm = ReceiveTransferViewModel(operation: transfer, from: remote)
         let vc = ReceiveTransferViewController(withViewModel: vm)
         
-        vc.coordinator = self
+//        vc.coordinator = self
         
         navController.pushViewController(vc, animated: false)
         

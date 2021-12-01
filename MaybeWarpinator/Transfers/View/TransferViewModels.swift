@@ -16,6 +16,9 @@ class TransferOperationViewModel {
     
     var onInfoUpdated: ()->Void = {}
     
+    var UUID: UInt64 {
+        return operation.UUID
+    }
     
     var fileCount: Int {
         return operation.fileCount

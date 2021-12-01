@@ -35,12 +35,12 @@ struct RemoteDetails {
     static var MOCK_DETAILS: RemoteDetails = {
         let mockEndpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("So.me.Ho.st") ,
                                                port: NWEndpoint.Port(integerLiteral: 8080))
-        let mock = RemoteDetails(DEBUG_TAG: "MOCK_REMOTE",
+        let mock = RemoteDetails(DEBUG_TAG: "MoCkReMoTe",
                                  endpoint: mockEndpoint,
-                                 displayName: "Mock Remote",   username: "Mock User",
-                                 serviceName: "Mock Service",  hostname: "Mock Host",  ipAddress: "Som.eAd.dre.ss",
+                                 displayName: "mOcK ReMoTe",   username: "mOcK uSeR",
+                                 serviceName: "MoCk SeRvIcE",  hostname: "mOcK hOsT",  ipAddress: "Som.eAd.dre.ss",
                                  port: 8080,   authPort: 8081,
-                                 uuid: "Mock UUID",  api: "2",
+                                 uuid: "mOcK uUiD",  api: "2",
                                  status: .Disconnected,  serviceAvailable: false)
         return mock
     }()
@@ -275,6 +275,22 @@ public class Remote {
 //        }
         
     }
+    
+    
+    func findTransferOperation(for uuid: UInt64) -> TransferOperation? {
+        
+        if let operation = findReceiveOperation(withStartTime: uuid) {
+            return operation
+        }
+        
+        if let operation = findSendOperation(withStartTime: uuid){
+            return operation
+        }
+        
+        return nil
+    }
+    
+    
 }
 
 
@@ -379,8 +395,7 @@ extension Remote {
         }
         
         guard let client = warpClient else {
-            print(DEBUG_TAG+"Why the fuck is there no fucking client???");return
-            
+            print(DEBUG_TAG+"Why the fuck is there no fucking client???"); return
         }
         
         

@@ -26,3 +26,10 @@ extension Coordinator {
         }
     }
 }
+
+
+//MARK: SubCoordinator
+protocol SubCoordinator {
+    var parent: Coordinator { get }
+    func back()
+}

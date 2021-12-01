@@ -32,7 +32,7 @@ class MainService {
         server.start()
         
         registrationServer.remoteManager = remoteManager
-        registrationServer.start()
+//        registrationServer.start()
         registrationServer.mockStart()
         
     }

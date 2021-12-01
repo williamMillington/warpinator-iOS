@@ -39,6 +39,9 @@ enum TransferStatus {
 protocol TransferOperation {
     
     var owningRemote: Remote? { get set }
+    
+    var UUID: UInt64 { get }
+    
     var direction: TransferDirection { get }
     var fileCount: Int { get }
     var status: TransferStatus { get }
@@ -54,9 +57,11 @@ protocol TransferOperation {
 
 
 
-class MockReceiveTransfer: TransferOperation {
+class MockReceiveTransfer: TransferOperation { 
     
     var owningRemote: Remote?
+    
+    var UUID: UInt64
     
     var direction: TransferDirection
     
@@ -71,6 +76,10 @@ class MockReceiveTransfer: TransferOperation {
     
     init(){
         owningRemote = Remote(details: RemoteDetails.MOCK_DETAILS )
+        
+        // random number
+        UUID = 0 + UInt64.random(in: 0...9) + UInt64.random(in: 0...9) + UInt64.random(in: 0...9) + UInt64.random(in: 0...9)
+        
         direction = .RECEIVING
         fileCount = 1
         status = .WAITING_FOR_PERMISSION

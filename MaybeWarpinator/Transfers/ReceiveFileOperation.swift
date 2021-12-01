@@ -15,6 +15,32 @@ class ReceiveFileOperation: TransferOperation {
     
     lazy var DEBUG_TAG: String = "ReceiveFileOperation (\(owningRemoteUUID),\(direction)):"
     
+    
+    struct MockOperation {
+        static func make(for remote: Remote) -> ReceiveFileOperation {
+            
+            let opinfo = OpInfo.with {
+                $0.ident = remote.details.uuid
+                $0.readableName = remote.displayName
+                $0.timestamp = UInt64( Date().timeIntervalSince1970 * 1000 )
+                $0.useCompression = false
+            }
+            
+            let mockTrOpRequest = TransferOpRequest.with {
+                $0.info = opinfo
+                $0.size = UInt64(1598)
+                $0.count =  UInt64( Double( Int.random(in: 0...4)))
+                $0.topDirBasenames = ["topdirbasename"]
+            }
+            
+            return ReceiveFileOperation(mockTrOpRequest, forRemote: remote)
+        } 
+    }
+    
+    
+    
+    
+    
     private var chunk_size: Int = 1024 * 512  // 512 kB
     
     var request: TransferOpRequest
@@ -31,6 +57,7 @@ class ReceiveFileOperation: TransferOperation {
         }
     }
     
+    var UUID: UInt64 { return startTime }  
     var startTime: UInt64
     
     var totalSize: UInt64
