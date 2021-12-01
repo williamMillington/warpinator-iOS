@@ -51,3 +51,46 @@ protocol TransferOperation {
     func updateObserversInfo()
 }
  
+
+
+
+class MockReceiveTransfer: TransferOperation {
+    
+    var owningRemote: Remote?
+    
+    var direction: TransferDirection
+    
+    var fileCount: Int
+    
+    var status: TransferStatus
+    
+    var progress: Double
+    
+    var observers: [TransferOperationViewModel]
+    
+    
+    init(){
+        owningRemote = Remote(details: RemoteDetails.MOCK_DETAILS )
+        direction = .RECEIVING
+        fileCount = 1
+        status = .WAITING_FOR_PERMISSION
+        progress = 0
+        
+        observers = []
+    }
+    
+    
+    func addObserver(_ model: TransferOperationViewModel) {
+        
+    }
+    
+    func removeObserver(_ model: TransferOperationViewModel) {
+        
+    }
+    
+    func updateObserversInfo() {
+        
+    }
+    
+    
+}

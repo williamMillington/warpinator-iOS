@@ -10,11 +10,10 @@ import UIKit
 
 
 class TransferViewController: UIViewController {
-
+    
+    lazy var DEBUG_TAG: String = "TransferViewController:"
     
     var coordinator: MainCoordinator?
-    
-    
     
     let directionDescriptionLabel: UILabel = {
         let label = UILabel()
@@ -110,6 +109,11 @@ class TransferViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        
+        
+        
 
     }
     

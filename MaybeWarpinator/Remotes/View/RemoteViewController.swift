@@ -179,13 +179,15 @@ class RemoteViewController: UIViewController {
         
         NSLayoutConstraint.activate(constraints)
         
-        // load intial info
-        updateDisplay()
         
+        // load intial info
         /* If this is not set, Autolayout will think that the stackview is height 0,
          and will set all subsequent subviews to height == 0.
          Then it will complain that some idiot set all the subview heights to 0. */
         view.layoutIfNeeded()
+        
+        
+        updateDisplay()
         
         for viewmodel in self.viewModel!.transfers {
             addTransferViewToStack(withViewModel: viewmodel)

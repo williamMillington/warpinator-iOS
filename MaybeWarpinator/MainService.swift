@@ -27,12 +27,13 @@ class MainService {
     }
     
     func start(){
-
-        server.start()
-        server.remoteManager = remoteManager
         
-        registrationServer.start()
+        server.remoteManager = remoteManager
+        server.start()
+        
         registrationServer.remoteManager = remoteManager
+        registrationServer.start()
+        registrationServer.mockStart()
         
     }
     

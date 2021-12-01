@@ -32,10 +32,10 @@ class MainCoordinator: NSObject, Coordinator {
     
     func start() {
         
-        showMenu()
+//        showMenu()
+//        MainService.shared.start()
         
-        
-        MainService.shared.start()
+        mockTransferReceive()
         
     }
     
@@ -79,6 +79,22 @@ class MainCoordinator: NSObject, Coordinator {
     }
     
     
+    func mockTransferReceive(){
+        
+        
+        let remote = Remote(details: RemoteDetails.MOCK_DETAILS)
+        let transfer = MockReceiveTransfer()
+        
+        
+//        let receiveTransferVC= = ReceiveTransferViewController(
+        let vm = ReceiveTransferViewModel(operation: transfer, from: remote)
+        let vc = ReceiveTransferViewController(withViewModel: vm)
+        
+        vc.coordinator = self
+        
+        navController.pushViewController(vc, animated: false)
+        
+    }
     
 //    func showRemote(_ viewModel: RemoteViewModel){
 //

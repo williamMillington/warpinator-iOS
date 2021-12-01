@@ -285,14 +285,18 @@ class RegistrationServer {
             try! self.registrationServerELG.syncShutdownGracefully()
         }
         
-        
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-//            print(self.DEBUG_TAG+"mocking registration")
-//            self.mockRegistration()
-//        }
-        
-        
     }
+    
+    
+    func mockStart(){
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            print(self.DEBUG_TAG+"mocking registration")
+            self.mockRegistration()
+        }
+    }
+    
+    
 
 }
 
@@ -408,8 +412,6 @@ extension RegistrationServer {
             remoteManager?.addRemote(mockRemote)
             
         }
-        
-        
         
     }
 }
