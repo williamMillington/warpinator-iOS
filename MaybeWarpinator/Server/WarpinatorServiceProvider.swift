@@ -146,9 +146,9 @@ public class WarpinatorServiceProvider: WarpProvider {
         remote.addReceivingOperation(operation)
         
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            operation.startReceive()
-        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            operation.startReceive()
+//        }
         
         return context.eventLoop.makeSucceededFuture(VoidType())
     }
@@ -186,7 +186,7 @@ public class WarpinatorServiceProvider: WarpProvider {
     // receive instruction to cancel operation (transfer) specified in OpInfo
     public func cancelTransferOpRequest(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        // TODO: implement cnacel transfer function
+        // TODO: implement cancel transfer function
         
         return context.eventLoop.makeCompletedFuture(Result(catching: {  return VoidType()   }))
     }

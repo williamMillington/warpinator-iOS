@@ -38,9 +38,6 @@ class ReceiveFileOperation: TransferOperation {
     }
     
     
-    
-    
-    
     private var chunk_size: Int = 1024 * 512  // 512 kB
     
     var request: TransferOpRequest
@@ -104,7 +101,6 @@ class ReceiveFileOperation: TransferOperation {
         directories = request.topDirBasenames
         
     }
-    
 }
 
 
@@ -141,7 +137,6 @@ extension ReceiveFileOperation {
         status = .TRANSFERRING
         owningRemote?.beginReceiving(for: self)
         
-//        updateObserversInfo()
     }
     
     

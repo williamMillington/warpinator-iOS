@@ -130,7 +130,6 @@ public class Remote {
     
     func register(){
         
-        
         if details.api == "1" {
             registrationConnection = UDPConnection(details, manager: self)
         } else {
@@ -246,7 +245,7 @@ public class Remote {
     
     
     
-    // MARK: onDuplexVerified
+    // MARK: onDuplexAquired
     private func onDuplexAquired(){
         
         print(self.DEBUG_TAG+"duplex verified after \(duplexAttempts) attempts")
@@ -289,6 +288,39 @@ public class Remote {
         
         return nil
     }
+    
+    
+    
+    func declineTransfer(_ transfer: ReceiveFileOperation){
+        
+        let opInfo = OpInfo.with {
+            $0.ident = Server.SERVER_UUID
+            $0.timestamp = transfer.startTime
+            $0.readableName = Utils.getDeviceName()
+        }
+        
+        guard let client = warpClient else {
+            print(DEBUG_TAG+"no client connection"); return
+        }
+        
+        let response = client.cancelTransferOpRequest(opInfo)
+        
+        response.response.whenSuccess { result in
+            print(self.DEBUG_TAG+"transfer decline successful")
+        }
+        response.response.whenFailure { error in
+            print(self.DEBUG_TAG+"transfer decline unsuccessful: \(error)")
+        }
+    }
+    
+    
+    
+    func cancelTransfer(_ opInfo: OpInfo){
+        
+        
+        
+    }
+    
     
     
 }
@@ -538,7 +570,7 @@ extension Remote: ClientErrorDelegate {
 
 
 // MARK: - Registration
-extension Remote: RegistrationManager{
+extension Remote: RegistrationManager {
     
     
     // MARK: success

@@ -25,7 +25,7 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         remote = r
         navController = controller
         
-        super.init() 
+        super.init()
         
         
 //        navController.setToolbarHidden(true, animated: false)
@@ -33,13 +33,6 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         
         Utils.lockOrientation(.portrait)
-        
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
-            self.remote.addReceivingOperation(mockOp)
-        }
-        
         
     }
     
@@ -75,10 +68,9 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     
-    func userSelectedTransfer(withUUID uuid: UInt64     ){
+    func userSelectedTransfer(withUUID uuid: UInt64 ){
         
         if let operation = remote.findTransferOperation(for: uuid){
-            
             
             if operation.status == .WAITING_FOR_PERMISSION {
                 
@@ -97,17 +89,52 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
                 
             }
             
-            
-            
-            
         } else {
             print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
+        
+    }
+    
+    
+    func acceptTransfer(forTransferUUID uuid: UInt64){
+        
+        print(DEBUG_TAG+"user approved transfer with uuid")
+        
+        if let operation = remote.findReceiveOperation(withStartTime: uuid) {
+            print(DEBUG_TAG+"\t transfer with uuid found")
+            operation.startReceive()
+            showRemote()
+        }else {
+            print(DEBUG_TAG+"ain't no operation for that there uuid")
+        }
+        
+    }
+    
+    
+    
+    func declineTransfer(forTransferUUID uuid: UInt64){
+        
+        print(DEBUG_TAG+"user declined transfer with uuid")
+        
+        if let operation = remote.findReceiveOperation(withStartTime: uuid) {
+            print(DEBUG_TAG+"\t transfer with uuid found")
+            operation.startReceive()
+            showRemote()
+        }else {
+            print(DEBUG_TAG+"ain't no operation for that there uuid")
+        }
+        
         
         
     }
     
     
+    func mockReceiveTransfer(){
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
+            self.remote.addReceivingOperation(mockOp)
+        }
+    }
     
     
     

@@ -38,8 +38,7 @@ class ReceiveTransferViewController: UIViewController {
         button.setTitle("Accept", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .blue
-        button.alpha = 0.5 // 'grayed' out while disabled
-        button.isUserInteractionEnabled = false // disabled for inital setup
+        button.addTarget(self, action: #selector(accept), for: .touchUpInside)
         return button
     }()
     
@@ -48,8 +47,7 @@ class ReceiveTransferViewController: UIViewController {
         button.setTitle("Decline", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .blue
-        button.alpha = 0.5 // 'grayed' out while disabled
-        button.isUserInteractionEnabled = false // disabled for inital setup
+        button.addTarget(self, action: #selector(decline), for: .touchUpInside)
         return button
     }()
     
@@ -92,8 +90,9 @@ class ReceiveTransferViewController: UIViewController {
         view.addSubview(remoteDescriptionLabel)
         view.addSubview(acceptButton)
         view.addSubview(declineButton)
+        view.addSubview(backButton)
         
-//        let sideMargin: CGFloat = 10
+        let sideMargin: CGFloat = 10
         
         viewConstraints +=  [
             
@@ -107,9 +106,11 @@ class ReceiveTransferViewController: UIViewController {
             acceptButton.bottomAnchor.constraint(equalTo: view.centerYAnchor, constant: -5),
             
             declineButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            declineButton.topAnchor.constraint(equalTo: view.centerYAnchor, constant: 5)
+            declineButton.topAnchor.constraint(equalTo: view.centerYAnchor, constant: 5),
             
             
+            backButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
+            backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin)
             
         ]
         
@@ -123,6 +124,14 @@ class ReceiveTransferViewController: UIViewController {
     
     @objc func back(){
         coordinator?.start()
+    }
+    
+    @objc func accept(){
+        coordinator?.acceptTransfer(forTransferUUID: viewmodel!.operation.UUID)
+    }
+    
+    @objc func decline(){
+        
     }
     
     

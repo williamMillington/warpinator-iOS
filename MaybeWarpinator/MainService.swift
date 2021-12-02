@@ -32,8 +32,8 @@ class MainService {
         server.start()
         
         registrationServer.remoteManager = remoteManager
-//        registrationServer.start()
-        registrationServer.mockStart()
+        registrationServer.start()
+//        registrationServer.mockStart()
         
     }
     
