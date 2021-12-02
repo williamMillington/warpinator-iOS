@@ -32,6 +32,10 @@ class TransferOperationViewModel {
         return operation.status
     }
     
+    var direction: TransferDirection {
+        return operation.direction
+    }
+    
     init(for operation: TransferOperation) {
         self.operation = operation
         operation.addObserver(self)
