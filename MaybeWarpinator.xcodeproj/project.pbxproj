@@ -26,8 +26,8 @@
 		7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */; };
 		7936B07727554E06001FA7C9 /* ReceiveTransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07627554E06001FA7C9 /* ReceiveTransferViewModel.swift */; };
 		796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796328232757FF930056F76B /* RemoteCoordinator.swift */; };
-		7963282727599F030056F76B /* FileReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282627599F030056F76B /* FileReceiver.swift */; };
-		7963282A27599F3A0056F76B /* FileSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282927599F3A0056F76B /* FileSender.swift */; };
+		7963282727599F030056F76B /* FileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282627599F030056F76B /* FileWriter.swift */; };
+		7963282A27599F3A0056F76B /* FileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282927599F3A0056F76B /* FileReader.swift */; };
 		7963282D27599FF00056F76B /* FileOperationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282C27599FF00056F76B /* FileOperationViewModel.swift */; };
 		796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328302759A96A0056F76B /* The_Last_Five_Years.pdf */; };
 		796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */; };
@@ -87,8 +87,8 @@
 		7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewController.swift; sourceTree = "<group>"; };
 		7936B07627554E06001FA7C9 /* ReceiveTransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewModel.swift; sourceTree = "<group>"; };
 		796328232757FF930056F76B /* RemoteCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoordinator.swift; sourceTree = "<group>"; };
-		7963282627599F030056F76B /* FileReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReceiver.swift; sourceTree = "<group>"; };
-		7963282927599F3A0056F76B /* FileSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSender.swift; sourceTree = "<group>"; };
+		7963282627599F030056F76B /* FileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWriter.swift; sourceTree = "<group>"; };
+		7963282927599F3A0056F76B /* FileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReader.swift; sourceTree = "<group>"; };
 		7963282C27599FF00056F76B /* FileOperationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileOperationViewModel.swift; sourceTree = "<group>"; };
 		796328302759A96A0056F76B /* The_Last_Five_Years.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = The_Last_Five_Years.pdf; sourceTree = "<group>"; };
 		796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Dear_Evan_Hansen_PV_Score.pdf; sourceTree = "<group>"; };
@@ -283,8 +283,8 @@
 				797C12BC2711102700A2795C /* ReceiveFileOperation.swift */,
 				79343EB22743502B008E0890 /* SendFileOperation.swift */,
 				79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */,
-				7963282627599F030056F76B /* FileReceiver.swift */,
-				7963282927599F3A0056F76B /* FileSender.swift */,
+				7963282627599F030056F76B /* FileWriter.swift */,
+				7963282927599F3A0056F76B /* FileReader.swift */,
 			);
 			path = Transfers;
 			sourceTree = "<group>";
@@ -426,13 +426,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7963282A27599F3A0056F76B /* FileSender.swift in Sources */,
+				7963282A27599F3A0056F76B /* FileReader.swift in Sources */,
 				79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */,
 				79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */,
 				79331B07274E91DB00A4022F /* RemoteViewModel.swift in Sources */,
 				7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */,
 				79360EB827069897008349D2 /* ViewController.swift in Sources */,
-				7963282727599F030056F76B /* FileReceiver.swift in Sources */,
+				7963282727599F030056F76B /* FileWriter.swift in Sources */,
 				7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */,
 				79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */,
 				799E39F127469CD800E60FFC /* TapGestureRecognizerWithClosure.swift in Sources */,

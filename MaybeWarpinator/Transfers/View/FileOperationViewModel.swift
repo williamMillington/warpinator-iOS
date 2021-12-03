@@ -20,7 +20,7 @@ protocol FileOperationViewModel {
 
 class FileReceiverViewModel: FileOperationViewModel {
     
-    var operation: FileReceiver
+    var operation: FileWriter
     var onUpdated: ()->Void = {}
     
     var type: String {
@@ -40,7 +40,7 @@ class FileReceiverViewModel: FileOperationViewModel {
     }
     
     
-    init(operation: FileReceiver){
+    init(operation: FileWriter){
         self.operation = operation
     }
     
@@ -55,7 +55,7 @@ class FileReceiverViewModel: FileOperationViewModel {
 
 class FileSenderViewModel: FileOperationViewModel {
     
-    var operation: FileSender
+    var operation: FileReader
     var onUpdated: ()->Void = {}
     
     var type: String {
@@ -79,7 +79,7 @@ class FileSenderViewModel: FileOperationViewModel {
     }
     
     
-    init(operation: FileSender){
+    init(operation: FileReader){
         self.operation = operation
     }
     

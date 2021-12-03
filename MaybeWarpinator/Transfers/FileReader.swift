@@ -1,5 +1,5 @@
 //
-//  FileSender.swift
+//  FileReader.swift
 //  MaybeWarpinator
 //
 //  Created by William Millington on 2021-12-02.
@@ -8,9 +8,9 @@
 import Foundation
 
 
-class FileSender {
+class FileReader {
     
-    lazy var DEBUG_TAG: String = "FileSender \"\(filename).\(fileExtension):\" "
+    lazy var DEBUG_TAG: String = "FileReader \"\(filename).\(fileExtension):\" "
     
     let filename: String
     let fileExtension: String

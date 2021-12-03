@@ -78,8 +78,8 @@ class ReceiveFileOperation: TransferOperation {
     
     var currentRelativePath: String = ""
     
-    var completedFiles: [FileReceiver] = []
-    var currentFile: FileReceiver?
+    var completedFiles: [FileWriter] = []
+    var currentFile: FileWriter?
     
     
     var observers: [TransferOperationViewModel] = []
@@ -152,9 +152,9 @@ extension ReceiveFileOperation {
         
         if chunk.fileType == FileType.DIRECTORY.rawValue {
             do {
-                try FileReceiver.createNewDirectory(withName: chunk.relativePath)
+                try FileWriter.createNewDirectory(withName: chunk.relativePath)
             }
-            catch let error as FileReceiver.FileReceiveError {
+            catch let error as FileWriter.FileReceiveError {
                 switch error {
                 case .DIRECTORY_EXISTS: print(DEBUG_TAG+"Directory exists (\(error))")
                     currentRelativePath = chunk.relativePath
@@ -175,7 +175,7 @@ extension ReceiveFileOperation {
                 
                 currentRelativePath = chunk.relativePath
                 
-                let file = FileReceiver(filename: currentRelativePath)
+                let file = FileWriter(filename: currentRelativePath)
                 currentFile = file
             }
             

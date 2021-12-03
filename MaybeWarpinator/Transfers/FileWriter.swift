@@ -1,5 +1,5 @@
 //
-//  FileReceiver.swift
+//  FileWriter.swift
 //  MaybeWarpinator
 //
 //  Created by William Millington on 2021-12-02.
@@ -8,7 +8,7 @@
 import Foundation
 
 
-class FileReceiver {
+class FileWriter {
     
     enum FileReceiveError: Error {
         case FILE_EXISTS, DIRECTORY_EXISTS
@@ -17,8 +17,8 @@ class FileReceiver {
     }
     
     
-    static var DEBUG_TAG: String = "FileReceiver (static): "
-    lazy var DEBUG_TAG: String = "FileReceiver \(filename): "
+    static var DEBUG_TAG: String = "FileWriter (static): "
+    lazy var DEBUG_TAG: String = "FileWriter \(filename): "
     
     let filename: String
     

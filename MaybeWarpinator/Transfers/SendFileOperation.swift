@@ -43,7 +43,7 @@ class SendFileOperation: TransferOperation {
     
     var topDirBaseNames: [String] = []
     
-    lazy var currentFile: FileSender = FileSender(for: files[0])
+    lazy var currentFile: FileReader = FileReader(for: files[0])
     var files: [FileName]
     
     
@@ -97,6 +97,7 @@ class SendFileOperation: TransferOperation {
         status = .WAITING_FOR_PERMISSION
         
     }
+    
     
     
     //MARK: start
