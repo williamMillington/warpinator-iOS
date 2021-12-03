@@ -40,6 +40,13 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         print(DEBUG_TAG+"starting")
         showRemote()
         
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
+//            self.remote.addReceivingOperation(mockOp)
+//            self.remote.sendFile( FileName(name: "TestFileToSend", ext: "rtf" ))
+            self.remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
+        }
+        
     }
     
     func back(){
@@ -123,8 +130,6 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         }else {
             print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
-        
-        
         
     }
     

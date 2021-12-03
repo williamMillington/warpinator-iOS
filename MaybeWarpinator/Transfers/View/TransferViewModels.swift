@@ -8,8 +8,6 @@
 import Foundation
 
 
-
-
 class TransferOperationViewModel {
     
     private var operation: TransferOperation
