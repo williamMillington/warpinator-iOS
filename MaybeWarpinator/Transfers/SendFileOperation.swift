@@ -19,7 +19,11 @@ class SendFileOperation: TransferOperation {
     public static var chunk_size: Int = 1024 * 512  // 512 kB
     
     var direction: TransferDirection
-    var status: TransferStatus
+    var status: TransferStatus {
+        didSet {
+            updateObserversInfo()
+        }
+    }
     
     weak var owningRemote: Remote?
     var remoteUUID: String
@@ -27,7 +31,16 @@ class SendFileOperation: TransferOperation {
     var UUID: UInt64 { return startTime }
     var startTime: UInt64
     
-    var totalSize: Int = 0
+    var totalSize: Int {
+        var bytes = 0
+        
+        for reader in fileReaders{
+            bytes += reader.fileBytes.count
+        }
+        
+        return bytes
+    }
+    
     var bytesTransferred: Int = 0
     var bytesPerSecond: Double = 0
     var progress: Double {
@@ -43,9 +56,12 @@ class SendFileOperation: TransferOperation {
     
     var topDirBaseNames: [String] = []
     
-    lazy var currentFile: FileReader = FileReader(for: files[0])
+//    lazy var currentFile: FileReader = FileReader(for: files[0])
+    
     var files: [FileName]
     
+    var currentFileReaderIndex = 0
+    var fileReaders: [FileReader] = []
     
     
     var operationInfo: OpInfo {
@@ -74,8 +90,9 @@ class SendFileOperation: TransferOperation {
         singleName = "\(filenames.count) files"
         singleMime = "application/octet-stream"
         
-        for filename in filenames {
+        for filename in files {
             topDirBaseNames.append("\(filename.name).\(filename.ext)")
+            fileReaders.append( FileReader(for: filename) )
         }
         
     }
@@ -84,10 +101,8 @@ class SendFileOperation: TransferOperation {
     convenience init(for filename: FileName){
         self.init(for: [filename])
         
-        totalSize = currentFile.fileBytes.count
-        singleName = currentFile.relativeFilePath
-        singleMime = currentFile.fileExtension
-        
+        singleName = fileReaders[0].relativeFilePath
+        singleMime = fileReaders[0].fileExtension
     }
     
     
@@ -105,36 +120,54 @@ class SendFileOperation: TransferOperation {
         
         status = .TRANSFERRING
         
-        currentFile.loadFileData()
+        let currentFile = fileReaders[currentFileReaderIndex]
         
-        if let chunk = currentFile.readNextChunk() {
-            
-            print(DEBUG_TAG+"sending chunk: ")
+        
+        for chunk in currentFile {
             
             let result = context.sendResponse(chunk)
             
             result.whenSuccess { result in
-                print(self.DEBUG_TAG+"chunk transmitted: response \(result)")
-                // send next
-                self.send(using: context)
+                print(self.DEBUG_TAG+"chunk transmission success \(result)")
             }
-            
+
             result.whenFailure { error in
                 print(self.DEBUG_TAG+"chunk transmission failed: \(error)")
             }
-            
-//            result.whenComplete
-            
-        } else {
-            print(DEBUG_TAG+"alerting file transfer finished (status: .ok)")
-            status = .FINISHED
-            let result = context.eventLoop.makeSucceededFuture( GRPCStatus.ok )
-            
-            result.whenComplete { result in
-                print(self.DEBUG_TAG+"result tranmitted: response \(result)")
-            }
-            
         }
+        
+
+        
+        
+        
+//        if let chunk = currentFile.readNextChunk() {
+//
+//            print(DEBUG_TAG+"sending chunk: ")
+//
+//            let result = context.sendResponse(chunk)
+//
+//            result.whenSuccess { result in
+//                print(self.DEBUG_TAG+"chunk transmitted: response \(result)")
+//                // send next
+//                self.send(using: context)
+//            }
+//
+//            result.whenFailure { error in
+//                print(self.DEBUG_TAG+"chunk transmission failed: \(error)")
+//            }
+//
+////            result.whenComplete
+//
+//        } else {
+//            print(DEBUG_TAG+"alerting file transfer finished (status: .ok)")
+//            status = .FINISHED
+//            let result = context.eventLoop.makeSucceededFuture( GRPCStatus.ok )
+//
+//            result.whenComplete { result in
+//                print(self.DEBUG_TAG+"result tranmitted: response \(result)")
+//            }
+//
+//        }
         
     }
     

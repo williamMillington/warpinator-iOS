@@ -490,6 +490,7 @@ extension Remote {
             $0.topDirBasenames = operation.topDirBaseNames
         }
         
+        print(DEBUG_TAG+"Sending request: \(request)")
         
         addSendingOperation(operation)
         

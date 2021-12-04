@@ -8,7 +8,7 @@
 import Foundation
 
 
-class FileReader {
+class FileReader  {
     
     lazy var DEBUG_TAG: String = "FileReader \"\(filename).\(fileExtension):\" "
     
@@ -40,6 +40,7 @@ class FileReader {
                                     ofType: fileExtension)!
         fileURL = URL(fileURLWithPath: filepath)
         
+        loadFileData()
     }
     
     
@@ -97,4 +98,16 @@ class FileReader {
     
     
     
+}
+
+
+
+
+
+extension FileReader: Sequence, IteratorProtocol {
+    typealias Element = FileChunk
+    
+    func next() -> FileChunk? {
+        return readNextChunk()
+    }
 }

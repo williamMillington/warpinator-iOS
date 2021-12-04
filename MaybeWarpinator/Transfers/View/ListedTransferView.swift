@@ -91,11 +91,8 @@ class ListedTransferView: UIView {
         
         guard let viewModel = viewModel else { return }
         
-        // Make sure we are updating UI on the main thread!
-        DispatchQueue.main.async {
-            self.filesLabel.text = "\(viewModel.fileCount)"
-            self.transferStatusLabel.text = "\(viewModel.status)"
-        }
+        filesLabel.text = "\(viewModel.fileCount)"
+        transferStatusLabel.text = "\(viewModel.status)"
         
     }
 

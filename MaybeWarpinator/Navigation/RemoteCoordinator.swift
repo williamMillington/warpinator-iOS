@@ -44,7 +44,8 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
 //            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
 //            self.remote.addReceivingOperation(mockOp)
 //            self.remote.sendFile( FileName(name: "TestFileToSend", ext: "rtf" ))
-            self.remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
+            self.remote.sendFile( FileName(name: "The_Last_Five_Years", ext: "pdf" ))
+//            self.remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
         }
         
     }
