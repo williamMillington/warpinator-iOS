@@ -149,9 +149,9 @@ extension ReceiveFileOperation {
         print(DEBUG_TAG+"\tfileMode: \(chunk.fileMode)")
         print(DEBUG_TAG+"\ttime: \(chunk.time)")
         
-        
+        // If Directory
         if chunk.fileType == FileType.DIRECTORY.rawValue {
-            do {
+            do { // Create directory
                 try FileWriter.createNewDirectory(withName: chunk.relativePath)
             }
             catch let error as FileWriter.FileReceiveError {
@@ -163,10 +163,11 @@ extension ReceiveFileOperation {
             } catch { print(DEBUG_TAG+"unknown error") }
         } else {
             
-            // starting a new file
+            // if starting a new file
             if chunk.relativePath != currentRelativePath {
                 
                 print(DEBUG_TAG+" creating new file")
+                
                 // close out old file
                 if let file = currentFile {
                     file.finish()
@@ -175,9 +176,10 @@ extension ReceiveFileOperation {
                 
                 currentRelativePath = chunk.relativePath
                 
+                // TODO: this automatically overwrites, provide option to avoid
                 let file = FileWriter(filename: currentRelativePath)
                 currentFile = file
-            }
+            } // else continue writing to current file
             
             currentFile?.write(chunk.chunk)
         }

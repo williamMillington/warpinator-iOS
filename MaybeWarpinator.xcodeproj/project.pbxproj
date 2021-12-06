@@ -20,8 +20,6 @@
 		79360ECD270928B3008349D2 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 79360ECC270928B3008349D2 /* GRPC */; };
 		79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 79360ECF270A1C73008349D2 /* TestFileToSend.rtf */; };
 		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
-		7936B06C2752AC93001FA7C9 /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 7936B06A2752AC92001FA7C9 /* root.pem */; };
-		7936B06D2752AC93001FA7C9 /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 7936B06B2752AC92001FA7C9 /* rootkey.key */; };
 		7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B0702753B538001FA7C9 /* ListedTransferView.swift */; };
 		7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */; };
 		7936B07727554E06001FA7C9 /* ReceiveTransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07627554E06001FA7C9 /* ReceiveTransferViewModel.swift */; };
@@ -62,6 +60,8 @@
 		79C002B8270E0C16002DB22B /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002B7270E0C16002DB22B /* Utils.swift */; };
 		79C002BB270E670C002DB22B /* MainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BA270E670C002DB22B /* MainService.swift */; };
 		79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */; };
+		79C688F1275BA5BD00353C53 /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 79C688EF275BA5BD00353C53 /* root.pem */; };
+		79C688F2275BA5BD00353C53 /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 79C688F0275BA5BD00353C53 /* rootkey.key */; };
 		79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */; };
 		79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */; };
 /* End PBXBuildFile section */
@@ -81,8 +81,6 @@
 		79360EC127069899008349D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		79360ECF270A1C73008349D2 /* TestFileToSend.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = TestFileToSend.rtf; sourceTree = "<group>"; };
 		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
-		7936B06A2752AC92001FA7C9 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = text; path = root.pem; sourceTree = SOURCE_ROOT; };
-		7936B06B2752AC92001FA7C9 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = text; path = rootkey.key; sourceTree = SOURCE_ROOT; };
 		7936B0702753B538001FA7C9 /* ListedTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedTransferView.swift; sourceTree = "<group>"; };
 		7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewController.swift; sourceTree = "<group>"; };
 		7936B07627554E06001FA7C9 /* ReceiveTransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewModel.swift; sourceTree = "<group>"; };
@@ -120,6 +118,8 @@
 		79C002B7270E0C16002DB22B /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		79C002BA270E670C002DB22B /* MainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainService.swift; sourceTree = "<group>"; };
 		79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorServiceProvider.swift; sourceTree = "<group>"; };
+		79C688EF275BA5BD00353C53 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
+		79C688F0275BA5BD00353C53 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
 		79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransfersCommon.swift; sourceTree = "<group>"; };
 		79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Misc.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -261,8 +261,8 @@
 			isa = PBXGroup;
 			children = (
 				79360ED2270A1C7A008349D2 /* Test_Files */,
-				7936B06A2752AC92001FA7C9 /* root.pem */,
-				7936B06B2752AC92001FA7C9 /* rootkey.key */,
+				79C688EF275BA5BD00353C53 /* root.pem */,
+				79C688F0275BA5BD00353C53 /* rootkey.key */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -408,14 +408,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79C688F1275BA5BD00353C53 /* root.pem in Resources */,
 				79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */,
 				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
 				796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */,
-				7936B06C2752AC93001FA7C9 /* root.pem in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
 				796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */,
-				7936B06D2752AC93001FA7C9 /* rootkey.key in Resources */,
+				79C688F2275BA5BD00353C53 /* rootkey.key in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

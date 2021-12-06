@@ -8,13 +8,13 @@
 import Foundation
 
 import GRPC
-
+import NIO
 
 
 // MARK: SendFileOperation
 class SendFileOperation: TransferOperation {
     
-    lazy var DEBUG_TAG: String = "SendFileOperation (\(remoteUUID),\(direction)):"
+    lazy var DEBUG_TAG: String = "SendFileOperation (\(remoteUUID)):"
     
     public static var chunk_size: Int = 1024 * 512  // 512 kB
     
@@ -26,7 +26,12 @@ class SendFileOperation: TransferOperation {
     }
     
     weak var owningRemote: Remote?
-    var remoteUUID: String
+    var remoteUUID: String {
+        guard let owningRemote = owningRemote else {
+            return "Owning remote not set"
+        }
+        return owningRemote.details.uuid
+    }
     
     var UUID: UInt64 { return startTime }
     var startTime: UInt64
@@ -80,7 +85,6 @@ class SendFileOperation: TransferOperation {
         
         direction = .SENDING
         status = .INITIALIZING
-        remoteUUID = Server.SERVER_UUID
         startTime = UInt64( Date().timeIntervalSince1970 * 1000 )
         
         files = filenames
@@ -116,29 +120,63 @@ class SendFileOperation: TransferOperation {
     
     
     //MARK: start
-    func send(using context: StreamingResponseCallContext<FileChunk>) {
+    func send(using context: StreamingResponseCallContext<FileChunk>) -> EventLoopPromise<GRPCStatus> {
         
         status = .TRANSFERRING
         
         let currentFile = fileReaders[currentFileReaderIndex]
         
+        let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
         
-        for chunk in currentFile {
+        DispatchQueue.main.async {
             
-            let result = context.sendResponse(chunk)
-            
-            result.whenSuccess { result in
-                print(self.DEBUG_TAG+"chunk transmission success \(result)")
-            }
+            for chunk in currentFile {
+                
+                let result = context.sendResponse(chunk)
+    //        let result = context.sendresponses
+                
+                result.whenSuccess { result in
+                    print(self.DEBUG_TAG+"chunk transmission success \(result)")
+                }
 
-            result.whenFailure { error in
-                print(self.DEBUG_TAG+"chunk transmission failed: \(error)")
+                result.whenFailure { error in
+                    print(self.DEBUG_TAG+"chunk transmission failed: \(error)")
+                }
             }
+            
+            promise.succeed(.ok)
         }
         
-
+        
+        context.closeFuture.whenComplete { result in
+            print(self.DEBUG_TAG+"TransferOperation completed with result: \(result)")
+            self.status = .FINISHED
+        }
         
         
+        return promise
+        
+        
+//        for chunk in currentFile {
+//
+//            let result = context.sendResponse(chunk)
+//
+//            result.whenSuccess { result in
+//                print(self.DEBUG_TAG+"chunk transmission success \(result)")
+//            }
+//
+//            result.whenFailure { error in
+//                print(self.DEBUG_TAG+"chunk transmission failed: \(error)")
+//            }
+//        }
+//
+//        context.closeFuture.whenComplete { result in
+//
+//            print(self.DEBUG_TAG+"TransferOperation completed with result: \(result)")
+//            self.status = .FINISHED
+//        }
+        
+//        context.eventLoop.makeSucceededFuture(GRPCStatus.ok)
         
 //        if let chunk = currentFile.readNextChunk() {
 //

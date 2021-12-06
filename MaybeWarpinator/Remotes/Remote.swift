@@ -155,6 +155,7 @@ public class Remote {
                 .withConnectivityStateDelegate(self)
 //                .withBackgroundActivityLogger(logger)
                 
+//            let c = ClientConnection.secure(group: group)
             
             // primitive check for android app, which will not accept hostname connections
             let hostname: String
@@ -397,6 +398,8 @@ extension Remote {
     // MARK: addReceiveOperation
     func addReceivingOperation(_ operation: ReceiveFileOperation){
         
+        operation.owningRemote = self
+        
         receivingOperations.append(operation)
         informObserversOperationAdded(operation)
         
@@ -456,6 +459,8 @@ extension Remote {
     
     // MARK: addSendOperation
     func addSendingOperation(_ operation: SendFileOperation){
+        
+        operation.owningRemote = self
         
         sendingOperations.append(operation)
         informObserversOperationAdded(operation)

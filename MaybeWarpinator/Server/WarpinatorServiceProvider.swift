@@ -176,9 +176,13 @@ public class WarpinatorServiceProvider: WarpProvider {
         }
         
         
-        transfer.send(using: context)
+        print(DEBUG_TAG+"(startTransfer) sending chunks")
         
-        return context.eventLoop.makeSucceededFuture(GRPC.GRPCStatus.ok)
+        let promise = transfer.send(using: context)
+        
+        print(DEBUG_TAG+"(startTransfer) sending promise")
+        
+        return promise.futureResult
     }
     
     
