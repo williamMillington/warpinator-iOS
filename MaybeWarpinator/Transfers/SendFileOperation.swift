@@ -61,11 +61,8 @@ class SendFileOperation: TransferOperation {
     
     var topDirBaseNames: [String] = []
     
-//    lazy var currentFile: FileReader = FileReader(for: files[0])
     
     var files: [FileName]
-    
-    var currentFileReaderIndex = 0
     var fileReaders: [FileReader] = []
     
     
@@ -79,6 +76,9 @@ class SendFileOperation: TransferOperation {
     
     
     var observers: [TransferOperationViewModel] = [] 
+    
+    lazy var queueLabel = "SEND_\(remoteUUID)_\(UUID)"
+    lazy var sendingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
     
     init(for filenames: [FileName] ) {
@@ -124,101 +124,49 @@ class SendFileOperation: TransferOperation {
         
         status = .TRANSFERRING
         
-        let currentFile = fileReaders[currentFileReaderIndex]
-        
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
         
-        DispatchQueue.main.async {
+        
+        let chunkIterator = ChunkIterator(for: fileReaders)
+        
+        sendingChunksQueue.async {
             
-            for chunk in currentFile {
-                
+            for (i, chunk) in chunkIterator.enumerated() {
+
+                print(self.DEBUG_TAG+"sending chunk \(i) (\(chunk.relativePath))")
                 let result = context.sendResponse(chunk)
-    //        let result = context.sendresponses
+
+                do { // wait for result before sending next chunk
+                    try result.wait()
+                } catch {
+                    print(self.DEBUG_TAG+"chunk prevented from waiting")
+                }
                 
                 result.whenSuccess { result in
-                    print(self.DEBUG_TAG+"chunk transmission success \(result)")
+                    print(self.DEBUG_TAG+"chunk \(i) (\(chunk.relativePath))  transmission success \(result)")
                 }
 
                 result.whenFailure { error in
-                    print(self.DEBUG_TAG+"chunk transmission failed: \(error)")
+                    print(self.DEBUG_TAG+"chunk \(i) (\(chunk.relativePath))  transmission failed: ")
+                    print(self.DEBUG_TAG+"\t error: \(error)")
                 }
             }
             
             promise.succeed(.ok)
         }
         
-        
+        // when entire transfer is completed
         context.closeFuture.whenComplete { result in
             print(self.DEBUG_TAG+"TransferOperation completed with result: \(result)")
             self.status = .FINISHED
         }
         
-        
         return promise
-        
-        
-//        for chunk in currentFile {
-//
-//            let result = context.sendResponse(chunk)
-//
-//            result.whenSuccess { result in
-//                print(self.DEBUG_TAG+"chunk transmission success \(result)")
-//            }
-//
-//            result.whenFailure { error in
-//                print(self.DEBUG_TAG+"chunk transmission failed: \(error)")
-//            }
-//        }
-//
-//        context.closeFuture.whenComplete { result in
-//
-//            print(self.DEBUG_TAG+"TransferOperation completed with result: \(result)")
-//            self.status = .FINISHED
-//        }
-        
-//        context.eventLoop.makeSucceededFuture(GRPCStatus.ok)
-        
-//        if let chunk = currentFile.readNextChunk() {
-//
-//            print(DEBUG_TAG+"sending chunk: ")
-//
-//            let result = context.sendResponse(chunk)
-//
-//            result.whenSuccess { result in
-//                print(self.DEBUG_TAG+"chunk transmitted: response \(result)")
-//                // send next
-//                self.send(using: context)
-//            }
-//
-//            result.whenFailure { error in
-//                print(self.DEBUG_TAG+"chunk transmission failed: \(error)")
-//            }
-//
-////            result.whenComplete
-//
-//        } else {
-//            print(DEBUG_TAG+"alerting file transfer finished (status: .ok)")
-//            status = .FINISHED
-//            let result = context.eventLoop.makeSucceededFuture( GRPCStatus.ok )
-//
-//            result.whenComplete { result in
-//                print(self.DEBUG_TAG+"result tranmitted: response \(result)")
-//            }
-//
-//        }
-        
     }
-    
-    
     
     
     //MARK: stop
     func stopSending(){
-        
-    }
-    
-    
-    func calculateTotalSize(){
         
     }
     

@@ -58,9 +58,9 @@ class FileReader  {
     func readNextChunk() -> FileChunk? {
         
         print(DEBUG_TAG+"\tReading next chunk")
-        print(DEBUG_TAG+"\tsent: \(sent)")
-        print(DEBUG_TAG+"\tread-head: \(readHead)")
-        print(DEBUG_TAG+"\ttotal: \(fileBytes.count)")
+//        print(DEBUG_TAG+"\tsent: \(sent)")
+//        print(DEBUG_TAG+"\tread-head: \(readHead)")
+//        print(DEBUG_TAG+"\ttotal: \(fileBytes.count)")
         
         guard sent < fileBytes.count else {
             print(DEBUG_TAG+"No more data to be read"); return nil
@@ -90,18 +90,11 @@ class FileReader  {
         if ((endIndex) >= array.count){
             endIndex = array.count - 1
         }
-        
-        print(DEBUG_TAG+"reading from bytes[\(index)...\(endIndex)]")
-        
+//        print(DEBUG_TAG+"reading from bytes[\(index)...\(endIndex)]")
         return  Array( array[index...endIndex] )
     }
     
-    
-    
 }
-
-
-
 
 
 extension FileReader: Sequence, IteratorProtocol {
@@ -109,5 +102,52 @@ extension FileReader: Sequence, IteratorProtocol {
     
     func next() -> FileChunk? {
         return readNextChunk()
+    }
+}
+
+
+
+// Manages the iteration of multiple FileReaders
+class ChunkIterator {
+    
+    
+    var fileReaders: [FileReader]
+    
+    var readerIndex = 0
+    var currentReader: FileReader
+    
+    
+    init(for readers: [FileReader]){
+        fileReaders = readers
+        currentReader = fileReaders[0]
+    }
+    
+    
+    func nextChunk() -> FileChunk? {
+        
+        // if the current reader has another chunk, return it
+        if let chunk = currentReader.readNextChunk() {
+            return chunk
+        }
+        
+        // if not, load the next reader and continue
+        readerIndex += 1
+        
+        // no more readers
+        if readerIndex >= fileReaders.count {
+            return nil
+        }
+        
+        currentReader = fileReaders[readerIndex]
+        return nextChunk() // I created o̶b̶s̶c̶u̶r̶i̶t̶y̶ elegance through recursion! My degree wasn't useless!
+    }
+}
+
+
+extension ChunkIterator: Sequence, IteratorProtocol {
+    typealias Element = FileChunk
+    
+    func next() -> FileChunk? {
+        return nextChunk()
     }
 }

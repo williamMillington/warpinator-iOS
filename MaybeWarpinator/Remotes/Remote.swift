@@ -150,8 +150,12 @@ public class Remote {
             
             logger.logLevel = .debug
             
+            var keepalive = ClientConnectionKeepalive()
+            keepalive.permitWithoutCalls = true
+            
             let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
                 .withTLS(trustRoots: .certificates([authenticationCertificate!]) )
+                .withKeepalive(keepalive)
                 .withConnectivityStateDelegate(self)
 //                .withBackgroundActivityLogger(logger)
                 
@@ -484,6 +488,32 @@ extension Remote {
     func sendFile(_ filename: FileName){
         
         let operation = SendFileOperation(for: filename)
+        
+        let request: TransferOpRequest = .with {
+            $0.info = operation.operationInfo
+            $0.senderName = Server.SERVER_UUID
+            $0.size = UInt64(operation.totalSize)
+            $0.count = UInt64(operation.fileCount)
+            $0.nameIfSingle = operation.singleName
+            $0.mimeIfSingle = operation.singleMime
+            $0.topDirBasenames = operation.topDirBaseNames
+        }
+        
+        print(DEBUG_TAG+"Sending request: \(request)")
+        
+        addSendingOperation(operation)
+        
+        let response = warpClient?.processTransferOpRequest(request)
+        
+        response?.response.whenComplete { result in
+            print(self.DEBUG_TAG+"process request completed; result: \(result)")
+        }
+    }
+    
+    
+    func sendFiles(_ filenames: [FileName]){
+        
+        let operation = SendFileOperation(for: filenames)
         
         let request: TransferOpRequest = .with {
             $0.info = operation.operationInfo
