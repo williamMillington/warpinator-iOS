@@ -1,30 +1,35 @@
 //
-//  ListedTransferView.swift
+//  ListeFileView.swift
 //  MaybeWarpinator
 //
-//  Created by William Millington on 2021-11-28.
+//  Created by William Millington on 2021-12-08.
 //
 
 import UIKit
 
-class ListedTransferView: UIView {
+class ListedFileView: UIView {
 
-    private let DEBUG_TAG: String = "ListedTransferView: "
+    private let DEBUG_TAG: String = "ListedFileView: "
     
-    var viewModel: TransferOperationViewModel?
+    var viewModel: FileViewModel?
     
-    let filesLabel: UILabel = {
+//    let filePreviewImage: UIImage = {
+//       let fileName = ""
+//        return UIImage(named: fileName)!
+//    }()
+    
+    let filesNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "Uknown Device"
+        label.text = "File --"
         label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
     }()
     
-    let transferStatusLabel: UILabel = {
+    let bytesLabel: UILabel = {
         let label = UILabel()
-        label.text = "Status..."
+        label.text = "--.--B"
         label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -44,13 +49,13 @@ class ListedTransferView: UIView {
     }
     
     
-    convenience init(withViewModel model: TransferOperationViewModel, onTap action: @escaping ()->Void = {}){
+    convenience init(withViewModel model: FileViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
         backgroundColor = UIColor.orange.withAlphaComponent(0.2)
         
         viewModel = model
-        viewModel?.onInfoUpdated = {
+        viewModel?.onUpdated = {
             self.updateDisplay()
         }
         
@@ -69,16 +74,16 @@ class ListedTransferView: UIView {
         
         var constraints: [NSLayoutConstraint] = []
         
-        addSubview(filesLabel)
-        addSubview(transferStatusLabel)
+        addSubview(filesNameLabel)
+        addSubview(bytesLabel)
         
         constraints += [
             
-            filesLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            filesLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            filesNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
+            filesNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             
-            transferStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-            transferStatusLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            bytesLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
+            bytesLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             
             heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2)
             
@@ -92,9 +97,12 @@ class ListedTransferView: UIView {
         
         guard let viewModel = viewModel else { return }
         
-        filesLabel.text = "\(viewModel.fileCount)"
-        transferStatusLabel.text = "\(viewModel.status)"
+        filesNameLabel.text = "\(viewModel.name)"
+        bytesLabel.text = "\(viewModel.size)"
         
     }
+    
+    
+    
 
 }

@@ -1,5 +1,5 @@
 //
-//  FileOperationViewModel.swift
+//  FileViewModel.swift
 //  MaybeWarpinator
 //
 //  Created by William Millington on 2021-12-02.
@@ -8,7 +8,9 @@
 import Foundation
 
 
-protocol FileOperationViewModel {
+protocol FileViewModel {
+    
+    var onUpdated: ()->Void { get set }
     
     var type: String { get }
     var name: String { get }
@@ -18,7 +20,7 @@ protocol FileOperationViewModel {
 }
 
 
-class FileReceiverViewModel: FileOperationViewModel {
+class FileReceiverViewModel: FileViewModel {
     
     var operation: FileWriter
     var onUpdated: ()->Void = {}
@@ -32,7 +34,11 @@ class FileReceiverViewModel: FileOperationViewModel {
     }
     
     var size: String {
-        return "--.--MB"
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        
+        let bytes = operation.writtenBytesCount
+        return formatter.string(fromByteCount:  Int64( bytes) )
     }
     
     var progress: Double {
@@ -53,7 +59,7 @@ class FileReceiverViewModel: FileOperationViewModel {
 }
 
 
-class FileSenderViewModel: FileOperationViewModel {
+class FileSenderViewModel: FileViewModel {
     
     var operation: FileReader
     var onUpdated: ()->Void = {}
@@ -82,6 +88,7 @@ class FileSenderViewModel: FileOperationViewModel {
     init(operation: FileReader){
         self.operation = operation
     }
+    
     
     func update(){
         DispatchQueue.main.async {

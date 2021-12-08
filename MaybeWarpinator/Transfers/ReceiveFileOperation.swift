@@ -64,9 +64,7 @@ class ReceiveFileOperation: TransferOperation {
         return Double(bytesTransferred) / Int(totalSize)
     }
     
-    
     var spaceIsAvailable: Bool = false
-    
     
     var cancelled: Bool = false
     

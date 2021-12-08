@@ -33,25 +33,31 @@ class TransferViewController: UIViewController {
         return label
     }()
     
-    // I don't think pausing a transfer is currently supported by the api
-//    let pauseTransferButton: UIButton = {
-//        let button = UIButton()
-//        button.setTitle("Pause", for: .normal)
-//        button.translatesAutoresizingMaskIntoConstraints = false
-//        button.backgroundColor = .blue
-//        button.alpha = 0.5 // 'grayed' out while disabled
-//        button.isUserInteractionEnabled = false // disabled for inital setup
-//        return button
-//    }()
+    let deviceStatusLabel: UILabel = {
+        let label = UILabel()
+        label.text = "(--device status--)"
+        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
+        return label
+    }()
     
+    let transferStatusLabel: UILabel = {
+        let label = UILabel()
+        label.text = "--transfer status--"
+        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
+        return label
+    }()
     
     let cancelTransferButton: UIButton = {
         let button = UIButton()
         button.setTitle("Cancel", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .blue
-        button.alpha = 0.5 // 'grayed' out while disabled
-        button.isUserInteractionEnabled = false // disabled for inital setup
+//        button.alpha = 0.5 // 'grayed' out while disabled
+//        button.isUserInteractionEnabled = false // disabled for inital setup
         return button
     }()
     
@@ -101,6 +107,15 @@ class TransferViewController: UIViewController {
         remoteViewModel = r_viewModel
         
         transferDescriptionLabel.text = "Transfer \(transferViewModel!.direction)"
+        
+        transferViewModel?.onInfoUpdated = {
+            self.updateDisplay()
+        }
+        
+        remoteViewModel?.onInfoUpdated = {
+            self.updateDisplay()
+        }
+        
     }
     
     
@@ -117,7 +132,11 @@ class TransferViewController: UIViewController {
         
         view.addSubview(backButton)
         view.addSubview(transferDescriptionLabel)
+        
         view.addSubview(deviceNameLabel)
+        view.addSubview(deviceStatusLabel)
+        
+        view.addSubview(transferStatusLabel)
         
         view.addSubview(operationsStack)
         
@@ -131,18 +150,27 @@ class TransferViewController: UIViewController {
         viewConstraints +=  [
             
             backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
-            backButton.topAnchor.constraint(equalTo: topAnchor, constant: 25),
+            backButton.topAnchor.constraint(equalTo: topAnchor, constant: 20),
             
-            transferDescriptionLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: 10),
+            transferDescriptionLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor),
             transferDescriptionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            deviceNameLabel.topAnchor.constraint(equalTo: transferDescriptionLabel.bottomAnchor, constant: 10),
+            deviceNameLabel.topAnchor.constraint(equalTo: transferDescriptionLabel.bottomAnchor, constant: 5),
             deviceNameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            operationsStack.topAnchor.constraint(equalTo: deviceNameLabel.bottomAnchor, constant: 25),
+            deviceStatusLabel.topAnchor.constraint(equalTo: deviceNameLabel.bottomAnchor),
+            deviceStatusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+//            operationsStack.topAnchor.constraint(equalTo: deviceNameLabel.bottomAnchor, constant: 25),
             operationsStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             operationsStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
-            operationsStack.bottomAnchor.constraint(equalTo: cancelTransferButton.topAnchor, constant: -15),
+            operationsStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            operationsStack.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6),
+            operationsStack.bottomAnchor.constraint(equalTo: cancelTransferButton.topAnchor, constant: -10),
+            
+            
+            transferStatusLabel.bottomAnchor.constraint(equalTo: operationsStack.topAnchor, constant: -5),
+            transferStatusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             cancelTransferButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             cancelTransferButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
@@ -153,7 +181,55 @@ class TransferViewController: UIViewController {
         
         NSLayoutConstraint.activate(viewConstraints)
         
+        /* If this is not called, Autolayout will think that the stackview is height 0,
+         and will set all subsequent subviews to height == 0.
+         Then it will complain that some idiot set all the subview heights to 0. */
+        view.layoutIfNeeded()
+        
+        
+        // load intial info
+        
+        updateDisplay()
+        
+        for viewmodel in transferViewModel!.files {
+            addFileViewToStack(withViewModel: viewmodel)
+        }
+        
+        
     }
+    
+    
+    
+    private func addFileViewToStack(withViewModel viewmodel: FileViewModel){
+        let ltview = ListedFileView(withViewModel: viewmodel)
+        
+        operationsStack.insertArrangedSubview(ltview, at: (operationsStack.arrangedSubviews.count - 1))
+    }
+    
+    
+    
+    func updateDisplay(){
+        
+        print(DEBUG_TAG+"updating info")
+        
+        guard let remoteViewModel = remoteViewModel else { return }
+        guard let transferViewModel = transferViewModel else { return }
+        
+        print(DEBUG_TAG+"\tview models available")
+        
+        deviceNameLabel.text = remoteViewModel.userName
+        deviceStatusLabel.text = "(\(remoteViewModel.status))"
+        
+        transferStatusLabel.text = "\(transferViewModel.status)"
+        
+        if transferViewModel.status == .FINISHED {
+            print(DEBUG_TAG+"\ttransfer finished")
+            cancelTransferButton.isUserInteractionEnabled = false
+            cancelTransferButton.alpha = 0.5
+        }
+        
+    }
+    
     
     
     @objc func back(){

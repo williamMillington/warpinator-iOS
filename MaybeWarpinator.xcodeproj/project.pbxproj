@@ -26,7 +26,7 @@
 		796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796328232757FF930056F76B /* RemoteCoordinator.swift */; };
 		7963282727599F030056F76B /* FileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282627599F030056F76B /* FileWriter.swift */; };
 		7963282A27599F3A0056F76B /* FileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282927599F3A0056F76B /* FileReader.swift */; };
-		7963282D27599FF00056F76B /* FileOperationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282C27599FF00056F76B /* FileOperationViewModel.swift */; };
+		7963282D27599FF00056F76B /* FileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282C27599FF00056F76B /* FileViewModel.swift */; };
 		796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328302759A96A0056F76B /* The_Last_Five_Years.pdf */; };
 		796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
@@ -62,6 +62,7 @@
 		79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */; };
 		79C688F1275BA5BD00353C53 /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 79C688EF275BA5BD00353C53 /* root.pem */; };
 		79C688F2275BA5BD00353C53 /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 79C688F0275BA5BD00353C53 /* rootkey.key */; };
+		79C688F627611A7E00353C53 /* ListedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C688F527611A7E00353C53 /* ListedFileView.swift */; };
 		79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */; };
 		79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */; };
 /* End PBXBuildFile section */
@@ -87,7 +88,7 @@
 		796328232757FF930056F76B /* RemoteCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoordinator.swift; sourceTree = "<group>"; };
 		7963282627599F030056F76B /* FileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWriter.swift; sourceTree = "<group>"; };
 		7963282927599F3A0056F76B /* FileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReader.swift; sourceTree = "<group>"; };
-		7963282C27599FF00056F76B /* FileOperationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileOperationViewModel.swift; sourceTree = "<group>"; };
+		7963282C27599FF00056F76B /* FileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileViewModel.swift; sourceTree = "<group>"; };
 		796328302759A96A0056F76B /* The_Last_Five_Years.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = The_Last_Five_Years.pdf; sourceTree = "<group>"; };
 		796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Dear_Evan_Hansen_PV_Score.pdf; sourceTree = "<group>"; };
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
@@ -120,6 +121,7 @@
 		79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorServiceProvider.swift; sourceTree = "<group>"; };
 		79C688EF275BA5BD00353C53 /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
 		79C688F0275BA5BD00353C53 /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
+		79C688F527611A7E00353C53 /* ListedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileView.swift; sourceTree = "<group>"; };
 		79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransfersCommon.swift; sourceTree = "<group>"; };
 		79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Misc.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -152,7 +154,8 @@
 		79331AFC274E8FFD00A4022F /* View */ = {
 			isa = PBXGroup;
 			children = (
-				7963282C27599FF00056F76B /* FileOperationViewModel.swift */,
+				7963282C27599FF00056F76B /* FileViewModel.swift */,
+				79C688F527611A7E00353C53 /* ListedFileView.swift */,
 				7936B0702753B538001FA7C9 /* ListedTransferView.swift */,
 				7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */,
 				7936B07627554E06001FA7C9 /* ReceiveTransferViewModel.swift */,
@@ -448,6 +451,7 @@
 				79331B03274E91A600A4022F /* TransferViewModels.swift in Sources */,
 				79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */,
 				797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */,
+				79C688F627611A7E00353C53 /* ListedFileView.swift in Sources */,
 				796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */,
 				797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */,
 				79C002AD270A92EC002DB22B /* warp.proto in Sources */,
@@ -464,7 +468,7 @@
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
 				79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */,
-				7963282D27599FF00056F76B /* FileOperationViewModel.swift in Sources */,
+				7963282D27599FF00056F76B /* FileViewModel.swift in Sources */,
 				79C002BB270E670C002DB22B /* MainService.swift in Sources */,
 				79C002B4270BCC4E002DB22B /* Server.swift in Sources */,
 				797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */,

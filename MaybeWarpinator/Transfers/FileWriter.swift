@@ -32,6 +32,11 @@ class FileWriter {
         return FileHandle(forUpdatingAtPath: filepath)!
     }
     
+    var writtenBytesCount: Int = 0
+    
+    var observers: [FileReceiverViewModel] = []
+    
+    
     init(filename name: String){
         
         self.filename = name
@@ -51,12 +56,16 @@ class FileWriter {
         }
         
         fileManager.createFile(atPath: filepath, contents: nil)
+        updateObserversInfo()
     }
     
     func write(_ data: Data){
         print(DEBUG_TAG+"\twriting to file...")
         fileHandle.seekToEndOfFile()
         fileHandle.write(data)
+        
+        writtenBytesCount += data.count
+        updateObserversInfo()
     }
     
     func finish(){
@@ -89,4 +98,28 @@ class FileWriter {
         
     }
     
+}
+
+
+//MARK: observers
+extension FileWriter {
+    
+    func addObserver(_ model: FileReceiverViewModel){
+        observers.append(model)
+    }
+    
+    func removeObserver(_ model: FileReceiverViewModel){
+        
+        for (i, observer) in observers.enumerated() {
+            if observer === model {
+                observers.remove(at: i)
+            }
+        }
+    }
+    
+    func updateObserversInfo(){
+        observers.forEach { observer in
+            observer.update()  
+        }
+    }
 }

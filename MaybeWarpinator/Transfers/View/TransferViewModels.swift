@@ -34,6 +34,35 @@ class TransferOperationViewModel {
         return operation.direction
     }
     
+    var files: [FileViewModel] {
+        
+        var viewModels: [FileViewModel] = []
+        
+        // TODO: this is not ideal. There must be a more gooder way
+        // to arrange this.
+        if operation.direction == .SENDING {
+            
+            let transfer = operation as! SendFileOperation
+            
+            for file in transfer.fileReaders {
+                
+                let vm = FileSenderViewModel(operation: file)
+                viewModels.append(vm)
+            }
+            
+        } else {
+            
+            let transfer = operation as! ReceiveFileOperation
+            
+            
+        }
+        
+        
+        
+        return viewModels
+    }
+    
+    
     init(for operation: TransferOperation) {
         self.operation = operation
         operation.addObserver(self)

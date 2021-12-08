@@ -47,7 +47,7 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
 //            self.remote.sendFile( FileName(name: "The_Last_Five_Years", ext: "pdf" ))
             let filenames: [FileName] = [
                 FileName(name: "TestFileToSend", ext: "rtf" ),
-                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
+//                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
                 FileName(name: "The_Last_Five_Years", ext: "pdf" )
             ]
 //            self.remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
@@ -86,21 +86,14 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         if let operation = remote.findTransferOperation(for: uuid){
             
-            if operation.status == .WAITING_FOR_PERMISSION {
+            // If we need to accept the transfer first
+            if operation.status == .WAITING_FOR_PERMISSION &&
+                operation.direction == .RECEIVING {
                 
-                let vm = ReceiveTransferViewModel(operation: operation, from: remote)
-                let vc = ReceiveTransferViewController(withViewModel: vm)
-                vc.coordinator = self
-                navController.pushViewController(vc, animated: false)
+                openAcceptTransferViewController(forTransferOperation: operation)
                 
             } else {
-                
-                let vm = TransferOperationViewModel(for: operation)
-                let rm = RemoteViewModel(remote)
-                let vc = TransferViewController(withTransfer: vm, andRemote: rm)
-                vc.coordinator = self
-                navController.pushViewController(vc, animated: false)
-                
+                openTransferViewController(forTransferOperation: operation)
             }
             
         } else {
@@ -108,6 +101,30 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         }
         
     }
+    
+    
+    private func openTransferViewController(forTransferOperation operation: TransferOperation){
+        
+        let vm = TransferOperationViewModel(for: operation)
+        let rm = RemoteViewModel(remote)
+        let vc = TransferViewController(withTransfer: vm, andRemote: rm)
+        vc.coordinator = self
+        navController.pushViewController(vc, animated: false)
+        
+    }
+    
+    
+    private func openAcceptTransferViewController(forTransferOperation operation: TransferOperation){
+        
+        let vm = ReceiveTransferViewModel(operation: operation, from: remote)
+        let vc = ReceiveTransferViewController(withViewModel: vm)
+        vc.coordinator = self
+        navController.pushViewController(vc, animated: false)
+        
+    }
+    
+    
+    
     
     
     func acceptTransfer(forTransferUUID uuid: UInt64){

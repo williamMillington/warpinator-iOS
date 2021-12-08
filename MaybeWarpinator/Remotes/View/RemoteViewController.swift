@@ -147,7 +147,7 @@ class RemoteViewController: UIViewController {
             backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             backButton.topAnchor.constraint(equalTo: topAnchor, constant: 25),
             
-            deviceNameLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: 15),
+            deviceNameLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: 10),
             deviceNameLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             
             usernameLabel.topAnchor.constraint(equalTo: deviceNameLabel.bottomAnchor),
@@ -189,8 +189,8 @@ class RemoteViewController: UIViewController {
         
         updateDisplay()
         
-        for viewmodel in self.viewModel!.transfers {
-            addTransferViewToStack(withViewModel: viewmodel)
+        for transfer_viewmodel in self.viewModel!.transfers {
+            addTransferViewToStack(withViewModel: transfer_viewmodel)
         }
         
         

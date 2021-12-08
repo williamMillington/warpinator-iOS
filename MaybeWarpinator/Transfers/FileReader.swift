@@ -28,6 +28,9 @@ class FileReader  {
     var hasNext = false
     
     
+    var observers: [FileSenderViewModel] = []
+    
+    
     
     init(for file: FileName){
         
@@ -41,6 +44,7 @@ class FileReader  {
         fileURL = URL(fileURLWithPath: filepath)
         
         loadFileData()
+        updateObserversInfo()
     }
     
     
@@ -63,6 +67,7 @@ class FileReader  {
 //        print(DEBUG_TAG+"\ttotal: \(fileBytes.count)")
         
         guard sent < fileBytes.count else {
+            updateObserversInfo()
             print(DEBUG_TAG+"No more data to be read"); return nil
         }
         
@@ -77,6 +82,7 @@ class FileReader  {
         sent += datachunk.count
         readHead += datachunk.count
         
+        updateObserversInfo()
         
         return fileChunk
     }
@@ -104,6 +110,36 @@ extension FileReader: Sequence, IteratorProtocol {
         return readNextChunk()
     }
 }
+
+
+
+//MARK: observers
+extension FileReader {
+    
+    func addObserver(_ model: FileSenderViewModel){
+        observers.append(model)
+    }
+    
+    func removeObserver(_ model: FileSenderViewModel){
+        
+        for (i, observer) in observers.enumerated() {
+            if observer === model {
+                observers.remove(at: i)
+            }
+        }
+    }
+    
+    func updateObserversInfo(){
+        observers.forEach { observer in
+            observer.update()
+        }
+    }
+}
+
+
+
+
+
 
 
 
