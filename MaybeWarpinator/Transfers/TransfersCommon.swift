@@ -8,8 +8,10 @@ import Foundation
 
 
 enum TransferError: Error {
+    case ConnectionInterrupted
+    case PermissionDeclined
+    case TransferCancelled
     case TransferNotFound
-    case TransferInterrupted
 }
 
 
@@ -27,11 +29,33 @@ public enum TransferDirection: String {
 }
 
 
-enum TransferStatus {
+enum TransferStatus: Equatable {
+    
+    static func == (lhs: TransferStatus, rhs: TransferStatus) -> Bool {
+        
+        switch (lhs, rhs){
+        
+        case (.INITIALIZING, .INITIALIZING),
+             (.WAITING_FOR_PERMISSION, .WAITING_FOR_PERMISSION),
+             (.TRANSFERRING, .TRANSFERRING),
+             (.STOPPED, .STOPPED),
+             (.FINISHED, .FINISHED): return true
+        case (let .FAILED(error1), let .FAILED(error2) ):
+            return error1.localizedDescription == error2.localizedDescription
+        case (.INITIALIZING,_),
+             (.WAITING_FOR_PERMISSION,_),
+             (.TRANSFERRING,_),
+             (.STOPPED,_),
+             (.FINISHED,_),
+             (.FAILED(_),_): return false
+        }
+    }
+    
+    
     case INITIALIZING
-    case WAITING_FOR_PERMISSION, PERMISSION_DECLINED
-    case TRANSFERRING, PAUSED, STOPPED, FINISHED, FINISHED_WITH_ERRORS
-    case FAILED
+    case WAITING_FOR_PERMISSION
+    case TRANSFERRING, STOPPED, FINISHED
+    case FAILED(Error)
 }
 
 

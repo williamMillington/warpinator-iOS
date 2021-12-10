@@ -26,7 +26,6 @@ import Logging
 //MARK: Remote Details
 struct RemoteDetails {
     enum ConnectionStatus: String {
-        case Canceled
         case OpeningConnection, FetchingCredentials, AquiringDuplex, DuplexAquired
         case Error
         case Connected, Disconnected
@@ -85,9 +84,6 @@ public class Remote {
         }
     }
     
-    var observers: [RemoteViewModel] = []
-    
-    public var displayName: String = "No_Display_Name"
     public var picture: UIImage?
     
     var sendingOperations: [SendFileOperation] = []
@@ -99,13 +95,20 @@ public class Remote {
     let group = MultiThreadedEventLoopGroup(numberOfThreads: 5) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     
-    var registrationConnection: RegistrationConnection?
+    var authenticationConnection: AuthenticationConnection?
     var authenticationCertificate: NIOSSLCertificate?
     
+    
+    var observers: [RemoteViewModel] = []
+    
+    var transientFailureCount: Int = 0
     var duplexAttempts: Int = 0
     
     
-    var logger = Logger(label: "warpinator.Remote", factory: StreamLogHandler.standardOutput)
+    var logger: Logger {
+        var logger = Logger(label: "warpinator.Remote", factory: StreamLogHandler.standardOutput)
+        logger.logLevel = .debug
+        return logger }
     
     
     var lookupName: LookupName {
@@ -114,6 +117,10 @@ public class Remote {
             $0.readableName = "Warpinator iOS"
         }
     }
+    
+    
+    lazy var duplexQueueLabel = "Duplex_\(details.uuid)"
+    lazy var duplexQueue = DispatchQueue(label: duplexQueueLabel, qos: .userInitiated)
     
     
     init(details: RemoteDetails){
@@ -127,160 +134,55 @@ public class Remote {
     }
     
     
-    
-    func register(){
+    func startConnection(){
         
-        if details.api == "1" {
-            registrationConnection = UDPConnection(details, manager: self)
+        duplexAttempts = 0
+        transientFailureCount = 0
+        
+        if let certificate = authenticationCertificate {
+            connect(withCertificate: certificate)
         } else {
-            registrationConnection = GRPCConnection(details, manager: self)
+            obtainCertificate()
         }
-        
-        registrationConnection?.register()
     }
-    
     
     
     //MARK: connect
-    func connect(){
+    func connect(withCertificate certificate: NIOSSLCertificate){
         
         details.status = .OpeningConnection
         
-        if warpClient == nil {
-            
-            logger.logLevel = .debug
-            
-            var keepalive = ClientConnectionKeepalive()
-            keepalive.permitWithoutCalls = true
-            
-            let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
-                .withTLS(trustRoots: .certificates([authenticationCertificate!]) )
-                .withKeepalive(keepalive)
-                .withConnectivityStateDelegate(self)
-//                .withBackgroundActivityLogger(logger)
-                
-//            let c = ClientConnection.secure(group: group)
-            
-            // primitive check for android app, which will not accept hostname connections
-            let hostname: String
-            if details.api == "1" {
-                hostname = details.ipAddress
-            } else {
-                hostname = details.hostname
-            }
-            
-            let port = details.port
-            
-            channel = channelBuilder.connect(host: hostname, port: port)
-            
-            if let channel = channel {
-                print(self.DEBUG_TAG+"channel created for \(hostname):\(port)")
-                warpClient = WarpClient(channel: channel)
-                
-                verifyDuplex()
-            } else {
-                details.status = .Error
-            }
-            
+        var keepalive = ClientConnectionKeepalive()
+        keepalive.permitWithoutCalls = true
+        
+        let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
+            .withTLS(trustRoots: .certificates([certificate]) )
+            .withKeepalive(keepalive)
+            .withConnectivityStateDelegate(self)
+            .withErrorDelegate(self)
+//            .withBackgroundActivityLogger(logger)
+        
+        
+        // primitive check for android app, which will not accept hostname connections
+        let hostname: String
+        if details.api == "1" {
+            hostname = details.ipAddress
+        } else {
+            hostname = details.hostname
         }
-    }
-    
-    
-    
-    // MARK: veryifyDuplex
-    private func verifyDuplex(onComplete: @escaping ()->Void = {} ){
         
-        duplexAttempts += 1
+        let port = details.port
         
-        print(DEBUG_TAG+"verifying duplex, attempt: \(duplexAttempts)")
+        print(self.DEBUG_TAG+"creating channel for \(hostname):\(port)")
+        channel = channelBuilder.connect(host: hostname, port: port)
+            
+        warpClient = WarpClient(channel: channel!)
         
         details.status = .AquiringDuplex
-        
-        guard let client = warpClient else {
-            print(DEBUG_TAG+"no client connection"); return
-        }
-        
-        var duplex: UnaryCall<LookupName, HaveDuplex> // = client.waitingForDuplex(lookupname)
-        if details.api == "1" {
-            print(DEBUG_TAG+"checkDuplexConnection")
-            duplex = client.checkDuplexConnection(lookupName)
-        } else {
-            print(DEBUG_TAG+"waitingForDuplex")
-            duplex = client.waitingForDuplex(lookupName)
-        }
-        
-        
-        duplex.response.whenSuccess { haveDuplex in
-            
-            if haveDuplex.response {
-                    self.onDuplexAquired()
-                } else {
-                    print(self.DEBUG_TAG+"could not verify duplex")
-                    
-                    // 5 tries
-                    guard self.duplexAttempts < 10 else {
-                        print(self.DEBUG_TAG+"Duplex has failed.")
-                        self.details.status = .Error
-                        return }
-                    print(self.DEBUG_TAG+"\ttrying again...")
-                    
-                    // try again in 1 second
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        self.verifyDuplex()
-                    }
-                }
-        }
-        
-        duplex.response.whenFailure { error in
-            print(self.DEBUG_TAG+"Duplex failed: \(error)")
-            
-            // 5 tries
-            guard self.duplexAttempts < 10 else {
-                print(self.DEBUG_TAG+"Duplex has failed.")
-                self.details.status = .Error
-                return }
-            print(self.DEBUG_TAG+"\ttrying again...")
-            
-            // try again in 1 second
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                self.verifyDuplex()
-            }
-        }
+        aquireDuplex()
     }
     
-    
-    
-    // MARK: onDuplexAquired
-    private func onDuplexAquired(){
-        
-        print(self.DEBUG_TAG+"duplex verified after \(duplexAttempts) attempts")
-        
-        details.status = .DuplexAquired
-        
-        updateRemoteInfo()
-        
-        
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 5){
-//            self.ping()
-//        }
-//        print(DEBUG_TAG+"Sending file in: ")
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 3){
-//            print(self.DEBUG_TAG+" \t3")
-//        }
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 4){
-//            print(self.DEBUG_TAG+" \t2")
-//        }
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 5){
-//            print(self.DEBUG_TAG+" \t1")
-//        }
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 6){
-//            print(self.DEBUG_TAG+"\t\tSending file.....")
-//            self.sendFile()
-//        }
-        
-    }
-    
-    
+    //MARK: find transfer operation
     func findTransferOperation(for uuid: UInt64) -> TransferOperation? {
         
         if let operation = findReceiveOperation(withStartTime: uuid) {
@@ -295,7 +197,7 @@ public class Remote {
     }
     
     
-    
+    // MARK: Decline transfer
     func declineTransfer(_ transfer: ReceiveFileOperation){
         
         let opInfo = OpInfo.with {
@@ -304,29 +206,46 @@ public class Remote {
             $0.readableName = Utils.getDeviceName()
         }
         
-        guard let client = warpClient else {
-            print(DEBUG_TAG+"no client connection"); return
-        }
         
-        let response = client.cancelTransferOpRequest(opInfo)
+        let response = warpClient?.cancelTransferOpRequest(opInfo)
         
-        response.response.whenSuccess { result in
+        response?.response.whenSuccess { result in
             print(self.DEBUG_TAG+"transfer decline successful")
         }
-        response.response.whenFailure { error in
+        response?.response.whenFailure { error in
             print(self.DEBUG_TAG+"transfer decline unsuccessful: \(error)")
         }
     }
     
     
     
-    func cancelTransfer(_ opInfo: OpInfo){
+    // MARK: onDisconnect
+    func channelDidDisconnect(_ error: Error? = nil){
+        print(self.DEBUG_TAG+"channel disconnected")
         
+        // stop all transfers
+        for operation in sendingOperations {
+            let cancelStates: [TransferStatus] = [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION]
+            if cancelStates.contains(operation.status) {
+                operation.stop(TransferError.ConnectionInterrupted)
+            }
+        }
+        for operation in receivingOperations {
+            let cancelStates: [TransferStatus] = [.TRANSFERRING, .INITIALIZING]
+            if cancelStates.contains(operation.status) {
+                operation.stop(TransferError.ConnectionInterrupted)
+            }
+        }
         
+        warpClient = nil
+        let _ = channel?.close()
         
+        if let error = error {
+            print(DEBUG_TAG+"with error: \(error)")
+        } else {
+            details.status = .Disconnected
+        }
     }
-    
-    
     
 }
 
@@ -335,6 +254,81 @@ public class Remote {
 
 
 
+
+//MARK: - Duplex
+extension Remote {
+    
+    
+    // MARK: acquireDuplex
+    private func aquireDuplex(){
+        
+        duplexAttempts += 1
+        
+        print(DEBUG_TAG+"acquiring duplex, attempt: \(duplexAttempts)")
+        
+        var duplex: UnaryCall<LookupName, HaveDuplex>?
+        if details.api == "1" {
+            duplex = warpClient?.checkDuplexConnection(lookupName)
+        } else {
+            duplex = warpClient?.waitingForDuplex(lookupName)
+        }
+        
+        
+        duplex?.response.whenComplete { result in
+            
+            do {
+                let haveDuplex = try result.get()
+                
+                if haveDuplex.response {
+                    self.onDuplexAquired();  return
+                }
+                print(self.DEBUG_TAG+"duplex not acquired")
+                
+            } catch  {
+                self.onDuplexFail(error)
+            }
+            
+            
+            // 10 tries
+            guard self.duplexAttempts < 10 else {
+                self.onDuplexFail( DuplexError.DuplexNotEstablished )
+                return
+            }
+            
+            print(self.DEBUG_TAG+"\ttrying again...")
+            // try again in 2 seconds
+            self.duplexQueue.asyncAfter(deadline: .now() + 2) {
+                self.aquireDuplex()
+            }
+            
+        }
+    }
+    
+    
+    // MARK: onDuplexAquired
+    private func onDuplexAquired(){
+        
+        print(self.DEBUG_TAG+"duplex verified after \(duplexAttempts) attempts")
+        
+        details.status = .DuplexAquired
+        
+        retrieveRemoteInfo()
+    }
+    
+    
+    //MARK: onDuplexFail
+    func onDuplexFail(_ error: Error ){
+        print(DEBUG_TAG+"unable to establish duplex")
+        channelDidDisconnect(error)
+    }
+    
+}
+
+
+
+
+
+//MARK: -
 extension Remote {
     
     // MARK: Ping
@@ -366,16 +360,16 @@ extension Remote {
     }
     
     
-    //MARK: updateRemoteInfo
-    func updateRemoteInfo(){
+    //MARK: retrieveRemoteInfo
+    func retrieveRemoteInfo(){
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
         
-        guard let client = warpClient else { return }
+//        guard let client = warpClient else { return }
         
-        let info = client.getRemoteMachineInfo(lookupName)
+        let info = warpClient?.getRemoteMachineInfo(lookupName)
         
-        info.response.whenSuccess { info in
+        info?.response.whenSuccess { info in
             self.details.displayName = info.displayName
             self.details.username = info.userName
             self.details.status = .Connected
@@ -383,10 +377,9 @@ extension Remote {
             print(self.DEBUG_TAG+"Remote display name: \(self.details.displayName)")
             print(self.DEBUG_TAG+"Remote username: \(self.details.username)")
         }
-        info.response.whenFailure { error in
+        info?.response.whenFailure { error in
             print(self.DEBUG_TAG+"failed to retrieve machine info")
         }
-        
         
     }
 }
@@ -395,11 +388,11 @@ extension Remote {
 
 
 
-//MARK: - Receiving
+//MARK: - Receive operations
 extension Remote {
     
     
-    // MARK: addReceiveOperation
+    // MARK: add
     func addReceivingOperation(_ operation: ReceiveFileOperation){
         
         operation.owningRemote = self
@@ -408,10 +401,9 @@ extension Remote {
         informObserversOperationAdded(operation)
         
         operation.status = .WAITING_FOR_PERMISSION
-//        informObserversInfoDidChange()
     }
     
-    // MARK: findReceiveOperation
+    // MARK: find
     func findReceiveOperation(withStartTime time: UInt64 ) -> ReceiveFileOperation? {
         for operation in receivingOperations {
             if operation.startTime == time {
@@ -421,10 +413,8 @@ extension Remote {
         return nil
     }
     
-    //MARK: beginReceiving
-    func beginReceiving(for operation: ReceiveFileOperation){
-        
-        print(DEBUG_TAG+"beginReceiving")
+    //MARK: begin
+    func callClientStartTransfer(for operation: ReceiveFileOperation){
         
         let operationInfo = OpInfo.with {
             $0.ident = Server.SERVER_UUID
@@ -432,23 +422,17 @@ extension Remote {
             $0.readableName = Server.SERVER_UUID
             $0.useCompression = false
         }
-        
-        guard let client = warpClient else {
-            print(DEBUG_TAG+"Why the fuck is there no fucking client???"); return
-        }
-        
-        
-        let dataStream = client.startTransfer(operationInfo) { (chunk) in
+
+        let dataStream = warpClient?.startTransfer(operationInfo) { (chunk) in
             operation.processChunk(chunk)
         }
         
-        
-        dataStream.status.whenSuccess{ status in
+        dataStream?.status.whenSuccess{ status in
             operation.finishReceive()
             print(self.DEBUG_TAG+"transfer finished")
         }
         
-        dataStream.status.whenFailure{ error in
+        dataStream?.status.whenFailure{ error in
             print(self.DEBUG_TAG+"transfer failed: \(error)")
         }
     }
@@ -457,11 +441,12 @@ extension Remote {
 
 
 
-// MARK: - Sending
+
+// MARK: - Sending operations
 extension Remote {
     
     
-    // MARK: addSendOperation
+    // MARK: add
     func addSendingOperation(_ operation: SendFileOperation){
         
         operation.owningRemote = self
@@ -474,7 +459,7 @@ extension Remote {
     }
     
     
-    // MARK: findSendOperation
+    // MARK: find
     func findSendOperation(withStartTime time: UInt64 ) -> SendFileOperation? {
         for operation in sendingOperations {
             if operation.startTime == time {
@@ -484,7 +469,7 @@ extension Remote {
         return nil
     }
     
-    //MARK: sendFile
+    //MARK: begin
     func sendFile(_ filename: FileName){
         
         let operation = SendFileOperation(for: filename)
@@ -587,43 +572,70 @@ extension Remote: ConnectivityStateDelegate {
     public func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
         print(DEBUG_TAG+"channel state has moved from \(oldState) to \(newState)".uppercased())
         switch newState {
-//        case .connecting: ping()
-        case .ready: print(DEBUG_TAG+"channel ready")
+        case .ready:
+            transientFailureCount = 0;
+            print(DEBUG_TAG+"channel ready")
+        case .transientFailure:
+            transientFailureCount += 1
+            print(DEBUG_TAG+"\tTransientFailure \(transientFailureCount)")
+            if transientFailureCount == 10 {
+                channelDidDisconnect( RegistrationError.ConnectionError )
+            }
+        case .idle, .shutdown: channelDidDisconnect()
         default: break
         }
         
     }
 }
+
 extension Remote: ClientErrorDelegate {
-    //MARK: didCatchError
+    //MARK
     public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
-        print(DEBUG_TAG+"ERROR: Error caught: \(error)")
-        print(DEBUG_TAG+"ERROR: file: \(file)")
-        print(DEBUG_TAG+"ERROR: line: \(line)")
+        
+        // bad cert, discard and retry
+        if case NIOSSLError.handshakeFailed(_) = error {
+            print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
+            authenticationCertificate = nil
+            
+            channelDidDisconnect()
+            startConnection()
+        } else {
+            print(DEBUG_TAG+"Unknown error: \(error)")
+        }
     }
 }
 
 
 
-// MARK: - Registration
-extension Remote: RegistrationManager {
+// MARK: - Authentication
+extension Remote: AuthenticationRecipient {
+    
+    // obtainCertificate
+    func obtainCertificate(){
+        
+        if details.api == "1" {
+            authenticationConnection = UDPConnection(details, manager: self)
+        } else {
+            authenticationConnection = GRPCConnection(details, manager: self)
+        }
+        
+        authenticationConnection?.requestCertificate()
+    }
     
     
     // MARK: success
-    func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
+    func authenticationCertificateObtained(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
         
-        print(DEBUG_TAG+"registration succeeded, certificate retrieved")
+        print(DEBUG_TAG+"certificate retrieved")
         self.details = details
         authenticationCertificate = certificate
         
-        connect()
+        connect(withCertificate: certificate)
     }
     
     // MARK: failure
-    func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError){
-        
-        print(DEBUG_TAG+"registration failed, error: \(error)")
-        
+    func failedToObtainCertificate(forRemote details: RemoteDetails, _ error: RegistrationError){
+        print(DEBUG_TAG+"failed to retrieve certificate, error: \(error)")
     }
 }
 

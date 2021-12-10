@@ -193,17 +193,6 @@ class RemoteViewController: UIViewController {
             addTransferViewToStack(withViewModel: transfer_viewmodel)
         }
         
-        
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-//
-//            let mocktransfer = MockReceiveTransfer()
-//            let vm = TransferOperationViewModel(for: mocktransfer)
-////            let view = ListedTransferView(withViewModel: vm, onTap: {
-////                se
-////            })
-//            self.addTransferViewToStack(withViewModel: vm)
-//        }
-        
     }
     
     

@@ -102,24 +102,22 @@ class ViewController: UIViewController {
     
     
     
-    func connectionAdded(_ viewModel: RemoteViewModel){
+    func remoteAdded(_ viewModel: RemoteViewModel){
         
         print(DEBUG_TAG+"Adding view for connection \(viewModel.displayName)")
         
         let remoteView = ListedRemoteView(withViewModel: viewModel) {
             self.coordinator?.userSelected(viewModel.uuid)
         }
-//        remoteView.translatesAutoresizingMaskIntoConstraints = false
-        
-        
-//        remotesStack.addArrangedSubview(remoteView)
         
         // insert right before expanderview
         remotesStack.insertArrangedSubview(remoteView, at: (remotesStack.arrangedSubviews.count - 1) )
     }
     
     
-    func connectionRemoved(withh uuid: String){
+    
+    
+    func remoteRemoved(with uuid: String){
         
         for view in remotesStack.arrangedSubviews as! [ListedRemoteView]{
             if view.viewModel!.uuid == uuid {

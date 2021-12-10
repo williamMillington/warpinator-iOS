@@ -18,16 +18,15 @@ class RemoteManager {
     
     weak var remotesViewController: ViewController?
     
-    
     func addRemote(_ remote: Remote){
         print(DEBUG_TAG+"adding remote with UUID: \(remote.details.uuid)")
+        
         remotes[remote.details.uuid] = remote
         
-        remote.register()
-        
         let viewmodel = RemoteViewModel(remote)
+        remotesViewController?.remoteAdded(viewmodel)
         
-        remotesViewController?.connectionAdded(viewmodel)
+        remote.startConnection()
     }
     
     

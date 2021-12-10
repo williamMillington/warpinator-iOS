@@ -21,33 +21,33 @@ enum RegistrationError: Error {
     case CertificateError
 }
 
-// MARK: - RegistrationConnection
-protocol RegistrationConnection {
+// MARK: - AuthenticationConnection
+protocol AuthenticationConnection {
     
     var details: RemoteDetails { get }
-    var registrationServer: RegistrationManager { get }
+    var registree: AuthenticationRecipient { get }
     
     var uuid: Int { get }
     var attempts: Int { get set }
     
-    func register()
+    func requestCertificate()
 }
 
 
-// MARK:  RegistrationManager
-protocol RegistrationManager {
-    func registrationSucceeded(forRemote details: RemoteDetails, certificate: NIOSSLCertificate)
-    func registrationFailed(forRemote details: RemoteDetails, _ error: RegistrationError)
+// MARK:  AuthenticationRecipient
+protocol AuthenticationRecipient {
+    func authenticationCertificateObtained(forRemote details: RemoteDetails, certificate: NIOSSLCertificate)
+    func failedToObtainCertificate(forRemote details: RemoteDetails, _ error: RegistrationError)
 }
 
 
 // MARK: - UDPConnection
-class UDPConnection: RegistrationConnection {
+class UDPConnection: AuthenticationConnection {
     
     private let DEBUG_TAG: String = "UDPConnection: "
     
     var details: RemoteDetails
-    var registrationServer: RegistrationManager
+    var registree: AuthenticationRecipient
     
     var uuid: Int {
         return details.endpoint.hashValue
@@ -59,9 +59,9 @@ class UDPConnection: RegistrationConnection {
     var connection: NWConnection
     
     
-    init(_ candidate: RemoteDetails, manager: RegistrationManager) {
+    init(_ candidate: RemoteDetails, manager: AuthenticationRecipient) {
         self.details = candidate
-        registrationServer = manager
+        registree = manager
         
         endpoint = candidate.endpoint
         
@@ -97,7 +97,7 @@ class UDPConnection: RegistrationConnection {
     }
     
     
-    func register(){
+    func requestCertificate(){
         
         print(DEBUG_TAG+"Registering with \(details.endpoint)")
         details.status = .FetchingCredentials
@@ -137,7 +137,7 @@ class UDPConnection: RegistrationConnection {
                         print(self.DEBUG_TAG+"failed to unlock certificate"); return
                     }
                     
-                    self.registrationServer.registrationSucceeded(forRemote: self.details, certificate: certificate)
+                    self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
 
                 } else {  print("Failed to decode certificate")  }
 
@@ -152,14 +152,12 @@ class UDPConnection: RegistrationConnection {
 
 
 // MARK: - GRPCConnection
-class GRPCConnection: RegistrationConnection {
+class GRPCConnection: AuthenticationConnection {
     
     private let DEBUG_TAG: String = "GRPCConnection: "
     
     var details: RemoteDetails
-    var registrationServer: RegistrationManager
-    
-    
+    var registree: AuthenticationRecipient
     
     var uuid: Int {
         return details.endpoint.hashValue
@@ -172,10 +170,9 @@ class GRPCConnection: RegistrationConnection {
     
     let group = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
-    
-    init(_ candidate: RemoteDetails, manager: RegistrationManager) {
+    init(_ candidate: RemoteDetails, manager: AuthenticationRecipient) {
         self.details = candidate
-        registrationServer = manager
+        registree = manager
         
         
         let port = details.authPort
@@ -186,7 +183,7 @@ class GRPCConnection: RegistrationConnection {
     }
     
     
-    func register(){
+    func requestCertificate(){
         print(DEBUG_TAG+"Registering with \(details.endpoint)")
         details.status = .FetchingCredentials
         sendCertificateRequest()
@@ -204,14 +201,14 @@ class GRPCConnection: RegistrationConnection {
 
         registrationRequest.response.whenSuccess { result in
             if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
-                self.registrationServer.registrationSucceeded(forRemote: self.details, certificate: certificate)
+                self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
             } else {
-                self.registrationServer.registrationFailed(forRemote: self.details, .CertificateError)
+                self.registree.failedToObtainCertificate(forRemote: self.details, .CertificateError)
             }
         }
         
         registrationRequest.response.whenFailure { error in
-            self.registrationServer.registrationFailed(forRemote: self.details, .ConnectionError)
+            self.registree.failedToObtainCertificate(forRemote: self.details, .ConnectionError)
         }
     }
 }
@@ -236,7 +233,6 @@ class RegistrationServer {
     var mDNSListener: MDNSListener?
     
     var certificateServer = CertificateServer()
-    
     
     
     private var registrationServerELG: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
@@ -336,7 +332,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         var serviceName = "unknown_service"
         switch result.endpoint {
-        case .service(name: let name, type: _, domain: _, interface: _):
+        case .service(name: let name, type: _, domain: _, interface: let interface):
             
             serviceName = name
             if name == uuid {
@@ -344,6 +340,8 @@ extension RegistrationServer: MDNSBrowserDelegate {
             } else {
                 print(DEBUG_TAG+"service discovered: \(name)")
             }
+            print(DEBUG_TAG+"\tinterface: \(String(describing: interface))")
+            
         default: print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
         }
         
@@ -355,15 +353,12 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         
         if let remote = remoteManager?.containsRemote(for: serviceName) {
-                print(DEBUG_TAG+"Service already known")
-            if remote.details.status != .Connected
-                && remote.details.status != .AquiringDuplex
-                && remote.details.status != .DuplexAquired
-                && remote.details.status != .OpeningConnection {
+                print(DEBUG_TAG+"Service already added")
+            if remote.details.status == .Disconnected || remote.details.status == .Error {
                 print(DEBUG_TAG+"\tstatus is not connected: reconnecting...")
-                remote.connect()
-                return
+                remote.startConnection()
             }
+            return
         }
         
         
@@ -398,7 +393,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
 
 
 
-//MARK: - Mocking
+//MARK: - Mock Registration
 extension RegistrationServer {
     func mockRegistration(){
         

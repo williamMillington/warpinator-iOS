@@ -16,10 +16,11 @@ ViewController: \
 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 Remote:\
-	- Handle Disconnect\
-	- Implement reconnect\
-	- Make a decision regarding idle channels\
-		- ping for reconnect vs allow disconnection \
+	- Handle failure to connect\
+	- \cf2 Handle disconnect\cf0 \
+	- \cf2 Implement reconnect\cf0 \
+	- \cf2 Make a decision regarding idle channels\cf0 \
+		- \cf2 ping for reconnect vs allow disconnection\cf0  \
 \
 RemoteViewcontroller:\
 	- \'93Reconnect\'94 button\
@@ -27,15 +28,15 @@ RemoteViewcontroller:\
 \cf0 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 SendFileOperation:\
-	- Handle Cancellation\
 	- Handle Failure\
+		- Handle Cancellation\
 	- Select Files\
 		- CreateSendTransferViewController\
 \
 ReceiveFileOperation:\
 	- Create \'93Empty\'94 FileWriter/ListedFileView\
-	- Handle Cancellation\
 	- Handle Failure\
+		- Handle Cancellation\
 \
 \
 TransferViewController:\
@@ -76,6 +77,12 @@ Settings:\
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 	- \'93Autoconnect\'94 option\
 \
+RemoteViewController:\
+	- Scrollable transfers list\
+\
+TransferViewController:\
+	- Scrollable files list\
+\
 SendFileOperation:\
 	- Retry/Resend\
 \
@@ -83,6 +90,7 @@ SendFileOperation:\
 \cf0 ReceiveFileOperation:\
 	- Auto-receive Settings\
 \
+- Persist/remove known remotes when they are disconnected/unavailable\
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
-\cf0 \
+\cf0 - Ensure all Remotes are sharing a single eventloop group\
 }

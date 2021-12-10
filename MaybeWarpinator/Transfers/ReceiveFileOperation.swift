@@ -21,7 +21,7 @@ class ReceiveFileOperation: TransferOperation {
             
             let opinfo = OpInfo.with {
                 $0.ident = remote.details.uuid
-                $0.readableName = remote.displayName
+                $0.readableName = remote.details.displayName
                 $0.timestamp = UInt64( Date().timeIntervalSince1970 * 1000 )
                 $0.useCompression = false
             }
@@ -130,11 +130,10 @@ extension ReceiveFileOperation {
     
     //MARK: start
     func startReceive(){
-        print(DEBUG_TAG+" starting to receive: ")
+        print(DEBUG_TAG+" starting receive operation")
         
         status = .TRANSFERRING
-        owningRemote?.beginReceiving(for: self)
-        
+        owningRemote?.callClientStartTransfer(for: self)
     }
     
     
@@ -195,8 +194,9 @@ extension ReceiveFileOperation {
 //        updateObserversInfo()
     }
     
+    
     // MARK: stop
-    func stopReceiving(){
+    func stop(_ error: Error?){
         
     }
     
@@ -213,14 +213,11 @@ extension ReceiveFileOperation {
     }
     
     
-    
-    
-    
 }
 
 
 
-//MARK: observers
+//MARK: Observers
 extension ReceiveFileOperation {
     
     func addObserver(_ model: TransferOperationViewModel){

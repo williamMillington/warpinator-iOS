@@ -166,9 +166,10 @@ class SendFileOperation: TransferOperation {
     
     
     //MARK: stop
-    func stopSending(){
+    func stop(_ error: Error?){
         
     }
+    
     
 }
 

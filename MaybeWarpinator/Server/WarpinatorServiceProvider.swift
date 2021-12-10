@@ -43,6 +43,13 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     var remoteManager: RemoteManager?
     
+    
+    
+    lazy var duplexQueueLabel = "Serve_Duplex"
+    lazy var duplexQueue = DispatchQueue(label: duplexQueueLabel, qos: .userInitiated)
+    var timer: Timer?
+    
+    
     // MARK: Duplex API v1
     // receive request for status of connection to remote specified in LookupName
     public func checkDuplexConnection(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
@@ -61,9 +68,13 @@ public class WarpinatorServiceProvider: WarpProvider {
         }
         
         return context.eventLoop.makeCompletedFuture( Result(catching: {
-            var duplexExists = HaveDuplex()
-            duplexExists.response = duplexCheck
-            return duplexExists
+            
+            if duplexCheck {
+                return .with {
+                    $0.response = true
+                }
+            }
+            throw DuplexError.DuplexNotEstablished
         }))
     }
     
@@ -72,25 +83,54 @@ public class WarpinatorServiceProvider: WarpProvider {
     public func waitingForDuplex(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
         let id = request.id
-        var duplexCheck = false
         
         print(DEBUG_TAG+"(API_V2) Duplex is being waited for by \(request.readableName) (\(request.id))")
         
-        if let remote = remoteManager?.containsRemote(for: id) {
-            print(DEBUG_TAG+"(API_V2) Remote known")
-            if remote.details.status == .DuplexAquired || remote.details.status == .Connected {
-                print(DEBUG_TAG+"(API_V2) Duplex verified by remote")
-                duplexCheck = true
+        let duplexPromise = checkDuplex(forUUID: id, context)
+        
+        return duplexPromise.futureResult
+    }
+    
+    
+    private func checkDuplex(forUUID uuid: String, _ context: StatusOnlyCallContext) -> EventLoopPromise<HaveDuplex> {
+
+        func checkDuplex() -> Bool {
+            if let remote = self.remoteManager?.containsRemote(for: uuid) {
+                if remote.details.status == .DuplexAquired || remote.details.status == .Connected {
+                    return true
+                }
+            }; return false
+        }
+        
+        
+        let duplexPromise = context.eventLoop.makePromise(of: HaveDuplex.self)
+
+        // for some reason this only works on main queue
+        DispatchQueue.main.async {
+            
+            var count = 0
+            
+            // repeats 4 times a second, for a total of 20 times if client times out at ~5 seconds
+            self.timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { timer in
+                count += 1
+                guard count < 20 else {
+                    timer.invalidate();
+                    duplexPromise.fail( GRPCError.RPCTimedOut.init(.timeout(.seconds(5))) )
+                    return
+                }
+                
+                let duplexExists = checkDuplex()
+                if duplexExists {
+                    duplexPromise.succeed( .with { $0.response = true })
+                    timer.invalidate()
+                }
             }
         }
         
-        return context.eventLoop.makeCompletedFuture( Result(catching: {
-            var duplexExists = HaveDuplex()
-            duplexExists.response = duplexCheck
-            return duplexExists
-        }))
-        
+        return duplexPromise
     }
+    
+    
     
     
     // MARK: get info
@@ -146,10 +186,6 @@ public class WarpinatorServiceProvider: WarpProvider {
         remote.addReceivingOperation(operation)
         
         
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//            operation.startReceive()
-//        }
-        
         return context.eventLoop.makeSucceededFuture(VoidType())
     }
     
@@ -157,8 +193,6 @@ public class WarpinatorServiceProvider: WarpProvider {
     // MARK: start transfer
     // called by remote to indicate that they are ready to begin receiving transfer (specified in OpInfo)
     public func startTransfer(request: OpInfo, context: StreamingResponseCallContext<FileChunk>) -> EventLoopFuture<GRPCStatus> {
-        
-        // TODO: implement start transfer function
         
         let remoteUUID: String = request.ident
         
@@ -175,12 +209,7 @@ public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        
-        print(DEBUG_TAG+"(startTransfer) sending chunks")
-        
         let promise = transfer.send(using: context)
-        
-        print(DEBUG_TAG+"(startTransfer) sending promise")
         
         return promise.futureResult
     }
