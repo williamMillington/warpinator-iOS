@@ -8,6 +8,7 @@
 import UIKit
 
 
+
 class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     private let DEBUG_TAG: String = "RemoteCoordinator: "
@@ -40,19 +41,19 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         print(DEBUG_TAG+"starting")
         showRemote()
         
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-////            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
-////            self.remote.addReceivingOperation(mockOp)
-////            self.remote.sendFile( FileName(name: "TestFileToSend", ext: "rtf" ))
-////            self.remote.sendFile( FileName(name: "The_Last_Five_Years", ext: "pdf" ))
-//            let filenames: [FileName] = [
-//                FileName(name: "TestFileToSend", ext: "rtf" ),
-////                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
-//                FileName(name: "The_Last_Five_Years", ext: "pdf" )
-//            ]
-////            self.remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
-//            self.remote.sendFiles( filenames )
-//        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
+//            self.remote.addReceivingOperation(mockOp)
+//            self.remote.sendFile( FileName(name: "TestFileToSend", ext: "rtf" ))
+//            self.remote.sendFile( FileName(name: "The_Last_Five_Years", ext: "pdf" ))
+//            remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
+            let filenames: [FileName] = [
+                FileName(name: "TestFileToSend", ext: "rtf" ),
+//                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
+                FileName(name: "The_Last_Five_Years", ext: "pdf" )
+            ]
+            self.remote.sendFiles( filenames )
+        }
         
     }
     

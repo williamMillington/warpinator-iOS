@@ -83,6 +83,30 @@ class ReceiveFileOperation: TransferOperation {
     var observers: [TransferOperationViewModel] = []
     
     
+    
+    
+    lazy var queueLabel = "RECEIVE_\(owningRemoteUUID)_\(UUID)"
+    lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
+    
+    lazy var receiveHandler: (FileChunk) -> Void = { [weak self] chunk in
+        
+        guard let self = self, self.status == .TRANSFERRING else {
+            return
+        }
+        
+        self.receivingChunksQueue.async {
+            self.processChunk(chunk)
+        }
+    }
+    
+    
+    
+    
+    var operationInfo: OpInfo {
+        return request.info
+    }
+    
+    
     init(_ request: TransferOpRequest, forRemote remote: Remote){
         
         self.request = request
@@ -126,8 +150,6 @@ extension ReceiveFileOperation {
     }
     
     
-    
-    
     //MARK: start
     func startReceive(){
         print(DEBUG_TAG+" starting receive operation")
@@ -148,17 +170,23 @@ extension ReceiveFileOperation {
         
         // If Directory
         if chunk.fileType == FileType.DIRECTORY.rawValue {
-            do { // Create directory
+            
+            do { // Create the directory
                 try FileWriter.createNewDirectory(withName: chunk.relativePath)
             }
-            catch let error as FileWriter.FileReceiveError {
+            catch let error as FileWriter.FileReceiveError { // If directory already exists
+                
                 switch error {
                 case .DIRECTORY_EXISTS: print(DEBUG_TAG+"Directory exists (\(error))")
                     currentRelativePath = chunk.relativePath
                 default: print(DEBUG_TAG+"Error: \(error)"); break
                 }
-            } catch { print(DEBUG_TAG+"unknown error") }
-        } else {
+                
+            } catch { // uknown error
+                print(DEBUG_TAG+"Unknown error")
+            }
+            
+        } else {// Else, write file
             
             // if starting a new file
             if chunk.relativePath != currentRelativePath {
@@ -186,31 +214,53 @@ extension ReceiveFileOperation {
         updateObserversInfo()
     }
     
+    
     // MARK: finish
     func finishReceive(){
         print(DEBUG_TAG+" finished receiving transfer")
         currentFile?.finish()
         status = .FINISHED
-//        updateObserversInfo()
     }
     
     
-    // MARK: stop
-    func stop(_ error: Error?){
+    
+    // MARK: - Stopping
+    // this side calls stop
+    func orderStop(_ error: Error? = nil){
+        print(self.DEBUG_TAG+"ordering stop, error: \(String(describing: error))")
+        owningRemote?.callClientStopTransfer(self, error: error)
+        stopRequested(error)
+    }
+    
+    // other side calls stop
+    func stopRequested(_ error: Error? = nil){
         
+        print(DEBUG_TAG+"stopped with error: \(String(describing: error))")
+        
+        if let error = error {
+            status = .FAILED(error)
+        } else {
+            status = .STOPPED
+        }
+        
+        // cancel current writing operation
+        currentFile?.fail()
     }
-    
     
     
     // MARK: decline
-    func declineTransfer(){
+    func decline(_ error: Error? = nil){
         
+        owningRemote?.callClientDeclineTransfer(self, error: error)
+        status = .CANCELLED
+        
+        currentFile?.fail()
     }
     
     // MARK: fail
-    func failReceive(){
-        
-    }
+//    func failReceive(){
+//
+//    }
     
     
 }

@@ -2,7 +2,7 @@
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
 {\colortbl;\red255\green255\blue255;\red85\green142\blue40;}
 {\*\expandedcolortbl;;\cssrgb\c39975\c61335\c20601;}
-\margl1440\margr1440\vieww18900\viewh8200\viewkind0
+\margl1440\margr1440\vieww17900\viewh11480\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
 \f0\fs24 \cf0 \
@@ -17,6 +17,7 @@ ViewController: \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 Remote:\
 	- Handle failure to connect\
+		- add Unavailable as status\
 	- \cf2 Handle disconnect\cf0 \
 	- \cf2 Implement reconnect\cf0 \
 	- \cf2 Make a decision regarding idle channels\cf0 \
@@ -31,7 +32,9 @@ RemoteViewcontroller:\
 	- Handle Failure\
 		- Handle Cancellation\
 	- Select Files\
+		- Switch FileReader to using a fileHandle\
 		- CreateSendTransferViewController\
+\
 \
 ReceiveFileOperation:\
 	- Create \'93Empty\'94 FileWriter/ListedFileView\
@@ -44,7 +47,9 @@ TransferViewController:\
 	- \cf2 update ListedFileView\cf0 \
 \
 - Generate X509 certificate\
+- Differentiate ViewModels (Listed vs ViewController) to Remotes, Transfer Operations\
 \
+- Make reddit thread asking if this is actually worth my time :P\
 \
 
 \f1\b \ul RC 1
@@ -60,6 +65,7 @@ SettingsViewController:\
 	- Select storage location\
 	- Set passcode\
 	- Set ports\
+	- Set display name\
 \
 Settings:\
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
@@ -69,8 +75,11 @@ Settings:\
 	- Select storage location?\
 	- Store/load passcode\
 	- Store/load port selections\
-	- Delete files on transfer cancel? \
-			- (if some of a transfer\'92s files have been completely downloaded at the time of cancellation, would you like to delete them?)\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 	- Store/load display name\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 	- Delete files on transfer cancel? \
+			- (if some of a transfer\'92s files have been completely downloaded at the time of cancellation, would you like to automatically delete them?)\
 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 Remote:\
@@ -85,10 +94,13 @@ TransferViewController:\
 \
 SendFileOperation:\
 	- Retry/Resend\
+	- Send directories\
 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 ReceiveFileOperation:\
 	- Auto-receive Settings\
+	- Receive Directories\
+	- Support renaming duplicates\
 \
 - Persist/remove known remotes when they are disconnected/unavailable\
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0

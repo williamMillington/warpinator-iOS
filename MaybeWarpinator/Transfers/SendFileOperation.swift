@@ -126,13 +126,18 @@ class SendFileOperation: TransferOperation {
         
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
         
-        
         let chunkIterator = ChunkIterator(for: fileReaders)
         
         sendingChunksQueue.async {
             
             for (i, chunk) in chunkIterator.enumerated() {
-
+                
+                
+                if self.status != .TRANSFERRING {
+                    promise.fail( TransferError.TransferCancelled )
+                    return
+                }
+                
                 print(self.DEBUG_TAG+"sending chunk \(i) (\(chunk.relativePath))")
                 let result = context.sendResponse(chunk)
 
@@ -152,6 +157,7 @@ class SendFileOperation: TransferOperation {
                 }
             }
             
+            
             promise.succeed(.ok)
         }
         
@@ -166,10 +172,30 @@ class SendFileOperation: TransferOperation {
     
     
     //MARK: stop
-    func stop(_ error: Error?){
+    func orderStop(_ error: Error? = nil){
+        
+        print(self.DEBUG_TAG+"ordering stop, error: \(String(describing: error))")
+        owningRemote?.callClientStopTransfer(self, error: error)
+        stopRequested(error)
         
     }
     
+    
+    func stopRequested(_ error: Error? = nil){
+        print(DEBUG_TAG+"stopped with error: \(String(describing: error))")
+        
+        if let error = error {
+            status = .FAILED(error)
+        } else {
+            status = .STOPPED
+        }
+        
+    }
+    
+    
+    func onDecline(_ error: Error? = nil){
+        status = .CANCELLED
+    }
     
 }
 

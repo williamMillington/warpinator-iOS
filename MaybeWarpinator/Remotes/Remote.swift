@@ -182,40 +182,7 @@ public class Remote {
         aquireDuplex()
     }
     
-    //MARK: find transfer operation
-    func findTransferOperation(for uuid: UInt64) -> TransferOperation? {
-        
-        if let operation = findReceiveOperation(withStartTime: uuid) {
-            return operation
-        }
-        
-        if let operation = findSendOperation(withStartTime: uuid){
-            return operation
-        }
-        
-        return nil
-    }
     
-    
-    // MARK: Decline transfer
-    func declineTransfer(_ transfer: ReceiveFileOperation){
-        
-        let opInfo = OpInfo.with {
-            $0.ident = Server.SERVER_UUID
-            $0.timestamp = transfer.startTime
-            $0.readableName = Utils.getDeviceName()
-        }
-        
-        
-        let response = warpClient?.cancelTransferOpRequest(opInfo)
-        
-        response?.response.whenSuccess { result in
-            print(self.DEBUG_TAG+"transfer decline successful")
-        }
-        response?.response.whenFailure { error in
-            print(self.DEBUG_TAG+"transfer decline unsuccessful: \(error)")
-        }
-    }
     
     
     
@@ -233,7 +200,7 @@ public class Remote {
         for operation in receivingOperations {
             let cancelStates: [TransferStatus] = [.TRANSFERRING, .INITIALIZING]
             if cancelStates.contains(operation.status) {
-                operation.stop(TransferError.ConnectionInterrupted)
+                operation.orderStop( TransferError.ConnectionInterrupted )
             }
         }
         
@@ -365,8 +332,6 @@ extension Remote {
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
         
-//        guard let client = warpClient else { return }
-        
         let info = warpClient?.getRemoteMachineInfo(lookupName)
         
         info?.response.whenSuccess { info in
@@ -383,6 +348,70 @@ extension Remote {
         
     }
 }
+
+
+
+
+
+
+//MARK: - Transfers Common
+extension Remote {
+    
+    
+    
+    //MARK: find transfer operation
+    func findTransferOperation(for uuid: UInt64) -> TransferOperation? {
+        
+        if let operation = findReceiveOperation(withStartTime: uuid) {
+            return operation
+        }
+        
+        if let operation = findSendOperation(withStartTime: uuid){
+            return operation
+        }
+        
+        return nil
+    }
+    
+    // MARK: Stop Transfer
+    func callClientStopTransfer(_ operation: TransferOperation, error: Error?) {
+        
+        if let op = findTransferOperation(for: operation.UUID) {
+            
+            let info = op.operationInfo
+            
+            let stopInfo: StopInfo = .with {
+                $0.info = info
+                $0.error = (error != nil)
+            }
+            
+            let result = warpClient?.stopTransfer(stopInfo)
+            result?.response.whenComplete { result in
+                print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
+            }
+        } else {
+            print(DEBUG_TAG+"error trying to find operation: \(operation)")
+        }
+    }
+    
+    
+    // MARK: Decline Receive Request
+    func callClientDeclineTransfer(_ operation: TransferOperation, error: Error? = nil) {
+        
+        if let op = findTransferOperation(for: operation.UUID) {
+            
+            let result = warpClient?.cancelTransferOpRequest(op.operationInfo)
+            result?.response.whenComplete { result in
+                print(self.DEBUG_TAG+"request to cancel transfer had result: \(result)")
+            }
+            
+        } else {
+            print(DEBUG_TAG+"error trying to find operation: \(operation)")
+        }
+    }
+    
+}
+
 
 
 
@@ -416,16 +445,17 @@ extension Remote {
     //MARK: begin
     func callClientStartTransfer(for operation: ReceiveFileOperation){
         
-        let operationInfo = OpInfo.with {
-            $0.ident = Server.SERVER_UUID
-            $0.timestamp = operation.startTime
-            $0.readableName = Server.SERVER_UUID
-            $0.useCompression = false
-        }
-
-        let dataStream = warpClient?.startTransfer(operationInfo) { (chunk) in
-            operation.processChunk(chunk)
-        }
+//        let operationInfo = OpInfo.with {
+//            $0.ident = Server.SERVER_UUID
+//            $0.timestamp = operation.startTime
+//            $0.readableName = Server.SERVER_UUID
+//            $0.useCompression = false
+//        }
+        let operationInfo = operation.operationInfo
+        let handler = operation.receiveHandler
+        
+        let dataStream = warpClient?.startTransfer(operationInfo, handler: handler)
+        
         
         dataStream?.status.whenSuccess{ status in
             operation.finishReceive()
@@ -470,30 +500,30 @@ extension Remote {
     }
     
     //MARK: begin
-    func sendFile(_ filename: FileName){
-        
-        let operation = SendFileOperation(for: filename)
-        
-        let request: TransferOpRequest = .with {
-            $0.info = operation.operationInfo
-            $0.senderName = Server.SERVER_UUID
-            $0.size = UInt64(operation.totalSize)
-            $0.count = UInt64(operation.fileCount)
-            $0.nameIfSingle = operation.singleName
-            $0.mimeIfSingle = operation.singleMime
-            $0.topDirBasenames = operation.topDirBaseNames
-        }
-        
-        print(DEBUG_TAG+"Sending request: \(request)")
-        
-        addSendingOperation(operation)
-        
-        let response = warpClient?.processTransferOpRequest(request)
-        
-        response?.response.whenComplete { result in
-            print(self.DEBUG_TAG+"process request completed; result: \(result)")
-        }
-    }
+//    func sendFile(_ filename: FileName){
+//
+//        let operation = SendFileOperation(for: filename)
+//
+//        let request: TransferOpRequest = .with {
+//            $0.info = operation.operationInfo
+//            $0.senderName = Server.SERVER_UUID
+//            $0.size = UInt64(operation.totalSize)
+//            $0.count = UInt64(operation.fileCount)
+//            $0.nameIfSingle = operation.singleName
+//            $0.mimeIfSingle = operation.singleMime
+//            $0.topDirBasenames = operation.topDirBaseNames
+//        }
+//
+//        print(DEBUG_TAG+"Sending request: \(request)")
+//
+//        addSendingOperation(operation)
+//
+//        let response = warpClient?.processTransferOpRequest(request)
+//
+//        response?.response.whenComplete { result in
+//            print(self.DEBUG_TAG+"process request completed; result: \(result)")
+//        }
+//    }
     
     
     func sendFiles(_ filenames: [FileName]){

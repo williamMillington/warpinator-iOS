@@ -73,31 +73,41 @@ class FileWriter {
     }
     
     
+    func fail(){
+        print(DEBUG_TAG+"filewriting has failed.")
+        fileHandle.closeFile()
+        
+        // delete unfinished file
+        let fileManager = FileManager.default
+        do {
+            print(DEBUG_TAG+"\tDeleting unfinished file: \(filepath)")
+            try fileManager.removeItem(atPath: filepath)
+        } catch {
+            print(DEBUG_TAG+"\tAn error occurred attempting to delete file: \(filepath)")
+        }
+    }
+    
+    
     static func createNewDirectory(withName name: String) throws {
         
-        print(DEBUG_TAG+"attempting to create new directory: \(name)")
         let fileManager = FileManager.default
-//        let fileParentURL = fileManager.extended.documentsDirectory
-        
         let directoryURL = fileManager.extended.documentsDirectory.appendingPathComponent("\(name)")
         
-        print(DEBUG_TAG+"checking if something exists at \(directoryURL.path)")
+        print(DEBUG_TAG+"attempting to create new directory: \(directoryURL.path)")
         
         if fileManager.fileExists(atPath: directoryURL.path) {
-            print(DEBUG_TAG+"\tdirectory already exists")
+            print(DEBUG_TAG+"\t \(directoryURL.path) already exists")
             throw FileReceiveError.DIRECTORY_EXISTS
         } else {
             do {
                 try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
                 print(DEBUG_TAG+"\tSuccessfully created directory")
             } catch {
-                print(DEBUG_TAG+"\tfailed to create directory")
+                print(DEBUG_TAG+"\tFailed to create directory")
                 throw FileReceiveError.SYSTEM_ERROR(error)
             }
         }
-        
     }
-    
 }
 
 

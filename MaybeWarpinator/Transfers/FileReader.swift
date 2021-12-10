@@ -34,8 +34,6 @@ class FileReader  {
     
     init(for file: FileName){
         
-//    init(filename name: String, extension ext: String){
-        
         filename = file.name
         fileExtension = file.ext
         
@@ -86,7 +84,6 @@ class FileReader  {
         
         return fileChunk
     }
-    
     
     
     private func arraySubsection(from array: [UInt8], startingAt index: Int, size: Int ) -> [UInt8] {
@@ -142,7 +139,7 @@ extension FileReader {
 
 
 
-
+// MARK: ChunkIterator
 // Manages the iteration of multiple FileReaders
 class ChunkIterator {
     

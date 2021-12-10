@@ -7,6 +7,21 @@
 import Foundation
 
 
+
+// MARK: FileType
+enum FileType: Int32 {
+    case FILE = 1
+    case DIRECTORY = 2
+}
+
+
+// MARK: FileName
+typealias FileName = (name: String, ext: String)
+
+
+
+
+// MARK: TransferError
 enum TransferError: Error {
     case ConnectionInterrupted
     case PermissionDeclined
@@ -15,51 +30,46 @@ enum TransferError: Error {
 }
 
 
-enum FileType: Int32 {
-    case FILE = 1
-    case DIRECTORY = 2
-}
-
-
-typealias FileName = (name: String, ext: String)
-
-
+// MARK: TransferDirection
 public enum TransferDirection: String {
     case SENDING, RECEIVING
 }
 
 
+// MARK: TransferStatus
 enum TransferStatus: Equatable {
     
     static func == (lhs: TransferStatus, rhs: TransferStatus) -> Bool {
         
         switch (lhs, rhs){
         
-        case (.INITIALIZING, .INITIALIZING),
-             (.WAITING_FOR_PERMISSION, .WAITING_FOR_PERMISSION),
-             (.TRANSFERRING, .TRANSFERRING),
-             (.STOPPED, .STOPPED),
-             (.FINISHED, .FINISHED): return true
-        case (let .FAILED(error1), let .FAILED(error2) ):
+        case (INITIALIZING, INITIALIZING),
+             (WAITING_FOR_PERMISSION,WAITING_FOR_PERMISSION),
+             (CANCELLED, CANCELLED),
+             (TRANSFERRING, TRANSFERRING),
+             (STOPPED, STOPPED),
+             (FINISHED, FINISHED): return true
+        case (let FAILED(error1), let FAILED(error2) ):
             return error1.localizedDescription == error2.localizedDescription
-        case (.INITIALIZING,_),
-             (.WAITING_FOR_PERMISSION,_),
-             (.TRANSFERRING,_),
-             (.STOPPED,_),
-             (.FINISHED,_),
-             (.FAILED(_),_): return false
+        case (INITIALIZING,_),
+             (WAITING_FOR_PERMISSION,_),
+             (CANCELLED, _),
+             (TRANSFERRING,_),
+             (STOPPED,_),
+             (FINISHED,_),
+             (FAILED(_),_): return false
         }
     }
     
-    
     case INITIALIZING
     case WAITING_FOR_PERMISSION
+    case CANCELLED
     case TRANSFERRING, STOPPED, FINISHED
     case FAILED(Error)
 }
 
 
-
+// MARK: TransferOperation
 protocol TransferOperation {
     
     var owningRemote: Remote? { get set }
@@ -71,6 +81,10 @@ protocol TransferOperation {
     var status: TransferStatus { get }
     var progress: Double { get }
     
+    var operationInfo: OpInfo { get }
+    
+    
+    
     var observers: [TransferOperationViewModel] { get }
     
     func addObserver(_ model: TransferOperationViewModel)
@@ -81,6 +95,7 @@ protocol TransferOperation {
 
 
 
+// MARK: Mock TransferOperation
 class MockReceiveTransfer: TransferOperation { 
     
     var owningRemote: Remote?
@@ -95,8 +110,15 @@ class MockReceiveTransfer: TransferOperation {
     
     var progress: Double
     
-    var observers: [TransferOperationViewModel]
+    var observers: [TransferOperationViewModel] = []
     
+    var operationInfo: OpInfo {
+        return .with {
+            $0.ident = Server.SERVER_UUID
+            $0.timestamp = UUID
+            $0.readableName = Utils.getDeviceName()
+        }
+    }
     
     init(){
         owningRemote = Remote(details: RemoteDetails.MOCK_DETAILS )
@@ -109,7 +131,6 @@ class MockReceiveTransfer: TransferOperation {
         status = .WAITING_FOR_PERMISSION
         progress = 0
         
-        observers = []
     }
     
     

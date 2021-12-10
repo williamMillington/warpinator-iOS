@@ -15,12 +15,16 @@ import NIO
 enum DuplexError: GRPCErrorProtocol {
     case UnknownRemote
     case DuplexNotEstablished
+    case DuplexTimeout
     func makeGRPCStatus() -> GRPCStatus {
+        
         switch self {
         case .UnknownRemote: return GRPCStatus(code: GRPCStatus.Code.failedPrecondition,
-                                               message: "This remote is not known to the server")
+                                               message: description)
         case .DuplexNotEstablished: return GRPCStatus(code: GRPCStatus.Code.failedPrecondition,
-                                                      message: "This remote has not yet established duplex")
+                                                      message: description)
+        case .DuplexTimeout: return GRPCStatus(code: GRPCStatus.Code.deadlineExceeded,
+                                                      message: description)
         }
     }
     
@@ -28,10 +32,9 @@ enum DuplexError: GRPCErrorProtocol {
         switch self {
         case .UnknownRemote: return  "This remote is not known to the server"
         case .DuplexNotEstablished: return "This remote has not yet established duplex"
+        case .DuplexTimeout: return "Duplex timed out"
         }
     }
-    
-    
 }
 
 
@@ -44,13 +47,21 @@ public class WarpinatorServiceProvider: WarpProvider {
     var remoteManager: RemoteManager?
     
     
-    
     lazy var duplexQueueLabel = "Serve_Duplex"
     lazy var duplexQueue = DispatchQueue(label: duplexQueueLabel, qos: .userInitiated)
+    
+    // TODO: I thiiiiiink there needs to be a timer for each remote, otherwise we can only handle one duplex at a time.
+    // I think.
     var timer: Timer?
     
     
-    // MARK: Duplex API v1
+    
+    
+    // MARK: Duplex
+    
+    
+    
+    // MARK: Duplex v1
     // receive request for status of connection to remote specified in LookupName
     public func checkDuplexConnection(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
@@ -78,7 +89,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         }))
     }
     
-    // MARK: Duplex API v2
+    // MARK: Duplex v2
     // receive request for status of connection to remote specified in LookupName
     public func waitingForDuplex(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
@@ -92,6 +103,8 @@ public class WarpinatorServiceProvider: WarpProvider {
     }
     
     
+    
+    // MARK: duplex timer
     private func checkDuplex(forUUID uuid: String, _ context: StatusOnlyCallContext) -> EventLoopPromise<HaveDuplex> {
 
         func checkDuplex() -> Bool {
@@ -115,7 +128,7 @@ public class WarpinatorServiceProvider: WarpProvider {
                 count += 1
                 guard count < 20 else {
                     timer.invalidate();
-                    duplexPromise.fail( GRPCError.RPCTimedOut.init(.timeout(.seconds(5))) )
+                    duplexPromise.fail(DuplexError.DuplexTimeout)
                     return
                 }
                 
@@ -129,6 +142,13 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         return duplexPromise
     }
+    
+    
+    
+    
+    
+    
+    //MARK: - Device info
     
     
     
@@ -149,7 +169,6 @@ public class WarpinatorServiceProvider: WarpProvider {
         return context.eventLoop.makeSucceededFuture(info)
     }
     
-    
     // MARK: get avatar image
     // receive request for avatar image
     public func getRemoteMachineAvatar(request: LookupName, context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
@@ -159,6 +178,9 @@ public class WarpinatorServiceProvider: WarpProvider {
         return context.eventLoop.makeSucceededFuture(GRPC.GRPCStatus.ok)
     }
     
+    
+    
+    //MARK: - Transfers
     
     
     // MARK: process transfer request
@@ -216,16 +238,20 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     
     // MARK: cancel transer
-    // receive instruction to cancel operation (transfer) specified in OpInfo
+    // (other device is declining our send operation)
+    // receive instruction to cancel the sendingOperation (transfer) specified in OpInfo
     public func cancelTransferOpRequest(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
         // TODO: implement cancel transfer function
+        
+        
         
         return context.eventLoop.makeCompletedFuture(Result(catching: {  return VoidType()   }))
     }
     
     
     // MARK: stop transer
+    // (other device is requesting that a given operation -sending or receiving- be stopped)
     // receive instruction to stop operation (transfer) specified in OpInfo
     public func stopTransfer(request: StopInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
@@ -259,15 +285,13 @@ public class WarpinatorServiceProvider: WarpProvider {
 
 
 
-
-// MARK: - Deprecated API
+// MARK: - Deprecated(?) API
 extension WarpinatorServiceProvider {
-    
-    
     
     // MARK: pause
     // receive instruction to pause operation (transfer) specified in OpInfo
     public func pauseTransferOp(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
+        print(DEBUG_TAG+"received pauseTransferOp request (this API call is deprecated (unimplemented?) )")
         return context.eventLoop.makeCompletedFuture(Result(catching: { return VoidType() }))
     }
      
