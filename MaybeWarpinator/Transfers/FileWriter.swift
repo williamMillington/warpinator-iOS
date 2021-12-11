@@ -74,7 +74,7 @@ class FileWriter {
     
     
     func fail(){
-        print(DEBUG_TAG+"filewriting has failed.")
+        print(DEBUG_TAG+"failing filewrite:")
         fileHandle.closeFile()
         
         // delete unfinished file

@@ -83,14 +83,15 @@ class ReceiveFileOperation: TransferOperation {
     var observers: [TransferOperationViewModel] = []
     
     
-    
-    
     lazy var queueLabel = "RECEIVE_\(owningRemoteUUID)_\(UUID)"
     lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
-    lazy var receiveHandler: (FileChunk) -> Void = { [weak self] chunk in
+    
+    
+    lazy var receiveHandler: (FileChunk) -> Void = { chunk in
         
-        guard let self = self, self.status == .TRANSFERRING else {
+        guard self.status == .TRANSFERRING else {
+            print("ERROR RECEIVING")
             return
         }
         
@@ -100,10 +101,12 @@ class ReceiveFileOperation: TransferOperation {
     }
     
     
-    
-    
     var operationInfo: OpInfo {
-        return request.info
+        return .with {
+            $0.ident = Server.SERVER_UUID
+            $0.timestamp = startTime
+            $0.readableName = Utils.getDeviceName()
+        }
     }
     
     
@@ -138,7 +141,7 @@ extension ReceiveFileOperation {
         
         // check if space exists
         let availableSpace = Utils.queryAvailableDiskSpace()
-        print(DEBUG_TAG+" available space \(availableSpace) vs transfer size\(totalSize)")
+        print(DEBUG_TAG+" available space \(availableSpace) vs transfer size \(totalSize)")
         guard availableSpace > totalSize else {
             print(DEBUG_TAG+"\t Not enough space"); return
         }
@@ -217,11 +220,18 @@ extension ReceiveFileOperation {
     
     // MARK: finish
     func finishReceive(){
-        print(DEBUG_TAG+" finished receiving transfer")
+        print(DEBUG_TAG+" Receive operation finished")
+        
+        if status != .TRANSFERRING {
+            receiveWasCancelled()
+            return
+        }
+        
         currentFile?.finish()
         status = .FINISHED
+        print(DEBUG_TAG+"\t\tFinished")
     }
-    
+
     
     
     // MARK: - Stopping
@@ -243,6 +253,14 @@ extension ReceiveFileOperation {
             status = .STOPPED
         }
         
+    }
+    
+    
+    func receiveWasCancelled(){
+        
+        print(DEBUG_TAG+" request cancelled")
+        status = .CANCELLED
+        
         // cancel current writing operation
         currentFile?.fail()
     }
@@ -251,16 +269,14 @@ extension ReceiveFileOperation {
     // MARK: decline
     func decline(_ error: Error? = nil){
         
+        print(DEBUG_TAG+" declining request...")
+        
         owningRemote?.callClientDeclineTransfer(self, error: error)
         status = .CANCELLED
         
         currentFile?.fail()
     }
     
-    // MARK: fail
-//    func failReceive(){
-//
-//    }
     
     
 }

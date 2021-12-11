@@ -194,6 +194,7 @@ class SendFileOperation: TransferOperation {
     
     
     func onDecline(_ error: Error? = nil){
+        print(DEBUG_TAG+"operation was declined")
         status = .CANCELLED
     }
     

@@ -194,7 +194,7 @@ public class Remote {
         for operation in sendingOperations {
             let cancelStates: [TransferStatus] = [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION]
             if cancelStates.contains(operation.status) {
-                operation.stop(TransferError.ConnectionInterrupted)
+                operation.orderStop(TransferError.ConnectionInterrupted)
             }
         }
         for operation in receivingOperations {
@@ -451,18 +451,24 @@ extension Remote {
 //            $0.readableName = Server.SERVER_UUID
 //            $0.useCompression = false
 //        }
+        
+        print(DEBUG_TAG+"callClientStartTransfer ")
         let operationInfo = operation.operationInfo
         let handler = operation.receiveHandler
+        
         
         let dataStream = warpClient?.startTransfer(operationInfo, handler: handler)
         
         
         dataStream?.status.whenSuccess{ status in
+            
+            print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
+            
             operation.finishReceive()
-            print(self.DEBUG_TAG+"transfer finished")
         }
         
         dataStream?.status.whenFailure{ error in
+            operation.receiveWasCancelled()
             print(self.DEBUG_TAG+"transfer failed: \(error)")
         }
     }

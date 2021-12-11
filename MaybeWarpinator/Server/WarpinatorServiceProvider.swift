@@ -180,12 +180,18 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     
     
+    
+    //MARK: -
     //MARK: - Transfers
+    
+    
     
     
     // MARK: process transfer request
     // receive request from remote to transfer data to this device
     public func processTransferOpRequest(request: TransferOpRequest, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
+        
+        print(DEBUG_TAG+"Received PROCESS TRANSFER request from \(request.info.ident)")
         
         let remoteUUID: String = request.info.ident
         
@@ -195,10 +201,7 @@ public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        print(DEBUG_TAG+"Processing TransferOpRequest: ")
-        print(DEBUG_TAG+"\(request)")
-        
-        
+        print(DEBUG_TAG+"\t\(request)")
         
         let operation = ReceiveFileOperation(request, forRemote: remote)
         operation.prepareReceive()
@@ -216,6 +219,8 @@ public class WarpinatorServiceProvider: WarpProvider {
     // called by remote to indicate that they are ready to begin receiving transfer (specified in OpInfo)
     public func startTransfer(request: OpInfo, context: StreamingResponseCallContext<FileChunk>) -> EventLoopFuture<GRPCStatus> {
         
+        print(DEBUG_TAG+"Received START request from \(request.ident)")
+        
         let remoteUUID: String = request.ident
         
         guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
@@ -223,7 +228,6 @@ public class WarpinatorServiceProvider: WarpProvider {
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
-        
         
         guard let transfer = remote.findSendOperation(withStartTime: request.timestamp) else {
             print(DEBUG_TAG+"Remote has no sending operations with requested timestamp")
@@ -242,22 +246,67 @@ public class WarpinatorServiceProvider: WarpProvider {
     // receive instruction to cancel the sendingOperation (transfer) specified in OpInfo
     public func cancelTransferOpRequest(request: OpInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        // TODO: implement cancel transfer function
+        print(DEBUG_TAG+"Received CANCEL request from \(request.ident)")
+        
+        let remoteUUID: String = request.ident
+        
+        guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
+            print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
+            let error = TransferError.TransferNotFound
+            return context.eventLoop.makeFailedFuture(error)
+        }
+        
+        guard let transfer = remote.findTransferOperation(for: request.timestamp) else {
+            print(DEBUG_TAG+"Remote has no operations with requested timestamp")
+            let error = TransferError.TransferNotFound
+            return context.eventLoop.makeFailedFuture(error)
+        }
         
         
+        if let receive = transfer as? ReceiveFileOperation {
+            receive.receiveWasCancelled()
+        }
         
-        return context.eventLoop.makeCompletedFuture(Result(catching: {  return VoidType()   }))
+        if let send = transfer as? SendFileOperation {
+            send.onDecline()
+        }
+        
+        
+        return context.eventLoop.makeSucceededFuture( VoidType() )
     }
     
     
-    // MARK: stop transer
+    // MARK: stop transfer
     // (other device is requesting that a given operation -sending or receiving- be stopped)
     // receive instruction to stop operation (transfer) specified in OpInfo
     public func stopTransfer(request: StopInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        // TODO: implement stop transfer function
+        print(DEBUG_TAG+"Received STOP request for transfer - \(request.info)")
         
-        return context.eventLoop.makeCompletedFuture(Result(catching: {  return VoidType()  }))
+        let remoteUUID: String = request.info.ident
+        
+        guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
+            print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
+            let error = TransferError.TransferNotFound
+            return context.eventLoop.makeFailedFuture(error)
+        }
+        
+        
+        guard let transfer = remote.findTransferOperation(for: request.info.timestamp) else {
+            print(DEBUG_TAG+"Remote has no operations with requested timestamp")
+            let error = TransferError.TransferNotFound
+            return context.eventLoop.makeFailedFuture(error)
+        }
+        
+        
+        if request.error {
+            transfer.stopRequested( TransferError.UnknownError )
+        } else {
+            transfer.stopRequested(nil)
+        }
+        
+        
+        return context.eventLoop.makeSucceededFuture( VoidType() )
     }
     
     

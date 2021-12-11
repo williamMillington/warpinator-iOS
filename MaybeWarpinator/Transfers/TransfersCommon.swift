@@ -27,6 +27,7 @@ enum TransferError: Error {
     case PermissionDeclined
     case TransferCancelled
     case TransferNotFound
+    case UnknownError
 }
 
 
@@ -83,9 +84,11 @@ protocol TransferOperation {
     
     var operationInfo: OpInfo { get }
     
-    
-    
     var observers: [TransferOperationViewModel] { get }
+    
+    
+    func stopRequested(_ error: Error?)
+    
     
     func addObserver(_ model: TransferOperationViewModel)
     func removeObserver(_ model: TransferOperationViewModel)
@@ -131,6 +134,12 @@ class MockReceiveTransfer: TransferOperation {
         status = .WAITING_FOR_PERMISSION
         progress = 0
         
+    }
+    
+    
+    
+    func stopRequested(_ error: Error? = nil){
+        status = .STOPPED
     }
     
     

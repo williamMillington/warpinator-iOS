@@ -38,24 +38,13 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     func start() {
-        print(DEBUG_TAG+"starting")
+//        print(DEBUG_TAG+"starting")
         showRemote()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
-//            self.remote.addReceivingOperation(mockOp)
-//            self.remote.sendFile( FileName(name: "TestFileToSend", ext: "rtf" ))
-//            self.remote.sendFile( FileName(name: "The_Last_Five_Years", ext: "pdf" ))
-//            remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
-            let filenames: [FileName] = [
-                FileName(name: "TestFileToSend", ext: "rtf" ),
-//                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
-                FileName(name: "The_Last_Five_Years", ext: "pdf" )
-            ]
-            self.remote.sendFiles( filenames )
-        }
+//        mockSendTransfer()
         
     }
+    
     
     func back(){
         parent.coordinatorDidFinish(self)
@@ -72,12 +61,12 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         }
         else {
             
-            print(DEBUG_TAG+"creating vc")
+//            print(DEBUG_TAG+"creating vc")
             let vm = RemoteViewModel(remote)
             let remoteVC = RemoteViewController(withViewModel: vm)
             remoteVC.coordinator = self
             
-            print(DEBUG_TAG+"pushing vc")
+//            print(DEBUG_TAG+"pushing vc")
             navController.pushViewController(remoteVC, animated: false)
         }
     }
@@ -166,6 +155,22 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         }
     }
     
+    
+    func mockSendTransfer(){
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
+//            self.remote.addReceivingOperation(mockOp)
+//            self.remote.sendFile( FileName(name: "TestFileToSend", ext: "rtf" ))
+//            self.remote.sendFile( FileName(name: "The_Last_Five_Years", ext: "pdf" ))
+//            remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
+            let filenames: [FileName] = [
+                FileName(name: "TestFileToSend", ext: "rtf" ),
+//                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
+                FileName(name: "The_Last_Five_Years", ext: "pdf" )
+            ]
+            self.remote.sendFiles( filenames )
+        }
+    }
     
     
     func coordinatorDidFinish(_ child: Coordinator){
