@@ -97,6 +97,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         print(DEBUG_TAG+"(API_V2) Duplex is being waited for by \(request.readableName) (\(request.id))")
         
+        
         let duplexPromise = checkDuplex(forUUID: id, context)
         
         return duplexPromise.futureResult
@@ -197,11 +198,17 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
             print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
-            let error = RegistrationError.ConnectionError
+            let error = AuthenticationError.ConnectionError
             return context.eventLoop.makeFailedFuture(error)
         }
         
         print(DEBUG_TAG+"\t\(request)")
+        
+        // if this is a retry of a previous operation
+        if let operation = remote.findTransferOperation(for: request.info.timestamp) as? ReceiveFileOperation {
+            operation.prepareReceive()
+            return context.eventLoop.makeSucceededFuture(VoidType())
+        }
         
         let operation = ReceiveFileOperation(request, forRemote: remote)
         operation.prepareReceive()

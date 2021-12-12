@@ -56,6 +56,7 @@ class TransferViewController: UIViewController {
         button.setTitle("Cancel", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .blue
+        button.addTarget(self, action: #selector(cancel), for: .touchUpInside)
 //        button.alpha = 0.5 // 'grayed' out while disabled
 //        button.isUserInteractionEnabled = false // disabled for inital setup
         return button
@@ -227,6 +228,20 @@ class TransferViewController: UIViewController {
             cancelTransferButton.isUserInteractionEnabled = false
             cancelTransferButton.alpha = 0.5
         }
+        
+    }
+    
+    
+    
+    @objc func cancel(){
+        
+        
+        
+    }
+    
+    
+    @objc func retry(){
+        
         
     }
     

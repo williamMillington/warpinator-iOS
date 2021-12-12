@@ -68,7 +68,7 @@ class MainCoordinator: NSObject, Coordinator {
         
         if let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) {
             
-            print(DEBUG_TAG+"remote found")
+//            print(DEBUG_TAG+"remote found")
             
             let remoteCoordinator = RemoteCoordinator(for: remote, parent: self, withNavigationController: navController)
             

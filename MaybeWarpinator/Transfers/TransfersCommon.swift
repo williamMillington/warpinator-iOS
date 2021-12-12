@@ -86,7 +86,7 @@ protocol TransferOperation {
     
     var observers: [TransferOperationViewModel] { get }
     
-    
+    func orderStop(_ error: Error?)
     func stopRequested(_ error: Error?)
     
     
@@ -137,6 +137,9 @@ class MockReceiveTransfer: TransferOperation {
     }
     
     
+    func orderStop(_ error: Error? = nil){
+        status = .STOPPED
+    }
     
     func stopRequested(_ error: Error? = nil){
         status = .STOPPED

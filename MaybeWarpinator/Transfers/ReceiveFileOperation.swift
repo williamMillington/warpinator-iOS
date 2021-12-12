@@ -148,6 +148,14 @@ extension ReceiveFileOperation {
         
         print(DEBUG_TAG+"\t Space is available");
         
+        // In case of retry
+        bytesTransferred = 0
+        bytesPerSecond = 0
+        completedFiles = []
+        currentFile = nil
+        currentRelativePath = ""
+        status = .WAITING_FOR_PERMISSION
+        
         updateObserversInfo()
         
     }
@@ -196,7 +204,7 @@ extension ReceiveFileOperation {
                 
                 print(DEBUG_TAG+" creating new file")
                 
-                // close out old file
+                // close out old file, if it exists
                 if let file = currentFile {
                     file.finish()
                     completedFiles.append(file)

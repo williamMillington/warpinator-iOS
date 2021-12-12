@@ -84,13 +84,15 @@ class RemoteViewController: UIViewController {
         return button
     }()
     
+    
     let sendFilesButton: UIButton = {
         let button = UIButton()
         button.setTitle("Send Files", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .blue
-        button.alpha = 0.5 // 'grayed' out while disabled
-        button.isUserInteractionEnabled = false // disabled for inital setup
+        button.addTarget(self, action: #selector(sendFiles), for: .touchUpInside)
+//        button.alpha = 0.5 // 'grayed' out while disabled
+//        button.isUserInteractionEnabled = false // disabled for inital setup
         return button
     }()
     
@@ -106,7 +108,6 @@ class RemoteViewController: UIViewController {
         self.viewModel!.onInfoUpdated = { [unowned self] in
             updateDisplay()
         }
-        
         
         self.viewModel!.onTransferAdded = { [unowned self] viewmodel in
             addTransferViewToStack(withViewModel: viewmodel)
@@ -168,7 +169,6 @@ class RemoteViewController: UIViewController {
             
             transfersStack.bottomAnchor.constraint(equalTo: sendFilesButton.topAnchor, constant: -10),
             
-            
             sendFilesButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             sendFilesButton.widthAnchor.constraint(equalTo: transfersStack.widthAnchor),
 //            sendFilesButton.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(sideMargin*2)  ),
@@ -204,6 +204,7 @@ class RemoteViewController: UIViewController {
         usernameLabel.text = viewModel.userName
         ipaddressLabel.text = viewModel.iNetAddress
         
+        
     }
     
     
@@ -212,6 +213,14 @@ class RemoteViewController: UIViewController {
             self.coordinator?.userSelectedTransfer(withUUID: viewmodel.UUID )
         })
         transfersStack.insertArrangedSubview(ltview, at: (transfersStack.arrangedSubviews.count - 1))
+    }
+    
+    
+    
+    @objc func sendFiles(){
+        
+        coordinator?.mockSendTransfer()
+        
     }
     
     

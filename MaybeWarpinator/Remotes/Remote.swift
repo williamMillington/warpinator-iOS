@@ -134,6 +134,7 @@ public class Remote {
     }
     
     
+    
     func startConnection(){
         
         duplexAttempts = 0
@@ -171,6 +172,7 @@ public class Remote {
             hostname = details.hostname
         }
         
+//        let hostname = "192.168.50.42"
         let port = details.port
         
         print(self.DEBUG_TAG+"creating channel for \(hostname):\(port)")
@@ -187,7 +189,7 @@ public class Remote {
     
     
     // MARK: onDisconnect
-    func channelDidDisconnect(_ error: Error? = nil){
+    func onDisconnect(_ error: Error? = nil){
         print(self.DEBUG_TAG+"channel disconnected")
         
         // stop all transfers
@@ -232,35 +234,47 @@ extension Remote {
         duplexAttempts += 1
         
         print(DEBUG_TAG+"acquiring duplex, attempt: \(duplexAttempts)")
+//        let options = CallOptions(logger: logger)
         
         var duplex: UnaryCall<LookupName, HaveDuplex>?
         if details.api == "1" {
-            duplex = warpClient?.checkDuplexConnection(lookupName)
+            duplex = warpClient?.checkDuplexConnection(lookupName)//, callOptions: options)
         } else {
-            duplex = warpClient?.waitingForDuplex(lookupName)
+            duplex = warpClient?.waitingForDuplex(lookupName)//, callOptions: options)
         }
         
         
         duplex?.response.whenComplete { result in
             
+            // check for success
             do {
                 let haveDuplex = try result.get()
                 
+                print(self.DEBUG_TAG+"haveDuplex result is \(haveDuplex.response)")
+                
+                // if acquired
                 if haveDuplex.response {
-                    self.onDuplexAquired();  return
+                    
+                    print(self.DEBUG_TAG+"duplex verified after \(self.duplexAttempts) attempts")
+                    
+                    self.details.status = .DuplexAquired
+                    self.retrieveRemoteInfo() // retreive
+                    
+                    return
                 }
-                print(self.DEBUG_TAG+"duplex not acquired")
                 
             } catch  {
-                self.onDuplexFail(error)
+                print(self.DEBUG_TAG+"did not establish duplex -> \(error)")
             }
             
             
-            // 10 tries
+            // check number of tries (10)
             guard self.duplexAttempts < 10 else {
-                self.onDuplexFail( DuplexError.DuplexNotEstablished )
+                print(self.DEBUG_TAG+"unable to establish duplex")
+                self.onDisconnect( DuplexError.DuplexNotEstablished )
                 return
             }
+            
             
             print(self.DEBUG_TAG+"\ttrying again...")
             // try again in 2 seconds
@@ -271,23 +285,6 @@ extension Remote {
         }
     }
     
-    
-    // MARK: onDuplexAquired
-    private func onDuplexAquired(){
-        
-        print(self.DEBUG_TAG+"duplex verified after \(duplexAttempts) attempts")
-        
-        details.status = .DuplexAquired
-        
-        retrieveRemoteInfo()
-    }
-    
-    
-    //MARK: onDuplexFail
-    func onDuplexFail(_ error: Error ){
-        print(DEBUG_TAG+"unable to establish duplex")
-        channelDidDisconnect(error)
-    }
     
 }
 
@@ -505,33 +502,7 @@ extension Remote {
         return nil
     }
     
-    //MARK: begin
-//    func sendFile(_ filename: FileName){
-//
-//        let operation = SendFileOperation(for: filename)
-//
-//        let request: TransferOpRequest = .with {
-//            $0.info = operation.operationInfo
-//            $0.senderName = Server.SERVER_UUID
-//            $0.size = UInt64(operation.totalSize)
-//            $0.count = UInt64(operation.fileCount)
-//            $0.nameIfSingle = operation.singleName
-//            $0.mimeIfSingle = operation.singleMime
-//            $0.topDirBasenames = operation.topDirBaseNames
-//        }
-//
-//        print(DEBUG_TAG+"Sending request: \(request)")
-//
-//        addSendingOperation(operation)
-//
-//        let response = warpClient?.processTransferOpRequest(request)
-//
-//        response?.response.whenComplete { result in
-//            print(self.DEBUG_TAG+"process request completed; result: \(result)")
-//        }
-//    }
-    
-    
+    //MARK: send files
     func sendFiles(_ filenames: [FileName]){
         
         let operation = SendFileOperation(for: filenames)
@@ -601,8 +572,9 @@ extension Remote {
 
 
 
-
+//MARK: ConnectivityStateDelegate
 extension Remote: ConnectivityStateDelegate {
+    
     
     //MARK: connectivityStateDidChange
     public func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
@@ -615,17 +587,22 @@ extension Remote: ConnectivityStateDelegate {
             transientFailureCount += 1
             print(DEBUG_TAG+"\tTransientFailure \(transientFailureCount)")
             if transientFailureCount == 10 {
-                channelDidDisconnect( RegistrationError.ConnectionError )
+                onDisconnect( AuthenticationError.ConnectionError )
             }
-        case .idle, .shutdown: channelDidDisconnect()
+        case .idle, .shutdown: onDisconnect()
         default: break
         }
         
     }
 }
 
+
+
+//MARK: ClientErrorDelegate
 extension Remote: ClientErrorDelegate {
-    //MARK
+    
+    
+    //MARK: didCatchError
     public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
         
         // bad cert, discard and retry
@@ -633,7 +610,7 @@ extension Remote: ClientErrorDelegate {
             print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
             authenticationCertificate = nil
             
-            channelDidDisconnect()
+            onDisconnect()
             startConnection()
         } else {
             print(DEBUG_TAG+"Unknown error: \(error)")
@@ -670,7 +647,7 @@ extension Remote: AuthenticationRecipient {
     }
     
     // MARK: failure
-    func failedToObtainCertificate(forRemote details: RemoteDetails, _ error: RegistrationError){
+    func failedToObtainCertificate(forRemote details: RemoteDetails, _ error: AuthenticationError){
         print(DEBUG_TAG+"failed to retrieve certificate, error: \(error)")
     }
 }

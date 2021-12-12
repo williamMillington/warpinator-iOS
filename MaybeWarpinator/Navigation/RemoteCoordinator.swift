@@ -148,6 +148,23 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     
+    func cancelTransfer(forTransferUUID uuid: UInt64){
+        
+        print(DEBUG_TAG+"user cancelled transfer with uuid")
+        
+        if let operation = remote.findTransferOperation(for: uuid) {
+            print(DEBUG_TAG+"\t transfer with uuid found")
+            operation.orderStop(nil)
+//            showRemote()
+        }else {
+            print(DEBUG_TAG+"ain't no operation for that there uuid")
+        }
+        
+    }
+    
+    
+    
+    
     func mockReceiveTransfer(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
