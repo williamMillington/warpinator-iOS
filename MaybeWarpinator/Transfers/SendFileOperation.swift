@@ -52,7 +52,7 @@ class SendFileOperation: TransferOperation {
         return Double(bytesTransferred) / totalSize
     }
     
-    var cancelled: Bool = false
+//    var cancelled: Bool = false
     
     var fileCount: Int = 0
     
@@ -73,6 +73,21 @@ class SendFileOperation: TransferOperation {
             $0.readableName = Utils.getDeviceName()
         }
     }
+    
+    
+    var transferRequest: TransferOpRequest {
+        return .with {
+            $0.info = operationInfo
+            $0.senderName = Server.SERVER_UUID
+            $0.size = UInt64(totalSize)
+            $0.count = UInt64(fileCount)
+            $0.nameIfSingle = singleName
+            $0.mimeIfSingle = singleMime
+            $0.topDirBasenames = topDirBaseNames
+        }
+    }
+    
+    
     
     
     var observers: [TransferOperationViewModel] = [] 
@@ -113,6 +128,15 @@ class SendFileOperation: TransferOperation {
     // MARK: prepare
     func prepareToSend() {
         
+        status = .INITIALIZING
+        
+        bytesTransferred = 0
+        bytesPerSecond = 0
+        
+        for reader in fileReaders {
+            reader.reset()
+        }
+        
         status = .WAITING_FOR_PERMISSION
         
     }
@@ -120,7 +144,7 @@ class SendFileOperation: TransferOperation {
     
     
     //MARK: start
-    func send(using context: StreamingResponseCallContext<FileChunk>) -> EventLoopPromise<GRPCStatus> {
+    func start(using context: StreamingResponseCallContext<FileChunk>) -> EventLoopPromise<GRPCStatus> {
         
         status = .TRANSFERRING
         
@@ -144,7 +168,8 @@ class SendFileOperation: TransferOperation {
                 do { // wait for result before sending next chunk
                     try result.wait()
                 } catch {
-                    print(self.DEBUG_TAG+"chunk prevented from waiting")
+                    print(self.DEBUG_TAG+"chunk prevented from waiting. Reason: \(error)")
+                    self.orderStop( error )
                 }
                 
                 result.whenSuccess { result in
@@ -157,14 +182,19 @@ class SendFileOperation: TransferOperation {
                 }
             }
             
-            
             promise.succeed(.ok)
         }
         
         // when entire transfer is completed
         context.closeFuture.whenComplete { result in
             print(self.DEBUG_TAG+"TransferOperation completed with result: \(result)")
-            self.status = .FINISHED
+            
+            do {
+                try result.get()
+                self.status = .FINISHED
+            } catch {
+                self.status = .CANCELLED
+            }
         }
         
         return promise
@@ -187,7 +217,7 @@ class SendFileOperation: TransferOperation {
         if let error = error {
             status = .FAILED(error)
         } else {
-            status = .STOPPED
+            status = .CANCELLED
         }
         
     }

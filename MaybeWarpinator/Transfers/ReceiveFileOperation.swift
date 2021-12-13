@@ -258,7 +258,7 @@ extension ReceiveFileOperation {
         if let error = error {
             status = .FAILED(error)
         } else {
-            status = .STOPPED
+            status = .CANCELLED
         }
         
     }
@@ -280,7 +280,7 @@ extension ReceiveFileOperation {
         print(DEBUG_TAG+" declining request...")
         
         owningRemote?.callClientDeclineTransfer(self, error: error)
-        status = .CANCELLED
+        status = .CANCELLED 
         
         currentFile?.fail()
     }

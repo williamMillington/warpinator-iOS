@@ -51,7 +51,7 @@ class TransferViewController: UIViewController {
         return label
     }()
     
-    let cancelTransferButton: UIButton = {
+    let transferButton: UIButton = {
         let button = UIButton()
         button.setTitle("Cancel", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -141,7 +141,7 @@ class TransferViewController: UIViewController {
         
         view.addSubview(operationsStack)
         
-        view.addSubview(cancelTransferButton)
+        view.addSubview(transferButton)
         
         var viewConstraints: [NSLayoutConstraint] = []
         
@@ -167,16 +167,16 @@ class TransferViewController: UIViewController {
             operationsStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
             operationsStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             operationsStack.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6),
-            operationsStack.bottomAnchor.constraint(equalTo: cancelTransferButton.topAnchor, constant: -10),
+            operationsStack.bottomAnchor.constraint(equalTo: transferButton.topAnchor, constant: -10),
             
             
             transferStatusLabel.bottomAnchor.constraint(equalTo: operationsStack.topAnchor, constant: -5),
             transferStatusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            cancelTransferButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
-            cancelTransferButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
-            cancelTransferButton.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.1),
-            cancelTransferButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
+            transferButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
+            transferButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
+            transferButton.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.1),
+            transferButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
             
         ]
         
@@ -223,25 +223,45 @@ class TransferViewController: UIViewController {
         
         transferStatusLabel.text = "\(transferViewModel.status)"
         
-        if transferViewModel.status == .FINISHED {
-            print(DEBUG_TAG+"\ttransfer finished")
-            cancelTransferButton.isUserInteractionEnabled = false
-            cancelTransferButton.alpha = 0.5
+        
+        switch transferViewModel.status {
+        case .TRANSFERRING:
+            // transform into retry button
+            transferButton.removeTarget(nil, action: nil, for: .allEvents)
+            
+            transferButton.setTitle("Cancel", for: .normal)
+            transferButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+        case .CANCELLED, .FAILED(_):
+            
+            // If sending, allow retry. Otherwise, disable button
+            guard transferViewModel.direction == .SENDING else {
+                fallthrough
+            }
+            // transform into retry button
+            transferButton.removeTarget(nil, action: nil, for: .allEvents)
+            
+            transferButton.setTitle("Re-try", for: .normal)
+            transferButton.addTarget(self, action: #selector(retry), for: .touchUpInside)
+            
+        case .FINISHED:
+            transferButton.isUserInteractionEnabled = false
+            transferButton.alpha = 0.5
+        default: break
         }
         
     }
     
     
-    
     @objc func cancel(){
         
-        
+        coordinator?.cancelTransfer(forTransferUUID: transferViewModel!.UUID)
         
     }
     
     
     @objc func retry(){
         
+        coordinator?.retryTransfer(forTransferUUID: transferViewModel!.UUID)
         
     }
     

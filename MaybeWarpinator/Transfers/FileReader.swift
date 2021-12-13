@@ -25,7 +25,7 @@ class FileReader  {
     
     var sent = 0
     var readHead = 0
-    var hasNext = false
+//    var hasNext = false
     
     
     var observers: [FileSenderViewModel] = []
@@ -45,6 +45,11 @@ class FileReader  {
         updateObserversInfo()
     }
     
+    
+    func reset(){
+        sent = 0
+        readHead = 0
+    }
     
     func loadFileData(){
         

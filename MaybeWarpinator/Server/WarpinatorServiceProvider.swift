@@ -242,7 +242,7 @@ public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        let promise = transfer.send(using: context)
+        let promise = transfer.start(using: context)
         
         return promise.futureResult
     }

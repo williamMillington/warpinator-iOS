@@ -104,6 +104,7 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     
+    // MARK: view transfer request
     private func openAcceptTransferViewController(forTransferOperation operation: TransferOperation){
         
         let vm = ReceiveTransferViewModel(operation: operation, from: remote)
@@ -117,12 +118,13 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     
     
+    // MARK: accept transfer
     func acceptTransfer(forTransferUUID uuid: UInt64){
         
-        print(DEBUG_TAG+"user approved transfer with uuid")
+        print(DEBUG_TAG+"user approved transfer with uuid \(uuid)")
         
         if let operation = remote.findReceiveOperation(withStartTime: uuid) {
-            print(DEBUG_TAG+"\t transfer with uuid found")
+            print(DEBUG_TAG+"\t transfer found")
             operation.startReceive()
             showRemote()
         }else {
@@ -132,13 +134,13 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     
-    
+    // MARK: decline transfer
     func declineTransfer(forTransferUUID uuid: UInt64){
         
-        print(DEBUG_TAG+"user declined transfer with uuid")
+        print(DEBUG_TAG+"user declined transfer with uuid \(uuid)")
         
         if let operation = remote.findReceiveOperation(withStartTime: uuid) {
-            print(DEBUG_TAG+"\t transfer with uuid found")
+            print(DEBUG_TAG+"\t transfer found")
             operation.startReceive()
             showRemote()
         }else {
@@ -148,19 +150,40 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     
+    // MARK: cancel transfer
     func cancelTransfer(forTransferUUID uuid: UInt64){
         
-        print(DEBUG_TAG+"user cancelled transfer with uuid")
+        print(DEBUG_TAG+"user cancelled transfer with uuid \(uuid)")
         
         if let operation = remote.findTransferOperation(for: uuid) {
-            print(DEBUG_TAG+"\t transfer with uuid found")
+            print(DEBUG_TAG+"\t transfer found")
             operation.orderStop(nil)
-//            showRemote()
         }else {
             print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
         
     }
+    
+    
+    // MARK: retry transfer
+    func retryTransfer(forTransferUUID uuid: UInt64){
+        
+        print(DEBUG_TAG+"user elected to re-attempt transfer with uuid \(uuid)")
+        
+        if let operation = remote.findSendOperation(withStartTime: uuid) {
+            print(DEBUG_TAG+"\t send transfer found")
+            
+            operation.prepareToSend()
+            
+            remote.sendRequest(toTransfer: operation)
+            
+        } else {
+            print(DEBUG_TAG+"ain't no operation for that there uuid")
+        }
+        
+    }
+    
+    
     
     
     

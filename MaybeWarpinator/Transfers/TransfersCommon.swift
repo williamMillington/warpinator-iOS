@@ -48,7 +48,6 @@ enum TransferStatus: Equatable {
              (WAITING_FOR_PERMISSION,WAITING_FOR_PERMISSION),
              (CANCELLED, CANCELLED),
              (TRANSFERRING, TRANSFERRING),
-             (STOPPED, STOPPED),
              (FINISHED, FINISHED): return true
         case (let FAILED(error1), let FAILED(error2) ):
             return error1.localizedDescription == error2.localizedDescription
@@ -56,7 +55,6 @@ enum TransferStatus: Equatable {
              (WAITING_FOR_PERMISSION,_),
              (CANCELLED, _),
              (TRANSFERRING,_),
-             (STOPPED,_),
              (FINISHED,_),
              (FAILED(_),_): return false
         }
@@ -65,7 +63,7 @@ enum TransferStatus: Equatable {
     case INITIALIZING
     case WAITING_FOR_PERMISSION
     case CANCELLED
-    case TRANSFERRING, STOPPED, FINISHED
+    case TRANSFERRING, FINISHED
     case FAILED(Error)
 }
 
@@ -138,11 +136,11 @@ class MockReceiveTransfer: TransferOperation {
     
     
     func orderStop(_ error: Error? = nil){
-        status = .STOPPED
+        status = .CANCELLED
     }
     
     func stopRequested(_ error: Error? = nil){
-        status = .STOPPED
+        status = .CANCELLED
     }
     
     

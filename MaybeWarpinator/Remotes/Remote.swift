@@ -373,6 +373,8 @@ extension Remote {
     // MARK: Stop Transfer
     func callClientStopTransfer(_ operation: TransferOperation, error: Error?) {
         
+        print(DEBUG_TAG+"callClientStopTransfer")
+        
         if let op = findTransferOperation(for: operation.UUID) {
             
             let info = op.operationInfo
@@ -439,7 +441,7 @@ extension Remote {
         return nil
     }
     
-    //MARK: begin
+    //MARK: start
     func callClientStartTransfer(for operation: ReceiveFileOperation){
         
 //        let operationInfo = OpInfo.with {
@@ -507,27 +509,23 @@ extension Remote {
         
         let operation = SendFileOperation(for: filenames)
         
-        let request: TransferOpRequest = .with {
-            $0.info = operation.operationInfo
-            $0.senderName = Server.SERVER_UUID
-            $0.size = UInt64(operation.totalSize)
-            $0.count = UInt64(operation.fileCount)
-            $0.nameIfSingle = operation.singleName
-            $0.mimeIfSingle = operation.singleMime
-            $0.topDirBasenames = operation.topDirBaseNames
-        }
-        
-        print(DEBUG_TAG+"Sending request: \(request)")
-        
         addSendingOperation(operation)
+        sendRequest(toTransfer: operation)
         
-        let response = warpClient?.processTransferOpRequest(request)
+    }
+    
+    
+    func sendRequest(toTransfer operation: SendFileOperation ){
+        
+        print(DEBUG_TAG+"Sending request: \(operation.transferRequest)")
+        
+        let response = warpClient?.processTransferOpRequest(operation.transferRequest)
         
         response?.response.whenComplete { result in
             print(self.DEBUG_TAG+"process request completed; result: \(result)")
         }
+        
     }
-    
 }
 
 
