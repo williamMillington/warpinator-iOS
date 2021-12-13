@@ -125,7 +125,8 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         if let operation = remote.findReceiveOperation(withStartTime: uuid) {
             print(DEBUG_TAG+"\t transfer found")
-            operation.startReceive()
+//            operation.startReceive()
+            remote.callClientStartTransfer(for: operation)
             showRemote()
         }else {
             print(DEBUG_TAG+"ain't no operation for that there uuid")
@@ -141,7 +142,8 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         if let operation = remote.findReceiveOperation(withStartTime: uuid) {
             print(DEBUG_TAG+"\t transfer found")
-            operation.startReceive()
+            operation.decline(nil)
+//            operation.startReceive()
             showRemote()
         }else {
             print(DEBUG_TAG+"ain't no operation for that there uuid")

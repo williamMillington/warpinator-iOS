@@ -76,7 +76,8 @@ class ReceiveFileOperation: TransferOperation {
     
     var currentRelativePath: String = ""
     
-    var completedFiles: [FileWriter] = []
+    var files: [FileWriter] = []
+    var writerIndex = 0
     var currentFile: FileWriter?
     
     
@@ -87,43 +88,30 @@ class ReceiveFileOperation: TransferOperation {
     lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
     
+    var operationInfo: OpInfo
     
-    lazy var receiveHandler: (FileChunk) -> Void = { chunk in
+    
+    //MARK: init
+    init(_ transferRequest: TransferOpRequest, forRemote remote: Remote){
         
-        guard self.status == .TRANSFERRING else {
-            print("ERROR RECEIVING")
-            return
-        }
-        
-        self.receivingChunksQueue.async {
-            self.processChunk(chunk)
-        }
-    }
-    
-    
-    var operationInfo: OpInfo {
-        return .with {
-            $0.ident = Server.SERVER_UUID
-            $0.timestamp = startTime
-            $0.readableName = Utils.getDeviceName()
-        }
-    }
-    
-    
-    init(_ request: TransferOpRequest, forRemote remote: Remote){
-        
-        self.request = request
+        request = transferRequest
         owningRemote = remote
         
         direction = .RECEIVING
         status = .INITIALIZING
         
         
-        startTime = request.info.timestamp
-        totalSize =  request.size
-        fileCount = Int(request.count)
+        startTime = transferRequest.info.timestamp
+        totalSize = transferRequest.size
+        fileCount = Int(transferRequest.count)
         
-        directories = request.topDirBasenames
+        directories = transferRequest.topDirBasenames
+        
+        operationInfo = .with {
+            $0.ident = Server.SERVER_UUID
+            $0.timestamp = transferRequest.info.timestamp
+            $0.readableName = Utils.getDeviceName()
+        }
         
     }
 }
@@ -151,9 +139,18 @@ extension ReceiveFileOperation {
         // In case of retry
         bytesTransferred = 0
         bytesPerSecond = 0
-        completedFiles = []
-        currentFile = nil
+        
+        // reset filewriters
+        files = []
+        for i in 0..<fileCount {
+            // Create 'empty' FileWriters
+            files.append(FileWriter(filename: "File \(i)"))
+        }
+        writerIndex = 0
         currentRelativePath = ""
+        currentFile = nil
+        
+        
         status = .WAITING_FOR_PERMISSION
         
         updateObserversInfo()
@@ -162,11 +159,34 @@ extension ReceiveFileOperation {
     
     
     //MARK: start
-    func startReceive(){
+    func startReceive(usingClient client: WarpClient){
+        
         print(DEBUG_TAG+" starting receive operation")
         
         status = .TRANSFERRING
-        owningRemote?.callClientStartTransfer(for: self)
+        
+        let dataStream = client.startTransfer(operationInfo) { chunk in
+            
+            guard self.status == .TRANSFERRING else {
+                print("canceling chunk processing")
+                return
+            }
+            
+            self.receivingChunksQueue.async {
+                self.processChunk(chunk)
+            }
+        }
+        
+        dataStream.status.whenSuccess { status in
+            print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
+            self.finishReceive()
+        }
+        
+        dataStream.status.whenFailure { error in
+            print(self.DEBUG_TAG+"transfer failed: \(error)")
+            self.receiveWasCancelled()
+        }
+        
     }
     
     
@@ -174,10 +194,10 @@ extension ReceiveFileOperation {
     func processChunk(_ chunk: FileChunk){
         
         print(DEBUG_TAG+" reading chunk:")
-        print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
-        print(DEBUG_TAG+"\tfileType: \( FileType(rawValue: chunk.fileType)!) ")
-        print(DEBUG_TAG+"\tfileMode: \(chunk.fileMode)")
-        print(DEBUG_TAG+"\ttime: \(chunk.time)")
+//        print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
+//        print(DEBUG_TAG+"\tfileType: \( FileType(rawValue: chunk.fileType)!) ")
+//        print(DEBUG_TAG+"\tfileMode: \(chunk.fileMode)")
+//        print(DEBUG_TAG+"\ttime: \(chunk.time)")
         
         // If Directory
         if chunk.fileType == FileType.DIRECTORY.rawValue {
@@ -202,19 +222,22 @@ extension ReceiveFileOperation {
             // if starting a new file
             if chunk.relativePath != currentRelativePath {
                 
-                print(DEBUG_TAG+" creating new file")
+                print(DEBUG_TAG+" creating new file: \(chunk.relativePath)")
                 
                 // close out old file, if it exists
                 if let file = currentFile {
                     file.finish()
-                    completedFiles.append(file)
+//                    files.append(file)
                 }
                 
                 currentRelativePath = chunk.relativePath
                 
                 // TODO: this automatically overwrites, provide option to avoid
-                let file = FileWriter(filename: currentRelativePath)
-                currentFile = file
+//                let file = FileWriter(filename: currentRelativePath)
+                currentFile = files[writerIndex] //   file
+                writerIndex += 1
+                currentFile?.filename = currentRelativePath
+                currentFile?.createFile()
             } // else continue writing to current file
             
             currentFile?.write(chunk.chunk)
@@ -280,7 +303,7 @@ extension ReceiveFileOperation {
         print(DEBUG_TAG+" declining request...")
         
         owningRemote?.callClientDeclineTransfer(self, error: error)
-        status = .CANCELLED 
+        status = .CANCELLED
         
         currentFile?.fail()
     }

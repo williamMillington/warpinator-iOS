@@ -20,34 +20,45 @@ class FileWriter {
     static var DEBUG_TAG: String = "FileWriter (static): "
     lazy var DEBUG_TAG: String = "FileWriter \(filename): "
     
-    let filename: String
+    var filename: String
+    let fileParentURL = FileManager.default.extended.documentsDirectory
     
-    let fileURL: URL
-    let filepath: String
-    var fileHandle: FileHandle  {
+    /* Computing these variables allows the
+     FileWriter to use a placeholder name until writing actually starts.
+     This means that –before we actually have the name of the file– we can
+     hand this FileWriter to a viewmodel that will update when the file actually starts downloading,
+     instead of trying to create create empty viewmodels that we have to keep track of and fill later,
+     and keep track of which file we're on, how many files left, blah blah blah.
+     */
+    var fileURL: URL {
+        return fileParentURL.appendingPathComponent(filename)
+    }
+    
+    var filepath: String {
+        return fileURL.path
+    }
+    
+    var fileHandle: FileHandle? {
         do {
             return try FileHandle(forUpdating: fileURL)
-        } catch {  print(DEBUG_TAG+"couldn't aquire FileHandle: \(error)")  }
-        
-        return FileHandle(forUpdatingAtPath: filepath)!
+        } catch {
+            print(DEBUG_TAG+"couldn't aquire FileHandle from URL: \(error)")
+            print(DEBUG_TAG+"\tattempting to load from path")
+            return FileHandle(forUpdatingAtPath: filepath)
+        }
     }
     
     var writtenBytesCount: Int = 0
     
     var observers: [FileReceiverViewModel] = []
     
-    
     init(filename name: String){
-        
         self.filename = name
-        
+    }
+    
+    
+    func createFile(){
         let fileManager = FileManager.default
-        
-        let fileParentURL = fileManager.extended.documentsDirectory
-        
-        fileURL = fileParentURL.appendingPathComponent(filename)
-        
-        filepath = fileURL.path
         
         // file already exists
         if fileManager.fileExists(atPath: filepath) {
@@ -59,23 +70,31 @@ class FileWriter {
         updateObserversInfo()
     }
     
+    
     func write(_ data: Data){
-        print(DEBUG_TAG+"\twriting to file...")
-        fileHandle.seekToEndOfFile()
-        fileHandle.write(data)
+        print(DEBUG_TAG+"\tattempting to write to file...")
+        
+        guard let handle = fileHandle else {
+            print(DEBUG_TAG+"\t\tERROR: writing to file failed...")
+            return
+        }
+        
+        handle.seekToEndOfFile()
+        handle.write(data)
         
         writtenBytesCount += data.count
         updateObserversInfo()
     }
     
     func finish(){
-        fileHandle.closeFile()
+        fileHandle?.closeFile()
+        updateObserversInfo()
     }
     
     
     func fail(){
-        print(DEBUG_TAG+"failing filewrite:")
-        fileHandle.closeFile()
+        print(DEBUG_TAG+"\tfailing filewrite:")
+        fileHandle?.closeFile()
         
         // delete unfinished file
         let fileManager = FileManager.default
@@ -85,6 +104,7 @@ class FileWriter {
         } catch {
             print(DEBUG_TAG+"\tAn error occurred attempting to delete file: \(filepath)")
         }
+        updateObserversInfo()
     }
     
     
@@ -130,6 +150,37 @@ extension FileWriter {
     func updateObserversInfo(){
         observers.forEach { observer in
             observer.update()  
+        }
+    }
+}
+
+
+
+
+// MARK: Placeholder
+class FilePlaceHolder {
+    var observers: [FileReceiverViewModel] = []
+}
+
+
+extension FilePlaceHolder {
+    
+    func addObserver(_ model: FileReceiverViewModel){
+        observers.append(model)
+    }
+    
+    func removeObserver(_ model: FileReceiverViewModel){
+        
+        for (i, observer) in observers.enumerated() {
+            if observer === model {
+                observers.remove(at: i)
+            }
+        }
+    }
+    
+    func updateObserversInfo(){
+        observers.forEach { observer in
+            observer.update()
         }
     }
 }

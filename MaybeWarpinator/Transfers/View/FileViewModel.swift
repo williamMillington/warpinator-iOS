@@ -26,28 +26,34 @@ class FileReceiverViewModel: FileViewModel {
     var onUpdated: ()->Void = {}
     
     var type: String {
+        // TODO: expose MIME
         return "File"
     }
     
     var name: String {
+        
         return operation.filename
     }
     
     var size: String {
+        
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         
         let bytes = operation.writtenBytesCount
-        return formatter.string(fromByteCount:  Int64( bytes) )
+        
+        return formatter.string(fromByteCount:  Int64( bytes) ) 
     }
     
     var progress: Double {
+        
         return 0
     }
     
     
     init(operation: FileWriter){
         self.operation = operation
+        operation.addObserver(self)
     }
     
     func update(){
@@ -56,6 +62,9 @@ class FileReceiverViewModel: FileViewModel {
         }
     }
     
+    deinit {
+        operation.removeObserver(self)
+    }
 }
 
 
@@ -87,6 +96,7 @@ class FileSenderViewModel: FileViewModel {
     
     init(operation: FileReader){
         self.operation = operation
+        operation.addObserver(self)
     }
     
     
@@ -96,5 +106,9 @@ class FileSenderViewModel: FileViewModel {
         }
     }
     
+    
+    deinit {
+        operation.removeObserver(self)
+    }
 }
 

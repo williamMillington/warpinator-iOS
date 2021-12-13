@@ -90,7 +90,7 @@ public class Remote {
     var receivingOperations: [ReceiveFileOperation] = []
     
     var channel: ClientConnection?
-    var warpClient: WarpClientProtocol?
+    var warpClient: WarpClient?
     
     let group = MultiThreadedEventLoopGroup(numberOfThreads: 5) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
@@ -194,14 +194,12 @@ public class Remote {
         
         // stop all transfers
         for operation in sendingOperations {
-            let cancelStates: [TransferStatus] = [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION]
-            if cancelStates.contains(operation.status) {
+            if [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION].contains(operation.status) {
                 operation.orderStop(TransferError.ConnectionInterrupted)
             }
         }
         for operation in receivingOperations {
-            let cancelStates: [TransferStatus] = [.TRANSFERRING, .INITIALIZING]
-            if cancelStates.contains(operation.status) {
+            if [.TRANSFERRING, .INITIALIZING].contains(operation.status) {
                 operation.orderStop( TransferError.ConnectionInterrupted )
             }
         }
@@ -287,9 +285,6 @@ extension Remote {
     
     
 }
-
-
-
 
 
 //MARK: -
@@ -444,32 +439,31 @@ extension Remote {
     //MARK: start
     func callClientStartTransfer(for operation: ReceiveFileOperation){
         
-//        let operationInfo = OpInfo.with {
-//            $0.ident = Server.SERVER_UUID
-//            $0.timestamp = operation.startTime
-//            $0.readableName = Server.SERVER_UUID
-//            $0.useCompression = false
-//        }
-        
         print(DEBUG_TAG+"callClientStartTransfer ")
-        let operationInfo = operation.operationInfo
-        let handler = operation.receiveHandler
+        
+//        let operationInfo = operation.operationInfo 
+//        let handler = operation.receiveHandler
         
         
-        let dataStream = warpClient?.startTransfer(operationInfo, handler: handler)
-        
-        
-        dataStream?.status.whenSuccess{ status in
-            
-            print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
-            
-            operation.finishReceive()
+        guard let client = warpClient else {
+            print(DEBUG_TAG+"No client becAuSE THERE'S A PROBLEM ")
+            return
         }
         
-        dataStream?.status.whenFailure{ error in
-            operation.receiveWasCancelled()
-            print(self.DEBUG_TAG+"transfer failed: \(error)")
-        }
+        operation.startReceive(usingClient: client)
+        
+//        let dataStream = warpClient?.startTransfer(operationInfo, handler: handler)
+//
+//
+//        dataStream?.status.whenSuccess{ status in
+//            print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
+//            operation.finishReceive()
+//        }
+//
+//        dataStream?.status.whenFailure{ error in
+//            operation.receiveWasCancelled()
+//            print(self.DEBUG_TAG+"transfer failed: \(error)")
+//        }
     }
 }
 
@@ -583,7 +577,7 @@ extension Remote: ConnectivityStateDelegate {
             print(DEBUG_TAG+"channel ready")
         case .transientFailure:
             transientFailureCount += 1
-            print(DEBUG_TAG+"\tTransientFailure \(transientFailureCount)")
+            print(DEBUG_TAG+"\tTransientFailure #\(transientFailureCount)")
             if transientFailureCount == 10 {
                 onDisconnect( AuthenticationError.ConnectionError )
             }
@@ -621,7 +615,8 @@ extension Remote: ClientErrorDelegate {
 // MARK: - Authentication
 extension Remote: AuthenticationRecipient {
     
-    // obtainCertificate
+    
+    // MARK: fetch cert
     func obtainCertificate(){
         
         if details.api == "1" {

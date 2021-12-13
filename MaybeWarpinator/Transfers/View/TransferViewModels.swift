@@ -54,10 +54,12 @@ class TransferOperationViewModel {
             
             let transfer = operation as! ReceiveFileOperation
             
+            for filewriter in transfer.files {
+                let vm = FileReceiverViewModel(operation: filewriter)
+                viewModels.append(vm)
+            }
             
         }
-        
-        
         
         return viewModels
     }
