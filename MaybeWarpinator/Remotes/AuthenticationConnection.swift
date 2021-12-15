@@ -176,8 +176,8 @@ class GRPCConnection: AuthenticationConnection {
         registree = manager
         
         
-        let hostname = "192.168.2.18"
-//        let hostname = details.hostname
+//        let hostname = "192.168.2.18"
+        let hostname = details.hostname
         let port = details.authPort
         
         
