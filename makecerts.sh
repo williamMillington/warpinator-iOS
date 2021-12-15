@@ -15,7 +15,7 @@ CN_CLIENT=localhost
 
 DAYS_VALID=30
 
-IP_ADDRESS="192.168.50.26"
+IP_ADDRESS="192.168.2.15"
 
 EXT_SubAltName="subjectAltName=IP:${IP_ADDRESS}"
 EXT_ExKeyUsage="extendedKeyUsage=serverAuth,clientAuth"

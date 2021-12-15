@@ -9,7 +9,7 @@ import Foundation
 
 
 
-class FileSelectionReader  {
+class FileSelectionReader: ReadsFile  {
     
     lazy var DEBUG_TAG: String = "FileSelectionReader \"\(filename):\" "
     
@@ -30,7 +30,7 @@ class FileSelectionReader  {
     var readHead: UInt64 = 0
     
     
-    var observers: [ListedFileSelectionViewModel] = []
+    var observers: [ListedFileSelectionReaderViewModel] = []
     
     
     init?(for file: FileSelection){
@@ -67,7 +67,6 @@ class FileSelectionReader  {
 //
 //        loadFileData()
 //        updateObserversInfo()
-        return nil
     }
     
     
@@ -88,12 +87,13 @@ class FileSelectionReader  {
         
         print(DEBUG_TAG+"\tReading next chunk")
         print(DEBUG_TAG+"\tsent: \(sent)")
+        print(DEBUG_TAG+"\tfileOffset: \(fileHandle.offsetInFile)")
         print(DEBUG_TAG+"\tread-head: \(readHead)")
         print(DEBUG_TAG+"\ttotal: \(totalBytes)")
 
         
         
-        guard fileHandle.offsetInFile == totalBytes else {
+        guard fileHandle.offsetInFile < totalBytes else {
             
             updateObserversInfo()
             
@@ -156,11 +156,11 @@ class FileSelectionReader  {
 //MARK: observers
 extension FileSelectionReader {
     
-    func addObserver(_ model: ListedFileSelectionViewModel){
+    func addObserver(_ model: ListedFileSelectionReaderViewModel){
         observers.append(model)
     }
     
-    func removeObserver(_ model: ListedFileSelectionViewModel){
+    func removeObserver(_ model: ListedFileSelectionReaderViewModel){
         
         for (i, observer) in observers.enumerated() {
             if observer === model {

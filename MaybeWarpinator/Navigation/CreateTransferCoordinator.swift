@@ -43,6 +43,7 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     func back(){
+        parent.start()
         parent.coordinatorDidFinish(self)
     }
     
@@ -73,20 +74,16 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
     
     func sendFiles(_ selections: [FileSelection]){
         
-        
-        
-        
-        
-        
-        
-    }
-    
-    
-    
-    func cancel(){
-        parent.start()
+        remote.sendFiles(selections)
         back()
     }
+    
+    
+    
+//    func cancel(){
+//        parent.start()
+//        back()
+//    }
     
     
     func coordinatorDidFinish(_ child: Coordinator){
@@ -104,27 +101,27 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
 
 
 //extension CreateTransferCoordinator: UIDocumentPickerDelegate {
-//     
+//
 //    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-//        
+//
 //        print(DEBUG_TAG+"Documents picked")
-//        
+//
 //        for url in urls {
 //            print(DEBUG_TAG+"\(url)")
 //            print(DEBUG_TAG+"\t\(url.lastPathComponent)")
 //            print(DEBUG_TAG+"\t\(url.pathExtension)")
 //            print(DEBUG_TAG+"\t\(url.hasDirectoryPath)")
-//            
+//
 //        }
-//        
+//
 //    }
-//    
+//
 //    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-//        
+//
 //        print(DEBUG_TAG+"Document picker cancelled")
 //        controller.dismiss(animated: true)
 ////        showSendingScreen()
 //    }
-//    
-//    
+//
+//
 //}

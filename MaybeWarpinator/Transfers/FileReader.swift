@@ -15,7 +15,7 @@ protocol ReadsFile {
 }
 
 
-class FileReader  {
+class FileReader: ReadsFile  {
     
     lazy var DEBUG_TAG: String = "FileReader \"\(filename).\(fileExtension):\" "
     
@@ -123,7 +123,7 @@ class FileReader  {
 ////MARK: iterator
 //extension FileReader: Sequence, IteratorProtocol {
 //    typealias Element = FileChunk
-//    
+//
 //    func next() -> FileChunk? {
 //        return readNextChunk()
 //    }
@@ -165,13 +165,13 @@ class ChunkIterator {
     
     
 //    var fileReaders: [FileReader]
-    var fileReaders: [FileReader]
+    var fileReaders: [ReadsFile]
     
     var readerIndex = 0
-    var currentReader: FileReader
+    var currentReader: ReadsFile
     
     
-    init(for readers: [FileReader]){
+    init(for readers: [ReadsFile]){
         fileReaders = readers
         currentReader = fileReaders[0]
     }

@@ -165,12 +165,13 @@ public class Remote {
         
         
         // primitive check for android app, which will not accept hostname connections
-        let hostname: String
-        if details.api == "1" {
-            hostname = details.ipAddress
-        } else {
-            hostname = details.hostname
-        }
+//        let hostname: String
+//        if details.api == "1" {
+//            hostname = details.ipAddress
+//        } else {
+//            hostname = details.hostname
+//        }
+        let hostname = "192.168.2.18"
         
 //        let hostname = "192.168.50.42"
         let port = details.port
@@ -485,21 +486,21 @@ extension Remote {
     //MARK: send files
     func sendFiles(_ filenames: [FileName]){
         
-        let operation = SendFileOperation(for: filenames)
-        
-        addSendingOperation(operation)
-        sendRequest(toTransfer: operation)
-        
+//        let operation = SendFileOperation(for: filenames)
+//
+//        addSendingOperation(operation)
+//        sendRequest(toTransfer: operation)
+//
     }
     
     
     //MARK: send files
     func sendFiles(_ selections: [FileSelection]){
         
-//        let operation = SendFileOperation(for: filenames)
-//        
-//        addSendingOperation(operation)
-//        sendRequest(toTransfer: operation)
+        let operation = SendFileOperation(for: selections)
+
+        addSendingOperation(operation)
+        sendRequest(toTransfer: operation)
         
     }
     

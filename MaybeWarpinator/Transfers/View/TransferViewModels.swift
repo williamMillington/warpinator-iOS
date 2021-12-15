@@ -46,7 +46,8 @@ class TransferOperationViewModel {
             
             for file in transfer.fileReaders {
                 
-                let vm = FileSenderViewModel(operation: file)
+//                let vm = FileSenderViewModel(operation: file) 
+                let vm = ListedFileSelectionReaderViewModel(file)
                 viewModels.append(vm)
             }
             

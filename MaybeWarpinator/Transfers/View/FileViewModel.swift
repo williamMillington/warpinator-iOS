@@ -112,3 +112,50 @@ class FileSenderViewModel: FileViewModel {
     }
 }
 
+
+
+//MARK: viewModel
+final class ListedFileSelectionReaderViewModel: FileViewModel {
+    
+    var onUpdated: () -> Void = {}
+    
+    private let operation: FileSelectionReader
+    
+    var name: String {
+        return operation.filename
+    }
+    
+    var type: String {
+        return "File"
+    }
+    
+    var size: String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        
+        let bytesCount = operation.totalBytes
+        
+        return formatter.string(fromByteCount:  Int64( bytesCount) )
+    }
+    
+    var progress: Double {
+        return 0
+    }
+    
+    init(_ selection: FileSelectionReader){
+        operation = selection
+        operation.addObserver(self)
+    }
+    
+    
+    func update(){
+        DispatchQueue.main.async {
+            self.onUpdated()
+        }
+    }
+    
+    deinit {
+        operation.removeObserver(self)
+    }
+    
+}

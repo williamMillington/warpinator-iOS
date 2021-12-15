@@ -199,11 +199,11 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     
-    func openDocumentPicker(){
-        
-        
-        
-    }
+//    func openDocumentPicker(){
+//        
+//        
+//        
+//    }
     
     
     

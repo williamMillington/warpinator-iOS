@@ -236,7 +236,8 @@ class CreateSendTransferViewController: UIViewController {
     
     @objc func cancel(){
 //        coordinator?.start()
-        coordinator?.cancel()
+//        coordinator?.cancel()
+        coordinator?.back()
     }
     
 }

@@ -105,12 +105,14 @@ class RemoteViewController: UIViewController {
         self.viewModel = viewModel
         
         
-        self.viewModel!.onInfoUpdated = { [unowned self] in
-            updateDisplay()
+        self.viewModel!.onInfoUpdated = { [weak self] in
+            guard let self = self else { return }
+            self.updateDisplay()
         }
         
-        self.viewModel!.onTransferAdded = { [unowned self] viewmodel in
-            addTransferViewToStack(withViewModel: viewmodel)
+        self.viewModel!.onTransferAdded = { [weak self] viewmodel in
+            guard let self = self else { return }
+            self.addTransferViewToStack(withViewModel: viewmodel)
         }
         
     }

@@ -9,7 +9,7 @@ import UIKit
 
 
 //MARK: viewModel
-final class ListedFileSelectionViewModel{
+final class ListedFileSelectionViewModel {
     
     private let fileSelection: FileSelection
 //    var onUpdate: ()->Void = {}

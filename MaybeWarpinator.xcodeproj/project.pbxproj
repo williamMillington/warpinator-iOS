@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		791D77E22766A114008140CC /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 791D77E02766A113008140CC /* rootkey.key */; };
-		791D77E32766A114008140CC /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 791D77E12766A113008140CC /* root.pem */; };
 		791D77E72767B244008140CC /* CreateSendTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77E62767B244008140CC /* CreateSendTransferViewController.swift */; };
 		791D77EB2767DC94008140CC /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EA2767DC93008140CC /* Document.swift */; };
 		791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */; };
 		791D77F3276915F5008140CC /* FileSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F2276915F5008140CC /* FileSelection.swift */; };
 		791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F52769910A008140CC /* ListedFileSelectionView.swift */; };
 		791D77FA276A5F4B008140CC /* FileSelectionReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F9276A5F4B008140CC /* FileSelectionReader.swift */; };
+		791D7800276A7DD6008140CC /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 791D77FE276A7DD6008140CC /* root.pem */; };
+		791D7801276A7DD6008140CC /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 791D77FF276A7DD6008140CC /* rootkey.key */; };
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
 		79331B03274E91A600A4022F /* TransferViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331B02274E91A600A4022F /* TransferViewModels.swift */; };
 		79331B07274E91DB00A4022F /* RemoteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331B06274E91DB00A4022F /* RemoteViewModel.swift */; };
@@ -75,14 +75,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		791D77E02766A113008140CC /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
-		791D77E12766A113008140CC /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
 		791D77E62767B244008140CC /* CreateSendTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSendTransferViewController.swift; sourceTree = "<group>"; };
 		791D77EA2767DC93008140CC /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
 		791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTransferCoordinator.swift; sourceTree = "<group>"; };
 		791D77F2276915F5008140CC /* FileSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelection.swift; sourceTree = "<group>"; };
 		791D77F52769910A008140CC /* ListedFileSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileSelectionView.swift; sourceTree = "<group>"; };
 		791D77F9276A5F4B008140CC /* FileSelectionReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelectionReader.swift; sourceTree = "<group>"; };
+		791D77FE276A7DD6008140CC /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
+		791D77FF276A7DD6008140CC /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
 		79331AF8274E8F3500A4022F /* TransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewController.swift; sourceTree = "<group>"; };
 		79331B02274E91A600A4022F /* TransferViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModels.swift; sourceTree = "<group>"; };
 		79331B06274E91DB00A4022F /* RemoteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViewModel.swift; sourceTree = "<group>"; };
@@ -280,9 +280,9 @@
 		797C12C6271749A100A2795C /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				791D77FE276A7DD6008140CC /* root.pem */,
+				791D77FF276A7DD6008140CC /* rootkey.key */,
 				79360ED2270A1C7A008349D2 /* Test_Files */,
-				791D77E12766A113008140CC /* root.pem */,
-				791D77E02766A113008140CC /* rootkey.key */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -432,14 +432,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				791D7800276A7DD6008140CC /* root.pem in Resources */,
 				79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */,
-				791D77E22766A114008140CC /* rootkey.key in Resources */,
 				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
 				796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */,
-				791D77E32766A114008140CC /* root.pem in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
 				796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */,
+				791D7801276A7DD6008140CC /* rootkey.key in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -40,7 +40,8 @@ class SendFileOperation: TransferOperation {
         var bytes = 0
         
         for reader in fileReaders{
-            bytes += reader.fileBytes.count
+//            bytes += reader.fileBytes.count
+            bytes += reader.totalBytes
         }
         
         return bytes
@@ -61,8 +62,10 @@ class SendFileOperation: TransferOperation {
     var topDirBaseNames: [String] = []
     
     
-    var files: [FileName]
-    var fileReaders: [FileReader] = []
+//    var files: [FileName]
+//    var fileReaders: [FileReader] = []
+    var files: [FileSelection]
+    var fileReaders: [FileSelectionReader] = []
     
     
     var operationInfo: OpInfo {
@@ -94,7 +97,8 @@ class SendFileOperation: TransferOperation {
     lazy var sendingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
     
-    init(for filenames: [FileName] ) {
+//    init(for filenames: [FileName] ) {
+    init(for filenames: [FileSelection] ) {
         
         direction = .SENDING
         status = .INITIALIZING
@@ -107,19 +111,25 @@ class SendFileOperation: TransferOperation {
         singleName = "\(filenames.count) files"
         singleMime = "application/octet-stream"
         
-        for filename in files {
-            topDirBaseNames.append("\(filename.name).\(filename.ext)")
-            fileReaders.append( FileReader(for: filename) )
+        for selection in files {
+//            topDirBaseNames.append("\(filename.name).\(filename.ext)")
+            topDirBaseNames.append("\(selection.name)")
+            if let reader = FileSelectionReader(for: selection) {
+                fileReaders.append( reader   )
+            } else {
+                print(DEBUG_TAG+"problem accessing selection \(selection.name)")
+            }
         }
         
     }
     
     
-    convenience init(for filename: FileName){
-        self.init(for: [filename])
+//    convenience init(for filename: FileName){
+    convenience init(for selection: FileSelection){
+        self.init(for: [selection])
         
         singleName = fileReaders[0].relativeFilePath
-        singleMime = fileReaders[0].fileExtension
+        singleMime = "miiiiiiiiiiiiiiiiiiime"
     }
     
     
@@ -148,7 +158,7 @@ class SendFileOperation: TransferOperation {
         
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
         
-        let chunkIterator = ChunkIterator(for: fileReaders)
+        let chunkIterator = ChunkIterator(for: fileReaders) 
         
         sendingChunksQueue.async {
             

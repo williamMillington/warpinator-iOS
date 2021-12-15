@@ -176,8 +176,8 @@ class GRPCConnection: AuthenticationConnection {
         registree = manager
         
         
-//        let hostname = "192.168.2.18"
-        let hostname = details.hostname
+        let hostname = "192.168.2.18"
+//        let hostname = details.hostname
         let port = details.authPort
         
         
@@ -209,7 +209,8 @@ class GRPCConnection: AuthenticationConnection {
 //        let options = CallOptions(timeLimit: .timeout( .seconds(10)), logger: logger )
 //        let options = CallOptions(logger: logger )
 
-        let registrationRequest = warpClient.requestCertificate(request)//, callOptions: options)
+//        let registrationRequest = warpClient.requestCertificate(request, callOptions: options)
+        let registrationRequest = warpClient.requestCertificate(request)
 
         registrationRequest.response.whenSuccess { result in
             if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
