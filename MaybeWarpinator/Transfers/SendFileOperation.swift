@@ -52,7 +52,6 @@ class SendFileOperation: TransferOperation {
         return Double(bytesTransferred) / totalSize
     }
     
-//    var cancelled: Bool = false
     
     var fileCount: Int = 0
     
@@ -86,7 +85,6 @@ class SendFileOperation: TransferOperation {
             $0.topDirBasenames = topDirBaseNames
         }
     }
-    
     
     
     

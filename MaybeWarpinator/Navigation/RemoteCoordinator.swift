@@ -41,8 +41,6 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
 //        print(DEBUG_TAG+"starting")
         showRemote()
         
-//        mockSendTransfer()
-        
     }
     
     
@@ -70,6 +68,7 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
             navController.pushViewController(remoteVC, animated: false)
         }
     }
+    
     
     
     func userSelectedTransfer(withUUID uuid: UInt64 ){
@@ -128,7 +127,7 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
 //            operation.startReceive()
             remote.callClientStartTransfer(for: operation)
             showRemote()
-        }else {
+        } else {
             print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
         
@@ -188,8 +187,44 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     
     
+    func createTransfer(){
+        
+        
+        let transferCoordinator = CreateTransferCoordinator(for: remote, parent: self, withNavigationController: navController)
+        
+        childCoordinators.append(transferCoordinator)
+        transferCoordinator.start()
+        
+        
+    }
     
     
+    func openDocumentPicker(){
+        
+        
+        
+    }
+    
+    
+    
+    func coordinatorDidFinish(_ child: Coordinator){
+        for (i, coordinator) in childCoordinators.enumerated() {
+            if coordinator === child {
+                childCoordinators.remove(at: i)
+                break
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+//MARK: Mock
+extension RemoteCoordinator {
     func mockReceiveTransfer(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
@@ -200,27 +235,12 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     func mockSendTransfer(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//            let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
-//            self.remote.addReceivingOperation(mockOp)
-//            self.remote.sendFile( FileName(name: "TestFileToSend", ext: "rtf" ))
-//            self.remote.sendFile( FileName(name: "The_Last_Five_Years", ext: "pdf" ))
-//            remote.sendFile( FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ))
             let filenames: [FileName] = [
                 FileName(name: "TestFileToSend", ext: "rtf" ),
 //                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
                 FileName(name: "The_Last_Five_Years", ext: "pdf" )
             ]
             self.remote.sendFiles( filenames )
-        }
-    }
-    
-    
-    func coordinatorDidFinish(_ child: Coordinator){
-        for (i, coordinator) in childCoordinators.enumerated() {
-            if coordinator === child {
-                childCoordinators.remove(at: i)
-                break
-            }
         }
     }
 }

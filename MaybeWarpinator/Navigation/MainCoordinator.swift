@@ -35,8 +35,7 @@ class MainCoordinator: NSObject, Coordinator {
         
         showMenu()
         
-//        mockTransferReceive()
-        
+        mockRemote()
     }
     
     
@@ -127,4 +126,24 @@ class MainCoordinator: NSObject, Coordinator {
             }
         }
     }
+}
+
+
+extension MainCoordinator {
+    
+    func mockRemote(){
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            
+            var mockDetails = RemoteDetails.MOCK_DETAILS
+            mockDetails.uuid = mockDetails.uuid + "__555"
+            
+            let mockRemote = Remote(details: mockDetails)
+            
+            self.mainService.remoteManager.addRemote(mockRemote)
+        }
+        
+        
+    }
+    
 }

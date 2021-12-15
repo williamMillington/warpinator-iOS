@@ -8,6 +8,13 @@
 import Foundation
 
 
+protocol ReadsFile {
+    
+    func readNextChunk() -> FileChunk?
+    
+}
+
+
 class FileReader  {
     
     lazy var DEBUG_TAG: String = "FileReader \"\(filename).\(fileExtension):\" "
@@ -105,14 +112,22 @@ class FileReader  {
 }
 
 
-extension FileReader: Sequence, IteratorProtocol {
-    typealias Element = FileChunk
-    
-    func next() -> FileChunk? {
-        return readNextChunk()
-    }
-}
 
+
+
+////MARK: -
+////MARK: - sequence
+//
+//
+//
+////MARK: iterator
+//extension FileReader: Sequence, IteratorProtocol {
+//    typealias Element = FileChunk
+//    
+//    func next() -> FileChunk? {
+//        return readNextChunk()
+//    }
+//}
 
 
 //MARK: observers
@@ -149,6 +164,7 @@ extension FileReader {
 class ChunkIterator {
     
     
+//    var fileReaders: [FileReader]
     var fileReaders: [FileReader]
     
     var readerIndex = 0

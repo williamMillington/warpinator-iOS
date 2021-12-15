@@ -219,7 +219,8 @@ class RemoteViewController: UIViewController {
     
     @objc func sendFiles(){
         
-        coordinator?.mockSendTransfer()
+//        coordinator?.mockSendTransfer()
+        coordinator?.createTransfer()
         
     }
     

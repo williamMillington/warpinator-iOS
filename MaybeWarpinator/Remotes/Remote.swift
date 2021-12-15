@@ -441,10 +441,6 @@ extension Remote {
         
         print(DEBUG_TAG+"callClientStartTransfer ")
         
-//        let operationInfo = operation.operationInfo 
-//        let handler = operation.receiveHandler
-        
-        
         guard let client = warpClient else {
             print(DEBUG_TAG+"No client becAuSE THERE'S A PROBLEM ")
             return
@@ -452,18 +448,6 @@ extension Remote {
         
         operation.startReceive(usingClient: client)
         
-//        let dataStream = warpClient?.startTransfer(operationInfo, handler: handler)
-//
-//
-//        dataStream?.status.whenSuccess{ status in
-//            print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
-//            operation.finishReceive()
-//        }
-//
-//        dataStream?.status.whenFailure{ error in
-//            operation.receiveWasCancelled()
-//            print(self.DEBUG_TAG+"transfer failed: \(error)")
-//        }
     }
 }
 
@@ -505,6 +489,17 @@ extension Remote {
         
         addSendingOperation(operation)
         sendRequest(toTransfer: operation)
+        
+    }
+    
+    
+    //MARK: send files
+    func sendFiles(_ selections: [FileSelection]){
+        
+//        let operation = SendFileOperation(for: filenames)
+//        
+//        addSendingOperation(operation)
+//        sendRequest(toTransfer: operation)
         
     }
     

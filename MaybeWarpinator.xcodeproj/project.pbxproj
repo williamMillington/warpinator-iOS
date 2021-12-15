@@ -9,6 +9,12 @@
 /* Begin PBXBuildFile section */
 		791D77E22766A114008140CC /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 791D77E02766A113008140CC /* rootkey.key */; };
 		791D77E32766A114008140CC /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 791D77E12766A113008140CC /* root.pem */; };
+		791D77E72767B244008140CC /* CreateSendTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77E62767B244008140CC /* CreateSendTransferViewController.swift */; };
+		791D77EB2767DC94008140CC /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EA2767DC93008140CC /* Document.swift */; };
+		791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */; };
+		791D77F3276915F5008140CC /* FileSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F2276915F5008140CC /* FileSelection.swift */; };
+		791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F52769910A008140CC /* ListedFileSelectionView.swift */; };
+		791D77FA276A5F4B008140CC /* FileSelectionReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F9276A5F4B008140CC /* FileSelectionReader.swift */; };
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
 		79331B03274E91A600A4022F /* TransferViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331B02274E91A600A4022F /* TransferViewModels.swift */; };
 		79331B07274E91DB00A4022F /* RemoteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331B06274E91DB00A4022F /* RemoteViewModel.swift */; };
@@ -71,6 +77,12 @@
 /* Begin PBXFileReference section */
 		791D77E02766A113008140CC /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
 		791D77E12766A113008140CC /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
+		791D77E62767B244008140CC /* CreateSendTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSendTransferViewController.swift; sourceTree = "<group>"; };
+		791D77EA2767DC93008140CC /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
+		791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTransferCoordinator.swift; sourceTree = "<group>"; };
+		791D77F2276915F5008140CC /* FileSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelection.swift; sourceTree = "<group>"; };
+		791D77F52769910A008140CC /* ListedFileSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileSelectionView.swift; sourceTree = "<group>"; };
+		791D77F9276A5F4B008140CC /* FileSelectionReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelectionReader.swift; sourceTree = "<group>"; };
 		79331AF8274E8F3500A4022F /* TransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewController.swift; sourceTree = "<group>"; };
 		79331B02274E91A600A4022F /* TransferViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModels.swift; sourceTree = "<group>"; };
 		79331B06274E91DB00A4022F /* RemoteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViewModel.swift; sourceTree = "<group>"; };
@@ -157,7 +169,9 @@
 		79331AFC274E8FFD00A4022F /* View */ = {
 			isa = PBXGroup;
 			children = (
+				791D77E62767B244008140CC /* CreateSendTransferViewController.swift */,
 				7963282C27599FF00056F76B /* FileViewModel.swift */,
+				791D77F52769910A008140CC /* ListedFileSelectionView.swift */,
 				79C688F527611A7E00353C53 /* ListedFileView.swift */,
 				7936B0702753B538001FA7C9 /* ListedTransferView.swift */,
 				7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */,
@@ -286,11 +300,14 @@
 			isa = PBXGroup;
 			children = (
 				79331AFC274E8FFD00A4022F /* View */,
+				791D77EA2767DC93008140CC /* Document.swift */,
+				7963282927599F3A0056F76B /* FileReader.swift */,
+				791D77F2276915F5008140CC /* FileSelection.swift */,
+				791D77F9276A5F4B008140CC /* FileSelectionReader.swift */,
+				7963282627599F030056F76B /* FileWriter.swift */,
 				797C12BC2711102700A2795C /* ReceiveFileOperation.swift */,
 				79343EB22743502B008E0890 /* SendFileOperation.swift */,
 				79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */,
-				7963282627599F030056F76B /* FileWriter.swift */,
-				7963282927599F3A0056F76B /* FileReader.swift */,
 			);
 			path = Transfers;
 			sourceTree = "<group>";
@@ -308,6 +325,7 @@
 			isa = PBXGroup;
 			children = (
 				79B8A0F6274561C600369E62 /* Coordinator.swift */,
+				791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */,
 				79B8A0FA2745623900369E62 /* MainCoordinator.swift */,
 				796328232757FF930056F76B /* RemoteCoordinator.swift */,
 			);
@@ -434,6 +452,7 @@
 			files = (
 				7963282A27599F3A0056F76B /* FileReader.swift in Sources */,
 				79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */,
+				791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */,
 				79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */,
 				79331B07274E91DB00A4022F /* RemoteViewModel.swift in Sources */,
 				7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */,
@@ -451,6 +470,8 @@
 				79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
 				7936B07727554E06001FA7C9 /* ReceiveTransferViewModel.swift in Sources */,
+				791D77EB2767DC94008140CC /* Document.swift in Sources */,
+				791D77E72767B244008140CC /* CreateSendTransferViewController.swift in Sources */,
 				79331B03274E91A600A4022F /* TransferViewModels.swift in Sources */,
 				79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */,
 				797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */,
@@ -461,6 +482,7 @@
 				79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */,
 				79B8A0FB2745623900369E62 /* MainCoordinator.swift in Sources */,
 				79B8A0F42745587C00369E62 /* ListedRemoteView.swift in Sources */,
+				791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */,
 				79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */,
 				799E39FE2746DFC600E60FFC /* Double+Int.swift in Sources */,
 				79C002B8270E0C16002DB22B /* Utils.swift in Sources */,
@@ -471,6 +493,7 @@
 				79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */,
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
+				791D77F3276915F5008140CC /* FileSelection.swift in Sources */,
 				79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */,
 				7963282D27599FF00056F76B /* FileViewModel.swift in Sources */,
 				79C002BB270E670C002DB22B /* MainService.swift in Sources */,
@@ -479,6 +502,7 @@
 				79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */,
 				799E39E82745822700E60FFC /* ButtonScrollView.swift in Sources */,
 				79C002AC270A92EC002DB22B /* warp.pb.swift in Sources */,
+				791D77FA276A5F4B008140CC /* FileSelectionReader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
