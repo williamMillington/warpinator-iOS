@@ -16,6 +16,7 @@ import Network
 import Logging
 
 
+
 enum AuthenticationError: Error {
     case TimeOut
     case ConnectionError

@@ -4,7 +4,7 @@
 \red183\green177\blue7;}
 {\*\expandedcolortbl;;\cssrgb\c39975\c61335\c20601;\cssrgb\c88946\c14202\c0;\cssrgb\c0\c0\c0;
 \cssrgb\c76768\c73671\c0;}
-\margl1440\margr1440\vieww17900\viewh11480\viewkind0
+\margl1440\margr1440\vieww17900\viewh13800\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
 \f0\fs24 \cf0 \
@@ -16,11 +16,8 @@
 \cf0 - Generate X509 certificate on the fly\
 - Differentiate ViewModels (Listed vs ViewController) to Remotes, Transfer Operations\
 - Compatibility with Android Warpinator \
+	- wtfs even going on there seriously\
 - Make reddit thread asking if this is actually worth my time :P\
-\
-- Fix slow connection bullshit\
-\
-- Create one-off authentication request to grab an IP address\
 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 \
@@ -28,9 +25,7 @@ ViewController: \
 	- \cf2 Decide if a disconnected remote is removed or
 \f1\b  listed as \'93Disconnected\'94
 \f0\b0 \cf0  		\cf2 - What is timeout for removal? ()\cf0  \
-		\cf3 - Are old remotes remembered -and listed-, even if not currently present on the network?\cf4   
-\f1\b No. (at least not right now)
-\f0\b0  \cf0 \
+		\cf3 - Are old remotes remembered -and listed-, even if not currently present on the network?\cf4  \cf0 \
 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 Remote:\
@@ -39,33 +34,38 @@ ViewController: \
 			- Settle on timeout, # reconnection attempts\
 		- add Unavailable as status \
 		- add reconnection pathway \
+			- will ping suffice? Might be an issue on python side\
  	- \cf2 Handle disconnect\cf0 \
 	- \cf2 Implement reconnect\cf0 \
 	- \cf2 Make a decision regarding idle channels\cf0 \
 		- \cf2 ping for reconnect vs allow disconnection\cf0  \
 \
 RemoteViewcontroller:\
-	- \'93Reconnect\'94 button\
+	- \'93Reconnect\'94 button	\
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 SendFileOperation:\
 	- \cf5 Handle Failure\cf0 \
-		- \cf2 Handle Cancellation\cf0 \
-	- Select Files\
-		- Switch FileReader to using a fileHandle\
-		- CreateSendTransferViewController\
+		- \cf2 Handle Cancellation\cf4  \cf0 \
+		- Handle Network failure\cf4 \
+		- Ensure files are properly closed\cf0 \
+	- \cf5 Select Files\cf0 \
+		- \cf2 Switch FileReader to using a fileHandle\cf4  \cf0 \
+		- \cf2 CreateSendTransferViewController\cf0  \
+			- option to remove files\
 \
 \
 ReceiveFileOperation:\
 	- \cf2 Create \'93Empty\'94 FileWriter/ListedFileView\cf4  \
 		- \cf2 connect observers\cf0 \
 	- \cf5 Handle Failure\cf0 \
-		- \cf2 Handle Cancellation\cf0 \
+		- \cf2 Handle Cancellation\cf4  \cf0 \
+		- Handle Network failure\
 	- \cf3 Handle Retry (Not available in API)\cf0 \
 \
 \
-TransferViewController:\
+\cf2 TransferViewController:\cf0 \
 	- \cf2 Add ListedFileView\cf0 \
 	- \cf2 update ListedFileView\cf0 \
 \
@@ -88,8 +88,13 @@ TransferViewController:\
 - Ensure all Remotes are sharing a single eventloop group\
 - Improve remote detection. Fuck around with mDNSBrowser a bit\
 \
+- Investigate/Fix slow connection bullshit\
+\
+- Create one-off authentication request to grab an IP address\
+- Handle revocation of file-access permission\
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 \
+\
 ViewController:\
 	- Settings button\
 	- make refresh button do something (pull to refresh?)\
@@ -106,6 +111,7 @@ Settings:\
 \cf0 	- Store/load remotes\
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 		- Store/load autoconnect choice (\'91No\'92 by default)\
+		- remember \'91Favourites\'92, same as OG warpinator\
 	- Select storage location?\
 	- Store/load passcode\
 	- Store/load port selections\
