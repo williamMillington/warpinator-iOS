@@ -71,12 +71,12 @@ public class Server: NSObject {
         
         
 //        let authority = Authenticator.shared.getServerCertificateBundle()      //getSigningAuthority()
-        guard let serverCertificate = Authenticator.shared.getServerCertificate() else { return }
-        guard let serverPrivateKey = Authenticator.shared.getServerPrivateKey() else { return }
+        let serverCertificate = Authenticator.shared.getServerCertificate()
+        let serverPrivateKey = Authenticator.shared.getServerPrivateKey()
         
         
 //        print(DEBUG_TAG+"CA is \(authority)")
-        print(DEBUG_TAG+"certificate is \(serverCertificate)")
+//        print(DEBUG_TAG+"certificate is \(serverCertificate)")
 //        print(DEBUG_TAG+"privatekey is \(serverPrivateKey)")
         
         
