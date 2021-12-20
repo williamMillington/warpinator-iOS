@@ -66,13 +66,20 @@ public class Server: NSObject {
     // MARK: Transfer Server
     func startWarpinatorServer(){
         
+        Authenticator.shared.generateNewCertificate(forHostname: "\(Server.SERVER_UUID)")
         
-//        let _ = Authenticator.shared.generateNewCertificate(forHostname: "\(Server.SERVER_UUID)")
+        guard let serverCertificate = Authenticator.shared.serverCert else {
+            print(DEBUG_TAG+"Error with server certificate")
+            return
+        }
         
-        
+        guard let serverPrivateKey = Authenticator.shared.serverKey else {
+            print(DEBUG_TAG+"Error with server certificate")
+            return
+        }
 //        let authority = Authenticator.shared.getServerCertificateBundle()      //getSigningAuthority()
-        let serverCertificate = Authenticator.shared.getServerCertificate()
-        let serverPrivateKey = Authenticator.shared.getServerPrivateKey()
+//        let serverCertificate = Authenticator.shared.getServerCertificate()
+//        let serverPrivateKey = Authenticator.shared.getServerPrivateKey()
         
         
 //        print(DEBUG_TAG+"CA is \(authority)")
@@ -82,6 +89,7 @@ public class Server: NSObject {
         
         var logger = Logger(label: "warpinator.Server", factory: StreamLogHandler.standardOutput)
         logger.logLevel = .debug
+        
         
         
         let serverBuilder = GRPC.Server.usingTLSBackedByNIOSSL(on: serverELG,

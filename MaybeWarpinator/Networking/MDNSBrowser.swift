@@ -111,10 +111,10 @@ class MDNSBrowser {
             case .removed( _):
                 break //;print(DEBUG_TAG+"result removed: \(result)")
             case .changed(old: let  old, new: let new, flags: let flags):
-                print(DEBUG_TAG+"changed")
-                print(DEBUG_TAG+"\t\told: \(old)")
+//                print(DEBUG_TAG+"changed")
+//                print(DEBUG_TAG+"\t\told: \(old)")
                 print(DEBUG_TAG+"\t\tnew: \(new)")
-                print(DEBUG_TAG+"\t\tflags: \(flags)")
+//                print(DEBUG_TAG+"\t\tflags: \(flags)")
                 break
             default: break //;print(DEBUG_TAG+"unforeseen result change")
             

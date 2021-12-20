@@ -12,10 +12,15 @@ import CryptoKit
 
 // 3rd party
 import Sodium
-import ShieldX509
-import ShieldX500
+
 import ShieldSecurity
 import ShieldCrypto
+
+import ShieldX509
+import ShieldX500
+
+import ShieldOID
+import ShieldPKCS
 
 import PotentASN1
 
@@ -29,11 +34,35 @@ class Authenticator {
     
     static var shared: Authenticator = Authenticator()
     
-    public var certificates: [String : NIOSSLCertificate] = [:]
+//    public var certificates: [String : NIOSSLCertificate] = [:]
+    
     
     
     public var uuid: String = "WarpinatorIOS"
     public lazy var hostname = uuid
+    
+    
+    var serverCertDERData: [UInt8]? = nil
+    var serverCertPEMData: [UInt8]? {
+        guard let derData = serverCertDERData else { return nil }
+        return convertDERBytesToPEM(derData)
+    }
+    
+    var serverCert: NIOSSLCertificate? {
+        guard let data = serverCertDERData,
+              let cert = try? NIOSSLCertificate.init(bytes: data, format: .der) else { return nil }
+        return cert
+    }
+    
+    
+    var serverKeyData: [UInt8]? = nil
+    var serverKey: NIOSSLPrivateKey? {
+        guard let keyData = serverKeyData,
+              let key = try? NIOSSLPrivateKey.init(bytes: keyData, format: .der) else { return nil }
+        
+        return key
+    }
+    
     
     
     
@@ -117,8 +146,15 @@ class Authenticator {
         let sKey = SecretBox.Key(encryptedKeyBytes)
         
         
-        let certificateBytes =  loadCertificateBytesFromFile()
+        // load certificate bytes
+//        let certificateBytes =  loadCertificateBytesFromFile()
+        guard let certificateBytes = serverCertPEMData else {
+            print(DEBUG_TAG+"problem with the cert data")
+            return "NOCERTIFICATEFORYOU"
+        }
         
+        
+        // encrypt bytes
         let sodium = Sodium()
         let sealedBox: (Bytes, SecretBox.Nonce)? = sodium.secretBox.seal(message: certificateBytes,
                                                                         secretKey: sKey)
@@ -161,7 +197,8 @@ class Authenticator {
     
     
     // MARK: - Generate certificate
-    func generateNewCertificate(forHostname hostname: String) -> Data {
+    func generateNewCertificate(forHostname hostname: String) {
+//        -> Data {
         
         print(DEBUG_TAG+"generating new server certificate...")
         
@@ -174,6 +211,8 @@ class Authenticator {
         
         sanitizedHostname = "WarpinatorIOS"
         
+        
+        // CREATE KEYS
         let keypair = try! SecKeyPair.Builder(type: .rsa, keySize: 2048)  .generate()
 
         let publicKey = keypair.publicKey
@@ -181,6 +220,10 @@ class Authenticator {
         
         let privateKey = keypair.privateKey
         
+        
+        
+        
+        // SET TIME FRAME
         // milliseconds in a day
         let day_seconds: Double = 60 * 60 * 24
         let expirationTime:Double = 30 * day_seconds
@@ -204,10 +247,38 @@ class Authenticator {
                                                   subjectPublicKey: publicKeyEncoded)
         
         
+        // BUILD CERT
         
         
         let ipAddress = Utils.getIPV4Address()
-        let ipAddressExtension = GeneralName.ipAddress( Data(bytes: ipAddress.bytes, count: ipAddress.bytes.count) )
+        print(DEBUG_TAG+"ip is \(ipAddress)")
+        
+        func parseIPFromString(_ string: String) -> [UInt8] {
+            
+            var IPparts: [UInt8] = []
+            
+            string.components(separatedBy: ".").forEach { part in
+                if let uint = UInt8(part) {
+                    IPparts.append(uint)
+                }
+            }
+            
+            return IPparts
+        }
+        
+        let dataip: [UInt8] =  parseIPFromString(ipAddress)   //[192,168,2,15]
+//        let d = PotentASN1.ASN1.Tag.
+        
+        let ipAddressExtension = GeneralName.ipAddress( Data(dataip ) )
+        
+        
+        
+        // EXTENSIONS
+        let kp = iso.org.dod.internet.security.mechanisms.pkix.kp.self
+        
+        
+        let keyID: KeyIdentifier = Digester.digest( publicKeyEncoded, using: .sha1)
+        
         
         let certBuilder = try! Certificate.Builder(serialNumber: certSerial,
                                               issuer: x500Name,
@@ -215,15 +286,18 @@ class Authenticator {
                                               subjectPublicKeyInfo: certPubKeyInfo,
                                               notBefore: startTime,
                                               notAfter: endTime)
+            .subjectKeyIdentifier(keyID)
+            .authorityKeyIdentifier(keyID)
+            .basicConstraints(ca: true)
             .addSubjectAlternativeNames(names: ipAddressExtension)
-            .extendedKeyUsage(keyPurposes:   .init(arrayLiteral: OID("1.3.6.1.5.5.7.3.1")  ),
-                              isCritical: true)
+            .extendedKeyUsage(keyPurposes: [ kp.clientAuth.oid, kp.serverAuth.oid  ] , isCritical: true)
             
-        
+            
         
         let digestAlgorithm = Digester.Algorithm.sha256
         let certificate = try! certBuilder.build(signingKey: privateKey,
                                                  digestAlgorithm: digestAlgorithm)
+        
         
         
         // delete old key, if exists
@@ -250,22 +324,70 @@ class Authenticator {
 //        }
         
         
-        print(DEBUG_TAG+"Certificate Data: ")
-        print(DEBUG_TAG+"\t Serial Number: \( certificate.tbsCertificate.serialNumber)")
-        print(DEBUG_TAG+"\t SignatureAlgorithm: \( certificate.tbsCertificate.signature.algorithm)")
-        print(DEBUG_TAG+"\t Issuer: \( certificate.tbsCertificate.issuer[0][0])")
-        print(DEBUG_TAG+"\t Validity: \( certificate.tbsCertificate.validity)")
-        print(DEBUG_TAG+"\t Subject: \( certificate.tbsCertificate.subject[0][0])")
-        print(DEBUG_TAG+"\t Subject PUB KEY info: \( certificate.tbsCertificate.subjectPublicKeyInfo)")
-        for ext in certificate.tbsCertificate.extensions! {
-            print(DEBUG_TAG+"\t Extension: \(ext)")
-        }
-        print(DEBUG_TAG+"\t Signature: \( certificate.tbsCertificate.signature)")
+        
+        
+//        print(DEBUG_TAG+"Certificate Data: ")
+//        print(DEBUG_TAG+"\t\t Serial Number: \( certificate.tbsCertificate.serialNumber)")
+//        print(DEBUG_TAG+"\t\t SignatureAlgorithm: \( certificate.tbsCertificate.signature.algorithm)")
+//        print(DEBUG_TAG+"\t\t Issuer: \( certificate.tbsCertificate.issuer[0][0])")
+//        print(DEBUG_TAG+"\t\t Validity: \( certificate.tbsCertificate.validity)")
+//        print(DEBUG_TAG+"\t\t Subject: \( certificate.tbsCertificate.subject[0][0])")
+//        print(DEBUG_TAG+"\t\t Subject PUB KEY info: \( certificate.tbsCertificate.subjectPublicKeyInfo)")
+//        for ext in certificate.tbsCertificate.extensions! {
+//            print(DEBUG_TAG+"\t\t Extension: \(ext)")
+//        }
+//        print(DEBUG_TAG+"\t\t Signature: \( certificate.tbsCertificate.signature)")
 
         
-        return try! certificate.encoded()
+        
+//            print(DEBUG_TAG+"SecCertificate \(String(describing: secCert))")
+//            print(DEBUG_TAG+"\t\tissuer name: \(String(describing: secCert?.issuerName))")
+//            print(DEBUG_TAG+"\t\tsubject name: \(String(describing: secCert?.subjectName))")
+//
+//            print(DEBUG_TAG+"\t\tattributes: ")
+//
+        
+        let secCert = try! certificate.sec()
+        let dbytes = secCert!.derEncoded
+
+        serverCertDERData = Array(dbytes)
+        
+        print(DEBUG_TAG+"generated PEM string: \n\n\t\t\(serverCertPEMData!.utf8String!)\n\n")
+
+        serverKeyData = Array( try! privateKey.encode() )
+        
+        
+        
+//            let attrs = try secCert!.attributes()
+//            for (key, a) in attrs {
+//                print(DEBUG_TAG+"\t\t\t \(key):\(a)")
+//            }
+
+
+//
+//        } catch {
+//            print(DEBUG_TAG+"Error converting certificate to SecCertificate: \(error)")
+//        }
+        
+        
+        
+        
+        
+//        return try! certificate.encoded()
     }
     
+    
+    
+    
+    // Attempt to convert DER bytes to a PEM encoding by appending header/footer
+    private func convertDERBytesToPEM(_ derBytes: [UInt8]) -> [UInt8] {
+        
+        let derBytesString = Data(derBytes).base64EncodedString()
+        
+        let pemBytesString = "-----BEGIN CERTIFICATE-----\n" + derBytesString + "\n-----END CERTIFICATE-----\n"
+        
+        return pemBytesString.bytes
+    }
     
 }
 

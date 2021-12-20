@@ -83,10 +83,10 @@ class MDNSListener {
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
         let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
+                                           "auth-port" : "\(Server.registration_port)",
+                                           "api-version": "2",
 //                                           "auth-port" : "\(Server.registration_port)",
-//                                           "api-version": "2",
-//                                           "auth-port" : "\(Server.registration_port)",
-                                           "api-version": "1",
+//                                           "api-version": "1",
                                            "type" : "real"]
         
         listener?.service = NWListener.Service(name: Server.SERVER_UUID, type: SERVICE_TYPE,
