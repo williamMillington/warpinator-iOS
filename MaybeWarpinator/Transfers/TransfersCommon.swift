@@ -68,6 +68,9 @@ enum TransferStatus: Equatable {
 }
 
 
+
+
+
 // MARK: TransferOperation
 protocol TransferOperation {
     
@@ -82,15 +85,15 @@ protocol TransferOperation {
     
     var operationInfo: OpInfo { get }
     
-    var observers: [TransferOperationViewModel] { get }
+    var observers: [ObservesTransferOperation] { get }
     
     func orderStop(_ error: Error?)
     func stopRequested(_ error: Error?)
     
     
-    func addObserver(_ model: TransferOperationViewModel)
-    func removeObserver(_ model: TransferOperationViewModel)
-    func updateObserversInfo()
+    func addObserver(_ model: ObservesTransferOperation)
+    func removeObserver(_ model: ObservesTransferOperation)
+//    func updateObserversInfo()
 }
  
 
@@ -111,7 +114,7 @@ class MockReceiveTransfer: TransferOperation {
     
     var progress: Double
     
-    var observers: [TransferOperationViewModel] = []
+    var observers: [ObservesTransferOperation] = []
     
     var operationInfo: OpInfo {
         return .with {
@@ -120,6 +123,7 @@ class MockReceiveTransfer: TransferOperation {
             $0.readableName = Utils.getDeviceName()
         }
     }
+    
     
     init(){
         owningRemote = Remote(details: RemoteDetails.MOCK_DETAILS )
@@ -144,11 +148,11 @@ class MockReceiveTransfer: TransferOperation {
     }
     
     
-    func addObserver(_ model: TransferOperationViewModel) {
+    func addObserver(_ model: ObservesTransferOperation) {
         
     }
     
-    func removeObserver(_ model: TransferOperationViewModel) {
+    func removeObserver(_ model: ObservesTransferOperation) {
         
     }
     

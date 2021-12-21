@@ -99,7 +99,7 @@ public class Remote {
     var authenticationCertificate: NIOSSLCertificate?
     
     
-    var observers: [RemoteViewModel] = []
+    var observers: [ObservesRemote] = []
     
     var transientFailureCount: Int = 0
     var duplexAttempts: Int = 0
@@ -525,11 +525,11 @@ extension Remote {
 //MARK: observers
 extension Remote {
     
-    func addObserver(_ model: RemoteViewModel){
+    func addObserver(_ model: ObservesRemote){
         observers.append(model)
     }
     
-    func removeObserver(_ model: RemoteViewModel){
+    func removeObserver(_ model: ObservesRemote){
         
         for (i, observer) in observers.enumerated() {
             if observer === model {
@@ -540,13 +540,13 @@ extension Remote {
     
     func informObserversInfoDidChange(){
         observers.forEach { observer in
-            observer.updateInfo()
+            observer.infoDidUpdate()
         }
     }
     
     func informObserversOperationAdded(_ operation: TransferOperation){
         observers.forEach { observer in
-            observer.transferOperationAdded(operation)
+            observer.operationAdded(operation)
         }
     }
     

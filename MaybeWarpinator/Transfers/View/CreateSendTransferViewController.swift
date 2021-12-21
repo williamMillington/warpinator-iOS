@@ -9,6 +9,7 @@ import UIKit
 import MobileCoreServices
 
 
+
 class CreateSendTransferViewController: UIViewController {
     
     lazy var DEBUG_TAG: String = "CreateSendTransferViewController:"
@@ -101,7 +102,6 @@ class CreateSendTransferViewController: UIViewController {
     var selections: [FileSelection] = []
     
     
-    
     init(withViewModel viewmodel: RemoteViewModel) {
         super.init(nibName: nil, bundle: Bundle(for: type(of: self)))
         
@@ -174,7 +174,7 @@ class CreateSendTransferViewController: UIViewController {
     }
     
     
-    func addFile(_ file: FileSelection){
+    func addFile(_ file: FileSelection ){
         
         guard !selections.contains(file) else {
             print(DEBUG_TAG+"File \(file.name) already selected")
@@ -213,7 +213,7 @@ class CreateSendTransferViewController: UIViewController {
         
 //        print(DEBUG_TAG+"Showing document picker")
         
-        let types: [String] = [ String( kUTTypeItem )]//, String( kUTTypeJPEG )  ]
+        let types: [String] = [ String( kUTTypeItem )]
         
         let documentPickerVC = UIDocumentPickerViewController(documentTypes: types, in: .open)
         documentPickerVC.delegate = self
@@ -221,7 +221,6 @@ class CreateSendTransferViewController: UIViewController {
 //        documentPickerVC.shouldShowFileExtensions = true
         
         
-//        navController.pushViewController(documentPickerVC, animated: false)
         present(documentPickerVC, animated: true)
         
     }
@@ -235,8 +234,6 @@ class CreateSendTransferViewController: UIViewController {
     
     
     @objc func cancel(){
-//        coordinator?.start()
-//        coordinator?.cancel()
         coordinator?.back()
     }
     
@@ -251,6 +248,14 @@ enum LoadingError: Error {
     case ACCESS_ERROR
 }
 
+
+
+
+// MARK: - ext.
+
+
+
+// MARK: UIDocumentPitckerDelegate
 
 extension CreateSendTransferViewController: UIDocumentPickerDelegate {
      

@@ -8,34 +8,7 @@
 import UIKit
 
 
-//MARK: viewModel
-final class ListedFileSelectionViewModel {
-    
-    private let fileSelection: FileSelection
-//    var onUpdate: ()->Void = {}
-    
-    var name: String {
-        return fileSelection.name
-    }
-    
-    var size: String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        
-        let bytesCount = fileSelection.bytesCount
-        
-        return formatter.string(fromByteCount:  Int64( bytesCount) )
-    }
-    
-    init(_ selection: FileSelection){
-        fileSelection = selection
-    }
-    
-}
-
-
-
-//MARK: view
+//MARK: View
 final class ListedFileSelectionView: UIView {
 
     private let DEBUG_TAG: String = "ListedFileSelectionView: "
@@ -117,5 +90,32 @@ final class ListedFileSelectionView: UIView {
     }
 
     
+    
+}
+
+
+
+
+//MARK: View Model
+final class ListedFileSelectionViewModel {
+    
+    private let fileSelection: FileSelection
+    
+    var name: String {
+        return fileSelection.name
+    }
+    
+    var size: String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        
+        let bytesCount = fileSelection.bytesCount
+        
+        return formatter.string(fromByteCount:  Int64( bytesCount) )
+    }
+    
+    init(_ selection: FileSelection){
+        fileSelection = selection
+    }
     
 }

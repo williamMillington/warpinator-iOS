@@ -65,7 +65,7 @@ class SendFileOperation: TransferOperation {
 //    var files: [FileName]
 //    var fileReaders: [FileReader] = []
     var files: [FileSelection]
-    var fileReaders: [FileSelectionReader] = []
+    var fileReaders: [FileReader] = []
     
     
     var operationInfo: OpInfo {
@@ -90,8 +90,7 @@ class SendFileOperation: TransferOperation {
     }
     
     
-    
-    var observers: [TransferOperationViewModel] = [] 
+    var observers: [ObservesTransferOperation] = [] 
     
     lazy var queueLabel = "SEND_\(remoteUUID)_\(UUID)"
     lazy var sendingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
@@ -114,7 +113,7 @@ class SendFileOperation: TransferOperation {
         for selection in files {
 //            topDirBaseNames.append("\(filename.name).\(filename.ext)")
             topDirBaseNames.append("\(selection.name)")
-            if let reader = FileSelectionReader(for: selection) {
+            if let reader = FileReader(for: selection) {
                 fileReaders.append( reader   )
             } else {
                 print(DEBUG_TAG+"problem accessing selection \(selection.name)")
@@ -158,7 +157,7 @@ class SendFileOperation: TransferOperation {
         
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
         
-        let chunkIterator = ChunkIterator(for: fileReaders) 
+        let chunkIterator = ChunkIterator(for: fileReaders)
         
         sendingChunksQueue.async {
             
@@ -244,11 +243,11 @@ class SendFileOperation: TransferOperation {
 //MARK: observers
 extension SendFileOperation {
     
-    func addObserver(_ model: TransferOperationViewModel){
+    func addObserver(_ model: ObservesTransferOperation){
         observers.append(model)
     }
     
-    func removeObserver(_ model: TransferOperationViewModel){
+    func removeObserver(_ model: ObservesTransferOperation){
         
         for (i, observer) in observers.enumerated() {
             if observer === model {
@@ -259,7 +258,7 @@ extension SendFileOperation {
     
     func updateObserversInfo(){
         observers.forEach { observer in
-            observer.updateInfo()
+            observer.infoDidUpdate()
         }
     }
 }

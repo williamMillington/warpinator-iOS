@@ -8,7 +8,7 @@
 import UIKit
 
 
-
+//MARK: View
 class TransferViewController: UIViewController {
     
     lazy var DEBUG_TAG: String = "TransferViewController:"
@@ -200,9 +200,8 @@ class TransferViewController: UIViewController {
     }
     
     
-    
-    private func addFileViewToStack(withViewModel viewmodel: FileViewModel){
-        let ltview = ListedFileView(withViewModel: viewmodel)
+    private func addFileViewToStack(withViewModel viewmodel: ListedFileViewModel){
+        let ltview = ListedFileOperationView(withViewModel: viewmodel)
         
         operationsStack.insertArrangedSubview(ltview, at: (operationsStack.arrangedSubviews.count - 1))
     }
@@ -248,28 +247,99 @@ class TransferViewController: UIViewController {
             transferButton.alpha = 0.5
         default: break
         }
-        
     }
     
     
     @objc func cancel(){
-        
         coordinator?.cancelTransfer(forTransferUUID: transferViewModel!.UUID)
-        
     }
     
     
     @objc func retry(){
-        
         coordinator?.retryTransfer(forTransferUUID: transferViewModel!.UUID)
-        
     }
-    
     
     
     @objc func back(){
         coordinator?.showRemote()
     }
-    
+}
 
+
+
+
+
+//MARK:  -
+//MARK:  - ViewModel
+class TransferOperationViewModel: NSObject, ObservesTransferOperation {
+    
+    private var operation: TransferOperation
+    
+    var onInfoUpdated: ()->Void = {}
+    
+    var UUID: UInt64 {
+        return operation.UUID
+    }
+    
+    var fileCount: Int {
+        return operation.fileCount
+    }
+    
+    var progress: Double {
+        return operation.progress
+    }
+    
+    var status: TransferStatus {
+        return operation.status
+    }
+    
+    var direction: TransferDirection {
+        return operation.direction
+    }
+    
+    var files: [ListedFileViewModel] {
+        
+        var viewModels: [ListedFileViewModel] = []
+        
+        // TODO: this is not ideal. There must be a more gooder way
+        // to arrange this.
+        if let transfer = operation as? SendFileOperation {
+            
+            for file in transfer.fileReaders {
+                
+                let vm = ListedFileReaderViewModel(file)
+                viewModels.append(vm)
+            }
+            
+        } else {
+            
+            let transfer = operation as! ReceiveFileOperation
+            
+            for filewriter in transfer.files {
+                let vm = FileWriterViewModel(operation: filewriter)
+                viewModels.append(vm)
+            }
+            
+        }
+        
+        return viewModels
+    }
+    
+    
+    init(for operation: TransferOperation) {
+        self.operation = operation
+        super.init()
+        operation.addObserver(self)
+    }
+    
+    
+    func infoDidUpdate(){
+        DispatchQueue.main.async { // execute UI on main thread
+            self.onInfoUpdated()
+        }
+    }
+    
+    deinit {
+        operation.removeObserver(self)
+    }
 }

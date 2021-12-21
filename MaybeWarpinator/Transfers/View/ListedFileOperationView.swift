@@ -11,7 +11,7 @@ import UIKit
 
 
 // MARK: View
-class ListedFileOperationView: UIView {
+final class ListedFileOperationView: UIView {
 
     private let DEBUG_TAG: String = "ListedFileOperationView: "
     
@@ -36,7 +36,7 @@ class ListedFileOperationView: UIView {
     
     var tapRecognizer: TapGestureRecognizerWithClosure?
     
-    var viewModel: FileViewModel?
+    var viewModel: ListedFileViewModel?
     
     override init(frame: CGRect){
         super.init(frame: frame)
@@ -47,7 +47,7 @@ class ListedFileOperationView: UIView {
     }
     
     
-    convenience init(withViewModel model: FileViewModel, onTap action: @escaping ()->Void = {}){
+    convenience init(withViewModel model: ListedFileViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
         backgroundColor = UIColor.orange.withAlphaComponent(0.2)
@@ -106,13 +106,28 @@ class ListedFileOperationView: UIView {
 
 
 
+
+// MARK: ListedFileViewModel
+protocol ListedFileViewModel {
+    
+    var onUpdated: ()->Void { get set }
+    
+    var type: String { get }
+    var name: String { get }
+    var size: String { get }
+    var progress: Double { get }
+    
+}
+
+
+
 // MARK: -
 // MARK: - Reader View Model
-final class ListedFileSelectionReaderViewModel: FileViewModel {
+final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
+    private let operation: FileReader
     var onUpdated: () -> Void = {}
     
-    private let operation: FileSelectionReader
     
     var name: String {
         return operation.filename
@@ -135,13 +150,14 @@ final class ListedFileSelectionReaderViewModel: FileViewModel {
         return 0
     }
     
-    init(_ selection: FileSelectionReader){
+    init(_ selection: FileReader){
         operation = selection
+        super.init()
         operation.addObserver(self)
     }
     
     
-    func update(){
+    func infoDidUpdate(){
         DispatchQueue.main.async {
             self.onUpdated()
         }
@@ -157,9 +173,9 @@ final class ListedFileSelectionReaderViewModel: FileViewModel {
 
 // MARK: -
 // MARK: - Sender View Model
-class FileWriterViewModel: FileViewModel {
+final class FileWriterViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
-    var operation: FileWriter
+    private var operation: FileWriter
     var onUpdated: ()->Void = {}
     
     var type: String {
@@ -182,6 +198,7 @@ class FileWriterViewModel: FileViewModel {
         return formatter.string(fromByteCount:  Int64( bytes) )
     }
     
+    
     var progress: Double {
         return 0
     }
@@ -189,6 +206,7 @@ class FileWriterViewModel: FileViewModel {
     
     init(operation: FileWriter){
         self.operation = operation
+        super.init()
         operation.addObserver(self)
     }
     

@@ -9,11 +9,12 @@ import UIKit
 
 
 
-class ListedRemoteView: UIView {
+// MARK: View
+final class ListedRemoteView: UIView {
     
     private let DEBUG_TAG: String = "ListedRemoteView: "
     
-    var viewModel: RemoteViewModel?
+    var viewModel: ListedRemoteViewModel?
     
     let deviceNameLabel: UILabel = {
         let label = UILabel()
@@ -45,7 +46,7 @@ class ListedRemoteView: UIView {
     }
     
     
-    convenience init(withViewModel model: RemoteViewModel, onTap action: @escaping ()->Void = {}){
+    convenience init(withViewModel model: ListedRemoteViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
         backgroundColor = UIColor.orange.withAlphaComponent(0.2)
@@ -101,4 +102,49 @@ class ListedRemoteView: UIView {
         
     }
     
+}
+
+
+
+//MARK: -
+//MARK: - ViewModel
+final class ListedRemoteViewModel: NSObject, ObservesRemote {
+
+    private var remote: Remote
+    var onInfoUpdated: ()->Void = {}
+    var onTransferAdded: (TransferOperationViewModel)->Void = { viewmodel in }
+
+    public var displayName: String {
+        return remote.details.displayName
+    }
+
+
+    public var uuid: String {
+        return remote.details.uuid
+    }
+
+    public var status: String {
+        return remote.details.status.rawValue
+    }
+
+
+    init(_ remote: Remote) {
+        self.remote = remote
+        super.init()
+        
+        remote.addObserver(self)
+    }
+
+
+    func infoDidUpdate(){
+        DispatchQueue.main.async { // execute UI on main thread
+            self.onInfoUpdated()
+        }
+    }
+
+    func operationAdded(_ operation: TransferOperation) { }
+
+    deinit {
+        remote.removeObserver(self)
+    }
 }

@@ -23,8 +23,8 @@ class RemoteManager {
         
         remotes[remote.details.uuid] = remote
         
-        let viewmodel = RemoteViewModel(remote)
-        remotesViewController?.remoteAdded(viewmodel)
+//        let viewmodel = RemoteViewModel(remote)
+        remotesViewController?.remoteAdded(remote)
         
         remote.startConnection()
     }

@@ -7,7 +7,11 @@
 
 import UIKit
 
-class RemoteViewController: UIViewController {
+
+
+
+//MARK: View Controller
+final class RemoteViewController: UIViewController {
 
     
     var coordinator: RemoteCoordinator?
@@ -99,6 +103,7 @@ class RemoteViewController: UIViewController {
     
     var viewModel: RemoteViewModel?
     
+    
     init(withViewModel viewModel: RemoteViewModel) {
         super.init(nibName: nil, bundle: Bundle(for: type(of: self)))
         
@@ -164,7 +169,6 @@ class RemoteViewController: UIViewController {
             transfersLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             
             transfersStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-//            transfersStack.widthAnchor.constraint(equalTo: sendFilesButton.widthAnchor),
             transfersStack.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6),
             transfersStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             transfersStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
@@ -173,7 +177,6 @@ class RemoteViewController: UIViewController {
             
             sendFilesButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             sendFilesButton.widthAnchor.constraint(equalTo: transfersStack.widthAnchor),
-//            sendFilesButton.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(sideMargin*2)  ),
             sendFilesButton.heightAnchor.constraint(equalTo: sendFilesButton.widthAnchor, multiplier: 0.2),
             sendFilesButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
             
@@ -206,11 +209,10 @@ class RemoteViewController: UIViewController {
         usernameLabel.text = viewModel.userName
         ipaddressLabel.text = viewModel.iNetAddress
         
-        
     }
     
     
-    private func addTransferViewToStack(withViewModel viewmodel: TransferOperationViewModel){
+    private func addTransferViewToStack(withViewModel viewmodel: ListedTransferViewModel){
         let ltview = ListedTransferView(withViewModel: viewmodel, onTap: {
             self.coordinator?.userSelectedTransfer(withUUID: viewmodel.UUID )
         })
@@ -229,5 +231,76 @@ class RemoteViewController: UIViewController {
     
     @objc func back(){
         coordinator?.back()
+    }
+}
+
+
+
+
+
+
+//MARK: View Model
+final class RemoteViewModel: NSObject, ObservesRemote {
+    
+    private var remote: Remote
+    var onInfoUpdated: ()->Void = {}
+    var onTransferAdded: (ListedTransferViewModel)->Void = { viewmodel in }
+    
+    public var displayName: String {
+        return remote.details.displayName
+    }
+    
+    public var userName: String {
+        return remote.details.username + "@" + remote.details.hostname
+    }
+    
+    public var iNetAddress: String {
+        return remote.details.ipAddress + ":\(remote.details.port)"
+    }
+    
+    public var uuid: String {
+        return remote.details.uuid
+    }
+    
+    public var status: String {
+        return remote.details.status.rawValue
+    }
+    
+    
+    public var transfers: [ListedTransferViewModel] {
+
+        var viewmodels:[ListedTransferViewModel] = []
+        let operations: [TransferOperation] = remote.sendingOperations + remote.receivingOperations
+
+        for operation in operations  {
+            viewmodels.append( ListedTransferViewModel(for: operation) )
+        }
+
+        return viewmodels
+    }
+    
+    
+    init(_ remote: Remote) {
+        self.remote = remote
+        super.init()
+        
+        remote.addObserver(self)
+    }
+    
+    
+    func infoDidUpdate(){
+        DispatchQueue.main.async { // execute UI on main thread
+            self.onInfoUpdated()
+        }
+    }
+    
+    func operationAdded(_ operation: TransferOperation){
+        DispatchQueue.main.async { // execute UI on main thread
+            self.onTransferAdded(ListedTransferViewModel(for: operation))
+        }
+    }
+    
+    deinit {
+        remote.removeObserver(self)
     }
 }

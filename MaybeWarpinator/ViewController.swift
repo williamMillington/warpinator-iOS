@@ -9,7 +9,9 @@ import UIKit
 import GRPC
 import NIO
 
-class ViewController: UIViewController {
+
+
+final class ViewController: UIViewController {
     
     private let DEBUG_TAG: String = "ViewController: "
     
@@ -102,7 +104,9 @@ class ViewController: UIViewController {
     
     
     
-    func remoteAdded(_ viewModel: RemoteViewModel){
+    func remoteAdded(_ remote: Remote){
+        
+        let viewModel = ListedRemoteViewModel(remote)
         
         print(DEBUG_TAG+"Adding view for connection \(viewModel.displayName)")
         
@@ -127,11 +131,6 @@ class ViewController: UIViewController {
         }
         
     }
-    
-    
-    
-    
-    
     
     
     

@@ -126,6 +126,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
            type == "flush" {
             print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
         }
+        print(DEBUG_TAG+"assuming service is real, continuing...")
         
         
         var serviceName = "unknown_service"
@@ -147,7 +148,6 @@ extension RegistrationServer: MDNSBrowserDelegate {
         print(DEBUG_TAG+"mDNSBrowser did add result:")
         print("\t\(result.endpoint)")
         print("\t\(result.metadata)")
-        print("\t\(result.interfaces)")
         
         
         if let remote = remoteManager?.containsRemote(for: serviceName) {

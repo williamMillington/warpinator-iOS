@@ -8,16 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		791D77E72767B244008140CC /* CreateSendTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77E62767B244008140CC /* CreateSendTransferViewController.swift */; };
-		791D77EB2767DC94008140CC /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EA2767DC93008140CC /* Document.swift */; };
 		791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */; };
-		791D77F3276915F5008140CC /* FileSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F2276915F5008140CC /* FileSelection.swift */; };
 		791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F52769910A008140CC /* ListedFileSelectionView.swift */; };
-		791D77FA276A5F4B008140CC /* FileSelectionReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F9276A5F4B008140CC /* FileSelectionReader.swift */; };
-		791D7810276E8FA9008140CC /* root.pem in Resources */ = {isa = PBXBuildFile; fileRef = 791D780E276E8FA9008140CC /* root.pem */; };
-		791D7811276E8FA9008140CC /* rootkey.key in Resources */ = {isa = PBXBuildFile; fileRef = 791D780F276E8FA9008140CC /* rootkey.key */; };
+		791D77FA276A5F4B008140CC /* FileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F9276A5F4B008140CC /* FileReader.swift */; };
+		791D781527717575008140CC /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D781427717575008140CC /* Observable.swift */; };
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
-		79331B03274E91A600A4022F /* TransferViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331B02274E91A600A4022F /* TransferViewModels.swift */; };
-		79331B07274E91DB00A4022F /* RemoteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331B06274E91DB00A4022F /* RemoteViewModel.swift */; };
 		79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79343EB22743502B008E0890 /* SendFileOperation.swift */; };
 		79360EB427069897008349D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB327069897008349D2 /* AppDelegate.swift */; };
 		79360EB627069897008349D2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB527069897008349D2 /* SceneDelegate.swift */; };
@@ -30,11 +25,8 @@
 		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
 		7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B0702753B538001FA7C9 /* ListedTransferView.swift */; };
 		7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */; };
-		7936B07727554E06001FA7C9 /* ReceiveTransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07627554E06001FA7C9 /* ReceiveTransferViewModel.swift */; };
 		796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796328232757FF930056F76B /* RemoteCoordinator.swift */; };
 		7963282727599F030056F76B /* FileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282627599F030056F76B /* FileWriter.swift */; };
-		7963282A27599F3A0056F76B /* FileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282927599F3A0056F76B /* FileReader.swift */; };
-		7963282D27599FF00056F76B /* FileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282C27599FF00056F76B /* FileViewModel.swift */; };
 		796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328302759A96A0056F76B /* The_Last_Five_Years.pdf */; };
 		796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
@@ -68,7 +60,7 @@
 		79C002B8270E0C16002DB22B /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002B7270E0C16002DB22B /* Utils.swift */; };
 		79C002BB270E670C002DB22B /* MainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BA270E670C002DB22B /* MainService.swift */; };
 		79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */; };
-		79C688F627611A7E00353C53 /* ListedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C688F527611A7E00353C53 /* ListedFileView.swift */; };
+		79C688F627611A7E00353C53 /* ListedFileOperationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C688F527611A7E00353C53 /* ListedFileOperationView.swift */; };
 		79C688FB2766905800353C53 /* AuthenticationConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C688FA2766905800353C53 /* AuthenticationConnection.swift */; };
 		79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */; };
 		79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */; };
@@ -76,16 +68,11 @@
 
 /* Begin PBXFileReference section */
 		791D77E62767B244008140CC /* CreateSendTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSendTransferViewController.swift; sourceTree = "<group>"; };
-		791D77EA2767DC93008140CC /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
 		791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTransferCoordinator.swift; sourceTree = "<group>"; };
-		791D77F2276915F5008140CC /* FileSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelection.swift; sourceTree = "<group>"; };
 		791D77F52769910A008140CC /* ListedFileSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileSelectionView.swift; sourceTree = "<group>"; };
-		791D77F9276A5F4B008140CC /* FileSelectionReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSelectionReader.swift; sourceTree = "<group>"; };
-		791D780E276E8FA9008140CC /* root.pem */ = {isa = PBXFileReference; lastKnownFileType = file; path = root.pem; sourceTree = SOURCE_ROOT; };
-		791D780F276E8FA9008140CC /* rootkey.key */ = {isa = PBXFileReference; lastKnownFileType = file; path = rootkey.key; sourceTree = SOURCE_ROOT; };
+		791D77F9276A5F4B008140CC /* FileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReader.swift; sourceTree = "<group>"; };
+		791D781427717575008140CC /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		79331AF8274E8F3500A4022F /* TransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewController.swift; sourceTree = "<group>"; };
-		79331B02274E91A600A4022F /* TransferViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModels.swift; sourceTree = "<group>"; };
-		79331B06274E91DB00A4022F /* RemoteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViewModel.swift; sourceTree = "<group>"; };
 		79343EB22743502B008E0890 /* SendFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFileOperation.swift; sourceTree = "<group>"; };
 		79360EB027069897008349D2 /* MaybeWarpinator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MaybeWarpinator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79360EB327069897008349D2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -99,11 +86,8 @@
 		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
 		7936B0702753B538001FA7C9 /* ListedTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedTransferView.swift; sourceTree = "<group>"; };
 		7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewController.swift; sourceTree = "<group>"; };
-		7936B07627554E06001FA7C9 /* ReceiveTransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewModel.swift; sourceTree = "<group>"; };
 		796328232757FF930056F76B /* RemoteCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoordinator.swift; sourceTree = "<group>"; };
 		7963282627599F030056F76B /* FileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWriter.swift; sourceTree = "<group>"; };
-		7963282927599F3A0056F76B /* FileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReader.swift; sourceTree = "<group>"; };
-		7963282C27599FF00056F76B /* FileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileViewModel.swift; sourceTree = "<group>"; };
 		796328302759A96A0056F76B /* The_Last_Five_Years.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = The_Last_Five_Years.pdf; sourceTree = "<group>"; };
 		796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Dear_Evan_Hansen_PV_Score.pdf; sourceTree = "<group>"; };
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
@@ -134,7 +118,7 @@
 		79C002B7270E0C16002DB22B /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		79C002BA270E670C002DB22B /* MainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainService.swift; sourceTree = "<group>"; };
 		79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorServiceProvider.swift; sourceTree = "<group>"; };
-		79C688F527611A7E00353C53 /* ListedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileView.swift; sourceTree = "<group>"; };
+		79C688F527611A7E00353C53 /* ListedFileOperationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileOperationView.swift; sourceTree = "<group>"; };
 		79C688FA2766905800353C53 /* AuthenticationConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationConnection.swift; sourceTree = "<group>"; };
 		79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransfersCommon.swift; sourceTree = "<group>"; };
 		79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Misc.swift"; sourceTree = "<group>"; };
@@ -170,14 +154,11 @@
 			isa = PBXGroup;
 			children = (
 				791D77E62767B244008140CC /* CreateSendTransferViewController.swift */,
-				7963282C27599FF00056F76B /* FileViewModel.swift */,
 				791D77F52769910A008140CC /* ListedFileSelectionView.swift */,
-				79C688F527611A7E00353C53 /* ListedFileView.swift */,
+				79C688F527611A7E00353C53 /* ListedFileOperationView.swift */,
 				7936B0702753B538001FA7C9 /* ListedTransferView.swift */,
 				7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */,
-				7936B07627554E06001FA7C9 /* ReceiveTransferViewModel.swift */,
 				79331AF8274E8F3500A4022F /* TransferViewController.swift */,
-				79331B02274E91A600A4022F /* TransferViewModels.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -187,7 +168,6 @@
 			children = (
 				79B8A0F32745587C00369E62 /* ListedRemoteView.swift */,
 				799E39F32746A0E500E60FFC /* RemoteViewController.swift */,
-				79331B06274E91DB00A4022F /* RemoteViewModel.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -209,6 +189,7 @@
 			children = (
 				79331B01274E910400A4022F /* View */,
 				79C002B7270E0C16002DB22B /* Utils.swift */,
+				791D781427717575008140CC /* Observable.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -280,8 +261,6 @@
 		797C12C6271749A100A2795C /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				791D780E276E8FA9008140CC /* root.pem */,
-				791D780F276E8FA9008140CC /* rootkey.key */,
 				79360ED2270A1C7A008349D2 /* Test_Files */,
 			);
 			path = Resources;
@@ -300,10 +279,7 @@
 			isa = PBXGroup;
 			children = (
 				79331AFC274E8FFD00A4022F /* View */,
-				791D77EA2767DC93008140CC /* Document.swift */,
-				7963282927599F3A0056F76B /* FileReader.swift */,
-				791D77F2276915F5008140CC /* FileSelection.swift */,
-				791D77F9276A5F4B008140CC /* FileSelectionReader.swift */,
+				791D77F9276A5F4B008140CC /* FileReader.swift */,
 				7963282627599F030056F76B /* FileWriter.swift */,
 				797C12BC2711102700A2795C /* ReceiveFileOperation.swift */,
 				79343EB22743502B008E0890 /* SendFileOperation.swift */,
@@ -432,14 +408,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				791D7810276E8FA9008140CC /* root.pem in Resources */,
 				79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */,
 				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
 				796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
 				796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */,
-				791D7811276E8FA9008140CC /* rootkey.key in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -450,11 +424,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7963282A27599F3A0056F76B /* FileReader.swift in Sources */,
 				79C002B1270BC1A9002DB22B /* TestServiceProvider.swift in Sources */,
 				791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */,
 				79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */,
-				79331B07274E91DB00A4022F /* RemoteViewModel.swift in Sources */,
 				7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */,
 				79360EB827069897008349D2 /* ViewController.swift in Sources */,
 				7963282727599F030056F76B /* FileWriter.swift in Sources */,
@@ -469,13 +441,10 @@
 				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
 				79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
-				7936B07727554E06001FA7C9 /* ReceiveTransferViewModel.swift in Sources */,
-				791D77EB2767DC94008140CC /* Document.swift in Sources */,
 				791D77E72767B244008140CC /* CreateSendTransferViewController.swift in Sources */,
-				79331B03274E91A600A4022F /* TransferViewModels.swift in Sources */,
 				79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */,
 				797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */,
-				79C688F627611A7E00353C53 /* ListedFileView.swift in Sources */,
+				79C688F627611A7E00353C53 /* ListedFileOperationView.swift in Sources */,
 				796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */,
 				797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */,
 				79C002AD270A92EC002DB22B /* warp.proto in Sources */,
@@ -490,19 +459,18 @@
 				79B002452729B425003CEBCC /* KeyMaster.swift in Sources */,
 				79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */,
 				79B8A0F7274561C600369E62 /* Coordinator.swift in Sources */,
+				791D781527717575008140CC /* Observable.swift in Sources */,
 				79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */,
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
-				791D77F3276915F5008140CC /* FileSelection.swift in Sources */,
 				79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */,
-				7963282D27599FF00056F76B /* FileViewModel.swift in Sources */,
 				79C002BB270E670C002DB22B /* MainService.swift in Sources */,
 				79C002B4270BCC4E002DB22B /* Server.swift in Sources */,
 				797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */,
 				79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */,
 				799E39E82745822700E60FFC /* ButtonScrollView.swift in Sources */,
 				79C002AC270A92EC002DB22B /* warp.pb.swift in Sources */,
-				791D77FA276A5F4B008140CC /* FileSelectionReader.swift in Sources */,
+				791D77FA276A5F4B008140CC /* FileReader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

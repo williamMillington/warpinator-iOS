@@ -81,7 +81,7 @@ class ReceiveFileOperation: TransferOperation {
     var currentFile: FileWriter?
     
     
-    var observers: [TransferOperationViewModel] = []
+    var observers: [ObservesTransferOperation] = []
     
     
     lazy var queueLabel = "RECEIVE_\(owningRemoteUUID)_\(UUID)"
@@ -317,11 +317,11 @@ extension ReceiveFileOperation {
 //MARK: Observers
 extension ReceiveFileOperation {
     
-    func addObserver(_ model: TransferOperationViewModel){
+    func addObserver(_ model: ObservesTransferOperation){
         observers.append(model)
     }
     
-    func removeObserver(_ model: TransferOperationViewModel){
+    func removeObserver(_ model: ObservesTransferOperation){
         
         for (i, observer) in observers.enumerated() {
             if observer === model {
@@ -332,7 +332,7 @@ extension ReceiveFileOperation {
     
     func updateObserversInfo(){
         observers.forEach { observer in
-            observer.updateInfo()
+            observer.infoDidUpdate()
         }
     }
 }

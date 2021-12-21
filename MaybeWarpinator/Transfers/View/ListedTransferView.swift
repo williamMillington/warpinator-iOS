@@ -7,11 +7,11 @@
 
 import UIKit
 
-class ListedTransferView: UIView {
+
+// MARK: View
+final class ListedTransferView: UIView {
 
     private let DEBUG_TAG: String = "ListedTransferView: "
-    
-    var viewModel: TransferOperationViewModel?
     
     let filesLabel: UILabel = {
         let label = UILabel()
@@ -34,6 +34,8 @@ class ListedTransferView: UIView {
     
     var tapRecognizer: TapGestureRecognizerWithClosure?
     
+    var viewModel: ListedTransferViewModel?
+    
     
     override init(frame: CGRect){
         super.init(frame: frame)
@@ -44,7 +46,7 @@ class ListedTransferView: UIView {
     }
     
     
-    convenience init(withViewModel model: TransferOperationViewModel, onTap action: @escaping ()->Void = {}){
+    convenience init(withViewModel model: ListedTransferViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
         backgroundColor = UIColor.orange.withAlphaComponent(0.2)
@@ -97,4 +99,45 @@ class ListedTransferView: UIView {
         
     }
 
+}
+
+
+
+
+// MARK: -
+// MARK: - View Model
+final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
+    
+    private var operation: TransferOperation
+    
+    var onInfoUpdated: ()->Void = {}
+    
+    var UUID: UInt64 {
+        return operation.UUID
+    }
+    
+    var fileCount: Int {
+        return operation.fileCount
+    }
+    
+    var status: TransferStatus {
+        return operation.status
+    }
+    
+    init(for operation: TransferOperation) {
+        self.operation = operation
+        super.init()
+        operation.addObserver(self)
+    }
+    
+    
+    func infoDidUpdate(){
+        DispatchQueue.main.async { // execute UI on main thread
+            self.onInfoUpdated()
+        }
+    }
+    
+    deinit {
+        operation.removeObserver(self)
+    }
 }

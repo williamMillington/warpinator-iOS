@@ -7,6 +7,8 @@
 
 import UIKit
 
+
+//MARK: View Controller
 class ReceiveTransferViewController: UIViewController {
 
     lazy var DEBUG_TAG: String = "ReceiveTransferViewController:"
@@ -134,5 +136,25 @@ class ReceiveTransferViewController: UIViewController {
         
     }
     
+    
+}
+
+
+
+//MARK: View Model
+final class ReceiveTransferViewModel {
+    
+    let operation: TransferOperation
+    let remote: Remote
+    
+    var deviceName: String {
+        return remote.details.displayName
+    }
+    
+    
+    init(operation: TransferOperation, from remote: Remote){
+        self.operation = operation
+        self.remote = remote
+    }
     
 }

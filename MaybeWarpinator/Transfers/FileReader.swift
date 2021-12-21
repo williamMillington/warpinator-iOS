@@ -2,54 +2,96 @@
 //  FileReader.swift
 //  MaybeWarpinator
 //
-//  Created by William Millington on 2021-12-02.
+//  Created by William Millington on 2021-12-15.
 //
 
 import Foundation
 
 
+
 protocol ReadsFile {
-    
     func readNextChunk() -> FileChunk?
-    
 }
 
 
-class FileReader: ReadsFile  {
+
+struct FileSelection {
     
-    lazy var DEBUG_TAG: String = "FileReader \"\(filename).\(fileExtension):\" "
+    let name: String
+    let bytesCount: Int
+    
+    let path: String
+    let bookmark: Data
+    
+}
+
+extension FileSelection: Equatable {
+    static func ==(lhs: FileSelection, rhs: FileSelection) -> Bool {
+        return lhs.path == rhs.path
+    }
+}
+
+
+
+
+final class FileReader: ReadsFile  {
+    
+    lazy var DEBUG_TAG: String = "FileReader \"\(filename):\" "
     
     let filename: String
-    let fileExtension: String
+//    let fileExtension: String
     
     let fileURL: URL
+    var fileIsBeingAccessed: Bool = false
     let filepath: String
     var relativeFilePath: String {
-        return filename + "." + fileExtension
+        return filename //+ "." + fileExtension
     }
+    let fileHandle: FileHandle
     
-    var fileBytes: [UInt8] = []
     
+    var totalBytes: Int
     var sent = 0
-    var readHead = 0
-//    var hasNext = false
+    var readHead: UInt64 = 0
     
     
-    var observers: [FileSenderViewModel] = []
+    var observers: [ObservesFileOperation] = []
     
     
-    
-    init(for file: FileName){
+    init?(for file: FileSelection){
         
         filename = file.name
-        fileExtension = file.ext
+        totalBytes = file.bytesCount
+        filepath = file.path
         
-        filepath = Bundle.main.path(forResource: filename,
-                                    ofType: fileExtension)!
-        fileURL = URL(fileURLWithPath: filepath)
+        do {
+            var bookmarkIsBad = false
+            fileURL = try URL(resolvingBookmarkData: file.bookmark, bookmarkDataIsStale: &bookmarkIsBad)
+            
+            
+            guard !bookmarkIsBad,
+                  fileURL.startAccessingSecurityScopedResource() else {
+                print("FileReader: url denied access")
+                return nil
+            }
+            
+            fileIsBeingAccessed = true
+            fileHandle = try FileHandle(forReadingFrom: fileURL)
+            
+        } catch {
+            
+            print("FileReader: Could not load bookmarked URL: \(error)")
+            
+            return nil
+        }
         
-        loadFileData()
-        updateObserversInfo()
+        
+//        filepath = Bundle.main.path(forResource: filename,
+//                                    ofType: fileExtension)!
+//        fileURL = URL(fileURLWithPath: filepath)
+//
+//        loadFileData()
+//        updateObserversInfo()
     }
     
     
@@ -58,55 +100,61 @@ class FileReader: ReadsFile  {
         readHead = 0
     }
     
-    func loadFileData(){
-        
-        let fileData = try! Data(contentsOf: fileURL)
-        fileBytes = Array(fileData)
-        
-        
-        print(DEBUG_TAG+"File loaded")
-        print(DEBUG_TAG+"\tbytes: \(fileBytes.count)")
-    }
+//    func loadFileData(){
+//
+//
+//
+//
+//    }
     
     
     func readNextChunk() -> FileChunk? {
         
-        print(DEBUG_TAG+"\tReading next chunk")
+//        print(DEBUG_TAG+"\tReading next chunk")
 //        print(DEBUG_TAG+"\tsent: \(sent)")
+//        print(DEBUG_TAG+"\tfileOffset: \(fileHandle.offsetInFile)")
 //        print(DEBUG_TAG+"\tread-head: \(readHead)")
-//        print(DEBUG_TAG+"\ttotal: \(fileBytes.count)")
+//        print(DEBUG_TAG+"\ttotal: \(totalBytes)")
+
         
-        guard sent < fileBytes.count else {
+        
+        guard fileHandle.offsetInFile < totalBytes else {
+            
             updateObserversInfo()
+            
+            fileHandle.closeFile()
+            fileURL.stopAccessingSecurityScopedResource()
+            fileIsBeingAccessed = false
+            
             print(DEBUG_TAG+"No more data to be read"); return nil
         }
         
-        let datachunk = arraySubsection(from: fileBytes, startingAt: readHead, size: SendFileOperation.chunk_size)
+        
+        fileHandle.seek(toFileOffset: readHead)
+        
+        
+        let datachunk = fileHandle.readData(ofLength: SendFileOperation.chunk_size)
         
         let fileChunk: FileChunk = .with {
             $0.relativePath = relativeFilePath
             $0.fileType = FileType.FILE.rawValue
-            $0.chunk = Data(bytes: datachunk, count: datachunk.count)
+            $0.chunk = datachunk //Data(bytes: datachunk, count: datachunk.count)
         }
-        
+
         sent += datachunk.count
-        readHead += datachunk.count
-        
+        readHead += UInt64( datachunk.count )
+
         updateObserversInfo()
         
         return fileChunk
     }
     
     
-    private func arraySubsection(from array: [UInt8], startingAt index: Int, size: Int ) -> [UInt8] {
-        
-        var endIndex = index + size
-        
-        if ((endIndex) >= array.count){
-            endIndex = array.count - 1
+    
+    deinit {
+        if fileIsBeingAccessed { // in case of interruption
+            fileURL.stopAccessingSecurityScopedResource()
         }
-//        print(DEBUG_TAG+"reading from bytes[\(index)...\(endIndex)]")
-        return  Array( array[index...endIndex] )
     }
     
 }
@@ -114,30 +162,14 @@ class FileReader: ReadsFile  {
 
 
 
-
-////MARK: -
-////MARK: - sequence
-//
-//
-//
-////MARK: iterator
-//extension FileReader: Sequence, IteratorProtocol {
-//    typealias Element = FileChunk
-//
-//    func next() -> FileChunk? {
-//        return readNextChunk()
-//    }
-//}
-
-
 //MARK: observers
 extension FileReader {
     
-    func addObserver(_ model: FileSenderViewModel){
+    func addObserver(_ model: ObservesFileOperation){
         observers.append(model)
     }
     
-    func removeObserver(_ model: FileSenderViewModel){
+    func removeObserver(_ model: ObservesFileOperation){
         
         for (i, observer) in observers.enumerated() {
             if observer === model {
@@ -148,7 +180,7 @@ extension FileReader {
     
     func updateObserversInfo(){
         observers.forEach { observer in
-            observer.update()
+            observer.infoDidUpdate()
         }
     }
 }
@@ -158,13 +190,11 @@ extension FileReader {
 
 
 
-
 // MARK: ChunkIterator
-// Manages the iteration of multiple FileReaders
-class ChunkIterator {
+// Manages the iteration of multiple FileSelectionReaders
+final class ChunkIterator {
     
     
-//    var fileReaders: [FileReader]
     var fileReaders: [ReadsFile]
     
     var readerIndex = 0

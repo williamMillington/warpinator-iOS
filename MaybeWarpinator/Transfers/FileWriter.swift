@@ -50,7 +50,9 @@ class FileWriter {
     
     var writtenBytesCount: Int = 0
     
-    var observers: [FileReceiverViewModel] = []
+    
+    var observers: [ObservesFileOperation] = []
+    
     
     init(filename name: String){
         self.filename = name
@@ -134,11 +136,11 @@ class FileWriter {
 //MARK: observers
 extension FileWriter {
     
-    func addObserver(_ model: FileReceiverViewModel){
+    func addObserver(_ model: ObservesFileOperation){
         observers.append(model)
     }
     
-    func removeObserver(_ model: FileReceiverViewModel){
+    func removeObserver(_ model: ObservesFileOperation){
         
         for (i, observer) in observers.enumerated() {
             if observer === model {
@@ -149,7 +151,7 @@ extension FileWriter {
     
     func updateObserversInfo(){
         observers.forEach { observer in
-            observer.update()  
+            observer.infoDidUpdate()  
         }
     }
 }
@@ -157,30 +159,32 @@ extension FileWriter {
 
 
 
-// MARK: Placeholder
-class FilePlaceHolder {
-    var observers: [FileReceiverViewModel] = []
-}
 
 
-extension FilePlaceHolder {
-    
-    func addObserver(_ model: FileReceiverViewModel){
-        observers.append(model)
-    }
-    
-    func removeObserver(_ model: FileReceiverViewModel){
-        
-        for (i, observer) in observers.enumerated() {
-            if observer === model {
-                observers.remove(at: i)
-            }
-        }
-    }
-    
-    func updateObserversInfo(){
-        observers.forEach { observer in
-            observer.update()
-        }
-    }
-}
+//// MARK: Placeholder
+//class FilePlaceHolder {
+//    var observers: [FileReceiverViewModel] = []
+//}
+
+
+//extension FilePlaceHolder {
+//
+//    func addObserver(_ model: FileReceiverViewModel){
+//        observers.append(model)
+//    }
+//
+//    func removeObserver(_ model: FileReceiverViewModel){
+//
+//        for (i, observer) in observers.enumerated() {
+//            if observer === model {
+//                observers.remove(at: i)
+//            }
+//        }
+//    }
+//
+//    func updateObserversInfo(){
+//        observers.forEach { observer in
+//            observer.infoDidUpdate()
+//        }
+//    }
+//}
