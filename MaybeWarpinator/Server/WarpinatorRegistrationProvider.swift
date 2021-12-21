@@ -27,7 +27,6 @@ class WarpinatorRegistrationProvider: WarpRegistrationProvider {
         
         var response = RegResponse()
         
-        
         response.lockedCert = Authenticator.shared.getCertificateDataForSending()
         
         return context.eventLoop.makeSucceededFuture( response )

@@ -34,10 +34,6 @@ class Authenticator {
     
     static var shared: Authenticator = Authenticator()
     
-//    public var certificates: [String : NIOSSLCertificate] = [:]
-    
-    
-    
     public var uuid: String = "WarpinatorIOS"
     public lazy var hostname = uuid
     
@@ -134,7 +130,6 @@ class Authenticator {
     
     // MARK: box cert
     func getCertificateDataForSending() -> String {
-
         
         // generate encryption-key from key-code
         let keyCode = "Warpinator"
@@ -182,128 +177,107 @@ class Authenticator {
     
     
     
-    // MARK: - server cert
-    func getServerCertificate() -> NIOSSLCertificate {
-        return loadNIOSSLCertificateFromFile()
-    }
-    
-    // MARK: - server PK
-    func getServerPrivateKey() -> NIOSSLPrivateKey {
-        return loadServerPrivateKeyFromFile()
-    }
-    
-    
+//    // MARK: - server cert
+//    func getServerCertificate() -> NIOSSLCertificate {
+//        return loadNIOSSLCertificateFromFile()
+//    }
+//
+//    // MARK: - server PK
+//    func getServerPrivateKey() -> NIOSSLPrivateKey {
+//        return loadServerPrivateKeyFromFile()
+//    }
     
     
     
-    // MARK: - Generate certificate
-    func generateNewCertificate(forHostname hostname: String) {
-//        -> Data {
+    // MARK: - Generate certificate + key
+    func generateNewCertificate() {
         
         print(DEBUG_TAG+"generating new server certificate...")
-        
-        var sanitizedHostname = hostname.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression)
-//        print(DEBUG_TAG+"\tsanitized hostname: \(sanitizedHostname)")
-        
-        if sanitizedHostname.trimmingCharacters(in:[" "]).isEmpty{
-            sanitizedHostname = "iOS-Warpinator"
-        }
-        
-        sanitizedHostname = "WarpinatorIOS"
-        
         
         // CREATE KEYS
         let keypair = try! SecKeyPair.Builder(type: .rsa, keySize: 2048)  .generate()
 
         let publicKey = keypair.publicKey
         let publicKeyEncoded = try! publicKey.encode()
+        let pubKeyInfo = SubjectPublicKeyInfo(algorithm: try! AlgorithmIdentifier(publicKey: publicKey),
+                                                  subjectPublicKey: publicKeyEncoded)
         
         let privateKey = keypair.privateKey
         
         
+        // SET VALIDITY TIME FRAME
+        let day_seconds: Double = 60 * 60 * 24      // milliseconds in a day
+        let expirationTime: Double = 30 * day_seconds // one month
+        
+        let startDate = Date(timeInterval: -(day_seconds / 1000) , since: Date() ) // yesterday
+        let endDate = Date(timeInterval: expirationTime, since: startDate) // one month from yesterday
+        
+        let startTime = AnyTime(date: startDate, timeZone: .current)
+        let endTime = AnyTime(date: endDate, timeZone: .current)
         
         
-        // SET TIME FRAME
-        // milliseconds in a day
-        let day_seconds: Double = 60 * 60 * 24
-        let expirationTime:Double = 30 * day_seconds
+        // COMMON NAME
+        let hostname = "WarpinatorIOS"
+        let x500Name = try! NameBuilder.parse(string:"CN="+hostname)
         
+        
+        // SERIAL NUMBER
         let currentTime = Double(Date.timeIntervalBetween1970AndReferenceDate + Date.timeIntervalSinceReferenceDate)
-        let serial = String(currentTime) //use current time as serial number
-        
-        let start = Date(timeInterval: -(day_seconds / 1000) , since: Date() ) // yesterday
-        let end = Date(timeInterval: expirationTime, since: start) // one month from start
+        let serialNumber = TBSCertificate.SerialNumber( String(currentTime) )
         
         
-        let x500Name = try! NameBuilder.parse(string:"CN="+sanitizedHostname)
-        let certSerial = TBSCertificate.SerialNumber(serial)
+        // -- EXTENSIONS
         
-        let startTime = AnyTime(date: start, timeZone: .current)
-        let endTime = AnyTime(date: end, timeZone: .current)
+        // IP address as Subject Alternative Name
+        let ipAddress = Utils.getIPV4Address()
+        
+        var IPparts: [UInt8] = []
+        ipAddress.components(separatedBy: ".").forEach { part in
+            if let uint = UInt8(part) {
+                IPparts.append(uint)
+            }
+        }
+        
+        let ipAddressExtension = GeneralName.ipAddress( Data( IPparts ) )
         
         
+        // SUBJECT AND ISSUER KEY IDENTIFIERS (self-signed, so same identifier for both)
+        let keyID: KeyIdentifier = Digester.digest( publicKeyEncoded, using: .sha1)
         
-        let certPubKeyInfo = SubjectPublicKeyInfo(algorithm: try! AlgorithmIdentifier(publicKey: publicKey),
-                                                  subjectPublicKey: publicKeyEncoded)
+        // EXTENDED KEY USAGES
+        let kp = iso.org.dod.internet.security.mechanisms.pkix.kp.self
+        let usages: Set<OID> = [ kp.clientAuth.oid, kp.serverAuth.oid  ]
         
         
         // BUILD CERT
-        
-        
-        let ipAddress = Utils.getIPV4Address()
-        print(DEBUG_TAG+"ip is \(ipAddress)")
-        
-        func parseIPFromString(_ string: String) -> [UInt8] {
-            
-            var IPparts: [UInt8] = []
-            
-            string.components(separatedBy: ".").forEach { part in
-                if let uint = UInt8(part) {
-                    IPparts.append(uint)
-                }
-            }
-            
-            return IPparts
-        }
-        
-        let dataip: [UInt8] =  parseIPFromString(ipAddress)   //[192,168,2,15]
-//        let d = PotentASN1.ASN1.Tag.
-        
-        let ipAddressExtension = GeneralName.ipAddress( Data(dataip ) )
-        
-        
-        
-        // EXTENSIONS
-        let kp = iso.org.dod.internet.security.mechanisms.pkix.kp.self
-        
-        
-        let keyID: KeyIdentifier = Digester.digest( publicKeyEncoded, using: .sha1)
-        
-        
-        let certBuilder = try! Certificate.Builder(serialNumber: certSerial,
+        let certBuilder = try! Certificate.Builder(serialNumber: serialNumber,
                                               issuer: x500Name,
                                               subject: x500Name,
-                                              subjectPublicKeyInfo: certPubKeyInfo,
+                                              subjectPublicKeyInfo: pubKeyInfo,
                                               notBefore: startTime,
                                               notAfter: endTime)
             .subjectKeyIdentifier(keyID)
             .authorityKeyIdentifier(keyID)
             .basicConstraints(ca: true)
             .addSubjectAlternativeNames(names: ipAddressExtension)
-            .extendedKeyUsage(keyPurposes: [ kp.clientAuth.oid, kp.serverAuth.oid  ] , isCritical: true)
+            .extendedKeyUsage(keyPurposes: usages , isCritical: true)
             
             
-        
+        // CREATE/SIGN CERTIFICATE
         let digestAlgorithm = Digester.Algorithm.sha256
         let certificate = try! certBuilder.build(signingKey: privateKey,
                                                  digestAlgorithm: digestAlgorithm)
         
         
-        
         // delete old key, if exists
         if let _ = try? KeyMaster.readPrivateKey(forKey: uuid) {
             print(DEBUG_TAG+"key exists, deleting it")
-            try? KeyMaster.deletePrivateKey(forKey: uuid)
+            
+            do {
+                try KeyMaster.deletePrivateKey(forKey: uuid)
+            } catch {
+                print("error deleting key")
+            }
         }
         
         
@@ -324,56 +298,16 @@ class Authenticator {
 //        }
         
         
-        
-        
-//        print(DEBUG_TAG+"Certificate Data: ")
-//        print(DEBUG_TAG+"\t\t Serial Number: \( certificate.tbsCertificate.serialNumber)")
-//        print(DEBUG_TAG+"\t\t SignatureAlgorithm: \( certificate.tbsCertificate.signature.algorithm)")
-//        print(DEBUG_TAG+"\t\t Issuer: \( certificate.tbsCertificate.issuer[0][0])")
-//        print(DEBUG_TAG+"\t\t Validity: \( certificate.tbsCertificate.validity)")
-//        print(DEBUG_TAG+"\t\t Subject: \( certificate.tbsCertificate.subject[0][0])")
-//        print(DEBUG_TAG+"\t\t Subject PUB KEY info: \( certificate.tbsCertificate.subjectPublicKeyInfo)")
-//        for ext in certificate.tbsCertificate.extensions! {
-//            print(DEBUG_TAG+"\t\t Extension: \(ext)")
-//        }
-//        print(DEBUG_TAG+"\t\t Signature: \( certificate.tbsCertificate.signature)")
-
-        
-        
-//            print(DEBUG_TAG+"SecCertificate \(String(describing: secCert))")
-//            print(DEBUG_TAG+"\t\tissuer name: \(String(describing: secCert?.issuerName))")
-//            print(DEBUG_TAG+"\t\tsubject name: \(String(describing: secCert?.subjectName))")
-//
-//            print(DEBUG_TAG+"\t\tattributes: ")
-//
-        
         let secCert = try! certificate.sec()
         let dbytes = secCert!.derEncoded
 
         serverCertDERData = Array(dbytes)
         
-        print(DEBUG_TAG+"generated PEM string: \n\n\t\t\(serverCertPEMData!.utf8String!)\n\n")
+//        print(DEBUG_TAG+"generated PEM string: \n\n\t\t\(serverCertPEMData!.utf8String!)\n\n")
 
         serverKeyData = Array( try! privateKey.encode() )
         
         
-        
-//            let attrs = try secCert!.attributes()
-//            for (key, a) in attrs {
-//                print(DEBUG_TAG+"\t\t\t \(key):\(a)")
-//            }
-
-
-//
-//        } catch {
-//            print(DEBUG_TAG+"Error converting certificate to SecCertificate: \(error)")
-//        }
-        
-        
-        
-        
-        
-//        return try! certificate.encoded()
     }
     
     
@@ -477,8 +411,6 @@ extension Authenticator {
 //            print(DEBUG_TAG+"couldn't create NIOSSLCertificate from data \(error)")
 //        }
 //
-//
-//
 //        return nil
 //    }
 //
@@ -505,8 +437,4 @@ extension Authenticator {
 //        return nil
 //    }
 //}
-
-
-
-
 

@@ -9,15 +9,10 @@ import UIKit
 
 import GRPC
 import NIO
-//import NIOSSL
-//import SwiftProtobuf
 
 import Network
 
 import Logging
-
-//import CryptoKit
-//import Sodium
 
 
 public class Server: NSObject {
@@ -66,7 +61,7 @@ public class Server: NSObject {
     // MARK: Transfer Server
     func startWarpinatorServer(){
         
-        Authenticator.shared.generateNewCertificate(forHostname: "\(Server.SERVER_UUID)")
+        Authenticator.shared.generateNewCertificate()
         
         guard let serverCertificate = Authenticator.shared.serverCert else {
             print(DEBUG_TAG+"Error with server certificate")
@@ -77,14 +72,6 @@ public class Server: NSObject {
             print(DEBUG_TAG+"Error with server certificate")
             return
         }
-//        let authority = Authenticator.shared.getServerCertificateBundle()      //getSigningAuthority()
-//        let serverCertificate = Authenticator.shared.getServerCertificate()
-//        let serverPrivateKey = Authenticator.shared.getServerPrivateKey()
-        
-        
-//        print(DEBUG_TAG+"CA is \(authority)")
-//        print(DEBUG_TAG+"certificate is \(serverCertificate)")
-//        print(DEBUG_TAG+"privatekey is \(serverPrivateKey)")
         
         
         var logger = Logger(label: "warpinator.Server", factory: StreamLogHandler.standardOutput)

@@ -13,7 +13,7 @@
 \f0\b0 \ulnone  \
 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
-\cf0 - Generate X509 certificate on the fly\
+\cf0 - \cf2 Generate X509 certificate on the fly\cf0 \
 - Differentiate ViewModels (Listed vs ViewController) to Remotes, Transfer Operations\
 - Compatibility with Android Warpinator \
 	- wtfs even going on there seriously\
@@ -72,11 +72,6 @@ ReceiveFileOperation:\
 \
 \
 \
-\
-\
-\
-  \
-\
 
 \f1\b \ul BETA
 \f0\b0 \ulnone  \
@@ -87,13 +82,12 @@ ReceiveFileOperation:\
 - Persist/remove known remotes when they are disconnected/unavailable\
 - Ensure all Remotes are sharing a single eventloop group\
 - Improve remote detection. Fuck around with mDNSBrowser a bit\
-\
 - Investigate/Fix slow connection bullshit\
-\
 - Create one-off authentication request to grab an IP address\
 - Handle revocation of file-access permission\
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
-\cf0 \
+\cf0 - Handle network change \
+\
 \
 ViewController:\
 	- Settings button\
@@ -151,6 +145,9 @@ SendFileOperation:\
 \f0\b0 \ulnone   \
 \
 - customize document selector\
+- More robust error handling	\
+	- popups with error message\
+	- maybe some kind of reportable logging\
 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 \cf0 \

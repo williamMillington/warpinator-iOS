@@ -18,12 +18,6 @@ class CertificateServer {
     
     public static let REQUEST: String = "REQUEST"
     
-//    let port: NWEndpoint.Port
-//    let listener: NWListener
-    
-    
-//    var connections: [NWEndpoint: NWConnection] = [:]
-    
     
     func serveCertificate(to connection: NWConnection, onComplete: @escaping () -> Void = {} ){
         
@@ -53,7 +47,6 @@ class CertificateServer {
                                     }
                                     print("releasing connection")
                                     // release the connection here when transfer completed or failed
-//                                    self.connections.removeValue(forKey: connection.endpoint)
                                     onComplete()
                 })
                 
