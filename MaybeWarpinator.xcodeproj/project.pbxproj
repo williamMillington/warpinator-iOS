@@ -12,6 +12,7 @@
 		791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F52769910A008140CC /* ListedFileSelectionView.swift */; };
 		791D77FA276A5F4B008140CC /* FileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F9276A5F4B008140CC /* FileReader.swift */; };
 		791D781527717575008140CC /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D781427717575008140CC /* Observable.swift */; };
+		791D7826277378F0008140CC /* Array+Index_nillable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D7825277378F0008140CC /* Array+Index_nillable.swift */; };
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
 		79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79343EB22743502B008E0890 /* SendFileOperation.swift */; };
 		79360EB427069897008349D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB327069897008349D2 /* AppDelegate.swift */; };
@@ -72,6 +73,7 @@
 		791D77F52769910A008140CC /* ListedFileSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileSelectionView.swift; sourceTree = "<group>"; };
 		791D77F9276A5F4B008140CC /* FileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReader.swift; sourceTree = "<group>"; };
 		791D781427717575008140CC /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
+		791D7825277378F0008140CC /* Array+Index_nillable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Index_nillable.swift"; sourceTree = "<group>"; };
 		79331AF8274E8F3500A4022F /* TransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewController.swift; sourceTree = "<group>"; };
 		79343EB22743502B008E0890 /* SendFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFileOperation.swift; sourceTree = "<group>"; };
 		79360EB027069897008349D2 /* MaybeWarpinator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MaybeWarpinator.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -332,6 +334,7 @@
 				79B8A0EC27449EE300369E62 /* ExtensionManagement.swift */,
 				79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */,
 				79B8A0E927449EB500369E62 /* String+substring.swift */,
+				791D7825277378F0008140CC /* Array+Index_nillable.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -465,6 +468,7 @@
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
 				79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */,
 				79C002BB270E670C002DB22B /* MainService.swift in Sources */,
+				791D7826277378F0008140CC /* Array+Index_nillable.swift in Sources */,
 				79C002B4270BCC4E002DB22B /* Server.swift in Sources */,
 				797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */,
 				79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */,

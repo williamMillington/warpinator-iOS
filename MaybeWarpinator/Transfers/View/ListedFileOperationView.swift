@@ -173,7 +173,7 @@ final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFi
 
 // MARK: -
 // MARK: - Sender View Model
-final class FileWriterViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
+final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
     private var operation: FileWriter
     var onUpdated: ()->Void = {}

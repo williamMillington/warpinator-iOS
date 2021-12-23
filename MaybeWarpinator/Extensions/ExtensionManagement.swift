@@ -11,8 +11,8 @@ import UIKit
 
 
 public protocol ExtensionManagerCompatible {
-    associatedtype someType
-    var extended: someType { get }
+    associatedtype baseType
+    var extended: baseType { get }
 }
 
 
@@ -29,6 +29,7 @@ public struct ExtensionManager<Base> {
         self.base = base
     }
 }
+
 
 
 // MARK: - Foundation Types
@@ -52,3 +53,4 @@ extension UIColor: ExtensionManagerCompatible {}
 extension UIViewController: ExtensionManagerCompatible {}
 
 extension FileManager: ExtensionManagerCompatible {}
+

@@ -316,7 +316,7 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
             let transfer = operation as! ReceiveFileOperation
             
             for filewriter in transfer.files {
-                let vm = FileWriterViewModel(operation: filewriter)
+                let vm = ListedFileWriterViewModel(operation: filewriter)
                 viewModels.append(vm)
             }
             

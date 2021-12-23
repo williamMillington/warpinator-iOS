@@ -593,7 +593,7 @@ extension Remote: ClientErrorDelegate {
     //MARK: didCatchError
     public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
         
-        // bad cert, discard and retry
+        // if bad cert, discard and retry
         if case NIOSSLError.handshakeFailed(_) = error {
             print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
             authenticationCertificate = nil
