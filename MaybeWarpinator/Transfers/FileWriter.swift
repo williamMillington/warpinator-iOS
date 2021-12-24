@@ -74,7 +74,7 @@ class FileWriter {
     
     
     func write(_ data: Data){
-        print(DEBUG_TAG+"\tattempting to write to file...")
+        print(DEBUG_TAG+"\t\t writing to file...")
         
         guard let handle = fileHandle else {
             print(DEBUG_TAG+"\t\tERROR: writing to file failed...")

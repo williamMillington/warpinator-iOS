@@ -86,7 +86,7 @@ class ReceiveFileOperation: TransferOperation {
     
     lazy var queueLabel = "RECEIVE_\(owningRemoteUUID)_\(UUID)"
     lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
-    
+    var dataStream: ServerStreamingCall<OpInfo, FileChunk>? = nil
     
     var operationInfo: OpInfo
     
@@ -150,6 +150,7 @@ extension ReceiveFileOperation {
         currentRelativePath = ""
         currentFile = nil
         
+        dataStream = nil
         
         status = .WAITING_FOR_PERMISSION
         
@@ -165,24 +166,40 @@ extension ReceiveFileOperation {
         
         status = .TRANSFERRING
         
-        let dataStream = client.startTransfer(operationInfo) { chunk in
+        
+        receivingChunksQueue.async {
             
-            guard self.status == .TRANSFERRING else {
-                print("canceling chunk processing")
-                return
-            }
-            
-            self.receivingChunksQueue.async {
-                self.processChunk(chunk)
+            self.dataStream = client.startTransfer(self.operationInfo) { chunk in
+                
+                guard self.status == .TRANSFERRING else {
+                    print("canceling chunk processing")
+                    return
+                }
+                
+//                self.receivingChunksQueue.async {
+                    self.processChunk(chunk)
+//                }
             }
         }
         
-        dataStream.status.whenSuccess { status in
+//        dataStream = client.startTransfer(operationInfo) { chunk in
+//
+//            guard self.status == .TRANSFERRING else {
+//                print("canceling chunk processing")
+//                return
+//            }
+//
+//            self.receivingChunksQueue.async {
+//                self.processChunk(chunk)
+//            }
+//        }
+        
+        dataStream?.status.whenSuccess { status in
             print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
             self.finishReceive()
         }
         
-        dataStream.status.whenFailure { error in
+        dataStream?.status.whenFailure { error in
             print(self.DEBUG_TAG+"transfer failed: \(error)")
             self.receiveWasCancelled()
         }

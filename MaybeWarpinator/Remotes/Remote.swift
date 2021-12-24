@@ -136,7 +136,7 @@ public class Remote {
     }
     
     
-    
+    // MARK: startConnection
     func startConnection(){
         
         duplexAttempts = 0
@@ -172,16 +172,10 @@ public class Remote {
 //            .withBackgroundActivityLogger(logger)
         
         
-        // primitive check for android app, which will not accept hostname connections
-//        let hostname: String
-//        if details.api == "1" {
-//            hostname = details.ipAddress
-//        } else {
-//            hostname = details.hostname
-//        }
-        let hostname =  details.ipAddress // "192.168.2.18"
         
 //        let hostname = "192.168.50.42"
+        let hostname =  details.ipAddress
+        
         let port = details.port
         
         print(self.DEBUG_TAG+"creating channel for \(hostname):\(port)")
@@ -220,6 +214,25 @@ public class Remote {
             print(DEBUG_TAG+"with error: \(error)")
         } else {
             details.status = .Disconnected
+        }
+    }
+    
+    
+    
+    func stopAllTransfers(forStatus status: TransferDirection){
+        
+        if status == .SENDING {
+            for operation in sendingOperations {
+                if [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION].contains(operation.status) {
+                    operation.orderStop(TransferError.ConnectionInterrupted)
+                }
+            }
+        } else {
+            for operation in receivingOperations {
+                if [.TRANSFERRING, .INITIALIZING].contains(operation.status) {
+                    operation.orderStop( TransferError.ConnectionInterrupted )
+                }
+            }
         }
     }
     
@@ -581,6 +594,10 @@ extension Remote: ConnectivityStateDelegate {
             print(DEBUG_TAG+"channel ready")
         case .transientFailure:
             transientFailureCount += 1
+            
+            stopAllTransfers(forStatus: .SENDING)
+            stopAllTransfers(forStatus: .RECEIVING)
+            
             print(DEBUG_TAG+"\tTransientFailure #\(transientFailureCount)")
             if transientFailureCount == 10 {
                 onDisconnect( AuthenticationError.ConnectionError )
