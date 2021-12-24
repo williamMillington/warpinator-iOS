@@ -63,7 +63,7 @@ class MainCoordinator: NSObject, Coordinator {
     func userSelected(_ remoteUUID: String){
         
         
-        print(DEBUG_TAG+"user selected remote \(remoteUUID)")
+//        print(DEBUG_TAG+"user selected remote \(remoteUUID)")
         
         if let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) {
             

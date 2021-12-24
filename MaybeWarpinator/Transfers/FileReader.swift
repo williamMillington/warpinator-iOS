@@ -15,7 +15,7 @@ protocol ReadsFile {
 
 
 
-struct FileSelection {
+struct FileSelection: Hashable {
     
     let name: String
     let bytesCount: Int
@@ -38,16 +38,20 @@ final class FileReader: ReadsFile  {
     
     lazy var DEBUG_TAG: String = "FileReader \"\(filename):\" "
     
+    let file: FileSelection
+    
     let filename: String
 //    let fileExtension: String
     
-    let fileURL: URL
-    var fileIsBeingAccessed: Bool = false
+    var fileURL: URL
     let filepath: String
     var relativeFilePath: String {
         return filename //+ "." + fileExtension
     }
-    let fileHandle: FileHandle
+    var fileHandle: FileHandle
+    
+    
+    var fileIsBeingAccessed: Bool = false
     
     
     var totalBytes: Int
@@ -59,6 +63,8 @@ final class FileReader: ReadsFile  {
     
     
     init?(for file: FileSelection){
+        
+        self.file = file
         
         filename = file.name
         totalBytes = file.bytesCount
@@ -85,27 +91,33 @@ final class FileReader: ReadsFile  {
             return nil
         }
         
-        
-//        filepath = Bundle.main.path(forResource: filename,
-//                                    ofType: fileExtension)!
-//        fileURL = URL(fileURLWithPath: filepath)
-//
-//        loadFileData()
-//        updateObserversInfo()
     }
     
     
-    func reset(){
+    func reinitialize(){
+        
         sent = 0
         readHead = 0
+        
+        do {
+            var bookmarkIsBad = false
+            fileURL = try URL(resolvingBookmarkData: file.bookmark, bookmarkDataIsStale: &bookmarkIsBad)
+            
+            
+            guard !bookmarkIsBad,
+                fileURL.startAccessingSecurityScopedResource() else {
+                print("FileReader: url denied access"); return
+            }
+            
+            fileIsBeingAccessed = true
+            fileHandle = try FileHandle(forReadingFrom: fileURL)
+            
+        } catch {
+            print("FileReader: Could not load bookmarked URL: \(error)")
+        }
+        
     }
     
-//    func loadFileData(){
-//
-//
-//
-//
-//    }
     
     
     func readNextChunk() -> FileChunk? {
@@ -118,13 +130,14 @@ final class FileReader: ReadsFile  {
 
         
         
-        guard fileHandle.offsetInFile < totalBytes else {
+        guard fileIsBeingAccessed,
+              fileHandle.offsetInFile < totalBytes else {
             
             updateObserversInfo()
             
             fileHandle.closeFile()
-            fileURL.stopAccessingSecurityScopedResource()
             fileIsBeingAccessed = false
+            fileURL.stopAccessingSecurityScopedResource()
             
             print(DEBUG_TAG+"No more data to be read"); return nil
         }
@@ -149,6 +162,18 @@ final class FileReader: ReadsFile  {
         return fileChunk
     }
     
+    
+    
+    func close(){
+        
+        fileHandle.closeFile()
+        fileIsBeingAccessed = false
+        fileURL.stopAccessingSecurityScopedResource()
+        
+        updateObserversInfo()
+        
+        print(DEBUG_TAG+"File is closed")
+    }
     
     
     deinit {

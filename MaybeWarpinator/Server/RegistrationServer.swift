@@ -117,7 +117,6 @@ extension RegistrationServer: MDNSBrowserDelegate {
     // MARK: didAddResult
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
-//        return
         
         // if the metadata has a record "type",
         // and if type is 'flush', then ignore this service
@@ -131,7 +130,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         var serviceName = "unknown_service"
         switch result.endpoint {
-        case .service(name: let name, type: _, domain: _, interface: let interface):
+        case .service(name: let name, type: _, domain: _, interface: _):
             
             serviceName = name
             if name == uuid {
@@ -139,7 +138,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
             } else {
                 print(DEBUG_TAG+"service discovered: \(name)")
             }
-            print(DEBUG_TAG+"\tinterface: \(String(describing: interface))")
+//            print(DEBUG_TAG+"\tinterface: \(String(describing: interface))")
             
         default: print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
         }
@@ -148,6 +147,25 @@ extension RegistrationServer: MDNSBrowserDelegate {
         print(DEBUG_TAG+"mDNSBrowser did add result:")
         print("\t\(result.endpoint)")
         print("\t\(result.metadata)")
+        
+        
+        var hostname = serviceName
+        var api = "1"
+        var authPort = 42000
+        // parse TXT record for metadata
+        if case let NWBrowser.Result.Metadata.bonjour(TXTrecord) = result.metadata {
+            
+            for (key, value) in TXTrecord.dictionary {
+                switch key {
+                case "hostname": hostname = value
+                case "api-version": api = value
+                case "auth-port": authPort = Int(value) ?? 42000
+                case "type": break
+                default: print("unknown TXT record type: \(key)-\(value)")
+                }
+            }
+        }
+        
         
         
         if let remote = remoteManager?.containsRemote(for: serviceName) {
@@ -162,27 +180,17 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         var details = RemoteDetails(endpoint: result.endpoint)
         details.serviceName = serviceName
+        details.hostname = hostname
         details.uuid = serviceName
-        details.api = "1"
+        details.api = api
         details.port = 42000
-        details.authPort = 42000 //"42000"
+        details.authPort = authPort //"42000"
         details.status = .Disconnected
         
-        // parse TXT record for metadata
-        if case let NWBrowser.Result.Metadata.bonjour(TXTrecord) = result.metadata {
-            
-            for (key, value) in TXTrecord.dictionary {
-                switch key {
-                case "hostname": details.hostname = value
-                case "api-version": details.api = value
-                case "auth-port": details.authPort = Int(value) ?? 42000
-                case "type": break
-                default: print("unknown TXT record type: \(key)-\(value)")
-                }
-            }
-        }
+        
         
         let newRemote = Remote(details: details)
+        
         
         remoteManager?.addRemote(newRemote)
     }

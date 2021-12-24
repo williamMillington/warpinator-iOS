@@ -31,19 +31,7 @@ struct RemoteDetails {
         case Connected, Disconnected
     }
     
-    static var MOCK_DETAILS: RemoteDetails = {
-        let mockEndpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("So.me.Ho.st") ,
-                                               port: NWEndpoint.Port(integerLiteral: 8080))
-        let mock = RemoteDetails(DEBUG_TAG: "MoCkReMoTe",
-                                 endpoint: mockEndpoint,
-                                 displayName: "mOcK ReMoTe",   username: "mOcK uSeR",
-                                 serviceName: "MoCk SeRvIcE",  hostname: "mOcK hOsT",  ipAddress: "Som.eAd.dre.ss",
-                                 port: 8080,   authPort: 8081,
-                                 uuid: "mOcK uUiD",  api: "2",
-                                 status: .Disconnected,  serviceAvailable: false)
-        return mock
-    }()
-    
+    static let NO_IP_ADDRESS = "No_IPAddress"
     
     lazy var DEBUG_TAG: String = "RemoteDetails (hostname: \"\(hostname)\"): "
     
@@ -55,7 +43,7 @@ struct RemoteDetails {
     
     var serviceName: String = "No_ServiceName"
     var hostname: String = "No_Hostname"
-    var ipAddress: String = "No_IPAddress"
+    var ipAddress: String = RemoteDetails.NO_IP_ADDRESS
     var port: Int = 0 //"No_Port"
     var authPort: Int = 0 //"No_Auth_Port"
     
@@ -68,7 +56,21 @@ struct RemoteDetails {
     
 }
 
-
+// MARK: Mock Remote Details
+extension RemoteDetails {
+    static var MOCK_DETAILS: RemoteDetails = {
+        let mockEndpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("So.me.Ho.st") ,
+                                               port: NWEndpoint.Port(integerLiteral: 8080))
+        let mock = RemoteDetails(DEBUG_TAG: "MoCkReMoTe",
+                                 endpoint: mockEndpoint,
+                                 displayName: "mOcK ReMoTe",   username: "mOcK uSeR",
+                                 serviceName: "MoCk SeRvIcE",  hostname: "mOcK hOsT",  ipAddress: "Som.eAd.dre.ss",
+                                 port: 8080,   authPort: 8081,
+                                 uuid: "mOcK uUiD",  api: "2",
+                                 status: .Disconnected,  serviceAvailable: false)
+        return mock
+    }()
+}
 
 
 
@@ -143,6 +145,12 @@ public class Remote {
         if let certificate = authenticationCertificate {
             connect(withCertificate: certificate)
         } else {
+            
+            if  details.api == "2" && details.ipAddress == RemoteDetails.NO_IP_ADDRESS {
+                print("Remote does not yet have an IP Address")
+                return
+            }
+            
             obtainCertificate()
         }
     }
@@ -171,7 +179,7 @@ public class Remote {
 //        } else {
 //            hostname = details.hostname
 //        }
-        let hostname = "192.168.2.18"
+        let hostname =  details.ipAddress // "192.168.2.18"
         
 //        let hostname = "192.168.50.42"
         let port = details.port

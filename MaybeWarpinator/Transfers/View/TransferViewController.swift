@@ -15,6 +15,7 @@ class TransferViewController: UIViewController {
     
     var coordinator: RemoteCoordinator?
     
+    // MARK: labels
     let transferDescriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Transfer"
@@ -51,6 +52,7 @@ class TransferViewController: UIViewController {
         return label
     }()
     
+    // MARK: transfer button
     let transferButton: UIButton = {
         let button = UIButton()
         button.setTitle("Cancel", for: .normal)
@@ -63,6 +65,7 @@ class TransferViewController: UIViewController {
     }()
     
     
+    // MARK: files stack
     var operationsStack: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -85,7 +88,7 @@ class TransferViewController: UIViewController {
         return stack
     }()
     
-    
+    // MARK: back button
     let backButton: UIButton = {
         let button = UIButton()
         button.setTitle("back", for: .normal)
@@ -126,6 +129,7 @@ class TransferViewController: UIViewController {
     
     
     
+    // MARK: viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -200,6 +204,7 @@ class TransferViewController: UIViewController {
     }
     
     
+    // MARK: add fileView
     private func addFileViewToStack(withViewModel viewmodel: ListedFileViewModel){
         let ltview = ListedFileOperationView(withViewModel: viewmodel)
         
@@ -208,14 +213,15 @@ class TransferViewController: UIViewController {
     
     
     
+    // MARK: udpateDisplay
     func updateDisplay(){
         
-        print(DEBUG_TAG+"updating info")
+//        print(DEBUG_TAG+"updating info")
         
         guard let remoteViewModel = remoteViewModel else { return }
         guard let transferViewModel = transferViewModel else { return }
         
-        print(DEBUG_TAG+"\tview models available")
+//        print(DEBUG_TAG+"\tview models available")
         
         deviceNameLabel.text = remoteViewModel.userName
         deviceStatusLabel.text = "(\(remoteViewModel.status))"
@@ -250,16 +256,19 @@ class TransferViewController: UIViewController {
     }
     
     
+    // MARK: cancel
     @objc func cancel(){
         coordinator?.cancelTransfer(forTransferUUID: transferViewModel!.UUID)
     }
     
     
+    // MARK: retry
     @objc func retry(){
         coordinator?.retryTransfer(forTransferUUID: transferViewModel!.UUID)
     }
     
     
+    // MARK: back
     @objc func back(){
         coordinator?.showRemote()
     }

@@ -111,7 +111,6 @@ class SendFileOperation: TransferOperation {
         singleMime = "application/octet-stream"
         
         for selection in files {
-//            topDirBaseNames.append("\(filename.name).\(filename.ext)")
             topDirBaseNames.append("\(selection.name)")
             if let reader = FileReader(for: selection) {
                 fileReaders.append( reader   )
@@ -140,8 +139,14 @@ class SendFileOperation: TransferOperation {
         bytesTransferred = 0
         bytesPerSecond = 0
         
-        for reader in fileReaders {
-            reader.reset()
+        fileReaders.removeAll()
+        
+        for selection in files {
+            if let reader = FileReader(for: selection) {
+                fileReaders.append( reader   )
+            } else {
+                print(DEBUG_TAG+"problem accessing selection \(selection.name)")
+            }
         }
         
         status = .WAITING_FOR_PERMISSION
@@ -163,7 +168,6 @@ class SendFileOperation: TransferOperation {
             
             for (i, chunk) in chunkIterator.enumerated() {
                 
-                
                 if self.status != .TRANSFERRING {
                     promise.fail( TransferError.TransferCancelled )
                     return
@@ -175,8 +179,8 @@ class SendFileOperation: TransferOperation {
                 do { // wait for result before sending next chunk
                     try result.wait()
                 } catch {
-                    print(self.DEBUG_TAG+"chunk prevented from waiting. Reason: \(error)")
-                    self.orderStop( error )
+                    print(self.DEBUG_TAG+"chunk \(i) prevented from waiting. Reason: \(error)")
+                    if self.status == .TRANSFERRING {  self.orderStop( error ) }
                 }
                 
                 result.whenSuccess { result in
@@ -186,6 +190,9 @@ class SendFileOperation: TransferOperation {
                 result.whenFailure { error in
                     print(self.DEBUG_TAG+"chunk \(i) (\(chunk.relativePath))  transmission failed: ")
                     print(self.DEBUG_TAG+"\t error: \(error)")
+                    
+                    if self.status == .TRANSFERRING {  self.stopRequested(error) }
+                    
                 }
             }
             
@@ -197,10 +204,14 @@ class SendFileOperation: TransferOperation {
             print(self.DEBUG_TAG+"TransferOperation completed with result: \(result)")
             
             do {
+                // call prevent a successful call finish from overwriting a .FAILED status
+                if self.status != .TRANSFERRING { return }
                 try result.get()
                 self.status = .FINISHED
+                
             } catch {
-                self.status = .CANCELLED
+//                self.status = .CANCELLED
+                self.stopRequested(error)
             }
         }
         
@@ -226,13 +237,23 @@ class SendFileOperation: TransferOperation {
         } else {
             status = .CANCELLED
         }
-        
+        closeOutOperation()
     }
     
     
     func onDecline(_ error: Error? = nil){
         print(DEBUG_TAG+"operation was declined")
         status = .CANCELLED
+        closeOutOperation()
+    }
+    
+    
+    func closeOutOperation(){
+        
+        fileReaders.forEach { reader in
+            reader.close()
+        }
+        
     }
     
 }

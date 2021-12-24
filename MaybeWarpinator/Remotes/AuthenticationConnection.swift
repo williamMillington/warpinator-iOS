@@ -177,12 +177,13 @@ class GRPCConnection: AuthenticationConnection {
         registree = manager
         
         
-        let hostname = "192.168.2.18"
+        let hostname = details.ipAddress // "192.168.2.18"
 //        let hostname = details.hostname
         let port = details.authPort
         
+        print(DEBUG_TAG+"created for \"\(hostname):\(port)\"")
         
-            print(DEBUG_TAG+"created for \"\(hostname):\(port)\"")
+        
         channel = ClientConnection.insecure(group: group).connect(host: hostname, port: port)
         warpClient = WarpRegistrationClient(channel: channel)
     }

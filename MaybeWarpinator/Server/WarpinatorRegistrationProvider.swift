@@ -9,8 +9,8 @@ import Foundation
 import GRPC
 import NIO
 
-import Sodium
-import CryptoKit
+//import Sodium
+//import CryptoKit
 
 class WarpinatorRegistrationProvider: WarpRegistrationProvider {
     
@@ -28,6 +28,8 @@ class WarpinatorRegistrationProvider: WarpRegistrationProvider {
         var response = RegResponse()
         
         response.lockedCert = Authenticator.shared.getCertificateDataForSending()
+        
+        remoteManager?.storeIPAddress(request.ip, forHostname: request.hostname)
         
         return context.eventLoop.makeSucceededFuture( response )
     }

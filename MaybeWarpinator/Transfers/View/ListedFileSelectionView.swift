@@ -34,6 +34,9 @@ final class ListedFileSelectionView: UIView {
     }()
     
     
+    var tapRecognizer: TapGestureRecognizerWithClosure?
+    
+    
     override init(frame: CGRect){
         super.init(frame: frame)
     }
@@ -43,7 +46,7 @@ final class ListedFileSelectionView: UIView {
     }
     
     
-    convenience init(withViewModel model: ListedFileSelectionViewModel){
+    convenience init(withViewModel model: ListedFileSelectionViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
         backgroundColor = UIColor.orange.withAlphaComponent(0.2)
@@ -52,6 +55,10 @@ final class ListedFileSelectionView: UIView {
         
         // add subviews and constraints
         setUpView()
+        
+        // add onTap action
+        tapRecognizer = TapGestureRecognizerWithClosure(action: action)
+        addGestureRecognizer(tapRecognizer!)
         
         updateDisplay()
     }

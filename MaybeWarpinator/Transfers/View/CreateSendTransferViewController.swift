@@ -12,7 +12,7 @@ import MobileCoreServices
 
 class CreateSendTransferViewController: UIViewController {
     
-    lazy var DEBUG_TAG: String = "CreateSendTransferViewController:"
+    lazy var DEBUG_TAG: String = "CreateSendTransferViewController: "
     
     var coordinator: CreateTransferCoordinator?
     
@@ -99,7 +99,7 @@ class CreateSendTransferViewController: UIViewController {
     var viewmodel: RemoteViewModel?
     
     
-    var selections: [FileSelection] = []
+    var selections: [FileSelection: UIView] = [:]
     
     
     init(withViewModel viewmodel: RemoteViewModel) {
@@ -176,18 +176,29 @@ class CreateSendTransferViewController: UIViewController {
     
     func addFile(_ file: FileSelection ){
         
-        guard !selections.contains(file) else {
+        guard selections[file] == nil else {
             print(DEBUG_TAG+"File \(file.name) already selected")
             return
         }
         
-        selections.append(file)
+//        guard !selections.contains(file) else {
+//            print(DEBUG_TAG+"File \(file.name) already selected")
+//            return
+//        }
+        
+//        selections.append(file)
+        
         
         sendButton.isUserInteractionEnabled = true
         sendButton.alpha = 1
         
         let vm = ListedFileSelectionViewModel(file)
-        let ltview = ListedFileSelectionView(withViewModel: vm)
+        let ltview = ListedFileSelectionView(withViewModel: vm) { [weak self] in
+            print(self!.DEBUG_TAG+"remove file")
+            self?.removeFile(file)
+        }
+        
+        selections[file] = ltview
         
         filesStack.insertArrangedSubview(ltview, at: (filesStack.arrangedSubviews.count - 1))
         
@@ -196,10 +207,18 @@ class CreateSendTransferViewController: UIViewController {
     
     func removeFile(_ file: FileSelection){
         
-        selections.removeAll(where: { item in
-            return item == file
-        })
+//        selections.removeAll(where: { item in
+//            return item == file
+//        })
         
+        guard let view = selections[file] else {
+            print(DEBUG_TAG+"No removable file found")
+            return
+        }
+        
+        selections.removeValue(forKey: file)
+        filesStack.removeArrangedSubview(view)
+        view.removeFromSuperview()
         
         if filesStack.arrangedSubviews.count == 0 {
             sendButton.isUserInteractionEnabled = true
@@ -228,7 +247,8 @@ class CreateSendTransferViewController: UIViewController {
     
     @objc func send(){
         
-        coordinator?.sendFiles(selections)
+        let files = Array(selections.keys)
+        coordinator?.sendFiles(files)
         
     }
     
