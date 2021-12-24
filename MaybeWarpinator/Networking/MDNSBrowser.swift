@@ -92,7 +92,7 @@ class MDNSBrowser {
     
     private func resultsDidChange(results: Set<NWBrowser.Result>, changes: Set<NWBrowser.Result.Change>){
         
-//        print(DEBUG_TAG+"resultsdidchange")
+        print(DEBUG_TAG+"resultsdidchange")
         
         
 //        for result in results {
@@ -104,14 +104,14 @@ class MDNSBrowser {
             switch change {
             case .added(let result):
                 
-//                print(DEBUG_TAG+"added: \(result)")
+                print(DEBUG_TAG+"added: \(result)")
                 
                 delegate?.mDNSBrowserDidAddResult(result)
                 
             case .removed( _):
                 break //;print(DEBUG_TAG+"result removed: \(result)")
-            case .changed(old: let  old, new: let new, flags: let flags):
-//                print(DEBUG_TAG+"changed")
+            case .changed(old: _, new: let new, flags: _):
+                print(DEBUG_TAG+"\tchanged")
 //                print(DEBUG_TAG+"\t\told: \(old)")
                 print(DEBUG_TAG+"\t\tnew: \(new)")
 //                print(DEBUG_TAG+"\t\tflags: \(flags)")

@@ -180,6 +180,25 @@ extension ReceiveFileOperation {
                     self.processChunk(chunk)
 //                }
             }
+            
+            self.dataStream?.status.whenComplete { result in
+                
+                print(self.DEBUG_TAG+"completed with result \(result)")
+                
+            }
+            
+            self.dataStream?.status.whenSuccess { status in
+                print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
+                self.finishReceive()
+            }
+            
+            self.dataStream?.status.whenFailure { error in
+                print(self.DEBUG_TAG+"transfer failed: \(error)")
+                self.receiveWasCancelled()
+            }
+            
+            
+            
         }
         
 //        dataStream = client.startTransfer(operationInfo) { chunk in
@@ -193,16 +212,23 @@ extension ReceiveFileOperation {
 //                self.processChunk(chunk)
 //            }
 //        }
-        
-        dataStream?.status.whenSuccess { status in
-            print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
-            self.finishReceive()
-        }
-        
-        dataStream?.status.whenFailure { error in
-            print(self.DEBUG_TAG+"transfer failed: \(error)")
-            self.receiveWasCancelled()
-        }
+//        print(DEBUG_TAG+"Data stream is \(dataStream)")
+//        
+//        dataStream?.status.whenComplete { result in
+//            
+//            print(self.DEBUG_TAG+"completed with result \(result)")
+//            
+//        }
+//        
+//        dataStream?.status.whenSuccess { status in
+//            print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
+//            self.finishReceive()
+//        }
+//        
+//        dataStream?.status.whenFailure { error in
+//            print(self.DEBUG_TAG+"transfer failed: \(error)")
+//            self.receiveWasCancelled()
+//        }
         
     }
     

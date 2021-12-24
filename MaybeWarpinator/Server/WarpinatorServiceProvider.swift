@@ -66,27 +66,35 @@ public class WarpinatorServiceProvider: WarpProvider {
     public func checkDuplexConnection(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
         let id = request.id
-        var duplexCheck = false
         
         print(DEBUG_TAG+"(API_V1) Duplex is being checked by \(request.readableName) (\(request.id))")
         
-        if let remote = remoteManager?.containsRemote(for: id) {
-            print(DEBUG_TAG+"(API_V1) Remote known")
-            if remote.details.status == .DuplexAquired || remote.details.status == .Connected {
-                print(DEBUG_TAG+"(API_V1) Duplex verified by remote")
-                duplexCheck = true
-            }
-        }
+        let duplexPromise = checkDuplex(forUUID: id, context)
         
-        return context.eventLoop.makeCompletedFuture( Result(catching: {
-            
-            if duplexCheck {
-                return .with {
-                    $0.response = true
-                }
-            }
-            throw DuplexError.DuplexNotEstablished
-        }))
+        return duplexPromise.futureResult
+        
+//        let id = request.id
+//        var duplexCheck = false
+//
+//        print(DEBUG_TAG+"(API_V1) Duplex is being checked by \(request.readableName) (\(request.id))")
+//
+//        if let remote = remoteManager?.containsRemote(for: id) {
+//            print(DEBUG_TAG+"(API_V1) Remote known")
+//            if remote.details.status == .DuplexAquired || remote.details.status == .Connected {
+//                print(DEBUG_TAG+"(API_V1) Duplex verified by remote")
+//                duplexCheck = true
+//            }
+//        }
+//
+//        return context.eventLoop.makeCompletedFuture( Result(catching: {
+//
+//            if duplexCheck {
+//                return .with {
+//                    $0.response = true
+//                }
+//            }
+//            throw DuplexError.DuplexNotEstablished
+//        }))
     }
     
     // MARK: Duplex v2
@@ -96,7 +104,6 @@ public class WarpinatorServiceProvider: WarpProvider {
         let id = request.id
         
         print(DEBUG_TAG+"(API_V2) Duplex is being waited for by \(request.readableName) (\(request.id))")
-        
         
         let duplexPromise = checkDuplex(forUUID: id, context)
         
