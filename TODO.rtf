@@ -1,9 +1,9 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2513
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
 {\colortbl;\red255\green255\blue255;\red85\green142\blue40;\red0\green0\blue0;\red3\green45\blue153;
-\red5\green61\blue204;\red217\green11\blue5;\red183\green177\blue7;\red183\green177\blue7;}
+\red5\green61\blue204;\red217\green11\blue5;\red183\green177\blue7;}
 {\*\expandedcolortbl;;\cssrgb\c39975\c61335\c20601;\cssrgb\c0\c0\c0;\cssrgb\c0\c25950\c66514;
-\cssrgb\c0\c33896\c83855;\cssrgb\c88946\c14202\c0;\cssrgb\c76768\c73671\c0;\cssrgb\c76768\c73671\c0;}
+\cssrgb\c0\c33896\c83855;\cssrgb\c88946\c14202\c0;\cssrgb\c76768\c73671\c0;}
 \margl1440\margr1440\vieww17020\viewh13880\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
@@ -105,7 +105,7 @@ Remote:\
 \
 - BUG\
 	- a folder counts as a file to be transferred, and so receiving transfers end up with an extra filehandle/ view that doesn\'92t get used\
-	- \cf8 fix viewmodels to use strings only. Right now any error string will overcrowd UI\cf0 \
+	- \cf7 fix viewmodels to use strings only. Right now any error string will overcrowd UI\cf0 \
 \
 - Implement an actual UI\
 	- Layouts\
@@ -119,6 +119,7 @@ Remote:\
 - Investigate/Fix slow connection bullshit\
 - Handle revocation of file-access permission\
 - Handle network change \
+- Get actual user\'92s name for username (default, changeable)\
 \
 - I think there are times when NWBrowser\'92s resultsDidChange() contains a \'93.changed\'94, but not a \'93.added\'94\
 	- note: I think when remote moves from \'91flushing\'92 to \'91real\'92, and NWBrowser doesn\'92t register that as an added NWBrowser result\

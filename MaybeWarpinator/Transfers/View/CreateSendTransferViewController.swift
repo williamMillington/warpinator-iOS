@@ -16,7 +16,7 @@ class CreateSendTransferViewController: UIViewController {
     
     var coordinator: CreateTransferCoordinator?
     
-    
+    // MARK: cancel button
     let cancelButton: UIButton = {
         let button = UIButton()
         button.setTitle("Cancel", for: .normal)
@@ -27,7 +27,7 @@ class CreateSendTransferViewController: UIViewController {
         return button
     }()
     
-    
+    // MARK: labels
     let transferDescriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Transfer to"
@@ -47,7 +47,7 @@ class CreateSendTransferViewController: UIViewController {
         return label
     }()
     
-    
+    // MARK: add files button
     let addFilesButton: UIButton = {
         let button = UIButton()
         button.setTitle("Add Files", for: .normal)
@@ -57,7 +57,7 @@ class CreateSendTransferViewController: UIViewController {
         return button
     }()
     
-    
+    // MARK: send button
     let sendButton: UIButton = {
         let button = UIButton()
         button.setTitle("Send", for: .normal)
@@ -71,7 +71,7 @@ class CreateSendTransferViewController: UIViewController {
     
     
     
-    
+    // MARK: files stack
     var filesStack: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -98,7 +98,6 @@ class CreateSendTransferViewController: UIViewController {
     
     var viewmodel: RemoteViewModel?
     
-    
     var selections: [FileSelection: UIView] = [:]
     
     
@@ -113,7 +112,7 @@ class CreateSendTransferViewController: UIViewController {
         super.init(coder: coder)
     }
     
-    
+    // MARK: viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -173,21 +172,13 @@ class CreateSendTransferViewController: UIViewController {
         
     }
     
-    
+    // MARK: addFile
     func addFile(_ file: FileSelection ){
         
         guard selections[file] == nil else {
             print(DEBUG_TAG+"File \(file.name) already selected")
             return
         }
-        
-//        guard !selections.contains(file) else {
-//            print(DEBUG_TAG+"File \(file.name) already selected")
-//            return
-//        }
-        
-//        selections.append(file)
-        
         
         sendButton.isUserInteractionEnabled = true
         sendButton.alpha = 1
@@ -204,12 +195,8 @@ class CreateSendTransferViewController: UIViewController {
         
     }
     
-    
+    // MARK: removeFile
     func removeFile(_ file: FileSelection){
-        
-//        selections.removeAll(where: { item in
-//            return item == file
-//        })
         
         guard let view = selections[file] else {
             print(DEBUG_TAG+"No removable file found")
@@ -227,7 +214,7 @@ class CreateSendTransferViewController: UIViewController {
         
     }
     
-    
+    // MARK: select files
     @objc func selectFiles(){
         
 //        print(DEBUG_TAG+"Showing document picker")
@@ -244,7 +231,7 @@ class CreateSendTransferViewController: UIViewController {
         
     }
     
-    
+    // MARK: send
     @objc func send(){
         
         let files = Array(selections.keys)
@@ -252,7 +239,7 @@ class CreateSendTransferViewController: UIViewController {
         
     }
     
-    
+    // MARK: cancel
     @objc func cancel(){
         coordinator?.back()
     }

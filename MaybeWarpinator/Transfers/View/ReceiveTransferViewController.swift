@@ -15,7 +15,7 @@ class ReceiveTransferViewController: UIViewController {
     
     var coordinator: RemoteCoordinator?
     
-    
+    // MARK: labels
     let transferDescriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Transfer from"
@@ -34,7 +34,7 @@ class ReceiveTransferViewController: UIViewController {
         return label
     }()
     
-    
+    // MARK: accept button
     let acceptButton: UIButton = {
         let button = UIButton()
         button.setTitle("Accept", for: .normal)
@@ -44,6 +44,7 @@ class ReceiveTransferViewController: UIViewController {
         return button
     }()
     
+    // MARK: decline button
     let declineButton: UIButton = {
         let button = UIButton()
         button.setTitle("Decline", for: .normal)
@@ -53,7 +54,7 @@ class ReceiveTransferViewController: UIViewController {
         return button
     }()
     
-    
+    // MARK: back button
     let backButton: UIButton = {
         let button = UIButton()
         button.setTitle("back", for: .normal)
@@ -80,7 +81,7 @@ class ReceiveTransferViewController: UIViewController {
     }
     
     
-    
+    // MARK: viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         

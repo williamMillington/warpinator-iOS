@@ -229,30 +229,20 @@ class TransferViewController: UIViewController {
         transferStatusLabel.text = "\(transferViewModel.status)"
         
         
-        switch transferViewModel.status {
-        case .TRANSFERRING:
-            // transform into retry button
-            transferButton.removeTarget(nil, action: nil, for: .allEvents)
-            
-            transferButton.setTitle("Cancel", for: .normal)
-            transferButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
-        case .CANCELLED, .FAILED(_):
-            
-            // If sending, allow retry. Otherwise, disable button
-            guard transferViewModel.direction == .SENDING else {
-                fallthrough
-            }
-            // transform into retry button
-            transferButton.removeTarget(nil, action: nil, for: .allEvents)
-            
-            transferButton.setTitle("Re-try", for: .normal)
-            transferButton.addTarget(self, action: #selector(retry), for: .touchUpInside)
-            
-        case .FINISHED:
-            transferButton.isUserInteractionEnabled = false
-            transferButton.alpha = 0.5
-        default: break
-        }
+        
+        transferButton.removeTarget(nil, action: nil, for: .allEvents)
+        
+        let buttonStatus = transferViewModel.buttonStatus()
+        
+        
+        transferButton.isUserInteractionEnabled = buttonStatus.pressable
+        transferButton.alpha = buttonStatus.pressable ? 1 : 0.5
+        
+        transferButton.setTitle(buttonStatus.text, for: .normal)
+        
+        let selector = buttonStatus.text == "Cancel" ? #selector(cancel) : #selector(retry)
+        transferButton.addTarget(self, action: selector, for: .touchUpInside)
+        
     }
     
     
@@ -290,20 +280,19 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
         return operation.UUID
     }
     
-    var fileCount: Int {
-        return operation.fileCount
+    var fileCount: String {
+        return "\(operation.fileCount)"
     }
     
-    var progress: Double {
-        return operation.progress
+    var status: String {
+        switch operation.status {
+        case .FAILED(_): return "Failed"
+        default: return "\(operation.status)"
+        }
     }
     
-    var status: TransferStatus {
-        return operation.status
-    }
-    
-    var direction: TransferDirection {
-        return operation.direction
+    var direction: String {
+        return "\(operation.direction)"
     }
     
     var files: [ListedFileViewModel] {
@@ -334,11 +323,44 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
         return viewModels
     }
     
+    var progress: Double {
+        return operation.progress
+    }
+    
     
     init(for operation: TransferOperation) {
         self.operation = operation
         super.init()
         operation.addObserver(self)
+    }
+    
+    
+    func buttonStatus() -> (pressable: Bool, text: String) {
+        
+        var pressable: Bool = false
+        var text: String = "Finished"
+        
+        switch operation.status {
+        case .TRANSFERRING:
+            
+            pressable = true
+            text = "Cancel"
+            
+        case .CANCELLED, .FAILED(_):
+            
+            // If sending, allow retry. Otherwise, disable button
+            guard operation.direction == .SENDING else {
+                text = "Failed"
+                fallthrough
+            }
+            
+            pressable = true
+            text = "Re-try"
+        default: break
+        }
+        
+        
+        return (pressable, text)
     }
     
     

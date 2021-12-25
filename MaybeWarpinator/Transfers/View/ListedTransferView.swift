@@ -13,6 +13,7 @@ final class ListedTransferView: UIView {
 
     private let DEBUG_TAG: String = "ListedTransferView: "
     
+    // MARK: labels
     let filesLabel: UILabel = {
         let label = UILabel()
         label.text = "Uknown Device"
@@ -66,7 +67,7 @@ final class ListedTransferView: UIView {
         updateDisplay()
     }
     
-    
+    // MARK: setupView
     func setUpView(){
         
         var constraints: [NSLayoutConstraint] = []
@@ -90,6 +91,7 @@ final class ListedTransferView: UIView {
     }
     
     
+    // MARK: updateDisplay
     func updateDisplay(){
         
         guard let viewModel = viewModel else { return }
@@ -116,12 +118,16 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
         return operation.UUID
     }
     
-    var fileCount: Int {
-        return operation.fileCount
+    var fileCount: String {
+        return "\(operation.fileCount)"
     }
     
-    var status: TransferStatus {
-        return operation.status
+    var status: String {
+        
+        switch operation.status {
+        case .FAILED(_): return "Failed"
+        default: return "\(operation.status)"
+        }
     }
     
     init(for operation: TransferOperation) {
