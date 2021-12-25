@@ -211,7 +211,6 @@ class GRPCConnection: AuthenticationConnection {
 //        let options = CallOptions(timeLimit: .timeout( .seconds(10)), logger: logger )
 //        let options = CallOptions(logger: logger )
 
-//        let registrationRequest = warpClient.requestCertificate(request, callOptions: options)
         let registrationRequest = warpClient.requestCertificate(request)
 
         registrationRequest.response.whenSuccess { result in

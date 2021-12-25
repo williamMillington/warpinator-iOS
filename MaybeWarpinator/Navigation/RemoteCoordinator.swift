@@ -217,14 +217,14 @@ extension RemoteCoordinator {
     }
     
     
-    func mockSendTransfer(){
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            let filenames: [FileName] = [
-                FileName(name: "TestFileToSend", ext: "rtf" ),
-//                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
-                FileName(name: "The_Last_Five_Years", ext: "pdf" )
-            ]
-            self.remote.sendFiles( filenames )
-        }
-    }
+//    func mockSendTransfer(){
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+////            let filenames: [FileName] = [
+////                FileName(name: "TestFileToSend", ext: "rtf" ),
+//////                FileName(name: "Dear_Evan_Hansen_PV_Score", ext: "pdf" ),
+////                FileName(name: "The_Last_Five_Years", ext: "pdf" )
+////            ]
+////            self.remote.sendFiles( filenames )
+//        }
+//    }
 }

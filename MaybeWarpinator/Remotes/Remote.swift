@@ -296,8 +296,8 @@ extension Remote {
             }
             
             
-            print(self.DEBUG_TAG+"\ttrying again...")
             // try again in 2 seconds
+            print(self.DEBUG_TAG+"\ttrying again...")
             self.duplexQueue.asyncAfter(deadline: .now() + 2) {
                 self.aquireDuplex()
             }
@@ -504,15 +504,15 @@ extension Remote {
         return nil
     }
     
-    //MARK: send files
-    func sendFiles(_ filenames: [FileName]){
-        
-//        let operation = SendFileOperation(for: filenames)
+    //MARK send files
+//    func sendFiles(_ filenames: [FileName]){
 //
-//        addSendingOperation(operation)
-//        sendRequest(toTransfer: operation)
-//
-    }
+////        let operation = SendFileOperation(for: filenames)
+////
+////        addSendingOperation(operation)
+////        sendRequest(toTransfer: operation)
+////
+//    }
     
     
     //MARK: send files
@@ -595,8 +595,8 @@ extension Remote: ConnectivityStateDelegate {
         case .transientFailure:
             transientFailureCount += 1
             
-            stopAllTransfers(forStatus: .SENDING)
-            stopAllTransfers(forStatus: .RECEIVING)
+//            stopAllTransfers(forStatus: .SENDING)
+//            stopAllTransfers(forStatus: .RECEIVING)
             
             print(DEBUG_TAG+"\tTransientFailure #\(transientFailureCount)")
             if transientFailureCount == 10 {
@@ -640,9 +640,9 @@ extension Remote: AuthenticationRecipient {
     // MARK: fetch cert
     func obtainCertificate(){
         
-        if details.api == "1" {
+        if details.api == "1" { // API_V1
             authenticationConnection = UDPConnection(details, manager: self)
-        } else {
+        } else { // API_V2
             authenticationConnection = GRPCConnection(details, manager: self)
         }
         
