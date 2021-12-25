@@ -336,7 +336,7 @@ public class WarpinatorServiceProvider: WarpProvider {
             debugString = debugString + "UNKNOWN REMOTE: \(request.readableName)"
         }
         
-        print(DEBUG_TAG+debugString)
+//        print(DEBUG_TAG+debugString)
         
         return context.eventLoop.makeCompletedFuture(Result(catching: {
             return VoidType()
