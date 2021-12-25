@@ -22,9 +22,7 @@ class MainCoordinator: NSObject, Coordinator {
     init(withNavigationController controller: UINavigationController){
         navController = controller
         
-//        navController.setToolbarHidden(true, animated: false)
         navController.setNavigationBarHidden(true, animated: false)
-        
         
         Utils.lockOrientation(.portrait)
         MainService.shared.start()
@@ -62,24 +60,15 @@ class MainCoordinator: NSObject, Coordinator {
     
     func userSelected(_ remoteUUID: String){
         
-        
 //        print(DEBUG_TAG+"user selected remote \(remoteUUID)")
         
         if let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) {
-            
-//            print(DEBUG_TAG+"remote found")
             
             let remoteCoordinator = RemoteCoordinator(for: remote, parent: self, withNavigationController: navController)
             
             childCoordinators.append(remoteCoordinator)
             remoteCoordinator.start()
             
-//            let viewmodel = RemoteViewModel(remote)
-//
-//            let remoteVC = RemoteViewController(withViewModel: viewmodel)
-//            remoteVC.coordinator = self
-//
-//            navController.pushViewController(remoteVC, animated: false)
         }
         
     }
@@ -87,34 +76,15 @@ class MainCoordinator: NSObject, Coordinator {
     
     func mockTransferReceive(){
         
-        
         let remote = Remote(details: RemoteDetails.MOCK_DETAILS)
         let transfer = MockReceiveTransfer()
         
-        
-//        let receiveTransferVC= = ReceiveTransferViewController(
         let vm = ReceiveTransferViewModel(operation: transfer, from: remote)
         let vc = ReceiveTransferViewController(withViewModel: vm)
-        
-//        vc.coordinator = self
         
         navController.pushViewController(vc, animated: false)
         
     }
-    
-//    func showRemote(_ viewModel: RemoteViewModel){
-//
-//
-//        let mainMenuVC = ViewController()
-//        mainMenuVC.coordinator = self
-//
-//
-//        navController.pushViewController(mainMenuVC, animated: false)
-//
-//
-//    }
-    
-    
     
     
     func coordinatorDidFinish(_ child: Coordinator){

@@ -1,9 +1,9 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2513
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
 {\colortbl;\red255\green255\blue255;\red85\green142\blue40;\red0\green0\blue0;\red3\green45\blue153;
-\red5\green61\blue204;\red217\green11\blue5;\red183\green177\blue7;}
+\red5\green61\blue204;\red217\green11\blue5;\red183\green177\blue7;\red85\green142\blue40;}
 {\*\expandedcolortbl;;\cssrgb\c39975\c61335\c20601;\cssrgb\c0\c0\c0;\cssrgb\c0\c25950\c66514;
-\cssrgb\c0\c33896\c83855;\cssrgb\c88946\c14202\c0;\cssrgb\c76768\c73671\c0;}
+\cssrgb\c0\c33896\c83855;\cssrgb\c88946\c14202\c0;\cssrgb\c76768\c73671\c0;\cssrgb\c39975\c61335\c20601;}
 \margl1440\margr1440\vieww17020\viewh13880\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
@@ -103,9 +103,7 @@ Remote:\
 \f1\b \ul BETA
 \f0\b0 \ulnone  \
 \
-- BUG\
-	- a folder counts as a file to be transferred, and so receiving transfers end up with an extra filehandle/ view that doesn\'92t get used\
-	- \cf7 fix viewmodels to use strings only. Right now any error string will overcrowd UI\cf0 \
+- \cf8 fix viewmodels to use strings only. Right now any error string will overcrowd UI\cf0 \
 \
 - Implement an actual UI\
 	- Layouts\
@@ -113,16 +111,16 @@ Remote:\
 	- View Controller Transitions\
 	- Animations\
 		- Transfer progress\
+\
 - Persist/remove known remotes when they are disconnected/unavailable\
 - Ensure all Remotes are sharing a single eventloop group\
-- Improve remote detection. Fuck around with mDNSBrowser a bit\
 - Investigate/Fix slow connection bullshit\
-- Handle revocation of file-access permission\
 - Handle network change \
-- Get actual user\'92s name for username (default, changeable)\
-\
-- I think there are times when NWBrowser\'92s resultsDidChange() contains a \'93.changed\'94, but not a \'93.added\'94\
-	- note: I think when remote moves from \'91flushing\'92 to \'91real\'92, and NWBrowser doesn\'92t register that as an added NWBrowser result\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 \
+- Improve remote detection. Fuck around with mDNSBrowser a bit\
+	- I think there are times when NWBrowser\'92s resultsDidChange() contains a \'93.changed\'94, but not a \'93.added\'94\
+	- I think when remote moves from \'91flushing\'92 to \'91real\'92, and NWBrowser doesn\'92t register that as an added NWBrowser result\
 \
 \
 ViewController:\
@@ -144,6 +142,7 @@ Settings:\
 	- Store/load passcode\
 	- Store/load port selections\
 	- Store/load display name\
+		- - Get actual user\'92s name for username (default, changeable)\
 	- Delete files on transfer cancel? \
 			- (if some of a transfer\'92s files have been completely downloaded at the time of cancellation, would you like to automatically delete them?)\
 \
@@ -157,19 +156,22 @@ TransferViewController:\
 	- Scrollable files list\
 \
 SendFileOperation:\
-	- Retry/Resend\
+	- Handle revocation of file-access permission\
+	- \cf8 Retry/Resend\cf0 \
 	- Send directories\
 \
 ReceiveFileOperation:\
 	- Auto-accept receive setting\
 	- Receive Directories\
+		- BUG: a folder counts as a file to be transferred, and so receiving transfers end up with an extra filehandle/ view that doesn\'92t get used\
 	- Support renaming duplicates\
 \
 \
 \
 \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
-\f1\b \ul R.C 1
+\f1\b \cf0 \ul R.C 1
 \f0\b0 \ulnone   \
 \
 - enable compression\

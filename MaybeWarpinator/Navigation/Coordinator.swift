@@ -16,6 +16,7 @@ protocol Coordinator: AnyObject {
     func start()
     func coordinatorDidFinish(_ child: Coordinator)
 }
+
 extension Coordinator {
     func coordinatorDidFinish(_ child: Coordinator){
         for (i, coordinator) in childCoordinators.enumerated() {

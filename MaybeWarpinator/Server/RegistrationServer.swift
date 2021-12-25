@@ -48,12 +48,7 @@ class RegistrationServer {
     // MARK: - start server
     func start(){
         
-        mDNSBrowser = MDNSBrowser()
-        mDNSBrowser?.delegate = self
         
-        mDNSListener = MDNSListener()
-        mDNSListener?.delegate = self
-        mDNSListener?.start()
         
         
         let registrationServerFuture = GRPC.Server.insecure(group: registrationServerELG)
@@ -64,6 +59,7 @@ class RegistrationServer {
         registrationServerFuture.map {
             $0.channel.localAddress
         }.whenSuccess { address in
+            self.startMDNSServices()
             print(self.DEBUG_TAG+"registration server started on: \(String(describing: address))")
         }
         
@@ -79,6 +75,17 @@ class RegistrationServer {
             try! self.registrationServerELG.syncShutdownGracefully()
         }
         
+    }
+    
+    
+    
+    func startMDNSServices(){
+        mDNSBrowser = MDNSBrowser()
+        mDNSBrowser?.delegate = self
+        
+        mDNSListener = MDNSListener()
+        mDNSListener?.delegate = self
+        mDNSListener?.start()
     }
     
     
@@ -99,13 +106,8 @@ class RegistrationServer {
 
 // MARK: - MDNSListenerDelegate
 extension RegistrationServer: MDNSListenerDelegate {
-
     func mDNSListenerIsReady() {
         mDNSBrowser?.startBrowsing()
-    }
-    
-    func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection) {
-            print(DEBUG_TAG+"BOOM nothing")
     }
 }
 

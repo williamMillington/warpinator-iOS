@@ -28,17 +28,11 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         super.init()
         
-        
-//        navController.setToolbarHidden(true, animated: false)
         navController.setNavigationBarHidden(true, animated: false)
-        
-        
-        Utils.lockOrientation(.portrait)
         
     }
     
     func start() {
-//        print(DEBUG_TAG+"starting")
         showRemote()
         
     }
@@ -59,12 +53,10 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         }
         else {
             
-//            print(DEBUG_TAG+"creating vc")
             let vm = RemoteViewModel(remote)
             let remoteVC = RemoteViewController(withViewModel: vm)
             remoteVC.coordinator = self
             
-//            print(DEBUG_TAG+"pushing vc")
             navController.pushViewController(remoteVC, animated: false)
         }
     }
@@ -85,9 +77,10 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
                 openTransferViewController(forTransferOperation: operation)
             }
             
-        } else {
-            print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
+//        else {
+//            print(DEBUG_TAG+"ain't no operation for that there uuid")
+//        }
         
     }
     
@@ -123,13 +116,12 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         print(DEBUG_TAG+"user approved transfer with uuid \(uuid)")
         
         if let operation = remote.findReceiveOperation(withStartTime: uuid) {
-            print(DEBUG_TAG+"\t transfer found")
-//            operation.startReceive()
             remote.callClientStartTransfer(for: operation)
             showRemote()
-        } else {
-            print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
+//        else {
+//            print(DEBUG_TAG+"ain't no operation for that there uuid")
+//        }
         
     }
     
@@ -142,11 +134,11 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         if let operation = remote.findReceiveOperation(withStartTime: uuid) {
             print(DEBUG_TAG+"\t transfer found")
             operation.decline(nil)
-//            operation.startReceive()
             showRemote()
-        }else {
-            print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
+//        else {
+//            print(DEBUG_TAG+"ain't no operation for that there uuid")
+//        }
         
     }
     
@@ -159,9 +151,10 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         if let operation = remote.findTransferOperation(for: uuid) {
             print(DEBUG_TAG+"\t transfer found")
             operation.orderStop(nil)
-        }else {
-            print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
+//        else {
+//            print(DEBUG_TAG+"ain't no operation for that there uuid")
+//        }
         
     }
     
@@ -178,9 +171,10 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
             
             remote.sendRequest(toTransfer: operation)
             
-        } else {
-            print(DEBUG_TAG+"ain't no operation for that there uuid")
         }
+//        else {
+//            print(DEBUG_TAG+"ain't no operation for that there uuid")
+//        }
         
     }
     
@@ -189,22 +183,12 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     func createTransfer(){
         
-        
         let transferCoordinator = CreateTransferCoordinator(for: remote, parent: self, withNavigationController: navController)
         
         childCoordinators.append(transferCoordinator)
         transferCoordinator.start()
         
-        
     }
-    
-    
-//    func openDocumentPicker(){
-//
-//
-//
-//    }
-    
     
     
     func coordinatorDidFinish(_ child: Coordinator){

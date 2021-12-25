@@ -32,13 +32,10 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
         
         navController.setNavigationBarHidden(true, animated: false)
         
-        
-        Utils.lockOrientation(.portrait)
     }
     
     
     func start() {
-//        print(DEBUG_TAG+"starting")
         showSendingScreen()
     }
     
@@ -68,7 +65,6 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
             navController.pushViewController(remoteVC, animated: false)
         }
         
-        
     }
     
     
@@ -78,12 +74,6 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
         back()
     }
     
-    
-    
-//    func cancel(){
-//        parent.start()
-//        back()
-//    }
     
     
     func coordinatorDidFinish(_ child: Coordinator){
@@ -96,32 +86,3 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
 }
-
-
-
-
-//extension CreateTransferCoordinator: UIDocumentPickerDelegate {
-//
-//    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-//
-//        print(DEBUG_TAG+"Documents picked")
-//
-//        for url in urls {
-//            print(DEBUG_TAG+"\(url)")
-//            print(DEBUG_TAG+"\t\(url.lastPathComponent)")
-//            print(DEBUG_TAG+"\t\(url.pathExtension)")
-//            print(DEBUG_TAG+"\t\(url.hasDirectoryPath)")
-//
-//        }
-//
-//    }
-//
-//    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-//
-//        print(DEBUG_TAG+"Document picker cancelled")
-//        controller.dismiss(animated: true)
-////        showSendingScreen()
-//    }
-//
-//
-//}
