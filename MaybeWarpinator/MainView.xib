@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ViewController" customModule="MaybeWarpinator" customModuleProvider="target">
+            <connections>
+                <outlet property="remotesStack" destination="DEB-JW-hIB" id="aA1-v2-08i"/>
+                <outlet property="view" destination="iN0-l3-epB" id="Z69-nB-du3"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Warpinator" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="l59-80-9il">
+                    <rect key="frame" x="98" y="39" width="179.5" height="43"/>
+                    <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="36"/>
+                    <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                    <color key="highlightedColor" red="0.18823529411764706" green="0.18823529411764706" blue="0.18823529411764706" alpha="1" colorSpace="calibratedRGB"/>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Display Name" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="upx-qV-62a" userLabel="DisplayNameLabel">
+                    <rect key="frame" x="16" y="595" width="220" height="39"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="22"/>
+                    <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                    <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="192.168.02.43" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gCR-It-COT" userLabel="IPAddressLabel">
+                    <rect key="frame" x="206" y="631" width="153" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" weight="light" pointSize="20"/>
+                    <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                    <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="username@hostname" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Loc-6H-5j4" userLabel="usernameHostnameLabel">
+                    <rect key="frame" x="16" y="628" width="206" height="23"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
+                    <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                    <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                </label>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" horizontalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="qYx-cs-dIA" userLabel="RemoteScoller" customClass="ButtonScrollView" customModule="MaybeWarpinator" customModuleProvider="target">
+                    <rect key="frame" x="19" y="107" width="337.5" height="480"/>
+                    <subviews>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="DEB-JW-hIB" userLabel="RemoteStack">
+                            <rect key="frame" x="0.0" y="0.0" width="337.5" height="128"/>
+                            <subviews>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rGd-ok-xcM" customClass="ListedRemoteView" customModule="MaybeWarpinator" customModuleProvider="target">
+                                    <rect key="frame" x="0.0" y="0.0" width="337.5" height="128"/>
+                                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                </view>
+                            </subviews>
+                        </stackView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="DEB-JW-hIB" firstAttribute="top" secondItem="qYx-cs-dIA" secondAttribute="top" id="HxE-5o-S8w"/>
+                        <constraint firstItem="DEB-JW-hIB" firstAttribute="leading" secondItem="qYx-cs-dIA" secondAttribute="leading" id="MRI-7W-OHz"/>
+                        <constraint firstAttribute="bottom" secondItem="DEB-JW-hIB" secondAttribute="bottom" id="b0b-ZH-NRH"/>
+                        <constraint firstItem="DEB-JW-hIB" firstAttribute="width" secondItem="qYx-cs-dIA" secondAttribute="width" id="efs-JI-MAu"/>
+                        <constraint firstAttribute="trailing" secondItem="DEB-JW-hIB" secondAttribute="trailing" id="vmO-H5-si3"/>
+                    </constraints>
+                    <viewLayoutGuide key="contentLayoutGuide" id="egQ-mn-dhC"/>
+                    <viewLayoutGuide key="frameLayoutGuide" id="1UC-qd-Yhu"/>
+                </scrollView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fgf-sX-B9E"/>
+            <color key="backgroundColor" red="0.94117647058823528" green="0.94117647058823528" blue="0.94117647058823528" alpha="1" colorSpace="calibratedRGB"/>
+            <constraints>
+                <constraint firstItem="qYx-cs-dIA" firstAttribute="width" secondItem="iN0-l3-epB" secondAttribute="width" multiplier="0.9" id="BNa-70-cQX"/>
+                <constraint firstItem="l59-80-9il" firstAttribute="centerX" secondItem="fgf-sX-B9E" secondAttribute="centerX" id="NOI-ED-bhP"/>
+                <constraint firstItem="l59-80-9il" firstAttribute="top" secondItem="fgf-sX-B9E" secondAttribute="top" constant="39" id="kop-v3-dIM"/>
+                <constraint firstItem="qYx-cs-dIA" firstAttribute="centerX" secondItem="fgf-sX-B9E" secondAttribute="centerX" id="rgL-vC-yKR"/>
+                <constraint firstItem="qYx-cs-dIA" firstAttribute="top" secondItem="l59-80-9il" secondAttribute="bottom" constant="25" id="v6Z-cx-Ndy"/>
+                <constraint firstItem="fgf-sX-B9E" firstAttribute="bottom" secondItem="qYx-cs-dIA" secondAttribute="bottom" constant="80" id="xsL-3f-0bA"/>
+            </constraints>
+            <point key="canvasLocation" x="136.80000000000001" y="55.322338830584712"/>
+        </view>
+    </objects>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
