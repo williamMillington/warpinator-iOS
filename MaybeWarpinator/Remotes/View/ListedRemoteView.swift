@@ -8,8 +8,8 @@
 import UIKit
 
 
-
 // MARK: View
+@IBDesignable
 final class ListedRemoteView: UIView {
     
     private let DEBUG_TAG: String = "ListedRemoteView: "
@@ -40,9 +40,12 @@ final class ListedRemoteView: UIView {
     
     override init(frame: CGRect){
         super.init(frame: frame)
+        setUpView()
     }
+    
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        setUpView()
     }
     
     
@@ -87,6 +90,8 @@ final class ListedRemoteView: UIView {
         ]
         
         NSLayoutConstraint.activate(constraints)
+        
+        backgroundColor = UIColor.blue.withAlphaComponent(0.2)
     }
     
     
@@ -103,6 +108,17 @@ final class ListedRemoteView: UIView {
     }
     
 }
+
+
+
+//MARK: interface builder
+extension ListedRemoteView {
+    override func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        setUpView()
+    }
+}
+
 
 
 
@@ -148,3 +164,8 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
         remote.removeObserver(self)
     }
 }
+
+
+
+
+

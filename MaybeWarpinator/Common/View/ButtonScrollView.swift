@@ -6,6 +6,7 @@
 //
 import UIKit
 
+//@IBDesignables
 class ButtonScrollView: UIScrollView {
 
     override func touchesShouldCancel(in view: UIView) -> Bool {
@@ -30,4 +31,8 @@ class ButtonScrollView: UIScrollView {
 //        print("ButtonScrollView: finished laying out subviews")
 //    }
     
+}
+
+extension ButtonScrollView {
+//    func prepareFor
 }

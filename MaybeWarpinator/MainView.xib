@@ -9,7 +9,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ViewController" customModule="MaybeWarpinator" customModuleProvider="target">
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ViewController" customModule="MaybeWarpinator">
             <connections>
                 <outlet property="remotesStack" destination="DEB-JW-hIB" id="aA1-v2-08i"/>
                 <outlet property="view" destination="iN0-l3-epB" id="Z69-nB-du3"/>
@@ -51,10 +51,10 @@
                     <rect key="frame" x="19" y="107" width="337.5" height="480"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="DEB-JW-hIB" userLabel="RemoteStack">
-                            <rect key="frame" x="0.0" y="0.0" width="337.5" height="128"/>
+                            <rect key="frame" x="0.0" y="0.0" width="337.5" height="88"/>
                             <subviews>
-                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rGd-ok-xcM" customClass="ListedRemoteView" customModule="MaybeWarpinator" customModuleProvider="target">
-                                    <rect key="frame" x="0.0" y="0.0" width="337.5" height="128"/>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rGd-ok-xcM" customClass="ListedRemoteView" customModule="MaybeWarpinator">
+                                    <rect key="frame" x="0.0" y="0.0" width="337.5" height="88"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 </view>
                             </subviews>

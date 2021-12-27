@@ -9,8 +9,6 @@ import UIKit
 import GRPC
 import NIO
 
-
-
 final class ViewController: UIViewController {
     
     private let DEBUG_TAG: String = "ViewController: "

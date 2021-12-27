@@ -47,7 +47,8 @@ class MainCoordinator: NSObject, Coordinator {
         }
         else {
             
-            let mainMenuVC = ViewController(nibName: "MainView", bundle: nil)
+            let bundle = Bundle(for: type(of: self))
+            let mainMenuVC = ViewController(nibName: "MainView", bundle: bundle)
             mainMenuVC.coordinator = self
             
             MainService.shared.remoteManager.remotesViewController = mainMenuVC
@@ -105,22 +106,17 @@ extension MainCoordinator {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             
-//            for i in 0..<10 {
-//
-//                var mockDetails = RemoteDetails.MOCK_DETAILS
-//                mockDetails.uuid = mockDetails.uuid + "__\(i)\(i+1)"
-//
-//                let mockRemote = Remote(details: mockDetails)
-//
-//                self.mainService.remoteManager.addRemote(mockRemote)
-//            }
             
-//            var mockDetails = RemoteDetails.MOCK_DETAILS
-//            mockDetails.uuid = mockDetails.uuid + "__555"
-//
-//            let mockRemote = Remote(details: mockDetails)
-//
-//            self.mainService.remoteManager.addRemote(mockRemote)
+            for i in 0..<10 {
+                
+                var mockDetails = RemoteDetails.MOCK_DETAILS
+                mockDetails.uuid = mockDetails.uuid + "__\(i)\(i+1)"
+                
+                let mockRemote = Remote(details: mockDetails)
+                
+                self.mainService.remoteManager.addRemote(mockRemote)
+            }
+            
         }
         
         
