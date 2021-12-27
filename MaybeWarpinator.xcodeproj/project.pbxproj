@@ -14,6 +14,7 @@
 		791D781527717575008140CC /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D781427717575008140CC /* Observable.swift */; };
 		791D7826277378F0008140CC /* Array+Index_nillable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D7825277378F0008140CC /* Array+Index_nillable.swift */; };
 		791D782A27779261008140CC /* MainView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 791D782927779261008140CC /* MainView.xib */; };
+		792D760E277954B3008E1114 /* Shield in Frameworks */ = {isa = PBXBuildFile; productRef = 792D760D277954B3008E1114 /* Shield */; };
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
 		79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79343EB22743502B008E0890 /* SendFileOperation.swift */; };
 		79360EB427069897008349D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB327069897008349D2 /* AppDelegate.swift */; };
@@ -46,7 +47,6 @@
 		79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022A27190F18003CEBCC /* MDNSBrowser.swift */; };
 		79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022F2719FCCB003CEBCC /* MDNSListener.swift */; };
 		79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B00232271C9DEE003CEBCC /* RemoteManager.swift */; };
-		79B00237272440E4003CEBCC /* Shield in Frameworks */ = {isa = PBXBuildFile; productRef = 79B00236272440E4003CEBCC /* Shield */; };
 		79B002452729B425003CEBCC /* KeyMaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002442729B425003CEBCC /* KeyMaster.swift */; };
 		79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0029D27308798003CEBCC /* RegistrationServer.swift */; };
 		79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8A0E927449EB500369E62 /* String+substring.swift */; };
@@ -136,7 +136,7 @@
 				79360ECD270928B3008349D2 /* GRPC in Frameworks */,
 				797C12C227150FB700A2795C /* Clibsodium in Frameworks */,
 				797C12C427150FB700A2795C /* Sodium in Frameworks */,
-				79B00237272440E4003CEBCC /* Shield in Frameworks */,
+				792D760E277954B3008E1114 /* Shield in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -363,7 +363,7 @@
 				79360ECC270928B3008349D2 /* GRPC */,
 				797C12C127150FB700A2795C /* Clibsodium */,
 				797C12C327150FB700A2795C /* Sodium */,
-				79B00236272440E4003CEBCC /* Shield */,
+				792D760D277954B3008E1114 /* Shield */,
 			);
 			productName = MaybeWarpinator;
 			productReference = 79360EB027069897008349D2 /* MaybeWarpinator.app */;
@@ -398,7 +398,7 @@
 			packageReferences = (
 				79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */,
 				797C12C027150FB700A2795C /* XCRemoteSwiftPackageReference "swift-sodium" */,
-				79B00235272440E4003CEBCC /* XCRemoteSwiftPackageReference "Shield" */,
+				792D760C277954B3008E1114 /* XCRemoteSwiftPackageReference "Shield" */,
 			);
 			productRefGroup = 79360EB127069897008349D2 /* Products */;
 			projectDirPath = "";
@@ -691,6 +691,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		792D760C277954B3008E1114 /* XCRemoteSwiftPackageReference "Shield" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "file:///Users/williammillington/Downloads/Shield";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/grpc/grpc-swift.git";
@@ -707,17 +715,14 @@
 				minimumVersion = 0.9.1;
 			};
 		};
-		79B00235272440E4003CEBCC /* XCRemoteSwiftPackageReference "Shield" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/outfoxx/Shield.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.1.1;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		792D760D277954B3008E1114 /* Shield */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 792D760C277954B3008E1114 /* XCRemoteSwiftPackageReference "Shield" */;
+			productName = Shield;
+		};
 		79360ECC270928B3008349D2 /* GRPC */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */;
@@ -732,11 +737,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 797C12C027150FB700A2795C /* XCRemoteSwiftPackageReference "swift-sodium" */;
 			productName = Sodium;
-		};
-		79B00236272440E4003CEBCC /* Shield */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 79B00235272440E4003CEBCC /* XCRemoteSwiftPackageReference "Shield" */;
-			productName = Shield;
 		};
 		79C002A4270A9144002DB22B /* GRPC */ = {
 			isa = XCSwiftPackageProductDependency;

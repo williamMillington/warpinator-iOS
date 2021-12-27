@@ -166,7 +166,7 @@ class TransferViewController: UIViewController {
             deviceStatusLabel.topAnchor.constraint(equalTo: deviceNameLabel.bottomAnchor),
             deviceStatusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-//            operationsStack.topAnchor.constraint(equalTo: deviceNameLabel.bottomAnchor, constant: 25),
+//            operationsStack.topAnchor.constraint(equalTo: displayNameLabel.bottomAnchor, constant: 25),
             operationsStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
             operationsStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
             operationsStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),

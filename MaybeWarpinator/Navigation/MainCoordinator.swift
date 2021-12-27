@@ -107,7 +107,7 @@ extension MainCoordinator {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             
             
-            for i in 0..<10 {
+            for i in 0..<2 {
                 
                 var mockDetails = RemoteDetails.MOCK_DETAILS
                 mockDetails.uuid = mockDetails.uuid + "__\(i)\(i+1)"
