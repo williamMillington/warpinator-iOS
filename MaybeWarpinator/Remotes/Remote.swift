@@ -39,7 +39,7 @@ struct RemoteDetails {
     
     var displayName: String = "No_DisplayName"
     var username: String = "No_Username"
-    
+    var userImage: UIImage?
     
     var serviceName: String = "No_ServiceName"
     var hostname: String = "No_Hostname"
@@ -85,8 +85,6 @@ public class Remote {
             self.informObserversInfoDidChange()
         }
     }
-    
-    public var picture: UIImage?
     
     var sendingOperations: [SendFileOperation] = []
     var receivingOperations: [ReceiveFileOperation] = []
@@ -346,9 +344,11 @@ extension Remote {
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
         
-        let info = warpClient?.getRemoteMachineInfo(lookupName)
         
-        info?.response.whenSuccess { info in
+        // get info
+        let infoCall = warpClient?.getRemoteMachineInfo(lookupName)
+        
+        infoCall?.response.whenSuccess { info in
             self.details.displayName = info.displayName
             self.details.username = info.userName
             self.details.status = .Connected
@@ -356,8 +356,29 @@ extension Remote {
             print(self.DEBUG_TAG+"Remote display name: \(self.details.displayName)")
             print(self.DEBUG_TAG+"Remote username: \(self.details.username)")
         }
-        info?.response.whenFailure { error in
+        infoCall?.response.whenFailure { error in
             print(self.DEBUG_TAG+"failed to retrieve machine info")
+        }
+        
+        
+        
+        // get image
+        var avatarBytes: Data = Data()
+        
+        let imageCall = warpClient?.getRemoteMachineAvatar(lookupName) { avatar in
+            avatarBytes.append( avatar.avatarChunk )
+        }
+        
+        imageCall?.status.whenSuccess { status in
+            print(self.DEBUG_TAG+"retrieved avatar, status \(status)")
+            print(self.DEBUG_TAG+"image bytes are \(avatarBytes)")
+            self.details.userImage = UIImage(data:  avatarBytes  )
+            print(self.DEBUG_TAG+"image is \(self.details.userImage)")
+            self.informObserversInfoDidChange()
+        }
+        
+        imageCall?.status.whenFailure { error in
+            print(self.DEBUG_TAG+"failed to retrieve remote avatar")
         }
         
     }

@@ -16,18 +16,16 @@ final class ListedRemoteView: UIView {
     
     var viewModel: ListedRemoteViewModel?
     
-    
-    private var placeHolderImage : UIImage! {
-//        let bundle = Bundle(for: type(of: self))
-        return UIImage(systemName: "timelapse",
-//                       in: bundle,
-                       compatibleWith: self.traitCollection)!.withRenderingMode(.alwaysTemplate)
-    }
-    
     private lazy var userImageView : UIImageView = {
-        let view = UIImageView(image: placeHolderImage)
+        
+        let image = UIImage(systemName: "timelapse",
+                            compatibleWith: self.traitCollection)!.withRenderingMode(.alwaysTemplate)
+        
+        let view = UIImageView(image: image)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.tintColor = Utils.textColour
+        view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        view.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
         return view
     }()
     
@@ -101,8 +99,9 @@ final class ListedRemoteView: UIView {
     
     func setUpView(){
         
-        var constraints: [NSLayoutConstraint] = []
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
         
+        var constraints: [NSLayoutConstraint] = []
         
         addSubview(userImageView)
         
@@ -114,24 +113,31 @@ final class ListedRemoteView: UIView {
         constraints += [
             
             
-            userImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            userImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 5),
             
+            userImageView.topAnchor.constraint(lessThanOrEqualTo: topAnchor, constant: 10),
             userImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            userImageView.topAnchor.constraint(lessThanOrEqualTo: displayNameLabel.topAnchor),
-            userImageView.bottomAnchor.constraint(greaterThanOrEqualTo: deviceNameLabel.bottomAnchor),
+            userImageView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -5),
             
             userImageView.widthAnchor.constraint(equalTo: userImageView.heightAnchor),
+//            userImageView.widthAnchor.constraint(lessThanOrEqualTo: userImageView.heightAnchor),
+            
+            
+            
+            
+            
             
             displayNameLabel.leadingAnchor.constraint(equalTo: userImageView.trailingAnchor, constant: 5),
+//            displayNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: -10),
             displayNameLabel.bottomAnchor.constraint(equalTo: centerYAnchor),
             
             
-            deviceNameLabel.topAnchor.constraint(equalTo: centerYAnchor),
-            
             deviceNameLabel.leadingAnchor.constraint(equalTo: displayNameLabel.leadingAnchor),
+            deviceNameLabel.topAnchor.constraint(equalTo: centerYAnchor),
+//            deviceNameLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 12),
             
             
-            deviceStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5),
+            deviceStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             deviceStatusLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             
             heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2)
@@ -146,6 +152,7 @@ final class ListedRemoteView: UIView {
         
         layer.borderWidth = 1
         layer.borderColor = Utils.borderColour.cgColor
+        
     }
     
     
@@ -157,6 +164,12 @@ final class ListedRemoteView: UIView {
         DispatchQueue.main.async {
             self.displayNameLabel.text = viewModel.displayName
             self.deviceStatusLabel.text = viewModel.status
+            
+            if let image = viewModel.avatarImage {
+                self.userImageView.image = image
+                self.setNeedsLayout()
+            }
+            
         }
         
     }
@@ -184,16 +197,22 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
     var onInfoUpdated: ()->Void = {}
     var onTransferAdded: (TransferOperationViewModel)->Void = { viewmodel in }
 
-    public var displayName: String {
+    
+    var avatarImage: UIImage? {
+        return remote.details.userImage
+    }
+        
+    
+    var displayName: String {
         return remote.details.displayName
     }
 
 
-    public var uuid: String {
+    var uuid: String {
         return remote.details.uuid
     }
 
-    public var status: String {
+    var status: String {
         
         switch remote.details.status {
         case .FetchingCredentials,

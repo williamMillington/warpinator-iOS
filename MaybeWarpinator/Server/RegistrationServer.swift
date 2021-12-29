@@ -53,7 +53,7 @@ class RegistrationServer {
         
         let registrationServerFuture = GRPC.Server.insecure(group: registrationServerELG)
             .withServiceProviders([warpinatorRegistrationProvider])
-            .bind(host: "\(Utils.getIPV4Address())", port: registration_port)
+            .bind(host: "\(Utils.getIP_V4_Address())", port: registration_port)
             
         
         registrationServerFuture.map {

@@ -71,10 +71,16 @@ class MDNSListener {
         params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
         
-        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-//            print(DEBUG_TAG+"restrict connections to v4")
-            inetOptions.version = .v4
-        }
+//        let reqHost = NWEndpoint.Host.init( Utils.getIPV4Address() )
+//        let reqPort = NWEndpoint.Port.init(integerLiteral: 42000)
+//
+//        params.requiredLocalEndpoint = NWEndpoint.hostPort(host: reqHost, port: reqPort)
+        
+        
+//        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+////            print(DEBUG_TAG+"restrict connections to v4")
+//            inetOptions.version = .v4
+//        }
                 
         listener = nil
         listener = try! NWListener(using: params, on: port )
@@ -107,6 +113,7 @@ class MDNSListener {
         let params = NWParameters.udp
         params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
+        
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
 //            print(DEBUG_TAG+"set connection as v4")

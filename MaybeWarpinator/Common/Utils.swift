@@ -35,18 +35,25 @@ public class Utils {
     /** Why the everloving fuck is this what a person needs to do to get a goddamn IP address on iOS  jesus christ if
      I wanted to use pointers I'd go back to university
      */
-    public static func getIPV4Address() -> String {
+    public static func getIP_V4_Address() -> String {
         
+        // get address list
         var addrList: UnsafeMutablePointer<ifaddrs>?
-        
         guard getifaddrs(&addrList) == 0,
-              let firstAddr = addrList else {  return  "Whelp."}
+              let firstAddr = addrList else {  return  " (getIP_V4_Address) Whelp."}
         
+        // make sure we free the memory when done
         defer {  freeifaddrs(addrList) }
         
+        
+        // cycle interfaces until we find IP_v4
         var address: String = "???.???.???"
         for cursor in sequence(first: firstAddr, next: {  $0.pointee.ifa_next  }) {
+            
             let interfaceName = String(cString: cursor.pointee.ifa_name)
+            
+            // we only care about wifi
+            if interfaceName != "en0" {  continue  }
             
             let interface = cursor.pointee
             let addressFamily = interface.ifa_addr.pointee.sa_family
@@ -55,14 +62,10 @@ public class Utils {
                 continue
             }
             
-            // we only care about wifi
-            if interfaceName != "en0" {
-                continue
-            }
-            
             var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
             if let addr = cursor.pointee.ifa_addr,
-               getnameinfo(addr, socklen_t(addr.pointee.sa_len), &hostname, socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST) == 0,
+               getnameinfo(addr, socklen_t(addr.pointee.sa_len), &hostname,
+                           socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST) == 0,
                hostname[0] != 0 {
                 address = String(cString: hostname)
             }
@@ -71,6 +74,59 @@ public class Utils {
     }
     
     
+    public static func getIP_V6_Address() -> String {
+        
+        // get address list
+        var addrList: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&addrList) == 0,
+              let firstAddr = addrList else {  return  " (getIP_V6_Address) Whelp."}
+        
+        // make sure we free the memory when done
+        defer {  freeifaddrs(addrList) }
+        
+        
+        // cycle interfaces until we find IP_v6
+        var address: String = "????::????:????:????:????"
+        for cursor in sequence(first: firstAddr, next: {  $0.pointee.ifa_next  }) {
+            
+            let interfaceName = String(cString: cursor.pointee.ifa_name)
+            
+            // we only care about wifi
+            if interfaceName != "en0" {  continue  }
+            
+            
+            let interface = cursor.pointee
+            let addressFamily = interface.ifa_addr.pointee.sa_family
+            
+            
+            // If address is IPV6
+            if addressFamily == UInt8(AF_INET6) {
+                
+                let s6_addr = interface.ifa_addr.withMemoryRebound(to: sockaddr_in6.self, capacity: 1) {
+                    $0.pointee.sin6_addr.__u6_addr.__u6_addr8
+                }
+                
+                if s6_addr.0 == 0xfe && (s6_addr.1 & 0xc0 ) == 0x80 {
+                    
+                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    
+                    if let addr = interface.ifa_addr,
+                       getnameinfo(addr, socklen_t(addr.pointee.sa_len), &hostname,
+                                   socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST) == 0,
+                       hostname[0] != 0 {
+                        
+                        // string will include %en0 at the end; strip it off
+                        let wholeAddress = String(cString: hostname)
+                        let components = wholeAddress.split(separator: Character("%"))
+                        address = String(components[0])
+                        print("v6_address: \(address)")
+                    }
+                }
+            }
+        }
+        
+        return address
+    }
     
     
 //    static func checkFolderExists(){

@@ -80,6 +80,7 @@ class UDPConnection: AuthenticationConnection {
         connection.stateUpdateHandler = { newState in
             switch newState {
             case .ready:
+                print(self.DEBUG_TAG+"connection ready")
                 
                 if let ip4_string = self.connection.currentPath?.remoteEndpoint?.debugDescription {
 //                    print(self.DEBUG_TAG+"connection to \(self.endpoint) ready (ipv4 address: \(ip4))");
@@ -199,7 +200,7 @@ class GRPCConnection: AuthenticationConnection {
     func sendCertificateRequest() {
         let request: RegRequest = .with {
             $0.hostname = Server.SERVER_UUID
-            $0.ip = Utils.getIPV4Address()
+            $0.ip = Utils.getIP_V4_Address()
         }
         
 //        let logger: Logger = {

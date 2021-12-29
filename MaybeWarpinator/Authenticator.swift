@@ -229,7 +229,7 @@ class Authenticator {
         // -- EXTENSIONS
         
         // IP address as Subject Alternative Name
-        let ipAddress = Utils.getIPV4Address()
+        let ipAddress = Utils.getIP_V4_Address()
         
         var IPparts: [UInt8] = []
         ipAddress.components(separatedBy: ".").forEach { part in
