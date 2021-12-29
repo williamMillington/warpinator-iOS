@@ -371,9 +371,9 @@ extension Remote {
         
         imageCall?.status.whenSuccess { status in
             print(self.DEBUG_TAG+"retrieved avatar, status \(status)")
-            print(self.DEBUG_TAG+"image bytes are \(avatarBytes)")
+//            print(self.DEBUG_TAG+"image bytes are \(avatarBytes)")
             self.details.userImage = UIImage(data:  avatarBytes  )
-            print(self.DEBUG_TAG+"image is \(self.details.userImage)")
+//            print(self.DEBUG_TAG+"image is \(self.details.userImage)")
             self.informObserversInfoDidChange()
         }
         

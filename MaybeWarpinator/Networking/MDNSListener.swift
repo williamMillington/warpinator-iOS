@@ -15,7 +15,6 @@ import Sodium
 
 protocol MDNSListenerDelegate {
     func mDNSListenerIsReady()
-//    func mDNSListenerDidEstablishIncomingConnection(_ connection: NWConnection)
 }
 
 

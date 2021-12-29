@@ -11,6 +11,9 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ViewController" customModule="MaybeWarpinator">
             <connections>
+                <outlet property="IPaddressLabel" destination="gCR-It-COT" id="Y7Y-gF-e7p"/>
+                <outlet property="deviceLabel" destination="Loc-6H-5j4" id="CQm-YX-3L0"/>
+                <outlet property="displayNameLabel" destination="upx-qV-62a" id="RlZ-oo-bzZ"/>
                 <outlet property="remotesStack" destination="DEB-JW-hIB" id="aA1-v2-08i"/>
                 <outlet property="view" destination="iN0-l3-epB" id="Z69-nB-du3"/>
             </connections>

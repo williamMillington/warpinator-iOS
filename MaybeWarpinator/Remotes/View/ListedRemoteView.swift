@@ -33,7 +33,7 @@ final class ListedRemoteView: UIView {
     let displayNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Display Name"
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
@@ -43,9 +43,11 @@ final class ListedRemoteView: UIView {
     let deviceNameLabel: UILabel = {
         let label = UILabel()
         label.text = "username@hostname"
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
+        label.lineBreakMode = .byTruncatingTail
+        label.numberOfLines = 1
         return label
     }()
     
@@ -54,7 +56,7 @@ final class ListedRemoteView: UIView {
     let deviceStatusLabel: UILabel = {
         let label = UILabel()
         label.text = "Status..."
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
@@ -123,10 +125,6 @@ final class ListedRemoteView: UIView {
 //            userImageView.widthAnchor.constraint(lessThanOrEqualTo: userImageView.heightAnchor),
             
             
-            
-            
-            
-            
             displayNameLabel.leadingAnchor.constraint(equalTo: userImageView.trailingAnchor, constant: 5),
 //            displayNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: -10),
             displayNameLabel.bottomAnchor.constraint(equalTo: centerYAnchor),
@@ -134,11 +132,12 @@ final class ListedRemoteView: UIView {
             
             deviceNameLabel.leadingAnchor.constraint(equalTo: displayNameLabel.leadingAnchor),
             deviceNameLabel.topAnchor.constraint(equalTo: centerYAnchor),
+            deviceNameLabel.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, multiplier: 0.5),
 //            deviceNameLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 12),
             
             
-            deviceStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             deviceStatusLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            deviceStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             
             heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2)
             
@@ -160,9 +159,14 @@ final class ListedRemoteView: UIView {
         
         guard let viewModel = viewModel else { return }
         
+        let displayString: NSAttributedString = NSAttributedString(string: viewModel.displayName,
+                                                                   attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)  ])
+//        print(DEBUG_TAG+"idplsystring: \(displayString.string)")
         // Make sure we are updating UI on the main thread!
         DispatchQueue.main.async {
-            self.displayNameLabel.text = viewModel.displayName
+//            self.displayNameLabel.text = viewModel.displayName
+            self.displayNameLabel.attributedText = displayString
+            self.deviceNameLabel.text = viewModel.deviceNameString
             self.deviceStatusLabel.text = viewModel.status
             
             if let image = viewModel.avatarImage {
@@ -183,6 +187,13 @@ extension ListedRemoteView {
     override func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
         setUpView()
+        
+        let displayString: NSAttributedString = NSAttributedString(string: Server.displayName,
+                                                                   attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)  ])
+        self.displayNameLabel.attributedText = displayString
+        self.deviceNameLabel.text = Server.displayName
+        self.deviceStatusLabel.text = "Connecting"
+        
     }
 }
 
@@ -206,7 +217,12 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
     var displayName: String {
         return remote.details.displayName
     }
-
+    
+    
+    var deviceNameString: String {
+        return remote.details.username + "@" + remote.details.hostname
+    }
+    
 
     var uuid: String {
         return remote.details.uuid

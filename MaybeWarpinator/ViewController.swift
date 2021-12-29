@@ -31,6 +31,14 @@ final class ViewController: UIViewController {
     
     @IBOutlet var remotesStack: UIStackView!
     
+    
+    
+    
+    @IBOutlet var IPaddressLabel: UILabel!
+    @IBOutlet var displayNameLabel: UILabel!
+    @IBOutlet var deviceLabel: UILabel!
+    
+    
 //    let remotesStack: UIStackView = {
 //        let stack = UIStackView()
 //        stack.translatesAutoresizingMaskIntoConstraints = false
@@ -89,6 +97,17 @@ final class ViewController: UIViewController {
         
 //        NSLayoutConstraint.activate(viewConstraints)
         
+        
+        
+        displayNameLabel.attributedText = NSAttributedString(string: Server.displayName,
+                                                             attributes: [ .font: UIFont.boldSystemFont(ofSize: 22)])
+        
+        deviceLabel.attributedText = NSAttributedString(string: "\(Server.userName)@\(Server.hostname)",
+                                                             attributes: [ .font: UIFont.boldSystemFont(ofSize: 20)])
+        
+        IPaddressLabel.attributedText = NSAttributedString(string: "\(Utils.getIP_V4_Address())",
+                                                           attributes: [ .font: UIFont.systemFont(ofSize: 20,
+                                                                                                  weight: .light)])
         
     }
 

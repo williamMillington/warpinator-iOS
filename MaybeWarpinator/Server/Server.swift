@@ -31,7 +31,9 @@ public class Server: NSObject {
     public var transfer_port: Int = Server.transfer_port
     private var registration_port: Int = Server.registration_port
     
-    public static var displayName: String = "iOS_DeviceName"
+    public static var displayName: String = "Display_Name"
+    public static var userName: String = "username"
+    public static var hostname: String = Server.SERVER_UUID
     
     public static var SERVER_UUID: String = "WarpinatorIOS"
     

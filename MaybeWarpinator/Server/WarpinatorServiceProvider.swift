@@ -170,12 +170,9 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
         
-        let displayName = "\(Server.displayName)" //Server.shared.displayName
-        let userName = "iOS_Username"
-        
         var info = RemoteMachineInfo()
-        info.displayName = displayName
-        info.userName = userName
+        info.displayName = Server.displayName
+        info.userName = Server.userName
         
         return context.eventLoop.makeSucceededFuture(info)
     }
