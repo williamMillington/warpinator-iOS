@@ -9,6 +9,7 @@ import UIKit
 
 
 // MARK: View
+@IBDesignable
 final class ListedTransferView: UIView {
 
     private let DEBUG_TAG: String = "ListedTransferView: "
@@ -16,8 +17,8 @@ final class ListedTransferView: UIView {
     // MARK: labels
     let filesLabel: UILabel = {
         let label = UILabel()
-        label.text = "Uknown Device"
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+        label.text = "-----"
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
@@ -26,12 +27,25 @@ final class ListedTransferView: UIView {
     let transferStatusLabel: UILabel = {
         let label = UILabel()
         label.text = "Status..."
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
     }()
     
+    
+    lazy var transferDirectionImageView : UIImageView = {
+        
+//        let image = UIImage(systemName: "timelapse",
+//                            compatibleWith: self.traitCollection)!.withRenderingMode(.alwaysTemplate)
+        
+        let view = UIImageView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.tintColor = Utils.textColour
+        view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        view.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        return view
+    }()
     
     var tapRecognizer: TapGestureRecognizerWithClosure?
     
@@ -50,7 +64,7 @@ final class ListedTransferView: UIView {
     convenience init(withViewModel model: ListedTransferViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
-        backgroundColor = UIColor.orange.withAlphaComponent(0.2)
+//        backgroundColor = UIColor.orange.withAlphaComponent(0.2)
         
         viewModel = model
         viewModel?.onInfoUpdated = {
@@ -72,15 +86,24 @@ final class ListedTransferView: UIView {
         
         var constraints: [NSLayoutConstraint] = []
         
+        addSubview(transferDirectionImageView)
         addSubview(filesLabel)
         addSubview(transferStatusLabel)
         
         constraints += [
             
-            filesLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
+            transferDirectionImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 5),
+            
+            transferDirectionImageView.topAnchor.constraint(lessThanOrEqualTo: topAnchor, constant: 10),
+            transferDirectionImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            transferDirectionImageView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -10),
+            
+            transferDirectionImageView.widthAnchor.constraint(equalTo: transferDirectionImageView.heightAnchor),
+            
+            filesLabel.leadingAnchor.constraint(equalTo: transferDirectionImageView.leadingAnchor, constant: 15),
             filesLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             
-            transferStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
+            transferStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             transferStatusLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             
             heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2)
@@ -88,6 +111,14 @@ final class ListedTransferView: UIView {
         ]
         
         NSLayoutConstraint.activate(constraints)
+        
+        backgroundColor = Utils.foregroundColour
+        
+        layer.cornerRadius = 5
+        
+        layer.borderWidth = 1
+        layer.borderColor = Utils.borderColour.cgColor
+        
     }
     
     
@@ -99,10 +130,24 @@ final class ListedTransferView: UIView {
         filesLabel.text = "\(viewModel.fileCount)"
         transferStatusLabel.text = "\(viewModel.status)"
         
+        transferDirectionImageView.image = viewModel.directionImage
+        setNeedsLayout()
+        
     }
 
 }
 
+
+extension ListedTransferView {
+    override func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        setUpView()
+        
+        filesLabel.text = "3"
+        transferStatusLabel.text = "Transferring"
+        
+    }
+}
 
 
 
@@ -118,8 +163,17 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
         return operation.UUID
     }
     
+    var directionImage: UIImage {
+        
+        switch operation.direction {
+        case .RECEIVING: return UIImage(systemName: "square.and.arrow.down")!
+        case .SENDING: return UIImage(systemName: "square.and.arrow.up")!
+        }
+        
+    }
+    
     var fileCount: String {
-        return "\(operation.fileCount)"
+        return "\(operation.fileCount) Files"
     }
     
     var status: String {

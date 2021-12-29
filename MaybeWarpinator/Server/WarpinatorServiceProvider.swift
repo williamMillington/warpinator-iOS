@@ -72,30 +72,8 @@ public class WarpinatorServiceProvider: WarpProvider {
         let duplexPromise = checkDuplex(forUUID: id, context)
         
         return duplexPromise.futureResult
-        
-//        let id = request.id
-//        var duplexCheck = false
-//
-//        print(DEBUG_TAG+"(API_V1) Duplex is being checked by \(request.readableName) (\(request.id))")
-//
-//        if let remote = remoteManager?.containsRemote(for: id) {
-//            print(DEBUG_TAG+"(API_V1) Remote known")
-//            if remote.details.status == .DuplexAquired || remote.details.status == .Connected {
-//                print(DEBUG_TAG+"(API_V1) Duplex verified by remote")
-//                duplexCheck = true
-//            }
-//        }
-//
-//        return context.eventLoop.makeCompletedFuture( Result(catching: {
-//
-//            if duplexCheck {
-//                return .with {
-//                    $0.response = true
-//                }
-//            }
-//            throw DuplexError.DuplexNotEstablished
-//        }))
     }
+    
     
     // MARK: Duplex v2
     // receive request for status of connection to remote specified in LookupName
@@ -148,9 +126,6 @@ public class WarpinatorServiceProvider: WarpProvider {
             }
         }
         
-        
-        
-        
         return duplexPromise
     }
     
@@ -160,7 +135,6 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     
     //MARK: - Device info
-    
     
     
     

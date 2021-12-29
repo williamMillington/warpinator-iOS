@@ -6,7 +6,7 @@
 //
 import UIKit
 
-@IBDesignable
+//@IBDesignable
 class ButtonScrollView: UIScrollView {
 
     override func touchesShouldCancel(in view: UIView) -> Bool {

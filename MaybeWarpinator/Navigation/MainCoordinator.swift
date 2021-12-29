@@ -33,7 +33,7 @@ class MainCoordinator: NSObject, Coordinator {
         
         showMenu()
         
-        mockRemote()
+//        mockRemote()
     }
     
     

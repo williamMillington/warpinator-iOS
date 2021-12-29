@@ -26,7 +26,7 @@ final class ViewController: UIViewController {
     }()
     
     
-    let remotesScroller = ButtonScrollView()
+//    let remotesScroller = ButtonScrollView()
     
     
     @IBOutlet var remotesStack: UIStackView!

@@ -33,6 +33,7 @@ final class ListedRemoteView: UIView {
     let displayNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Display Name"
+        label.tintColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -43,6 +44,7 @@ final class ListedRemoteView: UIView {
     let deviceNameLabel: UILabel = {
         let label = UILabel()
         label.text = "username@hostname"
+        label.tintColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -56,6 +58,7 @@ final class ListedRemoteView: UIView {
     let deviceStatusLabel: UILabel = {
         let label = UILabel()
         label.text = "Status..."
+        label.tintColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.1)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -160,21 +163,29 @@ final class ListedRemoteView: UIView {
         guard let viewModel = viewModel else { return }
         
         let displayString: NSAttributedString = NSAttributedString(string: viewModel.displayName,
-                                                                   attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)  ])
+                                                                   attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
+                                                                                 .foregroundColor : Utils.textColour  ])
+        let deviceNameString: NSAttributedString = NSAttributedString(string: viewModel.deviceName,
+                                                                      attributes: [ .font : UIFont.systemFont(ofSize:  self.frame.size.height / 4),
+                                                                                    .foregroundColor : Utils.textColour  ])
+        let statusString: NSAttributedString = NSAttributedString(string:  viewModel.status,
+                                                                  attributes: [ .font : UIFont.systemFont(ofSize:  self.frame.size.height / 4),
+                                                                                .foregroundColor : Utils.textColour  ])
+        
 //        print(DEBUG_TAG+"idplsystring: \(displayString.string)")
-        // Make sure we are updating UI on the main thread!
-        DispatchQueue.main.async {
+////         Make sure we are updating UI on the main thread!
+//        DispatchQueue.main.async {
 //            self.displayNameLabel.text = viewModel.displayName
             self.displayNameLabel.attributedText = displayString
-            self.deviceNameLabel.text = viewModel.deviceNameString
-            self.deviceStatusLabel.text = viewModel.status
+            self.deviceNameLabel.attributedText = deviceNameString
+            self.deviceStatusLabel.attributedText = statusString
             
             if let image = viewModel.avatarImage {
                 self.userImageView.image = image
                 self.setNeedsLayout()
             }
             
-        }
+//        }
         
     }
     
@@ -189,10 +200,17 @@ extension ListedRemoteView {
         setUpView()
         
         let displayString: NSAttributedString = NSAttributedString(string: Server.displayName,
-                                                                   attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)  ])
+                                                                   attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
+                                                                                 .foregroundColor : Utils.textColour  ])
+        let deviceNameString: NSAttributedString = NSAttributedString(string: Server.displayName,
+                                                                      attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
+                                                                                    .foregroundColor : Utils.textColour  ])
+        let statusString: NSAttributedString = NSAttributedString(string:  "Connecting",
+                                                                  attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
+                                                                                .foregroundColor : Utils.textColour  ])
         self.displayNameLabel.attributedText = displayString
-        self.deviceNameLabel.text = Server.displayName
-        self.deviceStatusLabel.text = "Connecting"
+        self.deviceNameLabel.attributedText = deviceNameString
+        self.deviceStatusLabel.attributedText = statusString
         
     }
 }
@@ -219,7 +237,7 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
     }
     
     
-    var deviceNameString: String {
+    var deviceName: String {
         return remote.details.username + "@" + remote.details.hostname
     }
     

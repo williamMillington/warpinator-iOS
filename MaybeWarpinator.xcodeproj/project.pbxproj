@@ -43,6 +43,7 @@
 		799E39F127469CD800E60FFC /* TapGestureRecognizerWithClosure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39EF27469CD800E60FFC /* TapGestureRecognizerWithClosure.swift */; };
 		799E39F42746A0E500E60FFC /* RemoteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39F32746A0E500E60FFC /* RemoteViewController.swift */; };
 		799E39FE2746DFC600E60FFC /* Double+Int.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39FD2746DFC600E60FFC /* Double+Int.swift */; };
+		79AAD12A277CB50C00F46B9B /* RemoteVieController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 79AAD129277CB50C00F46B9B /* RemoteVieController.xib */; };
 		79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002252717BDF6003CEBCC /* CertificateServer.swift */; };
 		79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022A27190F18003CEBCC /* MDNSBrowser.swift */; };
 		79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022F2719FCCB003CEBCC /* MDNSListener.swift */; };
@@ -103,6 +104,7 @@
 		799E39EF27469CD800E60FFC /* TapGestureRecognizerWithClosure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TapGestureRecognizerWithClosure.swift; sourceTree = "<group>"; };
 		799E39F32746A0E500E60FFC /* RemoteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViewController.swift; sourceTree = "<group>"; };
 		799E39FD2746DFC600E60FFC /* Double+Int.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Double+Int.swift"; sourceTree = "<group>"; };
+		79AAD129277CB50C00F46B9B /* RemoteVieController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RemoteVieController.xib; sourceTree = "<group>"; };
 		79B002252717BDF6003CEBCC /* CertificateServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateServer.swift; sourceTree = "<group>"; };
 		79B0022A27190F18003CEBCC /* MDNSBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSBrowser.swift; sourceTree = "<group>"; };
 		79B0022F2719FCCB003CEBCC /* MDNSListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSListener.swift; sourceTree = "<group>"; };
@@ -172,6 +174,7 @@
 			children = (
 				79B8A0F32745587C00369E62 /* ListedRemoteView.swift */,
 				799E39F32746A0E500E60FFC /* RemoteViewController.swift */,
+				79AAD129277CB50C00F46B9B /* RemoteVieController.xib */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -418,6 +421,7 @@
 				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
 				796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
+				79AAD12A277CB50C00F46B9B /* RemoteVieController.xib in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
 				791D782A27779261008140CC /* MainView.xib in Resources */,
 				796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */,
