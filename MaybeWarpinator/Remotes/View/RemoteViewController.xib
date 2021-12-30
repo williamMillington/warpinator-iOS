@@ -37,13 +37,13 @@
                         <action selector="back" destination="-1" eventType="touchUpInside" id="wQg-Dr-cK1"/>
                     </connections>
                 </button>
-                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nUb-em-jm8" customClass="ButtonScrollView" customModule="MaybeWarpinator" customModuleProvider="target">
-                    <rect key="frame" x="19" y="176" width="337.5" height="405"/>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nUb-em-jm8" customClass="ButtonScrollView" customModule="MaybeWarpinator" customModuleProvider="target">
+                    <rect key="frame" x="19" y="176" width="337.5" height="406"/>
                     <subviews>
-                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="cpp-05-4KC" userLabel="transfersStack">
+                        <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="cpp-05-4KC" userLabel="transfersStack">
                             <rect key="frame" x="0.0" y="0.0" width="337.5" height="67.5"/>
                             <subviews>
-                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ts9-vt-Mdb" customClass="ListedTransferView" customModule="MaybeWarpinator" customModuleProvider="target">
+                                <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ts9-vt-Mdb" customClass="ListedTransferView" customModule="MaybeWarpinator" customModuleProvider="target">
                                     <rect key="frame" x="0.0" y="0.0" width="337.5" height="67.5"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 </view>
@@ -81,6 +81,7 @@
                     <subviews>
                         <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="5cr-XQ-Dl3" userLabel="userImageView">
                             <rect key="frame" x="0.0" y="10" width="60" height="60"/>
+                            <color key="tintColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                             <constraints>
                                 <constraint firstAttribute="width" secondItem="5cr-XQ-Dl3" secondAttribute="height" id="83I-we-5nQ"/>
                             </constraints>
@@ -151,7 +152,7 @@
                 <constraint firstItem="P10-Tv-7Ps" firstAttribute="height" secondItem="iN0-l3-epB" secondAttribute="height" multiplier="0.09" id="jDd-yb-noc"/>
                 <constraint firstItem="nUb-em-jm8" firstAttribute="width" secondItem="iN0-l3-epB" secondAttribute="width" multiplier="0.9" id="kfX-23-rO1"/>
                 <constraint firstItem="cxR-iA-cAq" firstAttribute="leading" secondItem="nUb-em-jm8" secondAttribute="leading" id="t6d-78-UET"/>
-                <constraint firstItem="P10-Tv-7Ps" firstAttribute="top" secondItem="nUb-em-jm8" secondAttribute="bottom" constant="6" id="tG5-bN-w3j"/>
+                <constraint firstItem="P10-Tv-7Ps" firstAttribute="top" secondItem="nUb-em-jm8" secondAttribute="bottom" constant="5" id="tG5-bN-w3j"/>
                 <constraint firstItem="c2A-kF-V3J" firstAttribute="top" secondItem="VOF-vU-zSk" secondAttribute="bottom" constant="5" id="xCR-RK-pRd"/>
             </constraints>
             <point key="canvasLocation" x="-178.40000000000001" y="51.724137931034484"/>

@@ -126,7 +126,7 @@ final class RemoteViewController: UIViewController {
     
     
     init(withViewModel viewModel: RemoteViewModel) {
-        super.init(nibName: "RemoteVieController", bundle: Bundle(for: type(of: self)))
+        super.init(nibName: "RemoteViewController", bundle: Bundle(for: type(of: self)))
         
         
         self.viewModel = viewModel
@@ -222,6 +222,9 @@ final class RemoteViewController: UIViewController {
         for transfer_viewmodel in self.viewModel!.transfers {
             addTransferViewToStack(withViewModel: transfer_viewmodel)
         }
+        
+        avatarImageView.image = UIImage(systemName: "timelapse",
+                                        compatibleWith: self.traitCollection)!.withRenderingMode(.alwaysTemplate)
         
     }
     

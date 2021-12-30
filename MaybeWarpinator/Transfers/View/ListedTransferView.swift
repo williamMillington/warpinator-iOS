@@ -92,15 +92,15 @@ final class ListedTransferView: UIView {
         
         constraints += [
             
-            transferDirectionImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 5),
+            transferDirectionImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             
-            transferDirectionImageView.topAnchor.constraint(lessThanOrEqualTo: topAnchor, constant: 10),
+            transferDirectionImageView.topAnchor.constraint(lessThanOrEqualTo: topAnchor, constant: 15),
             transferDirectionImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            transferDirectionImageView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -10),
+            transferDirectionImageView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -15),
             
             transferDirectionImageView.widthAnchor.constraint(equalTo: transferDirectionImageView.heightAnchor),
             
-            filesLabel.leadingAnchor.constraint(equalTo: transferDirectionImageView.leadingAnchor, constant: 15),
+            filesLabel.leadingAnchor.constraint(equalTo: transferDirectionImageView.trailingAnchor, constant: 15),
             filesLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             
             transferStatusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
@@ -143,7 +143,9 @@ extension ListedTransferView {
         super.prepareForInterfaceBuilder()
         setUpView()
         
-        filesLabel.text = "3"
+        transferDirectionImageView.image = UIImage(systemName: "arrow.down.app.fill")!
+        
+        filesLabel.text = "3 Files"
         transferStatusLabel.text = "Transferring"
         
     }
@@ -166,20 +168,26 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
     var directionImage: UIImage {
         
         switch operation.direction {
-        case .RECEIVING: return UIImage(systemName: "square.and.arrow.down")!
-        case .SENDING: return UIImage(systemName: "square.and.arrow.up")!
+        case .RECEIVING: return UIImage(systemName: "arrow.down.square.fill")!
+        case .SENDING: return UIImage(systemName: "arrow.up.square.fill")!
         }
         
     }
     
     var fileCount: String {
-        return "\(operation.fileCount) Files"
+        var fileString = "File"
+        
+        if operation.fileCount != 1 {
+            fileString = fileString + "s"
+        }
+        
+        return "\(operation.fileCount) " + fileString
     }
     
     var status: String {
-        
         switch operation.status {
-        case .FAILED(_): return "Failed"
+        case .FAILED(_): return "FAILED"
+        case .WAITING_FOR_PERMISSION: return "WAITING"
         default: return "\(operation.status)"
         }
     }

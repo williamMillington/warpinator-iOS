@@ -30,12 +30,13 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         navController.setNavigationBarHidden(true, animated: false)
         
+        
+        mockReceiveTransfer()
+        
     }
     
     func start() {
         showRemote()
-        
-        mockReceiveTransfer()
         
     }
     
@@ -212,7 +213,7 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
 //MARK: Mock
 extension RemoteCoordinator {
     func mockReceiveTransfer(){
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
             let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
             self.remote.addReceivingOperation(mockOp)
         }
