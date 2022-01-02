@@ -11,14 +11,38 @@ import UIKit
 
 
 // MARK: View
+@IBDesignable
 final class ListedFileOperationView: UIView {
 
     private let DEBUG_TAG: String = "ListedFileOperationView: "
     
-    let filesNameLabel: UILabel = {
+    
+    lazy var selectionImageView: UIImageView = {
+        
+        let image = UIImage(systemName: "doc",
+                            compatibleWith: self.traitCollection)!.withRenderingMode(.alwaysTemplate)
+        
+        let view = UIImageView(image: image)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.tintColor = Utils.textColour
+//        view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+//        view.setContentCompressionResistancePriority(.de, for: .vertical)
+        return view
+    }()
+    
+    let fileTypeLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Type"
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
+        return label
+    }()
+    
+    let fileNameLabel: UILabel = {
         let label = UILabel()
         label.text = "File --"
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
@@ -27,7 +51,7 @@ final class ListedFileOperationView: UIView {
     let bytesLabel: UILabel = {
         let label = UILabel()
         label.text = "--.--B"
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
@@ -50,7 +74,7 @@ final class ListedFileOperationView: UIView {
     convenience init(withViewModel model: ListedFileViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
-        backgroundColor = UIColor.orange.withAlphaComponent(0.2)
+//        backgroundColor = UIColor.orange.withAlphaComponent(0.2)
         
         viewModel = model
         viewModel?.onUpdated = {
@@ -72,22 +96,48 @@ final class ListedFileOperationView: UIView {
         
         var constraints: [NSLayoutConstraint] = []
         
-        addSubview(filesNameLabel)
+        addSubview(selectionImageView)
+        addSubview(fileNameLabel)
         addSubview(bytesLabel)
         
         constraints += [
             
-            filesNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            filesNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            selectionImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
+
+            selectionImageView.topAnchor.constraint(lessThanOrEqualTo: topAnchor, constant: 10),
+            selectionImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            selectionImageView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -10),
+
+            selectionImageView.widthAnchor.constraint(equalTo: selectionImageView.heightAnchor),
             
-            bytesLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-            bytesLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             
-            heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2)
+            fileNameLabel.leadingAnchor.constraint(equalTo: selectionImageView.trailingAnchor, constant: 10),
+            fileNameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            fileNameLabel.topAnchor.constraint(equalTo: selectionImageView.topAnchor, constant: 1),
+            fileNameLabel.bottomAnchor.constraint(equalTo: centerYAnchor, constant: -1),
+            
+            
+            fileTypeLabel.leadingAnchor.constraint(equalTo: selectionImageView.trailingAnchor, constant: 10),
+            fileTypeLabel.topAnchor.constraint(equalTo: centerYAnchor, constant: 2),
+            fileTypeLabel.bottomAnchor.constraint(equalTo: selectionImageView.bottomAnchor, constant: -1),
+            
+            
+            bytesLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            bytesLabel.topAnchor.constraint(equalTo: centerYAnchor, constant: 2),
+            bytesLabel.bottomAnchor.constraint(equalTo: selectionImageView.bottomAnchor, constant: -1),
+            
+            heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.15)
             
         ]
         
         NSLayoutConstraint.activate(constraints)
+        
+        backgroundColor = Utils.foregroundColour
+        layer.cornerRadius = 5
+        
+        layer.borderWidth = 1
+        layer.borderColor = Utils.borderColour.cgColor
+        
     }
     
     
@@ -95,7 +145,7 @@ final class ListedFileOperationView: UIView {
         
         guard let viewModel = viewModel else { return }
         
-        filesNameLabel.text = "\(viewModel.name)"
+        fileNameLabel.text = "\(viewModel.name)"
         bytesLabel.text = "\(viewModel.size)"
         
     }

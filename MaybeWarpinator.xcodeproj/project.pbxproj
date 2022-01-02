@@ -32,6 +32,7 @@
 		7963282727599F030056F76B /* FileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282627599F030056F76B /* FileWriter.swift */; };
 		796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328302759A96A0056F76B /* The_Last_Five_Years.pdf */; };
 		796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */; };
+		796638DF27821C2E004AB246 /* TransferViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 796638DE27821C2E004AB246 /* TransferViewController.xib */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
 		797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B9270FC86A00A2795C /* Authenticator.swift */; };
 		797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* ReceiveFileOperation.swift */; };
@@ -96,6 +97,7 @@
 		7963282627599F030056F76B /* FileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWriter.swift; sourceTree = "<group>"; };
 		796328302759A96A0056F76B /* The_Last_Five_Years.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = The_Last_Five_Years.pdf; sourceTree = "<group>"; };
 		796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Dear_Evan_Hansen_PV_Score.pdf; sourceTree = "<group>"; };
+		796638DE27821C2E004AB246 /* TransferViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TransferViewController.xib; sourceTree = "<group>"; };
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
 		797C12B9270FC86A00A2795C /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		797C12BC2711102700A2795C /* ReceiveFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveFileOperation.swift; sourceTree = "<group>"; };
@@ -168,6 +170,7 @@
 				7936B0702753B538001FA7C9 /* ListedTransferView.swift */,
 				7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */,
 				79331AF8274E8F3500A4022F /* TransferViewController.swift */,
+				796638DE27821C2E004AB246 /* TransferViewController.xib */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -423,6 +426,7 @@
 				79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */,
 				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
 				796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */,
+				796638DF27821C2E004AB246 /* TransferViewController.xib in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
 				79AAD12A277CB50C00F46B9B /* RemoteViewController.xib in Resources */,
 				79F5FBE3277E592600323DC4 /* SendTransferViewController.xib in Resources */,

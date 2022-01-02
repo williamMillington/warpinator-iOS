@@ -127,7 +127,6 @@ class SendTransferViewController: UIViewController {
         
         
         return "Transfer \(filesCountString)\(sizeString) to \(remoteNameString)"
-        
     }
     
     
