@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		791D77E72767B244008140CC /* CreateSendTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77E62767B244008140CC /* CreateSendTransferViewController.swift */; };
+		791D77E72767B244008140CC /* SendTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77E62767B244008140CC /* SendTransferViewController.swift */; };
 		791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */; };
 		791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F52769910A008140CC /* ListedFileSelectionView.swift */; };
 		791D77FA276A5F4B008140CC /* FileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F9276A5F4B008140CC /* FileReader.swift */; };
@@ -67,10 +67,11 @@
 		79C688FB2766905800353C53 /* AuthenticationConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C688FA2766905800353C53 /* AuthenticationConnection.swift */; };
 		79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */; };
 		79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */; };
+		79F5FBE3277E592600323DC4 /* SendTransferViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 79F5FBE2277E592600323DC4 /* SendTransferViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		791D77E62767B244008140CC /* CreateSendTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSendTransferViewController.swift; sourceTree = "<group>"; };
+		791D77E62767B244008140CC /* SendTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendTransferViewController.swift; sourceTree = "<group>"; };
 		791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTransferCoordinator.swift; sourceTree = "<group>"; };
 		791D77F52769910A008140CC /* ListedFileSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileSelectionView.swift; sourceTree = "<group>"; };
 		791D77F9276A5F4B008140CC /* FileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReader.swift; sourceTree = "<group>"; };
@@ -128,6 +129,7 @@
 		79C688FA2766905800353C53 /* AuthenticationConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationConnection.swift; sourceTree = "<group>"; };
 		79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransfersCommon.swift; sourceTree = "<group>"; };
 		79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Misc.swift"; sourceTree = "<group>"; };
+		79F5FBE2277E592600323DC4 /* SendTransferViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SendTransferViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,7 +161,8 @@
 		79331AFC274E8FFD00A4022F /* View */ = {
 			isa = PBXGroup;
 			children = (
-				791D77E62767B244008140CC /* CreateSendTransferViewController.swift */,
+				791D77E62767B244008140CC /* SendTransferViewController.swift */,
+				79F5FBE2277E592600323DC4 /* SendTransferViewController.xib */,
 				791D77F52769910A008140CC /* ListedFileSelectionView.swift */,
 				79C688F527611A7E00353C53 /* ListedFileOperationView.swift */,
 				7936B0702753B538001FA7C9 /* ListedTransferView.swift */,
@@ -422,6 +425,7 @@
 				796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
 				79AAD12A277CB50C00F46B9B /* RemoteViewController.xib in Resources */,
+				79F5FBE3277E592600323DC4 /* SendTransferViewController.xib in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
 				791D782A27779261008140CC /* MainView.xib in Resources */,
 				796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */,
@@ -452,7 +456,7 @@
 				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
 				79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
-				791D77E72767B244008140CC /* CreateSendTransferViewController.swift in Sources */,
+				791D77E72767B244008140CC /* SendTransferViewController.swift in Sources */,
 				79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */,
 				797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */,
 				79C688F627611A7E00353C53 /* ListedFileOperationView.swift in Sources */,

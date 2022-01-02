@@ -37,13 +37,13 @@
                         <action selector="back" destination="-1" eventType="touchUpInside" id="wQg-Dr-cK1"/>
                     </connections>
                 </button>
-                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nUb-em-jm8" customClass="ButtonScrollView" customModule="MaybeWarpinator" customModuleProvider="target">
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nUb-em-jm8" customClass="ButtonScrollView" customModule="MaybeWarpinator" customModuleProvider="target">
                     <rect key="frame" x="19" y="176" width="337.5" height="406"/>
                     <subviews>
-                        <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="cpp-05-4KC" userLabel="transfersStack">
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="cpp-05-4KC" userLabel="transfersStack">
                             <rect key="frame" x="0.0" y="0.0" width="337.5" height="67.5"/>
                             <subviews>
-                                <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ts9-vt-Mdb" customClass="ListedTransferView" customModule="MaybeWarpinator" customModuleProvider="target">
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ts9-vt-Mdb" customClass="ListedTransferView" customModule="MaybeWarpinator" customModuleProvider="target">
                                     <rect key="frame" x="0.0" y="0.0" width="337.5" height="67.5"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 </view>

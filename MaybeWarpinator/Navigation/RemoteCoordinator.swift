@@ -31,7 +31,7 @@ class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         navController.setNavigationBarHidden(true, animated: false)
         
         
-        mockReceiveTransfer()
+//        mockReceiveTransfer()
         
     }
     

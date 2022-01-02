@@ -52,13 +52,13 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
         
         // if the previously exists in the stack, rewind
         if let remoteVC = navController.viewControllers.first(where: { controller in
-            return controller is CreateSendTransferViewController
+            return controller is SendTransferViewController
         }) {
             navController.popToViewController(remoteVC, animated: false)
         }
         else {
             
-            let remoteVC = CreateSendTransferViewController(withViewModel: vm)
+            let remoteVC = SendTransferViewController(withViewModel: vm)
             remoteVC.coordinator = self
             
             
