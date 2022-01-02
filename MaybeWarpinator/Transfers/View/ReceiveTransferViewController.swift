@@ -19,27 +19,28 @@ class ReceiveTransferViewController: UIViewController {
     let transferDescriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Transfer from"
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+        label.textColor = Utils.textColour
+//        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
     }()
     
-    let remoteDescriptionLabel: UILabel = {
-        let label = UILabel()
-        label.text = "----------"
-        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.isUserInteractionEnabled = false
-        return label
-    }()
+//    let remoteDescriptionLabel: UILabel = {
+//        let label = UILabel()
+//        label.text = "----------"
+////        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
+//        label.translatesAutoresizingMaskIntoConstraints = false
+//        label.isUserInteractionEnabled = false
+//        return label
+//    }()
     
     // MARK: accept button
     let acceptButton: UIButton = {
         let button = UIButton()
         button.setTitle("Accept", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .blue
+        button.backgroundColor =  #colorLiteral(red: 0.4274509804, green: 0.7058823529, blue: 0.2588235294, alpha: 1)    // .blue
         button.addTarget(self, action: #selector(accept), for: .touchUpInside)
         return button
     }()
@@ -49,7 +50,7 @@ class ReceiveTransferViewController: UIViewController {
         let button = UIButton()
         button.setTitle("Decline", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .blue
+        button.backgroundColor = #colorLiteral(red: 0.7831932107, green: 0.1171585075, blue: 0.006766619796, alpha: 1)      // .blue
         button.addTarget(self, action: #selector(decline), for: .touchUpInside)
         return button
     }()
@@ -57,10 +58,10 @@ class ReceiveTransferViewController: UIViewController {
     // MARK: back button
     let backButton: UIButton = {
         let button = UIButton()
-        button.setTitle("back", for: .normal)
-        button.setTitleColor( .blue, for: .normal)
+        button.setTitle("< Back", for: .normal)
+        button.setTitleColor( Utils.textColour , for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .white
+        button.backgroundColor = .clear
         button.addTarget(self, action: #selector(back), for: .touchUpInside)
         return button
     }()
@@ -90,37 +91,41 @@ class ReceiveTransferViewController: UIViewController {
         var viewConstraints: [NSLayoutConstraint] = []
         
         view.addSubview(transferDescriptionLabel)
-        view.addSubview(remoteDescriptionLabel)
+//        view.addSubview(remoteDescriptionLabel)
         view.addSubview(acceptButton)
         view.addSubview(declineButton)
         view.addSubview(backButton)
         
-        let sideMargin: CGFloat = 10
+        let sideMargin: CGFloat = 15
         
         viewConstraints +=  [
             
             transferDescriptionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            transferDescriptionLabel.bottomAnchor.constraint(equalTo: remoteDescriptionLabel.topAnchor, constant: -10),
+            transferDescriptionLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 15),
+            transferDescriptionLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -15),
+            transferDescriptionLabel.bottomAnchor.constraint(equalTo: acceptButton.topAnchor, constant: -20),
             
-            remoteDescriptionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            remoteDescriptionLabel.bottomAnchor.constraint(equalTo: acceptButton.topAnchor, constant: -10),
+//            transferDescriptionLabel.bottomAnchor.constraint(equalTo: remoteDescriptionLabel.topAnchor, constant: -10),
+//            remoteDescriptionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+//            remoteDescriptionLabel.bottomAnchor.constraint(equalTo: acceptButton.topAnchor, constant: -10),
             
-            acceptButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            acceptButton.bottomAnchor.constraint(equalTo: view.centerYAnchor, constant: -5),
+            acceptButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -5),
+            acceptButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            acceptButton.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.25),
             
-            declineButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            declineButton.topAnchor.constraint(equalTo: view.centerYAnchor, constant: 5),
+            declineButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 5),
+            declineButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            declineButton.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.25),
             
-            
-            backButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
+            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 25),
             backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin)
             
         ]
         
         NSLayoutConstraint.activate(viewConstraints)
         
-        
-        remoteDescriptionLabel.text = viewmodel?.deviceName ??  "No Device Name"
+        let string = "Transfer from " + (viewmodel?.deviceName ??  "No Device Name")
+        transferDescriptionLabel.text = string
         
     }
     
@@ -130,11 +135,11 @@ class ReceiveTransferViewController: UIViewController {
     }
     
     @objc func accept(){
-        coordinator?.acceptTransfer(forTransferUUID: viewmodel!.operation.UUID)
+        coordinator?.acceptTransfer(forTransferUUID: viewmodel!.transferUUID)
     }
     
     @objc func decline(){
-        
+        coordinator?.declineTransfer(forTransferUUID: viewmodel!.transferUUID)
     }
     
     
@@ -150,6 +155,10 @@ final class ReceiveTransferViewModel {
     
     var deviceName: String {
         return remote.details.displayName
+    }
+    
+    var transferUUID: UInt64 {
+        return operation.UUID
     }
     
     
