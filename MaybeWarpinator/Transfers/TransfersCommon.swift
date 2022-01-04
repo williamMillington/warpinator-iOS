@@ -81,6 +81,11 @@ protocol TransferOperation {
     var direction: TransferDirection { get }
     var fileCount: Int { get }
     var status: TransferStatus { get }
+    
+    var totalSize: Int { get }
+    var bytesTransferred: Int { get }
+    var bytesPerSecond: Double { get }
+    
     var progress: Double { get }
     
     var operationInfo: OpInfo { get }
@@ -100,7 +105,7 @@ protocol TransferOperation {
 
 
 // MARK: Mock TransferOperation
-class MockReceiveTransfer: TransferOperation { 
+class MockReceiveTransfer: TransferOperation {
     
     var owningRemote: Remote?
     
@@ -111,6 +116,12 @@ class MockReceiveTransfer: TransferOperation {
     var fileCount: Int
     
     var status: TransferStatus
+    
+    var totalSize: Int {return 343433}
+    var bytesTransferred: Int {return 5433}
+    var bytesPerSecond: Double {
+        return 400
+    }
     
     var progress: Double
     

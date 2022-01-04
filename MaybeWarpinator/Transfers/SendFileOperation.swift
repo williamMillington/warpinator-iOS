@@ -33,8 +33,8 @@ class SendFileOperation: TransferOperation {
         return owningRemote.details.uuid
     }
     
-    var UUID: UInt64 { return startTime }
-    var startTime: UInt64
+    var UUID: UInt64 { return timestamp }
+    var timestamp: UInt64
     
     var totalSize: Int {
         var bytes = 0
@@ -48,10 +48,19 @@ class SendFileOperation: TransferOperation {
     }
     
     var bytesTransferred: Int = 0
-    var bytesPerSecond: Double = 0
     var progress: Double {
         return Double(bytesTransferred) / totalSize
     }
+    
+    var lastTransferTimeStamp: Double = 0
+//    var lastTime: Double = 0
+    var bytesPerSecond: Double = 0
+//    {
+//        let currentTime = Date().timeIntervalSince1970 * 1000
+//        let currentInterval = currentTime - lastTime
+//
+//        return 0
+//    }
     
     
     var fileCount: Int = 0
@@ -71,7 +80,7 @@ class SendFileOperation: TransferOperation {
     var operationInfo: OpInfo {
         return .with {
             $0.ident = Server.SERVER_UUID
-            $0.timestamp = startTime
+            $0.timestamp = timestamp
             $0.readableName = Utils.getDeviceName()
         }
     }
@@ -101,7 +110,7 @@ class SendFileOperation: TransferOperation {
         
         direction = .SENDING
         status = .INITIALIZING
-        startTime = UInt64( Date().timeIntervalSince1970 * 1000 )
+        timestamp = UInt64( Date().timeIntervalSince1970 * 1000 )
         
         files = filenames
         
@@ -137,7 +146,6 @@ class SendFileOperation: TransferOperation {
         status = .INITIALIZING
         
         bytesTransferred = 0
-        bytesPerSecond = 0
         
         fileReaders.removeAll()
         
@@ -159,9 +167,9 @@ class SendFileOperation: TransferOperation {
     func start(using context: StreamingResponseCallContext<FileChunk>) -> EventLoopPromise<GRPCStatus> {
         
         status = .TRANSFERRING
+        lastTransferTimeStamp = Date().timeIntervalSince1970 * 1000
         
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
-        
         let chunkIterator = ChunkIterator(for: fileReaders)
         
         sendingChunksQueue.async {
@@ -184,6 +192,14 @@ class SendFileOperation: TransferOperation {
                 }
                 
                 result.whenSuccess { result in
+                    
+                    // calculate bytes per second
+                    let now = Date().timeIntervalSince1970 * 1000
+                    self.bytesTransferred += chunk.chunk.count
+                    self.bytesPerSecond = (chunk.chunk.count / (now - self.lastTransferTimeStamp) / 1000)
+                    self.lastTransferTimeStamp = now
+                    
+                    self.updateObserversInfo()
                     print(self.DEBUG_TAG+"chunk \(i) (\(chunk.relativePath))  transmission success \(result)")
                 }
 

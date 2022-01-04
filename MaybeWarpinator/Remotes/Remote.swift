@@ -472,7 +472,7 @@ extension Remote {
     // MARK: find
     func findReceiveOperation(withStartTime time: UInt64 ) -> ReceiveFileOperation? {
         for operation in receivingOperations {
-            if operation.startTime == time {
+            if operation.timestamp == time {
                 return operation
             }
         }
@@ -518,7 +518,7 @@ extension Remote {
     // MARK: find
     func findSendOperation(withStartTime time: UInt64 ) -> SendFileOperation? {
         for operation in sendingOperations {
-            if operation.startTime == time {
+            if operation.timestamp == time {
                 return operation
             }
         }

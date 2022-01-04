@@ -33,6 +33,7 @@ final class ListedFileOperationView: UIView {
     let fileTypeLabel: UILabel = {
         let label = UILabel()
         label.text = "Type"
+        label.textColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -42,6 +43,7 @@ final class ListedFileOperationView: UIView {
     let fileNameLabel: UILabel = {
         let label = UILabel()
         label.text = "File --"
+        label.textColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -51,6 +53,7 @@ final class ListedFileOperationView: UIView {
     let bytesLabel: UILabel = {
         let label = UILabel()
         label.text = "--.--B"
+        label.textColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -74,8 +77,6 @@ final class ListedFileOperationView: UIView {
     convenience init(withViewModel model: ListedFileViewModel, onTap action: @escaping ()->Void = {}){
         self.init()
         
-//        backgroundColor = UIColor.orange.withAlphaComponent(0.2)
-        
         viewModel = model
         viewModel?.onUpdated = {
             self.updateDisplay()
@@ -98,6 +99,7 @@ final class ListedFileOperationView: UIView {
         
         addSubview(selectionImageView)
         addSubview(fileNameLabel)
+        addSubview(fileTypeLabel)
         addSubview(bytesLabel)
         
         constraints += [

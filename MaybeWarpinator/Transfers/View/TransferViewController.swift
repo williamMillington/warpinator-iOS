@@ -238,9 +238,14 @@ class TransferViewController: UIViewController {
     
     // MARK: add fileView
     private func addFileViewToStack(withViewModel viewmodel: ListedFileViewModel){
+        
+//        print(DEBUG_TAG+"here be reached!")
+        
         let ltview = ListedFileOperationView(withViewModel: viewmodel)
         
         operationsStack.insertArrangedSubview(ltview, at: (operationsStack.arrangedSubviews.count))
+        
+//        print(DEBUG_TAG+"here be reached! 2222")
     }
     
     
@@ -262,6 +267,9 @@ class TransferViewController: UIViewController {
         
         transferDescriptionLabel.text = transferViewModel.transferDescription + " \(remoteViewModel.displayName)"
 //
+        
+        transferProgressLabel.text = transferViewModel.progressString
+        
 //        transferButton.removeTarget(nil, action: nil, for: .allEvents)
 
         
@@ -362,6 +370,15 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
 //        default: return "\(operation.status)"
 //        }
 //    }
+    
+    
+    var progressString: String {
+        
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        
+        return "\(formatter.string(fromByteCount: Int64(operation.bytesTransferred) ) )/\(formatter.string(fromByteCount: Int64(operation.totalSize) ))"
+    }
     
     var status: TransferStatus {
 //        switch operation.status {

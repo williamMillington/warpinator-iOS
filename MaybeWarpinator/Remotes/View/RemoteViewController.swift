@@ -223,7 +223,7 @@ final class RemoteViewController: UIViewController {
             addTransferViewToStack(withViewModel: transfer_viewmodel)
         }
         
-        avatarImageView.image = UIImage(systemName: "timelapse",
+        avatarImageView.image = UIImage(systemName: "person.fill",
                                         compatibleWith: self.traitCollection)!.withRenderingMode(.alwaysTemplate)
         
     }

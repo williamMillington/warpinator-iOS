@@ -18,7 +18,7 @@ final class ListedRemoteView: UIView {
     
     private lazy var userImageView : UIImageView = {
         
-        let image = UIImage(systemName: "timelapse",
+        let image = UIImage(systemName: "person.fill",
                             compatibleWith: self.traitCollection)!.withRenderingMode(.alwaysTemplate)
         
         let view = UIImageView(image: image)

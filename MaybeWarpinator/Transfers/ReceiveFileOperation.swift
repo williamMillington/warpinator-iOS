@@ -54,10 +54,10 @@ class ReceiveFileOperation: TransferOperation {
         }
     }
     
-    var UUID: UInt64 { return startTime }  
-    var startTime: UInt64
+    var UUID: UInt64 { return timestamp }  
+    var timestamp: UInt64
     
-    var totalSize: UInt64
+    var totalSize: Int
     var bytesTransferred: Int = 0
     var bytesPerSecond: Double = 0
     var progress: Double {
@@ -101,8 +101,8 @@ class ReceiveFileOperation: TransferOperation {
         status = .INITIALIZING
         
         
-        startTime = transferRequest.info.timestamp
-        totalSize = transferRequest.size
+        timestamp = transferRequest.info.timestamp
+        totalSize = Int(transferRequest.size)
         fileCount = Int(transferRequest.count)
         
         directories = transferRequest.topDirBasenames
