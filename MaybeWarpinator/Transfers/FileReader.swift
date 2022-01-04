@@ -14,7 +14,7 @@ protocol ReadsFile {
 }
 
 
-
+// MARK: FileSelection
 struct FileSelection: Hashable {
     
     let name: String
@@ -33,7 +33,7 @@ extension FileSelection: Equatable {
 
 
 
-
+// MARK: FileReader
 final class FileReader: ReadsFile  {
     
     lazy var DEBUG_TAG: String = "FileReader \"\(filename):\" "
@@ -93,7 +93,7 @@ final class FileReader: ReadsFile  {
         
     }
     
-    
+    // MARK: reinit
     func reinitialize(){
         
         sent = 0
@@ -119,7 +119,7 @@ final class FileReader: ReadsFile  {
     }
     
     
-    
+    // MARK: readNextChunk
     func readNextChunk() -> FileChunk? {
         
 //        print(DEBUG_TAG+"\tReading next chunk")
@@ -163,7 +163,7 @@ final class FileReader: ReadsFile  {
     }
     
     
-    
+    // MARK: close
     func close(){
         
         fileHandle.closeFile()

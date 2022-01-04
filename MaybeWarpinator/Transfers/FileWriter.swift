@@ -7,7 +7,7 @@
 
 import Foundation
 
-
+// MARK: FileWriter
 class FileWriter {
     
     enum FileReceiveError: Error {
@@ -58,7 +58,7 @@ class FileWriter {
         self.filename = name
     }
     
-    
+    // MARK: createFile
     func createFile(){
         let fileManager = FileManager.default
         
@@ -72,9 +72,9 @@ class FileWriter {
         updateObserversInfo()
     }
     
-    
+    // MARK: write
     func write(_ data: Data){
-        print(DEBUG_TAG+"\t\t writing to file...")
+//        print(DEBUG_TAG+"\t\t writing to file...")
         
         guard let handle = fileHandle else {
             print(DEBUG_TAG+"\t\tERROR: writing to file failed...")
@@ -88,12 +88,15 @@ class FileWriter {
         updateObserversInfo()
     }
     
+    
+    // MARK: finish
     func finish(){
         fileHandle?.closeFile()
         updateObserversInfo()
     }
     
     
+    // MARK: fail
     func fail(){
         print(DEBUG_TAG+"\tfailing filewrite:")
         fileHandle?.closeFile()
@@ -109,23 +112,23 @@ class FileWriter {
         updateObserversInfo()
     }
     
-    
+    // MARK: static createDir
     static func createNewDirectory(withName name: String) throws {
         
         let fileManager = FileManager.default
         let directoryURL = fileManager.extended.documentsDirectory.appendingPathComponent("\(name)")
         
-        print(DEBUG_TAG+"attempting to create new directory: \(directoryURL.path)")
+//        print(DEBUG_TAG+"attempting to create new directory: \(directoryURL.path)")
         
         if fileManager.fileExists(atPath: directoryURL.path) {
-            print(DEBUG_TAG+"\t \(directoryURL.path) already exists")
+//            print(DEBUG_TAG+"\t \(directoryURL.path) already exists")
             throw FileReceiveError.DIRECTORY_EXISTS
         } else {
             do {
                 try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
-                print(DEBUG_TAG+"\tSuccessfully created directory")
+//                print(DEBUG_TAG+"\tSuccessfully created directory")
             } catch {
-                print(DEBUG_TAG+"\tFailed to create directory")
+//                print(DEBUG_TAG+"\tFailed to create directory")
                 throw FileReceiveError.SYSTEM_ERROR(error)
             }
         }

@@ -236,7 +236,7 @@ extension ReceiveFileOperation {
     // MARK: processChunk
     func processChunk(_ chunk: FileChunk){
         
-        print(DEBUG_TAG+" reading chunk:")
+//        print(DEBUG_TAG+" reading chunk:")
 //        print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
 //        print(DEBUG_TAG+"\tfileType: \( FileType(rawValue: chunk.fileType)!) ")
 //        print(DEBUG_TAG+"\tfileMode: \(chunk.fileMode)")
