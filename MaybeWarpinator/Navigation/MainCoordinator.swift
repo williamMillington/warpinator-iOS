@@ -26,6 +26,9 @@ class MainCoordinator: NSObject, Coordinator {
         
         Utils.lockOrientation(.portrait)
         MainService.shared.start()
+        
+        super.init()
+//        mockRemote()
     }
     
     

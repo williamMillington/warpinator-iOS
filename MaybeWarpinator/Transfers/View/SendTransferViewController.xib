@@ -57,7 +57,7 @@
                     </connections>
                 </button>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WoL-bw-O3M" userLabel="addFilesButton">
-                    <rect key="frame" x="15" y="529.5" width="172.5" height="53.5"/>
+                    <rect key="frame" x="15" y="529.5" width="167.5" height="53.5"/>
                     <color key="backgroundColor" red="0.27051635930000001" green="0.4721807509" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
                     <state key="normal" title="Add Files">
@@ -88,23 +88,43 @@
                     <nil key="textColor"/>
                     <nil key="highlightedColor"/>
                 </label>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7D8-jY-hVb" userLabel="addFolderButton">
+                    <rect key="frame" x="192.5" y="529" width="167.5" height="54"/>
+                    <color key="backgroundColor" red="0.27051635930000001" green="0.4721807509" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
+                    <state key="normal" title="Add Folder">
+                        <color key="titleColor" red="0.94117647059999998" green="0.94117647059999998" blue="0.94117647059999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="selectFolder" destination="-1" eventType="touchUpInside" id="gRS-Wc-Ylc"/>
+                    </connections>
+                </button>
             </subviews>
             <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
             <constraints>
                 <constraint firstItem="a21-VJ-Nf4" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="20" id="2hD-mR-EZe"/>
+                <constraint firstItem="7D8-jY-hVb" firstAttribute="trailing" secondItem="ai1-Dr-tvt" secondAttribute="trailing" id="7Nh-y4-kRx"/>
                 <constraint firstItem="WoL-bw-O3M" firstAttribute="leading" secondItem="ai1-Dr-tvt" secondAttribute="leading" id="8qq-JH-x4h"/>
                 <constraint firstItem="ZLC-Me-efg" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="15" id="9l1-mg-mVd"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="ZLC-Me-efg" secondAttribute="trailing" constant="15" id="CFP-MR-E2h"/>
                 <constraint firstItem="ZLC-Me-efg" firstAttribute="top" secondItem="a21-VJ-Nf4" secondAttribute="bottom" constant="10" id="EYZ-5u-KAh"/>
+                <constraint firstItem="7D8-jY-hVb" firstAttribute="centerY" secondItem="WoL-bw-O3M" secondAttribute="centerY" id="IFR-hs-wLr"/>
                 <constraint firstItem="ai1-Dr-tvt" firstAttribute="height" secondItem="vUN-kp-3ea" secondAttribute="height" multiplier="0.1" id="Rjc-SG-lKe"/>
+                <constraint firstItem="7D8-jY-hVb" firstAttribute="leading" secondItem="ai1-Dr-tvt" secondAttribute="centerX" constant="5" id="Ubr-hI-YTo"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="bottom" secondItem="ai1-Dr-tvt" secondAttribute="bottom" constant="10" id="XwP-qq-OXq"/>
                 <constraint firstItem="916-lm-A5S" firstAttribute="centerX" secondItem="vUN-kp-3ea" secondAttribute="centerX" id="bDg-z0-PAq"/>
                 <constraint firstItem="916-lm-A5S" firstAttribute="top" secondItem="ZLC-Me-efg" secondAttribute="bottom" constant="15" id="csg-fb-miP"/>
                 <constraint firstItem="WoL-bw-O3M" firstAttribute="height" secondItem="vUN-kp-3ea" secondAttribute="height" multiplier="0.08" id="dXv-O0-0UC"/>
+                <constraint firstItem="7D8-jY-hVb" firstAttribute="height" secondItem="WoL-bw-O3M" secondAttribute="height" multiplier="1.00935" id="fyz-p0-puw"/>
                 <constraint firstItem="ai1-Dr-tvt" firstAttribute="top" secondItem="WoL-bw-O3M" secondAttribute="bottom" constant="7.5" id="hrQ-2T-N9t"/>
                 <constraint firstItem="WoL-bw-O3M" firstAttribute="top" secondItem="916-lm-A5S" secondAttribute="bottom" constant="5" id="lbM-TH-oZW"/>
-                <constraint firstItem="WoL-bw-O3M" firstAttribute="trailing" secondItem="ai1-Dr-tvt" secondAttribute="centerX" id="m7B-4V-Tch"/>
+                <constraint firstItem="WoL-bw-O3M" firstAttribute="trailing" secondItem="ai1-Dr-tvt" secondAttribute="centerX" constant="-5" id="m7B-4V-Tch"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="ai1-Dr-tvt" secondAttribute="trailing" constant="15" id="nSv-NO-SSE"/>
                 <constraint firstItem="a21-VJ-Nf4" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="15" id="qDc-ZH-Pw1"/>
                 <constraint firstItem="ai1-Dr-tvt" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="15" id="sKH-sK-i6I"/>

@@ -39,9 +39,9 @@ class SendFileOperation: TransferOperation {
     var totalSize: Int {
         var bytes = 0
         
-        for reader in fileReaders{
+        for file in files {
 //            bytes += reader.fileBytes.count
-            bytes += reader.totalBytes
+            bytes += file.bytesCount
         }
         
         return bytes
@@ -73,8 +73,8 @@ class SendFileOperation: TransferOperation {
     
 //    var files: [FileName]
 //    var fileReaders: [FileReader] = []
-    var files: [FileSelection]
-    var fileReaders: [FileReader] = []
+    var files: [TransferSelection]
+    var fileReaders: [ReadsFile] = []
     
     
     var operationInfo: OpInfo {
@@ -85,7 +85,7 @@ class SendFileOperation: TransferOperation {
         }
     }
     
-    
+    // MARK: TransferOpRequest
     var transferRequest: TransferOpRequest {
         return .with {
             $0.info = operationInfo
@@ -106,7 +106,8 @@ class SendFileOperation: TransferOperation {
     
     
 //    init(for filenames: [FileName] ) {
-    init(for filenames: [FileSelection] ) {
+//    init(for filenames: [FileSelection] ) {
+    init(for filenames: [TransferSelection] ) {
         
         direction = .SENDING
         status = .INITIALIZING
@@ -116,15 +117,16 @@ class SendFileOperation: TransferOperation {
         
         fileCount = files.count
         
-        singleName = "\(filenames.count) files"
+        singleName = "\(files.count) file" + (files.count == 1 ? "" : "s")
         singleMime = "application/octet-stream"
         
         for selection in files {
             topDirBaseNames.append("\(selection.name)")
-            if let reader = FileReader(for: selection) {
+//            if let reader = FileReader(for: selection) {
+            if let reader = selection.reader {
                 fileReaders.append( reader   )
             } else {
-                print(DEBUG_TAG+"problem accessing selection \(selection.name)")
+                print(DEBUG_TAG+"(init) problem accessing selection \(selection.name)")
             }
         }
         
@@ -132,10 +134,11 @@ class SendFileOperation: TransferOperation {
     
     
 //    convenience init(for filename: FileName){
-    convenience init(for selection: FileSelection){
+//    convenience init(for selection: FileSelection){
+    convenience init(for selection: TransferSelection){
         self.init(for: [selection])
         
-        singleName = fileReaders[0].relativeFilePath
+        singleName = selection.name //fileReaders[0].relativeFilePath
         singleMime = "miiiiiiiiiiiiiiiiiiime"
     }
     
@@ -150,10 +153,11 @@ class SendFileOperation: TransferOperation {
         fileReaders.removeAll()
         
         for selection in files {
-            if let reader = FileReader(for: selection) {
+//            if let reader = FileReader(for: selection) {
+            if let reader = selection.reader {
                 fileReaders.append( reader   )
             } else {
-                print(DEBUG_TAG+"problem accessing selection \(selection.name)")
+                print(DEBUG_TAG+"(prep) problem accessing selection \(selection.name)")
             }
         }
         
@@ -200,7 +204,7 @@ class SendFileOperation: TransferOperation {
                     self.lastTransferTimeStamp = now
                     
                     self.updateObserversInfo()
-                    print(self.DEBUG_TAG+"chunk \(i) (\(chunk.relativePath))  transmission success \(result)")
+//                    print(self.DEBUG_TAG+"chunk \(i) (\(chunk.relativePath))  transmission success \(result)")
                 }
 
                 result.whenFailure { error in
@@ -220,7 +224,7 @@ class SendFileOperation: TransferOperation {
             print(self.DEBUG_TAG+"TransferOperation completed with result: \(result)")
             
             do {
-                // call prevent a successful call finish from overwriting a .FAILED status
+                // prevent a successful call-finish from overwriting a .FAILED status
                 if self.status != .TRANSFERRING { return }
                 try result.get()
                 self.status = .FINISHED

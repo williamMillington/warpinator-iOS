@@ -238,12 +238,12 @@ extension ReceiveFileOperation {
         
 //        print(DEBUG_TAG+" reading chunk:")
 //        print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
-//        print(DEBUG_TAG+"\tfileType: \( FileType(rawValue: chunk.fileType)!) ")
+//        print(DEBUG_TAG+"\tfileType: \( TransferItemType(rawValue: chunk.fileType)!) ")
 //        print(DEBUG_TAG+"\tfileMode: \(chunk.fileMode)")
 //        print(DEBUG_TAG+"\ttime: \(chunk.time)")
         
         // If Directory
-        if chunk.fileType == FileType.DIRECTORY.rawValue {
+        if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
             
             do { // Create the directory
                 try FileWriter.createNewDirectory(withName: chunk.relativePath)

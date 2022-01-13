@@ -120,10 +120,14 @@ Remote:\
 	- Animations\
 		- Transfer progress\
 \
+\
+- work around new bug introduced into Warpinator where the desktop app sends the wrong IP address when requesting a certificate\
+- channel moving to idle should ping before shutting down to verify that connection is really lost\
 - Persist/remove known remotes when they are disconnected/unavailable\
 - Ensure all Remotes are sharing a single eventloop group\
 - Investigate/Fix slow connection bullshit\
 - Handle network change \
+	- Servers need to restart on new ip addresses\
 - \cf9 Implement transfer speed calculation\cf0 \
 - Improve remote detection. Fuck around with mDNSBrowser a bit\
 	- I think there are times when NWBrowser\'92s resultsDidChange() contains a \'93.changed\'94, but not a \'93.added\'94\
@@ -170,7 +174,9 @@ TransferViewController:\
 SendFileOperation:\
 	- Handle revocation of file-access permission\
 	- \cf8 Retry/Resend\cf0 \
-	- Send directories\
+	- \cf8 Send directories\cf3  \
+		- \cf9 Current method may send the same folder twice (send a folder, then send its parent)\cf3  \
+		- \cf8 Currently working out FolderReader vs FileReader\cf0 \
 	- \cf8 update progress\cf0 \
 \
 ReceiveFileOperation:\

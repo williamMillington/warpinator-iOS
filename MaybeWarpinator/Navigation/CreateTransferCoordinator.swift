@@ -68,9 +68,10 @@ class CreateTransferCoordinator: NSObject, Coordinator, SubCoordinator {
     }
     
     
-    func sendFiles(_ selections: [FileSelection]){
+//    func sendFiles(_ selections: [FileSelection]){
+    func sendFiles(_ selections: [TransferSelection]){
         
-        remote.sendFiles(selections)
+        remote.sendFiles(selections) 
         back()
     }
     

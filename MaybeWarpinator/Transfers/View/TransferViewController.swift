@@ -400,10 +400,33 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
         // to arrange this.
         if let transfer = operation as? SendFileOperation {
             
-            for file in transfer.fileReaders {
+            for reader in transfer.fileReaders {
                 
-                let vm = ListedFileReaderViewModel(file)
+                // If not a file reader, must be a folderReader.
+                // Right?
+                // RIgHT?????
+                // TODO: messy. MESSY MESSY MESSY.
+                let vm: ListedFileViewModel
+                if let fileReader = reader as? FileReader {
+                    vm = ListedFileReaderViewModel(fileReader)
+                } else {
+                    let folderReader = reader as! FolderReader
+                    vm = ListedFolderReaderViewModel(folderReader)
+                }
+                
                 viewModels.append(vm)
+//                switch file {
+//                case is FileReader :
+//                    let vm = ListedFileReaderViewModel(file)
+//                    viewModels.append(vm)
+//                case is FolderReader:
+//                    let vm = ListedFolderReaderViewModel(file)
+//                    viewModels.append(vm)
+//                }
+                
+                
+//                let vm = ListedFileReaderViewModel(file)
+//                viewModels.append(vm)
             }
             
         } else {

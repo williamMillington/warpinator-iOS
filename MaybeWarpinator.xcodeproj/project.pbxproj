@@ -33,6 +33,8 @@
 		796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328302759A96A0056F76B /* The_Last_Five_Years.pdf */; };
 		796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */; };
 		796638DF27821C2E004AB246 /* TransferViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 796638DE27821C2E004AB246 /* TransferViewController.xib */; };
+		796B5A84278BB2DF009CEF73 /* ChunkIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796B5A83278BB2DF009CEF73 /* ChunkIterator.swift */; };
+		796B5A89278BB3CB009CEF73 /* FolderReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796B5A88278BB3CB009CEF73 /* FolderReader.swift */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
 		797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B9270FC86A00A2795C /* Authenticator.swift */; };
 		797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* ReceiveFileOperation.swift */; };
@@ -98,6 +100,8 @@
 		796328302759A96A0056F76B /* The_Last_Five_Years.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = The_Last_Five_Years.pdf; sourceTree = "<group>"; };
 		796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Dear_Evan_Hansen_PV_Score.pdf; sourceTree = "<group>"; };
 		796638DE27821C2E004AB246 /* TransferViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TransferViewController.xib; sourceTree = "<group>"; };
+		796B5A83278BB2DF009CEF73 /* ChunkIterator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChunkIterator.swift; sourceTree = "<group>"; };
+		796B5A88278BB3CB009CEF73 /* FolderReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderReader.swift; sourceTree = "<group>"; };
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
 		797C12B9270FC86A00A2795C /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		797C12BC2711102700A2795C /* ReceiveFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveFileOperation.swift; sourceTree = "<group>"; };
@@ -293,7 +297,9 @@
 			isa = PBXGroup;
 			children = (
 				79331AFC274E8FFD00A4022F /* View */,
+				796B5A83278BB2DF009CEF73 /* ChunkIterator.swift */,
 				791D77F9276A5F4B008140CC /* FileReader.swift */,
+				796B5A88278BB3CB009CEF73 /* FolderReader.swift */,
 				7963282627599F030056F76B /* FileWriter.swift */,
 				797C12BC2711102700A2795C /* ReceiveFileOperation.swift */,
 				79343EB22743502B008E0890 /* SendFileOperation.swift */,
@@ -469,6 +475,7 @@
 				79C002AD270A92EC002DB22B /* warp.proto in Sources */,
 				79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */,
 				79B8A0FB2745623900369E62 /* MainCoordinator.swift in Sources */,
+				796B5A84278BB2DF009CEF73 /* ChunkIterator.swift in Sources */,
 				79B8A0F42745587C00369E62 /* ListedRemoteView.swift in Sources */,
 				791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */,
 				79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */,
@@ -480,6 +487,7 @@
 				79B8A0F7274561C600369E62 /* Coordinator.swift in Sources */,
 				791D781527717575008140CC /* Observable.swift in Sources */,
 				79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */,
+				796B5A89278BB3CB009CEF73 /* FolderReader.swift in Sources */,
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
 				79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */,

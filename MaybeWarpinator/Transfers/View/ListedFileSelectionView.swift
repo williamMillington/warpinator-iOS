@@ -155,23 +155,23 @@ extension ListedFileSelectionView {
 //MARK: View Model
 final class ListedFileSelectionViewModel {
     
-    private let fileSelection: FileSelection
+    private let selection: TransferSelection
     
     var name: String {
-        return fileSelection.name
+        return selection.name
     }
     
     var size: String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         
-        let bytesCount = fileSelection.bytesCount
+        let bytesCount = selection.bytesCount
         
         return "(\(formatter.string(fromByteCount:  Int64( bytesCount) ) ))"
     }
     
-    init(_ selection: FileSelection){
-        fileSelection = selection
+    init(_ selection: TransferSelection){
+        self.selection = selection 
     }
     
 }

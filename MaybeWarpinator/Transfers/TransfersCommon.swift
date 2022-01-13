@@ -9,10 +9,51 @@ import Foundation
 
 
 // MARK: FileType
-enum FileType: Int32 {
+enum TransferItemType: Int32 {
     case FILE = 1
     case DIRECTORY = 2
 }
+
+
+//protocol TransferSelection {
+//    var type: TransferItemType { get }
+//    var name: String     { get }
+//    var bytesCount: Int  { get }
+//
+//    var path: String     { get }
+//    var bookmark: Data   { get }
+//}
+
+
+struct TransferSelection: Hashable {
+    
+    var type: TransferItemType
+    var name: String
+    var bytesCount: Int
+    
+    var path: String
+    var bookmark: Data
+    
+    var reader: ReadsFile? {
+        
+        if type == .FILE {
+            let sel = FileSelection(name: name, bytesCount: bytesCount, path: path, bookmark: bookmark)
+            return FileReader(for: sel)
+        }
+        
+        let sel = FolderSelection(name: name, path: path, bookmark: bookmark)
+        return FolderReader(for: sel)
+        
+    }
+}
+
+extension TransferSelection: Equatable {
+    static func ==(lhs: TransferSelection, rhs: TransferSelection) -> Bool {
+        return lhs.path == rhs.path
+    }
+}
+
+
 
 
 // MARK: FileName

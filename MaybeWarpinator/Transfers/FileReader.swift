@@ -9,13 +9,12 @@ import Foundation
 
 
 
-protocol ReadsFile {
-    func readNextChunk() -> FileChunk?
-}
-
-
 // MARK: FileSelection
-struct FileSelection: Hashable {
+struct FileSelection: Hashable
+//                      , TransferSelection
+{
+    
+    let type: TransferItemType = .FILE
     
     let name: String
     let bytesCount: Int
@@ -34,7 +33,7 @@ extension FileSelection: Equatable {
 
 
 // MARK: FileReader
-final class FileReader: ReadsFile  {
+final class FileReader: NSObject, ReadsFile {
     
     lazy var DEBUG_TAG: String = "FileReader \"\(filename):\" "
     
@@ -133,11 +132,12 @@ final class FileReader: ReadsFile  {
         guard fileIsBeingAccessed,
               fileHandle.offsetInFile < totalBytes else {
             
-            updateObserversInfo()
-            
-            fileHandle.closeFile()
-            fileIsBeingAccessed = false
-            fileURL.stopAccessingSecurityScopedResource()
+//            updateObserversInfo()
+//
+//            fileHandle.closeFile()
+//            fileIsBeingAccessed = false
+//            fileURL.stopAccessingSecurityScopedResource()
+//            close()
             
             print(DEBUG_TAG+"No more data to be read"); return nil
         }
@@ -150,7 +150,7 @@ final class FileReader: ReadsFile  {
         
         let fileChunk: FileChunk = .with {
             $0.relativePath = relativeFilePath
-            $0.fileType = FileType.FILE.rawValue
+            $0.fileType = TransferItemType.FILE.rawValue
             $0.chunk = datachunk //Data(bytes: datachunk, count: datachunk.count)
         }
 
@@ -166,6 +166,8 @@ final class FileReader: ReadsFile  {
     // MARK: close
     func close(){
         
+        guard fileIsBeingAccessed else { return }
+        
         fileHandle.closeFile()
         fileIsBeingAccessed = false
         fileURL.stopAccessingSecurityScopedResource()
@@ -178,7 +180,8 @@ final class FileReader: ReadsFile  {
     
     deinit {
         if fileIsBeingAccessed { // in case of interruption
-            fileURL.stopAccessingSecurityScopedResource()
+            close()
+//            fileURL.stopAccessingSecurityScopedResource()
         }
     }
     
@@ -214,49 +217,3 @@ extension FileReader {
 
 
 
-
-// MARK: ChunkIterator
-// Manages the iteration of multiple FileSelectionReaders
-final class ChunkIterator {
-    
-    
-    var fileReaders: [ReadsFile]
-    
-    var readerIndex = 0
-    var currentReader: ReadsFile
-    
-    
-    init(for readers: [ReadsFile]){
-        fileReaders = readers
-        currentReader = fileReaders[0]
-    }
-    
-    
-    func nextChunk() -> FileChunk? {
-        
-        // if the current reader has another chunk, return it
-        if let chunk = currentReader.readNextChunk() {
-            return chunk
-        }
-        
-        // if not, load the next reader and continue
-        readerIndex += 1
-        
-        // no more readers
-        if readerIndex >= fileReaders.count {
-            return nil
-        }
-        
-        currentReader = fileReaders[readerIndex]
-        return nextChunk() // I created o̶b̶s̶c̶u̶r̶i̶t̶y̶ elegance through recursion! My degree wasn't useless!
-    }
-}
-
-
-extension ChunkIterator: Sequence, IteratorProtocol {
-    typealias Element = FileChunk
-    
-    func next() -> FileChunk? {
-        return nextChunk()
-    }
-}

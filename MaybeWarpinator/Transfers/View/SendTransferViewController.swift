@@ -106,14 +106,14 @@ class SendTransferViewController: UIViewController {
     
     var viewmodel: RemoteViewModel?
     
-    var selections: [FileSelection: UIView] = [:]
+    var selections: [TransferSelection: UIView] = [:]
     var transferLabelString: String {
         
         let filesCount: Int = selections.count
         let filesCountString: String = "\(filesCount) file" + (filesCount == 1 ? "" : "s")
         
         
-        let totalBytesCount: Int = selections.keys.map {
+        let totalBytesCount: Int = selections.keys.map { 
             return $0.bytesCount
         }.reduce(0, +)
         
@@ -204,10 +204,11 @@ class SendTransferViewController: UIViewController {
     }
     
     // MARK: addFile
-    func addFile(_ file: FileSelection ){
+//    func addFile(_ file: FileSelection ){
+    func addFile(_ file: TransferSelection ){
         
         print(DEBUG_TAG+"adding file: \(file)")
-        print(DEBUG_TAG+"\tstack frame: \(filesStack.frame)")
+//        print(DEBUG_TAG+"\tstack frame: \(filesStack.frame)")
         
         guard selections[file] == nil else {
             print(DEBUG_TAG+"File \(file.name) already selected")
@@ -234,7 +235,7 @@ class SendTransferViewController: UIViewController {
     }
     
     // MARK: removeFile
-    func removeFile(_ file: FileSelection){
+    func removeFile(_ file: TransferSelection){
         
         guard let view = selections[file] else {
             print(DEBUG_TAG+"No removable file found")
@@ -263,9 +264,28 @@ class SendTransferViewController: UIViewController {
         
 //        print(DEBUG_TAG+"Showing document picker")
         
-        let types: [String] = [ String( kUTTypeItem )]
+        let types: [String] = [ String( kUTTypeItem ), String( kUTTypeFolder )]
+        
         
         let documentPickerVC = UIDocumentPickerViewController(documentTypes: types, in: .open)
+        documentPickerVC.delegate = self
+        documentPickerVC.allowsMultipleSelection = true
+        documentPickerVC.shouldShowFileExtensions = true
+        
+        
+        present(documentPickerVC, animated: true)
+        
+    }
+    
+    
+    @IBAction  @objc func selectFolder(){
+        
+//        print(DEBUG_TAG+"Showing document picker")
+        
+//        let types: [String] = [ String( kUTTypeItem )]
+        
+        
+        let documentPickerVC = UIDocumentPickerViewController(documentTypes: [ kUTTypeFolder as String ], in: .open)
         documentPickerVC.delegate = self
         documentPickerVC.allowsMultipleSelection = true
 //        documentPickerVC.shouldShowFileExtensions = true
@@ -274,6 +294,9 @@ class SendTransferViewController: UIViewController {
         present(documentPickerVC, animated: true)
         
     }
+    
+    
+    
     
     
     func updateDisplay(){
@@ -300,6 +323,12 @@ class SendTransferViewController: UIViewController {
 
 
 
+
+// MARK: - ext.
+
+
+
+// MARK: UIDocumentPitckerDelegate
 enum LoadingError: Error {
     var localizedDescription: String {
         return "Error loading data"
@@ -308,27 +337,20 @@ enum LoadingError: Error {
 }
 
 
-
-
-// MARK: - ext.
-
-
-
-// MARK: UIDocumentPitckerDelegate
-
 extension SendTransferViewController: UIDocumentPickerDelegate {
      
+    // MARK: didPickDocuments
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         
-//        print(DEBUG_TAG+"Documents picked")
+        print(DEBUG_TAG+"Documents picked")
         
         for url in urls {
             
 //            print(DEBUG_TAG+"\(url)")
 //            print(DEBUG_TAG+"\t\(url.relativePath)")
-            print(DEBUG_TAG+"\(url.lastPathComponent)")
-            print(DEBUG_TAG+"\t\(url.pathExtension)")
-            print(DEBUG_TAG+"\t\(url.hasDirectoryPath)")
+            print(DEBUG_TAG+"name: \(url.lastPathComponent)")
+            print(DEBUG_TAG+"\textension: \(url.pathExtension)")
+            print(DEBUG_TAG+"\tdirectory: \(url.hasDirectoryPath)")
             
             guard url.startAccessingSecurityScopedResource() else {
                 print(DEBUG_TAG+"Could not access scoped url")
@@ -339,24 +361,44 @@ extension SendTransferViewController: UIDocumentPickerDelegate {
             
             do {
                 
-                var keys: Set<URLResourceKey> = [.nameKey, .fileSizeKey, .isDirectoryKey]
-                
-                if #available(iOS 14.0, *) {  keys.insert(.contentTypeKey)  }
+                var fileKeys: Set<URLResourceKey> = [.nameKey, .fileSizeKey, .isDirectoryKey]
                 
                 
-                let values = try url.resourceValues(forKeys: keys)
+                if #available(iOS 14.0, *) {  fileKeys.insert(.contentTypeKey)  }
+                
+                
+                let values = try url.resourceValues(forKeys: fileKeys)
                 let bookmark = try url.bookmarkData(options: .minimalBookmark,
                                                     includingResourceValuesForKeys: nil, relativeTo: nil)
                 
                 url.stopAccessingSecurityScopedResource()
                 
-                guard let name = values.name,
-                      let size = values.fileSize else {
+                
+                guard let name = values.name else {
+                    print(DEBUG_TAG+"ERR: No file name")
                     throw LoadingError.ACCESS_ERROR
                 }
                 
                 
-                let selection = FileSelection(name: name, bytesCount: size, path: url.path, bookmark: bookmark)
+                var type: TransferItemType = .FILE
+                if let directory = values.isDirectory, directory {
+                    type = .DIRECTORY
+//                    let selection = FolderSelection(name: name, path: url.path, bookmark: bookmark)
+                }
+                
+                
+                var size = 0
+                if let s = values.fileSize {
+                    size = s
+                }
+                
+                
+//                let selection = FileSelection(name: name, bytesCount: size, path: url.path, bookmark: bookmark)
+                let selection = TransferSelection(type: type,
+                                                  name: name,
+                                                  bytesCount: size,
+                                                  path: url.path,
+                                                  bookmark: bookmark)
                 
                 addFile(selection)
                 
@@ -377,7 +419,77 @@ extension SendTransferViewController: UIDocumentPickerDelegate {
         }
         
     }
+         
     
+    
+    
+//    private func createFileSelection(fromURL url: URL) throws -> FileSelection  {
+//
+//        guard url.startAccessingSecurityScopedResource() else {
+//            print(DEBUG_TAG+"Could not access scoped url")
+//            throw LoadingError.ACCESS_ERROR
+//        }
+//
+//        do {
+//
+//            var fileKeys: Set<URLResourceKey> = [.nameKey, .fileSizeKey]
+//
+//
+//            if #available(iOS 14.0, *) {  fileKeys.insert(.contentTypeKey)  }
+//
+//
+//            let values = try url.resourceValues(forKeys: fileKeys)
+//            let bookmark = try url.bookmarkData(options: .minimalBookmark,
+//                                                includingResourceValuesForKeys: nil, relativeTo: nil)
+//
+//            url.stopAccessingSecurityScopedResource()
+//
+//            guard let name = values.name else {
+//                print(DEBUG_TAG+"ERR: No file name")
+//                throw LoadingError.ACCESS_ERROR
+//            }
+//
+//            guard let size = values.fileSize else {
+//                print(DEBUG_TAG+"ERR: No file size")
+//                throw LoadingError.ACCESS_ERROR
+//            }
+//
+//            print(DEBUG_TAG+"\tfile name is \(String(describing: values.name))")
+//
+//            return FileSelection(name: name, bytesCount: size, path: url.path, bookmark: bookmark)
+//
+//        } catch {
+//            throw error
+//        }
+//
+//
+//    }
+    
+    
+//    private func createFolderSelection(fromURL url: URL) throws {
+//
+//
+//        do {
+//            let bookmark = try url.bookmarkData(options: .minimalBookmark)
+//
+//
+//
+//
+//        } catch {
+//            throw error
+//        }
+//
+//
+//
+//
+//    }
+    
+    
+    
+    
+    
+    
+    // MARK: pickerWasCancelled
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
         
         print(DEBUG_TAG+"Document picker cancelled")

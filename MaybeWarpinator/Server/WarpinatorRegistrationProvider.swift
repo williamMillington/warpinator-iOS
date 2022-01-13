@@ -23,13 +23,16 @@ class WarpinatorRegistrationProvider: WarpRegistrationProvider {
     
     public func requestCertificate(request: RegRequest, context: StatusOnlyCallContext) -> EventLoopFuture<RegResponse> {
         
-        print(DEBUG_TAG+"serving locked certificate to \(request.hostname)(\(request.ip))")
+        //TODO: stop doing this.
+        let ip = "192.168.2.18"
+//        print(DEBUG_TAG+"serving locked certificate to \(request.hostname)(\(request.ip))")
+        print(DEBUG_TAG+"serving locked certificate to \(request.hostname)(\(ip))")
         
         var response = RegResponse()
         
         response.lockedCert = Authenticator.shared.getCertificateDataForSending()
         
-        remoteManager?.storeIPAddress(request.ip, forHostname: request.hostname)
+        remoteManager?.storeIPAddress(ip, forHostname: request.hostname)
         
         return context.eventLoop.makeSucceededFuture( response )
     }

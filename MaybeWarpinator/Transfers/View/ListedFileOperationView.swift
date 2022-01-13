@@ -222,6 +222,53 @@ final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFi
 }
 
 
+// MARK: - Folder Reader View Model
+final class ListedFolderReaderViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
+    
+    private let operation: FolderReader
+    var onUpdated: () -> Void = {}
+    
+    
+    var name: String {
+        return operation.selectionName
+    }
+    
+    var type: String {
+        return "File"
+    }
+    
+    var size: String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        
+        let bytesCount = operation.totalBytes
+        
+        return formatter.string(fromByteCount:  Int64( bytesCount) )
+    }
+    
+    var progress: Double {
+        return 0
+    }
+    
+    init(_ selection: FolderReader){
+        operation = selection 
+        super.init()
+        operation.addObserver(self)
+    }
+    
+    
+    func infoDidUpdate(){
+        DispatchQueue.main.async {
+            self.onUpdated()
+        }
+    }
+    
+    deinit {
+        operation.removeObserver(self)
+    }
+    
+}
+
 
 // MARK: -
 // MARK: - Sender View Model

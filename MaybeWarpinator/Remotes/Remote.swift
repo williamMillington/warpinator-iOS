@@ -145,7 +145,7 @@ public class Remote {
         } else {
             
             if  details.api == "2" && details.ipAddress == RemoteDetails.NO_IP_ADDRESS {
-                print("Remote does not yet have an IP Address")
+                print(DEBUG_TAG+"Remote does not yet have an IP Address")
                 return
             }
             
@@ -537,9 +537,10 @@ extension Remote {
     
     
     //MARK: send files
-    func sendFiles(_ selections: [FileSelection]){
+//    func sendFiles(_ selections: [FileSelection]){
+    func sendFiles(_ selections: [TransferSelection]){
         
-        let operation = SendFileOperation(for: selections)
+        let operation = SendFileOperation(for: selections) 
 
         addSendingOperation(operation)
         sendRequest(toTransfer: operation)
