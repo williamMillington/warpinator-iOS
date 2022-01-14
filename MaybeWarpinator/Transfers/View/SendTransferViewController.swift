@@ -264,7 +264,7 @@ class SendTransferViewController: UIViewController {
         
 //        print(DEBUG_TAG+"Showing document picker")
         
-        let types: [String] = [ String( kUTTypeItem ), String( kUTTypeFolder )]
+        let types: [String] = [ String( kUTTypeItem )]
         
         
         let documentPickerVC = UIDocumentPickerViewController(documentTypes: types, in: .open)
@@ -337,20 +337,21 @@ enum LoadingError: Error {
 }
 
 
+
 extension SendTransferViewController: UIDocumentPickerDelegate {
      
     // MARK: didPickDocuments
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         
-        print(DEBUG_TAG+"Documents picked")
+//        print(DEBUG_TAG+"Documents picked")
         
         for url in urls {
             
 //            print(DEBUG_TAG+"\(url)")
 //            print(DEBUG_TAG+"\t\(url.relativePath)")
-            print(DEBUG_TAG+"name: \(url.lastPathComponent)")
-            print(DEBUG_TAG+"\textension: \(url.pathExtension)")
-            print(DEBUG_TAG+"\tdirectory: \(url.hasDirectoryPath)")
+//            print(DEBUG_TAG+"name: \(url.lastPathComponent)")
+//            print(DEBUG_TAG+"\textension: \(url.pathExtension)")
+//            print(DEBUG_TAG+"\tdirectory: \(url.hasDirectoryPath)")
             
             guard url.startAccessingSecurityScopedResource() else {
                 print(DEBUG_TAG+"Could not access scoped url")
@@ -383,7 +384,6 @@ extension SendTransferViewController: UIDocumentPickerDelegate {
                 var type: TransferItemType = .FILE
                 if let directory = values.isDirectory, directory {
                     type = .DIRECTORY
-//                    let selection = FolderSelection(name: name, path: url.path, bookmark: bookmark)
                 }
                 
                 
@@ -393,7 +393,6 @@ extension SendTransferViewController: UIDocumentPickerDelegate {
                 }
                 
                 
-//                let selection = FileSelection(name: name, bytesCount: size, path: url.path, bookmark: bookmark)
                 let selection = TransferSelection(type: type,
                                                   name: name,
                                                   bytesCount: size,
@@ -402,7 +401,7 @@ extension SendTransferViewController: UIDocumentPickerDelegate {
                 
                 addFile(selection)
                 
-                print(DEBUG_TAG+"\tfile name is \(String(describing: values.name))")
+//                print(DEBUG_TAG+"\tfile name is \(String(describing: values.name))")
 //                print(DEBUG_TAG+"\tfile size is \(String(describing: values.fileSize))")
 //                print(DEBUG_TAG+"\tfile is a directory: \(String(describing: values.isDirectory))")
 //

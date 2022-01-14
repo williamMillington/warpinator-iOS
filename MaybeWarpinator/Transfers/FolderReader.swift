@@ -9,9 +9,7 @@ import Foundation
 
 
 // MARK: FolderSelection
-struct FolderSelection: Hashable
-//                        , TransferSelection
-{
+struct FolderSelection: Hashable {
     
     let type: TransferItemType = .DIRECTORY
     
@@ -22,6 +20,7 @@ struct FolderSelection: Hashable
     let bookmark: Data
     
 }
+
 
 extension FolderSelection: Equatable {
     static func ==(lhs: FolderSelection, rhs: FolderSelection) -> Bool {
@@ -44,23 +43,10 @@ final class FolderReader: NSObject, ReadsFile  {
     var selectionName: String {
         return folder.name
     }
-//    let fileExtension: String
-    
-//    var fileURL: URL
-//    let filepath: String
-//    var relativeFilePath: String {
-//        return filename //+ "." + fileExtension
-//    }
-//    var fileHandle: FileHandle
-    
     
     var accessInProgress: Bool = false
     
-    
     var totalBytes: Int = 0
-    var sent = 0
-    var readHead: UInt64 = 0
-    
     
     var observers: [ObservesFileOperation] = []
     
@@ -92,9 +78,6 @@ final class FolderReader: NSObject, ReadsFile  {
                 }
             }
 
-//            var error: NSError? = nil
-//            NSFileCoordinator().coordinate(readingItemAt: folderURL, error: &error) { url in
-            
             // GRAB ALL ITEMS
             let keys: [URLResourceKey] = [.nameKey, .fileSizeKey, .pathKey, .isDirectoryKey]
             
@@ -103,10 +86,6 @@ final class FolderReader: NSObject, ReadsFile  {
                 print("FolderReader: can't access folder URL")
                 return nil
             }
-            
-            
-//            let topLevelName = folder.name
-            
             
             
             // ITERATE THROUGH FOLDER ITEMS
@@ -139,23 +118,15 @@ final class FolderReader: NSObject, ReadsFile  {
                 // IF DIRECTORY, create FolderReader
                 if let directory = values.isDirectory, directory {
                     
-//                    if directory {
-                        //DO SOMTHNG ABOUT DICTRES
-//                        print("FolderReader: IS DIRECTORY")
-                        
-                        let selection = FolderSelection(name: filename, path: itemURL.path, bookmark: bookmark)
-                        
-                        if let reader = FolderReader(for: selection) {
-                            subreaders.append(reader)
-                        }
-                        
-                        
-//                        continue
-//                    }
+                    let selection = FolderSelection(name: filename, path: itemURL.path, bookmark: bookmark)
+                    
+                    if let reader = FolderReader(for: selection) {
+                        subreaders.append(reader)
+                    }
                     
                 } else {
-                
-                
+                    
+                    
                     // IF FILE, create FileReader
                     // There's something I don't like about the following lines.
                     // If we expect that any of this might fail, I feel like it should be handled differently.
@@ -184,58 +155,11 @@ final class FolderReader: NSObject, ReadsFile  {
             return nil
         }
         
-        
-        
-        
-//        filename = file.name
-//        totalBytes = file.bytesCount
-//        filepath = file.path
-//
-//        do {
-//            var bookmarkIsBad = false
-//            fileURL = try URL(resolvingBookmarkData: file.bookmark, bookmarkDataIsStale: &bookmarkIsBad)
-//
-//
-//            guard !bookmarkIsBad,
-//                  fileURL.startAccessingSecurityScopedResource() else {
-//                print("FileReader: url denied access")
-//                return nil
-//            }
-//
-//            fileIsBeingAccessed = true
-//            fileHandle = try FileHandle(forReadingFrom: fileURL)
-//
-//        } catch {
-//
-//            print("FileReader: Could not load bookmarked URL: \(error)")
-
-//        }
-        
     }
     
     
     // MARK: reinit
     func reinitialize(){
-        
-        sent = 0
-        readHead = 0
-        
-//        do {
-//            var bookmarkIsBad = false
-//            fileURL = try URL(resolvingBookmarkData: file.bookmark, bookmarkDataIsStale: &bookmarkIsBad)
-//
-//
-//            guard !bookmarkIsBad,
-//                fileURL.startAccessingSecurityScopedResource() else {
-//                print("FileReader: url denied access"); return
-//            }
-//
-//            fileIsBeingAccessed = true
-//            fileHandle = try FileHandle(forReadingFrom: fileURL)
-//
-//        } catch {
-//            print("FileReader: Could not load bookmarked URL: \(error)")
-//        }
         
     }
     
@@ -243,28 +167,18 @@ final class FolderReader: NSObject, ReadsFile  {
     // MARK: readNextChunk
     func readNextChunk() -> FileChunk? {
         
-//        print(DEBUG_TAG+"\tReading next chunk")
-//        print(DEBUG_TAG+"\tsent: \(sent)")
-//        print(DEBUG_TAG+"\tfileOffset: \(fileHandle.offsetInFile)")
-//        print(DEBUG_TAG+"\tread-head: \(readHead)")
-//        print(DEBUG_TAG+"\ttotal: \(totalBytes)")
-
-        
-        guard accessInProgress
-//              ,fileHandle.offsetInFile < totalBytes
-        else {
+        guard accessInProgress else {
 
             updateObserversInfo()
 
-//            fileHandle.closeFile()
-            accessInProgress = false
-//            fileURL.stopAccessingSecurityScopedResource()
-
-            print(DEBUG_TAG+"No more data to be read"); return nil
+            print(DEBUG_TAG+"No chunk for you!")
+            return nil
         }
 
         
-        // The first chunk will be the chunk indicating that there is a folder
+        // TODO: rewrite without 'chunkCheck' outer if
+        
+        // The first chunk will be the chunk indicating that this is a folder
         chunkCheck: if self === currentReader {
             
             currentReader = nil
@@ -275,20 +189,17 @@ final class FolderReader: NSObject, ReadsFile  {
                 $0.time = FileTime()
             })
             
-        } else {
+        } else { // <- unnecessary 'else'. Gross.
             
-            // check if there's a chunk to return, return nil otherwise
+            // check if there's are any more readers/chunks
             
             // if current reader is still going, keep going
             if let tempChunk = currentReader?.readNextChunk() {
                 
-                // (append this folder's name to its the chunk's relativeFilePath)
-                let amendedRelativeFilePath = folder.name + "/" + tempChunk.relativePath
-                
-                // Copy all other FileChunk fields from tempchunk
+                // append this folder's name to the chunk's relativeFilePath
                 let amendedChunk = FileChunk.with {
                     
-                    $0.relativePath = amendedRelativeFilePath
+                    $0.relativePath = folder.name + "/" + tempChunk.relativePath
                     
                     $0.fileType = tempChunk.fileType
                     $0.symlinkTarget = tempChunk.symlinkTarget
@@ -297,14 +208,15 @@ final class FolderReader: NSObject, ReadsFile  {
                     $0.time = tempChunk.time
                 }
                 
-                
                 return amendedChunk
             }
             
+            // else, move on to next reader
             currentReader?.close()
             
+            
             if readerIndex == subreaders.count {
-                // no more chunks, no more readers
+                // no more chunks, no more readers. Break out
                 break chunkCheck
             }
             
@@ -318,24 +230,6 @@ final class FolderReader: NSObject, ReadsFile  {
         accessInProgress = false
         
         return nil
-
-//        fileHandle.seek(toFileOffset: readHead)
-//
-//
-//        let datachunk = fileHandle.readData(ofLength: SendFileOperation.chunk_size)
-//
-//        let fileChunk: FileChunk = .with {
-//            $0.relativePath = relativeFilePath
-//            $0.fileType = TransferItemType.FILE.rawValue
-//            $0.chunk = datachunk //Data(bytes: datachunk, count: datachunk.count)
-//        }
-//
-//        sent += datachunk.count
-//        readHead += UInt64( datachunk.count )
-//
-//        updateObserversInfo()
-        
-//        return fileChunk
         
     }
     
@@ -348,21 +242,16 @@ final class FolderReader: NSObject, ReadsFile  {
             $0.close()
         }
         
-//        fileHandle.closeFile()
-//        fileIsBeingAccessed = false
-//        fileURL.stopAccessingSecurityScopedResource()
-//
-//        updateObserversInfo()
-//
-//        print(DEBUG_TAG+"File is closed")
+        accessInProgress = false
+        
+        updateObserversInfo()
+
+        print(DEBUG_TAG+"Folder is closed")
     }
     
     
     deinit {
         close()
-//        if accessInProgress { // in case of interruption
-////            fileURL.stopAccessingSecurityScopedResource()
-//        }
     }
     
 }

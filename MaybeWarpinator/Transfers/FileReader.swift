@@ -121,25 +121,13 @@ final class FileReader: NSObject, ReadsFile {
     // MARK: readNextChunk
     func readNextChunk() -> FileChunk? {
         
-//        print(DEBUG_TAG+"\tReading next chunk")
-//        print(DEBUG_TAG+"\tsent: \(sent)")
-//        print(DEBUG_TAG+"\tfileOffset: \(fileHandle.offsetInFile)")
-//        print(DEBUG_TAG+"\tread-head: \(readHead)")
-//        print(DEBUG_TAG+"\ttotal: \(totalBytes)")
-
-        
-        
         guard fileIsBeingAccessed,
               fileHandle.offsetInFile < totalBytes else {
             
-//            updateObserversInfo()
-//
-//            fileHandle.closeFile()
-//            fileIsBeingAccessed = false
-//            fileURL.stopAccessingSecurityScopedResource()
-//            close()
+            updateObserversInfo()
             
-            print(DEBUG_TAG+"No more data to be read"); return nil
+            print(DEBUG_TAG+"No chunk for you!")
+            return nil
         }
         
         
@@ -181,7 +169,6 @@ final class FileReader: NSObject, ReadsFile {
     deinit {
         if fileIsBeingAccessed { // in case of interruption
             close()
-//            fileURL.stopAccessingSecurityScopedResource()
         }
     }
     

@@ -71,8 +71,6 @@ class SendFileOperation: TransferOperation {
     var topDirBaseNames: [String] = []
     
     
-//    var files: [FileName]
-//    var fileReaders: [FileReader] = []
     var files: [TransferSelection]
     var fileReaders: [ReadsFile] = []
     
@@ -105,8 +103,6 @@ class SendFileOperation: TransferOperation {
     lazy var sendingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
     
-//    init(for filenames: [FileName] ) {
-//    init(for filenames: [FileSelection] ) {
     init(for filenames: [TransferSelection] ) {
         
         direction = .SENDING
@@ -133,8 +129,6 @@ class SendFileOperation: TransferOperation {
     }
     
     
-//    convenience init(for filename: FileName){
-//    convenience init(for selection: FileSelection){
     convenience init(for selection: TransferSelection){
         self.init(for: [selection])
         
@@ -153,7 +147,6 @@ class SendFileOperation: TransferOperation {
         fileReaders.removeAll()
         
         for selection in files {
-//            if let reader = FileReader(for: selection) {
             if let reader = selection.reader {
                 fileReaders.append( reader   )
             } else {
@@ -162,7 +155,6 @@ class SendFileOperation: TransferOperation {
         }
         
         status = .WAITING_FOR_PERMISSION
-        
     }
     
     
