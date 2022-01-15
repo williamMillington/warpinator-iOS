@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import GRPC
+
 
 
 class MainCoordinator: NSObject, Coordinator {
@@ -16,7 +18,15 @@ class MainCoordinator: NSObject, Coordinator {
     var navController: UINavigationController
     
     
-    var mainService: MainService = MainService()
+    var eventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    
+    
+    var remoteManager: RemoteManager = RemoteManager()
+    
+    var server: Server = Server()
+    var registrationServer = RegistrationServer()
+    
+//    var mainService: MainService = MainService()
     
     
     init(withNavigationController controller: UINavigationController){
@@ -25,10 +35,21 @@ class MainCoordinator: NSObject, Coordinator {
         navController.setNavigationBarHidden(true, animated: false)
         
         Utils.lockOrientation(.portrait)
-        MainService.shared.start()
+        
+//        MainService.shared.start()
         
         super.init()
 //        mockRemote()
+        
+        server.eventLoopGroup = eventLoopGroup
+        server.remoteManager = remoteManager
+        server.start()
+        
+        registrationServer.eventLoopGroup = eventLoopGroup
+        registrationServer.remoteManager = remoteManager
+        registrationServer.start()
+        
+        
     }
     
     
@@ -47,14 +68,13 @@ class MainCoordinator: NSObject, Coordinator {
             return controller is ViewController
         }) {
             navController.popToViewController(mainMenuVC, animated: false)
-        }
-        else {
+        } else {
             
             let bundle = Bundle(for: type(of: self))
             let mainMenuVC = ViewController(nibName: "MainView", bundle: bundle)
             mainMenuVC.coordinator = self
             
-            MainService.shared.remoteManager.remotesViewController = mainMenuVC
+            remoteManager.remotesViewController = mainMenuVC
             
             navController.pushViewController(mainMenuVC, animated: false)
         }
@@ -66,7 +86,7 @@ class MainCoordinator: NSObject, Coordinator {
         
 //        print(DEBUG_TAG+"user selected remote \(remoteUUID)")
         
-        if let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) {
+        if let remote = remoteManager.containsRemote(for: remoteUUID) {
             
             let remoteCoordinator = RemoteCoordinator(for: remote, parent: self, withNavigationController: navController)
             
@@ -117,7 +137,7 @@ extension MainCoordinator {
                 
                 let mockRemote = Remote(details: mockDetails)
                 
-                self.mainService.remoteManager.addRemote(mockRemote)
+                self.remoteManager.addRemote(mockRemote)
             }
             
         }

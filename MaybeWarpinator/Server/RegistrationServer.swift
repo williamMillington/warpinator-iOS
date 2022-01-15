@@ -33,9 +33,9 @@ class RegistrationServer {
     var certificateServer = CertificateServer()
     
     
-    private var registrationServerELG: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var eventLoopGroup: EventLoopGroup? // = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
 
-    private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
+//    private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
     
     
@@ -48,7 +48,7 @@ class RegistrationServer {
     // MARK: - start server
     func start(){
         
-        
+        guard let registrationServerELG = eventLoopGroup else { return }
         
         
         let registrationServerFuture = GRPC.Server.insecure(group: registrationServerELG)
@@ -72,7 +72,7 @@ class RegistrationServer {
             print(self.DEBUG_TAG+" registration server exited")
         }
         closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
-            try! self.registrationServerELG.syncShutdownGracefully()
+            try! self.eventLoopGroup?.syncShutdownGracefully()
         }
         
     }

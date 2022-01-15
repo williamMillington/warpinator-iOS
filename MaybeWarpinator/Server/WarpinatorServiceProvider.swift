@@ -177,7 +177,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         let remoteUUID: String = request.info.ident
         
-        guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
+        guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
             print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
             let error = AuthenticationError.ConnectionError
             return context.eventLoop.makeFailedFuture(error)
@@ -211,7 +211,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         let remoteUUID: String = request.ident
         
-        guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
+        guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
             print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
@@ -238,7 +238,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         let remoteUUID: String = request.ident
         
-        guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
+        guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
             print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
@@ -273,7 +273,7 @@ public class WarpinatorServiceProvider: WarpProvider {
         
         let remoteUUID: String = request.info.ident
         
-        guard let remote = MainService.shared.remoteManager.containsRemote(for: remoteUUID) else {
+        guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
             print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)

@@ -44,7 +44,7 @@ public class Server: NSObject {
     
     
 //    private var transferServer_IPV4: GRPC.Server?
-    private var serverELG: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var eventLoopGroup: EventLoopGroup? //= MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     
@@ -62,6 +62,8 @@ public class Server: NSObject {
     
     // MARK: Transfer Server
     func startWarpinatorServer(){
+        
+        guard let serverELG = eventLoopGroup else { return }
         
         Authenticator.shared.generateNewCertificate()
         
@@ -88,8 +90,7 @@ public class Server: NSObject {
             .withServiceProviders([warpinatorProvider])
 //            .withLogger(logger)
 
-        let serverFuture = serverBuilder
-            .bind(host: "\(Utils.getIP_V4_Address())", port: transfer_port)
+        let serverFuture = serverBuilder.bind(host: "\(Utils.getIP_V4_Address())", port: transfer_port)
 
 
 
@@ -108,48 +109,8 @@ public class Server: NSObject {
             print(self.DEBUG_TAG+"transfer server exited")
         }
         closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
-            try! self.serverELG.syncShutdownGracefully()
+            try! self.eventLoopGroup?.syncShutdownGracefully()
         }
-        
-        
-//        let v6_addr = Utils.getIP_V6_Address()
-//        print(DEBUG_TAG+"v6 address is \(v6_addr)")
-//
-//        let serverBuilder_v6 = GRPC.Server.usingTLSBackedByNIOSSL(on: serverELG,
-//                                                               certificateChain: [ serverCertificate  ],
-//                                                               privateKey: serverPrivateKey)
-//            .withTLS(trustRoots: .certificates( [serverCertificate] ) )
-//            .withServiceProviders([warpinatorProvider])
-//            .withLogger(logger)
-//
-//        let v6_serverFuture = serverBuilder_v6.bind(host: "[::]", port: transfer_port)
-//
-//
-//        v6_serverFuture.map {
-//            $0.channel.localAddress
-//        }.whenSuccess { address in
-//            print(self.DEBUG_TAG+"transfer server started on port: \(String(describing: address))")
-//        }
-//
-//        v6_serverFuture.map {
-//            $0.channel.localAddress
-//        }.whenFailure { error in
-//            print(self.DEBUG_TAG+"transfer server failed to start on port: \(String(describing: error))")
-//        }
-        
-        
-//        let closefuture_v6 = v6_serverFuture.flatMap {
-//            $0.onClose
-//        }
-//
-//        closefuture_v6.whenCompleteBlocking(onto: .main) { _ in
-//            print(self.DEBUG_TAG+"V6 transfer server exited")
-//        }
-//        closefuture_v6.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
-//            try! self.serverELG.syncShutdownGracefully()
-//        }
-        
-        
         
         
     }
