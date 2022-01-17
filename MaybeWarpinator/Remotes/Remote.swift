@@ -92,7 +92,7 @@ public class Remote {
     var channel: ClientConnection?
     var warpClient: WarpClient?
     
-    let group = MultiThreadedEventLoopGroup(numberOfThreads: 5) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var eventloopGroup: EventLoopGroup? //(numberOfThreads: 5) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     
     var authenticationConnection: AuthenticationConnection?
@@ -157,12 +157,17 @@ public class Remote {
     //MARK: connect
     func connect(withCertificate certificate: NIOSSLCertificate){
         
+        guard let eventloopGroup = eventloopGroup else {
+            print(DEBUG_TAG+"No eventloopGroup")
+            return
+        }
+        
         details.status = .OpeningConnection
         
         var keepalive = ClientConnectionKeepalive()
         keepalive.permitWithoutCalls = true
         
-        let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
+        let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: eventloopGroup)
             .withTLS(trustRoots: .certificates([certificate]) )
             .withKeepalive(keepalive)
             .withConnectivityStateDelegate(self)

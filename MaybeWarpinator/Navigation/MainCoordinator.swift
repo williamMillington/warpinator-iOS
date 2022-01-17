@@ -18,7 +18,8 @@ class MainCoordinator: NSObject, Coordinator {
     var navController: UINavigationController
     
     
-    var eventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var serverEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var remoteEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     
     var remoteManager: RemoteManager = RemoteManager()
@@ -41,12 +42,18 @@ class MainCoordinator: NSObject, Coordinator {
         super.init()
 //        mockRemote()
         
-        server.eventLoopGroup = eventLoopGroup
-        server.remoteManager = remoteManager
-        server.start()
+        remoteManager.remoteEventloopGroup = remoteEventLoopGroup
         
-        registrationServer.eventLoopGroup = eventLoopGroup
+        
+        server.eventLoopGroup = serverEventLoopGroup
+        registrationServer.eventLoopGroup = serverEventLoopGroup
+        
+        
         registrationServer.remoteManager = remoteManager
+        server.remoteManager = remoteManager
+        
+        
+        server.start()
         registrationServer.start()
         
         

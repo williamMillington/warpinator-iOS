@@ -8,24 +8,29 @@
 import Foundation
 import Network
 
+import GRPC
+import NIO
 
 
 class RemoteManager {
     
     private let DEBUG_TAG: String = "RemoteManager: "
     
-    var remotes: [String: Remote] = [:]
+    var remotes: [String: Remote] = [:] // [hostname:remote]
     
     weak var remotesViewController: ViewController?
     
+    var remoteEventloopGroup: EventLoopGroup?
+    
     /* if WarpRegistration receives a request BEFORE we detect a remote
-     with that hostname, then store its IP address here so we add it to that
-     remote once it is detected */
+     with that hostname, then store that IP address here so we can update that
+     remote once it is detected   [hostname:ipaddress] */
     var ipPlaceHolders : [String:String] = [:]
     
     func addRemote(_ remote: Remote){
         print(DEBUG_TAG+"adding remote with UUID: \(remote.details.uuid)")
         
+        remote.eventloopGroup = remoteEventloopGroup 
         remotes[remote.details.uuid] = remote
         
         // if we've stored the ip address of a remote with that hostname
@@ -35,7 +40,6 @@ class RemoteManager {
             remote.details.ipAddress = address
         }
         
-//        let viewmodel = RemoteViewModel(remote)
         remotesViewController?.remoteAdded(remote)
         
         remote.startConnection()
