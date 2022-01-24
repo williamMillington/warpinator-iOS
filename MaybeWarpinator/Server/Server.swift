@@ -24,35 +24,38 @@ public class Server: NSObject {
     private let SERVICE_DOMAIN = "local"
     
     
-    public static var transfer_port: Int = 42000
-    public static var registration_port: Int = 42001
+//    public static var transfer_port: Int = 42000
+//    public static var registration_port: Int = 42001
     
     
-    public var transfer_port: Int = Server.transfer_port
-    private var registration_port: Int = Server.registration_port
+//    public var transfer_port: Int = Server.transfer_port
+//    private var registration_port: Int = Server.registration_port
     
-    public static var displayName: String = "Display_Name"
-    public static var userName: String = "username"
-    public static var hostname: String = Server.SERVER_UUID
+//    public static var displayName: String = "Display_Name"
+//    public static var userName: String = "username"
+//    public static var hostname: String = Server.SERVER_UUID
     
     public static var SERVER_UUID: String = "WarpinatorIOS"
     
-    private lazy var uuid: String = Server.SERVER_UUID
-    public lazy var hostname = Server.SERVER_UUID
+//    private lazy var uuid: String = Server.SERVER_UUID
+//    public lazy var hostname = Server.SERVER_UUID
     
     
     
-    
-//    private var transferServer_IPV4: GRPC.Server?
-    var eventLoopGroup: EventLoopGroup? //= MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var eventLoopGroup: EventLoopGroup?
     
     private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     
-    var remoteManager: RemoteManager? {
-        didSet {
-            warpinatorProvider.remoteManager = remoteManager 
-        }
+    weak var remoteManager: RemoteManager? {
+        didSet {  warpinatorProvider.remoteManager = remoteManager  }
     }
+    
+    weak var settingsManager: SettingsManager? {
+        didSet {  warpinatorProvider.settingsManager = settingsManager  }
+    }
+    
+    weak var authenticationManager: Authenticator?
+    
     
     func start(){
         
@@ -60,23 +63,26 @@ public class Server: NSObject {
         
     }
     
+    
     // MARK: Transfer Server
     func startWarpinatorServer(){
         
         guard let serverELG = eventLoopGroup else { return }
         
-        Authenticator.shared.generateNewCertificate()
+        authenticationManager?.generateNewCertificate()
         
-        guard let serverCertificate = Authenticator.shared.serverCert else {
-            print(DEBUG_TAG+"Error with server certificate")
+        guard let serverCertificate = authenticationManager?.serverCert,
+              let serverPrivateKey = authenticationManager?.serverKey else {
+                print(DEBUG_TAG+"Error with server credentials")
             return
         }
         
-        guard let serverPrivateKey = Authenticator.shared.serverKey else {
-            print(DEBUG_TAG+"Error with server certificate")
+        
+        guard let portnum = settingsManager?.transferPortNumber else {
+            print(DEBUG_TAG+"No transfer port number (whomp whomp)")
             return
         }
-        
+        let portNumber = Int(portnum)
         
         var logger = Logger(label: "warpinator.Server", factory: StreamLogHandler.standardOutput)
         logger.logLevel = .debug
@@ -90,7 +96,7 @@ public class Server: NSObject {
             .withServiceProviders([warpinatorProvider])
 //            .withLogger(logger)
 
-        let serverFuture = serverBuilder.bind(host: "\(Utils.getIP_V4_Address())", port: transfer_port)
+        let serverFuture = serverBuilder.bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
 
 
 

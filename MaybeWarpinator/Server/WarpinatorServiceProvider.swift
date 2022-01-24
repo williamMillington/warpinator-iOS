@@ -38,6 +38,9 @@ enum DuplexError: GRPCErrorProtocol {
 }
 
 
+
+
+// MARK: WarpinatorServiceProvider
 public class WarpinatorServiceProvider: WarpProvider {
     
     private let DEBUG_TAG: String = "WarpinatorServiceProvider: "
@@ -45,7 +48,7 @@ public class WarpinatorServiceProvider: WarpProvider {
     public var interceptors: WarpServerInterceptorFactoryProtocol?
     
     var remoteManager: RemoteManager?
-    
+    var settingsManager: SettingsManager?
     
     lazy var duplexQueueLabel = "Serve_Duplex"
     lazy var duplexQueue = DispatchQueue(label: duplexQueueLabel, qos: .userInitiated)
@@ -145,8 +148,8 @@ public class WarpinatorServiceProvider: WarpProvider {
         print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
         
         var info = RemoteMachineInfo()
-        info.displayName = Server.displayName
-        info.userName = Server.userName
+        info.displayName = settingsManager!.name 
+        info.userName = settingsManager!.name
         
         return context.eventLoop.makeSucceededFuture(info)
     }

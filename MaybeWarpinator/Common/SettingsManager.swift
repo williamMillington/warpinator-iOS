@@ -18,7 +18,8 @@ class SettingsManager {
         static let overwriteFiles = "overwriteFiles"
         static let automaticAccept = "automaticAccept"
         static let groupCode = "groupCode"
-        static let portNumber = "portNumber"
+        static let transferPortNumber = "transferPortNumber"
+        static let registrationPortNumber = "registrationPortNumber"
     }
     
     
@@ -45,11 +46,13 @@ class SettingsManager {
         didSet { writeSettings() }
     }
     
-    var portNumber: UInt32 = 42_000 {
+    var transferPortNumber: UInt32 = 42_000 {
         didSet { writeSettings() }
     }
     
-    
+    var registrationPortNumber: UInt32 = 42_001 {
+        didSet { writeSettings() }
+    }
     
     static let shared = SettingsManager()
     private init(){
@@ -61,7 +64,8 @@ class SettingsManager {
                                               keys.overwriteFiles : false,
                                               keys.automaticAccept : false,
                                               keys.groupCode : "Warpinator",
-                                              keys.portNumber : 42_000
+                                              keys.transferPortNumber : 42_000,
+                                              keys.registrationPortNumber : 42_001
         ]
         
         defaults.register(defaults: defaultValues)
@@ -73,7 +77,7 @@ class SettingsManager {
         automaticAccept = defaults.bool(forKey: keys.automaticAccept)
         
         groupCode = defaults.string(forKey: keys.groupCode) ?? (defaultValues[keys.groupCode] as! String)
-        portNumber = UInt32( defaults.integer(forKey: keys.portNumber) )
+        transferPortNumber = UInt32( defaults.integer(forKey: keys.transferPortNumber) )
         
     }
     
@@ -89,7 +93,7 @@ class SettingsManager {
         defaults.setValue(overwriteFiles, forKey: keys.overwriteFiles)
         defaults.setValue(automaticAccept, forKey: keys.automaticAccept)
         defaults.setValue(groupCode, forKey: keys.groupCode)
-        defaults.setValue(portNumber, forKey: keys.portNumber)
+        defaults.setValue(transferPortNumber, forKey: keys.transferPortNumber)
         
     }
     

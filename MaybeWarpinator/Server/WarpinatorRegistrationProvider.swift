@@ -18,7 +18,8 @@ class WarpinatorRegistrationProvider: WarpRegistrationProvider {
     
     var interceptors: WarpRegistrationServerInterceptorFactoryProtocol?
     
-    var remoteManager: RemoteManager? 
+    var remoteManager: RemoteManager?
+    var settingsManager:SettingsManager?
     
     
     public func requestCertificate(request: RegRequest, context: StatusOnlyCallContext) -> EventLoopFuture<RegResponse> {

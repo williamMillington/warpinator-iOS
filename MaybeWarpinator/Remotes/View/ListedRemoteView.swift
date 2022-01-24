@@ -199,10 +199,10 @@ extension ListedRemoteView {
         super.prepareForInterfaceBuilder()
         setUpView()
         
-        let displayString: NSAttributedString = NSAttributedString(string: Server.displayName,
+        let displayString: NSAttributedString = NSAttributedString(string: "Display Name",
                                                                    attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
                                                                                  .foregroundColor : Utils.textColour  ])
-        let deviceNameString: NSAttributedString = NSAttributedString(string: Server.displayName,
+        let deviceNameString: NSAttributedString = NSAttributedString(string: "Device Name",
                                                                       attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
                                                                                     .foregroundColor : Utils.textColour  ])
         let statusString: NSAttributedString = NSAttributedString(string:  "Connecting",

@@ -38,6 +38,9 @@ final class ViewController: UIViewController {
     
     
     
+    weak var settingsManager: SettingsManager?
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -47,10 +50,10 @@ final class ViewController: UIViewController {
         for view in remotesStack.arrangedSubviews {   view.removeFromSuperview()  }
         
         
-        displayNameLabel.attributedText = NSAttributedString(string: Server.displayName,
+        displayNameLabel.attributedText = NSAttributedString(string: "\(settingsManager!.name)",
                                                              attributes: [ .font: UIFont.boldSystemFont(ofSize: 22)])
         
-        deviceLabel.attributedText = NSAttributedString(string: "\(Server.userName)@\(Server.hostname)",
+        deviceLabel.attributedText = NSAttributedString(string: "@hostname",
                                                              attributes: [ .font: UIFont.boldSystemFont(ofSize: 20)])
         
         IPaddressLabel.attributedText = NSAttributedString(string: "\(Utils.getIP_V4_Address())",

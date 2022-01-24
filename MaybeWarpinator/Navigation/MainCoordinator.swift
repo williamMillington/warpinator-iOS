@@ -26,6 +26,8 @@ class MainCoordinator: NSObject, Coordinator {
     
     var settingsManager: SettingsManager = SettingsManager.shared
     
+    var authManager: Authenticator = Authenticator.shared
+    
     var server: Server = Server()
     var registrationServer = RegistrationServer()
     
@@ -51,9 +53,14 @@ class MainCoordinator: NSObject, Coordinator {
         registrationServer.eventLoopGroup = serverEventLoopGroup
         
         
-        registrationServer.remoteManager = remoteManager
         server.remoteManager = remoteManager
+        registrationServer.remoteManager = remoteManager
         
+        server.settingsManager = settingsManager
+        registrationServer.settingsManager = settingsManager
+        
+        
+        server.authenticationManager = authManager
         
         server.start()
         registrationServer.start()
@@ -81,9 +88,12 @@ class MainCoordinator: NSObject, Coordinator {
             
             let bundle = Bundle(for: type(of: self))
             let mainMenuVC = ViewController(nibName: "MainView", bundle: bundle)
+            
             mainMenuVC.coordinator = self
+            mainMenuVC.settingsManager = settingsManager
             
             remoteManager.remotesViewController = mainMenuVC
+            
             
             navController.pushViewController(mainMenuVC, animated: false)
         }

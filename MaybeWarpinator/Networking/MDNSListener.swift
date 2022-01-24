@@ -41,6 +41,9 @@ class MDNSListener {
     private var flushing = false
     
     
+    weak var settingsManager: SettingsManager?
+    
+    
     func start(){
 //        do {
             // flush first
@@ -64,7 +67,7 @@ class MDNSListener {
         
         flushing = false
         
-        let port = NWEndpoint.Port(rawValue: UInt16( Server.transfer_port) )!
+        let port = NWEndpoint.Port(rawValue: UInt16( settingsManager!.transferPortNumber) )!
         
         let params = NWParameters.udp
         params.includePeerToPeer = true
@@ -88,7 +91,7 @@ class MDNSListener {
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
         let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
-                                           "auth-port" : "\(Server.registration_port)",
+                                           "auth-port" : "\(settingsManager!.registrationPortNumber)",
                                            "api-version": "2",
 //                                           "auth-port" : "\(Server.registration_port)",
 //                                           "api-version": "1",
@@ -107,7 +110,7 @@ class MDNSListener {
         
         flushing = true
         
-        let port = NWEndpoint.Port(rawValue: UInt16( Server.transfer_port ) )!
+        let port = NWEndpoint.Port(rawValue: UInt16( settingsManager!.transferPortNumber ) )!
         
         let params = NWParameters.udp
         params.includePeerToPeer = true

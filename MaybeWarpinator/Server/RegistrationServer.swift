@@ -40,10 +40,12 @@ class RegistrationServer {
     
     
     var remoteManager: RemoteManager? {
-        didSet {
-            warpinatorRegistrationProvider.remoteManager = remoteManager
-        }
+        didSet {  warpinatorRegistrationProvider.remoteManager = remoteManager  }
     }
+    var settingsManager: SettingsManager? {
+        didSet {  warpinatorRegistrationProvider.settingsManager = settingsManager  }
+    }
+    
     
     // MARK: - start server
     func start(){
@@ -85,6 +87,7 @@ class RegistrationServer {
         
         mDNSListener = MDNSListener()
         mDNSListener?.delegate = self
+        mDNSListener?.settingsManager = settingsManager
         mDNSListener?.start()
     }
     

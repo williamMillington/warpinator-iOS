@@ -15,7 +15,9 @@ class SettingsViewController: UIViewController {
     
     @IBOutlet var displayNameLabel: UITextField!
     @IBOutlet var groupCodeLabel: UITextField!
-    @IBOutlet var portNumberLabel: UITextField!
+    @IBOutlet var transferPortNumberLabel: UITextField!
+    @IBOutlet var registrationPortNumberLabel: UITextField!
+//    @IBOutlet var displayNameLabel: UITextField!
     
     @IBOutlet var overwriteSwitch: UISwitch!
     @IBOutlet var autoacceptSwitch: UISwitch!
@@ -128,12 +130,12 @@ class SettingsViewController: UIViewController {
     
     
     
-    // MARK: port changed
-    @IBAction func portDidChange(_ sender: UITextField){
+    // MARK: transfer port
+    @IBAction func transferPortDidChange(_ sender: UITextField){
         
         // get text
         if let input = sender.text {
-            print(DEBUG_TAG+"new port value is \(input)")
+            print(DEBUG_TAG+"new transfer port value is \(input)")
             
             // trim whitespace
             let trimmedInput = input.trimmingCharacters(in: [" "])
@@ -144,7 +146,7 @@ class SettingsViewController: UIViewController {
             if(trimmedInput.count == 0) {
                 
                 //restore previous value
-                portNumberLabel.text = "\(settingsManager!.portNumber)"
+                transferPortNumberLabel.text = "\(settingsManager!.transferPortNumber)"
                 
                 showPopupError(withTitle: "Error", andMessage: "Port Number Required")
                 return
@@ -154,7 +156,7 @@ class SettingsViewController: UIViewController {
             // check if number
             if let newPortNum = Int(trimmedInput) {
                 
-                print(DEBUG_TAG+"new port num is \(newPortNum)")
+                print(DEBUG_TAG+"new transfer port num is \(newPortNum)")
                 
                 
                 
@@ -164,14 +166,70 @@ class SettingsViewController: UIViewController {
                 
                 
                 // write to settings
-                settingsManager?.portNumber = UInt32(newPortNum)
+                settingsManager?.transferPortNumber = UInt32(newPortNum)
                 
                 
                 
             } else {
                 
                 //restore previous value
-                portNumberLabel.text = "\(settingsManager!.portNumber)"
+                transferPortNumberLabel.text = "\(settingsManager!.transferPortNumber)"
+                
+                showPopupError(withTitle: "Error", andMessage: "Must be a number")
+                return
+            }
+            
+        }
+        
+    }
+    
+    
+    
+    
+    // MARK: registration port
+    @IBAction func registrationPortDidChange(_ sender: UITextField){
+        
+        // get text
+        if let input = sender.text {
+            print(DEBUG_TAG+"new registration port value is \(input)")
+            
+            // trim whitespace
+            let trimmedInput = input.trimmingCharacters(in: [" "])
+            
+            print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
+            
+            // if no groupcode value, don't update
+            if(trimmedInput.count == 0) {
+                
+                //restore previous value
+                registrationPortNumberLabel.text = "\(settingsManager!.registrationPortNumber)"
+                
+                showPopupError(withTitle: "Error", andMessage: "Port Number Required")
+                return
+            }
+            
+            
+            // check if number
+            if let newPortNum = Int(trimmedInput) {
+                
+                print(DEBUG_TAG+"new registration port num is \(newPortNum)")
+                
+                
+                
+                // TODO: sanitize?
+                // possibly prevent taking over system ports or something...? If that's a thing
+                // oooo make sure it fits in a UInt32
+                
+                
+                // write to settings
+                settingsManager?.registrationPortNumber = UInt32(newPortNum)
+                
+                
+                
+            } else {
+                
+                //restore previous value
+                registrationPortNumberLabel.text = "\(settingsManager!.registrationPortNumber)"
                 
                 showPopupError(withTitle: "Error", andMessage: "Must be a number")
                 return

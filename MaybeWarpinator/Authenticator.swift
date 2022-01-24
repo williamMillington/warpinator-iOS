@@ -60,6 +60,7 @@ class Authenticator {
     }
     
     
+    weak var settingsManager: SettingsManager?
     
     
     private init(){
@@ -83,7 +84,9 @@ class Authenticator {
     func unlockCertificate(_ certificateData: Data) -> NIOSSLCertificate? {
         
         
-        let keyCode = "Warpinator"
+        let keyCode = settingsManager?.groupCode ?? DEFAULT_GROUP_CODE
+        
+        
         let keyCodeBytes = Array(keyCode.utf8)
 
         let encryptedKey = SHA256.hash(data: keyCodeBytes )
@@ -132,7 +135,7 @@ class Authenticator {
     func getCertificateDataForSending() -> String {
         
         // generate encryption-key from key-code
-        let keyCode = "Warpinator"
+        let keyCode = settingsManager?.groupCode ?? DEFAULT_GROUP_CODE
         let keyCodeBytes = Array(keyCode.utf8)
         
         let encryptedKey = SHA256.hash(data: keyCodeBytes )
@@ -228,10 +231,10 @@ class Authenticator {
         
         // -- EXTENSIONS
         
-        // IP address as Subject Alternative Name
+        // Subject Alternative Name: IP address
         let ipAddress = Utils.getIP_V4_Address()
         
-        var IPparts: [UInt8] = []
+        var IPparts: [UInt8] = [] // break apart IP string into
         ipAddress.components(separatedBy: ".").forEach { part in
             if let uint = UInt8(part) {
                 IPparts.append(uint)
@@ -249,7 +252,7 @@ class Authenticator {
         let usages: Set<OID> = [ kp.clientAuth.oid, kp.serverAuth.oid  ]
         
         
-        // BUILD CERT
+        // CREATE CERTIFICATE BUILDER
         let certBuilder = try! Certificate.Builder(serialNumber: serialNumber,
                                               issuer: x500Name,
                                               subject: x500Name,
@@ -324,6 +327,7 @@ class Authenticator {
     }
     
 }
+
 
 
 // MARK: - Loading from file:
