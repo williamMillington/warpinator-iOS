@@ -28,6 +28,7 @@
 		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
 		7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B0702753B538001FA7C9 /* ListedTransferView.swift */; };
 		7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */; };
+		7954F92F2795F98900F255AE /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7954F92E2795F98900F255AE /* SettingsManager.swift */; };
 		796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796328232757FF930056F76B /* RemoteCoordinator.swift */; };
 		7963282727599F030056F76B /* FileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282627599F030056F76B /* FileWriter.swift */; };
 		796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328302759A96A0056F76B /* The_Last_Five_Years.pdf */; };
@@ -46,6 +47,8 @@
 		799E39F127469CD800E60FFC /* TapGestureRecognizerWithClosure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39EF27469CD800E60FFC /* TapGestureRecognizerWithClosure.swift */; };
 		799E39F42746A0E500E60FFC /* RemoteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39F32746A0E500E60FFC /* RemoteViewController.swift */; };
 		799E39FE2746DFC600E60FFC /* Double+Int.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799E39FD2746DFC600E60FFC /* Double+Int.swift */; };
+		79A063072797B9E200A5A99E /* SettingsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 79A063062797B9E200A5A99E /* SettingsViewController.xib */; };
+		79A0630A2797BA0D00A5A99E /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A063092797BA0D00A5A99E /* SettingsViewController.swift */; };
 		79AAD12A277CB50C00F46B9B /* RemoteViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 79AAD129277CB50C00F46B9B /* RemoteViewController.xib */; };
 		79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B002252717BDF6003CEBCC /* CertificateServer.swift */; };
 		79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B0022A27190F18003CEBCC /* MDNSBrowser.swift */; };
@@ -95,6 +98,7 @@
 		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
 		7936B0702753B538001FA7C9 /* ListedTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedTransferView.swift; sourceTree = "<group>"; };
 		7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewController.swift; sourceTree = "<group>"; };
+		7954F92E2795F98900F255AE /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		796328232757FF930056F76B /* RemoteCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoordinator.swift; sourceTree = "<group>"; };
 		7963282627599F030056F76B /* FileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWriter.swift; sourceTree = "<group>"; };
 		796328302759A96A0056F76B /* The_Last_Five_Years.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = The_Last_Five_Years.pdf; sourceTree = "<group>"; };
@@ -111,6 +115,8 @@
 		799E39EF27469CD800E60FFC /* TapGestureRecognizerWithClosure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TapGestureRecognizerWithClosure.swift; sourceTree = "<group>"; };
 		799E39F32746A0E500E60FFC /* RemoteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViewController.swift; sourceTree = "<group>"; };
 		799E39FD2746DFC600E60FFC /* Double+Int.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Double+Int.swift"; sourceTree = "<group>"; };
+		79A063062797B9E200A5A99E /* SettingsViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SettingsViewController.xib; sourceTree = "<group>"; };
+		79A063092797BA0D00A5A99E /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		79AAD129277CB50C00F46B9B /* RemoteViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RemoteViewController.xib; sourceTree = "<group>"; };
 		79B002252717BDF6003CEBCC /* CertificateServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateServer.swift; sourceTree = "<group>"; };
 		79B0022A27190F18003CEBCC /* MDNSBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSBrowser.swift; sourceTree = "<group>"; };
@@ -207,6 +213,7 @@
 				79331B01274E910400A4022F /* View */,
 				79C002B7270E0C16002DB22B /* Utils.swift */,
 				791D781427717575008140CC /* Observable.swift */,
+				7954F92E2795F98900F255AE /* SettingsManager.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -262,6 +269,8 @@
 				79C002B0270BC1A9002DB22B /* TestServiceProvider.swift */,
 				79360EB727069897008349D2 /* ViewController.swift */,
 				791D782927779261008140CC /* MainView.xib */,
+				79A063062797B9E200A5A99E /* SettingsViewController.xib */,
+				79A063092797BA0D00A5A99E /* SettingsViewController.swift */,
 			);
 			path = MaybeWarpinator;
 			sourceTree = "<group>";
@@ -431,6 +440,7 @@
 			files = (
 				79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */,
 				79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */,
+				79A063072797B9E200A5A99E /* SettingsViewController.xib in Resources */,
 				796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */,
 				796638DF27821C2E004AB246 /* TransferViewController.xib in Resources */,
 				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
@@ -472,9 +482,11 @@
 				79C688F627611A7E00353C53 /* ListedFileOperationView.swift in Sources */,
 				796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */,
 				797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */,
+				79A0630A2797BA0D00A5A99E /* SettingsViewController.swift in Sources */,
 				79C002AD270A92EC002DB22B /* warp.proto in Sources */,
 				79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */,
 				79B8A0FB2745623900369E62 /* MainCoordinator.swift in Sources */,
+				7954F92F2795F98900F255AE /* SettingsManager.swift in Sources */,
 				796B5A84278BB2DF009CEF73 /* ChunkIterator.swift in Sources */,
 				79B8A0F42745587C00369E62 /* ListedRemoteView.swift in Sources */,
 				791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */,

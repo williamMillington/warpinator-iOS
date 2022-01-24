@@ -4,6 +4,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -54,10 +55,10 @@
                     <rect key="frame" x="19" y="107" width="337.5" height="480"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="DEB-JW-hIB" userLabel="RemoteStack">
-                            <rect key="frame" x="0.0" y="0.0" width="337.5" height="88"/>
+                            <rect key="frame" x="0.0" y="0.0" width="337.5" height="67.5"/>
                             <subviews>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rGd-ok-xcM" customClass="ListedRemoteView" customModule="MaybeWarpinator">
-                                    <rect key="frame" x="0.0" y="0.0" width="337.5" height="88"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="337.5" height="67.5"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 </view>
                             </subviews>
@@ -73,6 +74,18 @@
                     <viewLayoutGuide key="contentLayoutGuide" id="egQ-mn-dhC"/>
                     <viewLayoutGuide key="frameLayoutGuide" id="1UC-qd-Yhu"/>
                 </scrollView>
+                <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KZ2-Ij-3pn">
+                    <rect key="frame" x="312" y="30" width="47" height="38"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                    <color key="tintColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                    <state key="normal">
+                        <imageReference key="image" image="gearshape.fill" catalog="system" symbolScale="default" renderingMode="template"/>
+                    </state>
+                    <connections>
+                        <action selector="userDidPushSettingsButton" destination="-1" eventType="touchUpInside" id="mQV-cc-lt9"/>
+                    </connections>
+                </button>
             </subviews>
             <viewLayoutGuide key="safeArea" id="fgf-sX-B9E"/>
             <color key="backgroundColor" red="0.94117647058823528" green="0.94117647058823528" blue="0.94117647058823528" alpha="1" colorSpace="calibratedRGB"/>
@@ -88,6 +101,7 @@
         </view>
     </objects>
     <resources>
+        <image name="gearshape.fill" catalog="system" width="128" height="121"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

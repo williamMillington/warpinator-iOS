@@ -25,9 +25,7 @@ final class ViewController: UIViewController {
         return button
     }()
     
-    
-//    let remotesScroller = ButtonScrollView()
-    
+    @IBOutlet var settingsButton: UIButton!
     
     @IBOutlet var remotesStack: UIStackView!
     
@@ -39,28 +37,6 @@ final class ViewController: UIViewController {
     @IBOutlet var deviceLabel: UILabel!
     
     
-//    let remotesStack: UIStackView = {
-//        let stack = UIStackView()
-//        stack.translatesAutoresizingMaskIntoConstraints = false
-//        stack.alignment = .fill
-//        stack.distribution = .fillProportionally
-//        stack.spacing = 5
-//        stack.axis = .vertical
-//        stack.backgroundColor = UIColor.blue.withAlphaComponent(0.2)
-//
-//        let expanderView = UIView()
-//        expanderView.translatesAutoresizingMaskIntoConstraints = false
-//        expanderView.backgroundColor = UIColor.blue.withAlphaComponent(0.2)
-//
-//        // without this, height is constrained to 0 for some dumb reason,
-//        // and breaks stackview's attempts to resize it
-//        expanderView.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
-//
-//        stack.addArrangedSubview(expanderView)
-//
-//        return stack
-//    }()
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,34 +45,6 @@ final class ViewController: UIViewController {
         
         // remove placeholder from xib
         for view in remotesStack.arrangedSubviews {   view.removeFromSuperview()  }
-        
-//        var viewConstraints: [NSLayoutConstraint] = []
-        
-//        view.addSubview(remotesStack)
-//        view.addSubview(refreshButton)
-        
-//        let sideMargin: CGFloat = 10
-        
-//        viewConstraints +=  [
-            
-//            refreshButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-//            refreshButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-//            refreshButton.widthAnchor.constraint(equalTo: remotesStack.widthAnchor, multiplier: 0.5),
-//            refreshButton.heightAnchor.constraint(lessThanOrEqualTo: refreshButton.widthAnchor, multiplier: 0.25),
-//            refreshButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: (sideMargin *  2)),
-//            refreshButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -(sideMargin *  2)),
-//            refreshButton.heightAnchor.constraint(equalToConstant: 50),
-            
-            
-//            remotesStack.topAnchor.constraint(equalTo: refreshButton.bottomAnchor, constant: 20),
-//            remotesStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-//            remotesStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: sideMargin),
-//            remotesStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -sideMargin),
-//            remotesStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20)
-//        ]
-        
-//        NSLayoutConstraint.activate(viewConstraints)
-        
         
         
         displayNameLabel.attributedText = NSAttributedString(string: Server.displayName,
@@ -125,6 +73,13 @@ final class ViewController: UIViewController {
     
     
     
+    @IBAction func userDidPushSettingsButton(){
+        
+        coordinator?.showSettings()
+        
+        
+    }
+    
     
     
     func remoteAdded(_ remote: Remote){
@@ -137,7 +92,7 @@ final class ViewController: UIViewController {
             self.coordinator?.userSelected(viewModel.uuid)
         }
         
-        // insert right before expanderview
+        // insert right before expanderviewr
 //        remotesStack.insertArrangedSubview(remoteView, at: (remotesStack.arrangedSubviews.count - 1) )
         remotesStack.insertArrangedSubview(remoteView, at: (remotesStack.arrangedSubviews.count) )
     }

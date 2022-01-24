@@ -24,6 +24,8 @@ class MainCoordinator: NSObject, Coordinator {
     
     var remoteManager: RemoteManager = RemoteManager()
     
+    var settingsManager: SettingsManager = SettingsManager.shared
+    
     var server: Server = Server()
     var registrationServer = RegistrationServer()
     
@@ -103,6 +105,39 @@ class MainCoordinator: NSObject, Coordinator {
         }
         
     }
+    
+    
+    
+    
+    
+    func showSettings() {
+        
+        
+        // if the previously exists in the stack, rewind
+        if let settingsVC = navController.viewControllers.first(where: { controller in
+            return controller is SettingsViewController
+        }) {
+            navController.popToViewController(settingsVC, animated: false)
+        } else {
+            
+            let bundle = Bundle(for: type(of: self))
+            let settingsVC = SettingsViewController(nibName: "SettingsViewController", bundle: bundle)
+            
+            settingsVC.coordinator = self
+            settingsVC.settingsManager = settingsManager
+            
+            
+            navController.pushViewController(settingsVC, animated: false)
+        }
+    
+        
+        
+        
+    }
+    
+    
+    
+    
     
     
     func mockTransferReceive(){
