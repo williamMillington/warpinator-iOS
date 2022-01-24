@@ -13,6 +13,7 @@
             <connections>
                 <outlet property="autoacceptSwitch" destination="q9j-A7-qia" id="pMY-9d-mei"/>
                 <outlet property="backButton" destination="bPG-wy-zSh" id="J1G-oE-vHY"/>
+                <outlet property="displayNameLabel" destination="iz4-ic-y8i" id="MkV-DD-Pn7"/>
                 <outlet property="groupCodeLabel" destination="HjQ-hN-XAL" id="mRU-hr-dL7"/>
                 <outlet property="overwriteSwitch" destination="zR4-wk-40g" id="RbG-Un-jZZ"/>
                 <outlet property="registrationPortNumberLabel" destination="PHW-aD-2rQ" id="hA8-dF-yXy"/>
@@ -89,7 +90,6 @@
                     <fontDescription key="fontDescription" type="system" pointSize="20"/>
                     <textInputTraits key="textInputTraits"/>
                     <connections>
-                        <action selector="transferPortDidChange:" destination="-1" eventType="editingDidEnd" id="w7T-cq-DxN"/>
                         <action selector="transferPortDidChange:" destination="-1" eventType="editingChanged" id="x6e-u8-vFu"/>
                     </connections>
                 </textField>
@@ -108,7 +108,6 @@
                     <fontDescription key="fontDescription" type="system" pointSize="25"/>
                     <textInputTraits key="textInputTraits"/>
                     <connections>
-                        <action selector="groupCodeDidChange:" destination="-1" eventType="editingDidEnd" id="PEb-Yp-YdR"/>
                         <action selector="groupCodeDidChange:" destination="-1" eventType="editingChanged" id="XFk-lJ-nHB"/>
                     </connections>
                 </textField>
@@ -127,7 +126,6 @@
                     <fontDescription key="fontDescription" type="system" pointSize="25"/>
                     <textInputTraits key="textInputTraits"/>
                     <connections>
-                        <action selector="displayNameDidChange:" destination="-1" eventType="editingDidEnd" id="1to-Ee-O7m"/>
                         <action selector="displayNameDidChange:" destination="-1" eventType="editingChanged" id="yhA-VH-53Y"/>
                     </connections>
                 </textField>
@@ -163,6 +161,9 @@
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                     <fontDescription key="fontDescription" type="system" pointSize="20"/>
                     <textInputTraits key="textInputTraits"/>
+                    <connections>
+                        <action selector="registrationPortDidChange:" destination="-1" eventType="editingChanged" id="H1T-ba-3qy"/>
+                    </connections>
                 </textField>
             </subviews>
             <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>

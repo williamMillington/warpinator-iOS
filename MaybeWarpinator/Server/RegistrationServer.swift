@@ -52,10 +52,13 @@ class RegistrationServer {
         
         guard let registrationServerELG = eventLoopGroup else { return }
         
+        guard let port = settingsManager?.registrationPortNumber else { return }
+        let portNumber = Int(port)
+        
         
         let registrationServerFuture = GRPC.Server.insecure(group: registrationServerELG)
             .withServiceProviders([warpinatorRegistrationProvider])
-            .bind(host: "\(Utils.getIP_V4_Address())", port: registration_port)
+            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
             
         
         registrationServerFuture.map {

@@ -202,6 +202,13 @@ public class WarpinatorServiceProvider: WarpProvider {
         remote.addReceivingOperation(operation)
         
         
+        if settingsManager!.automaticAccept {
+            print(DEBUG_TAG+"Transfer was automatically accepted")
+            remote.callClientStartTransfer(for: operation)
+        }
+        
+        
+        
         return context.eventLoop.makeSucceededFuture(VoidType())
     }
     

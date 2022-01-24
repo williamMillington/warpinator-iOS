@@ -78,11 +78,11 @@ public class Server: NSObject {
         }
         
         
-        guard let portnum = settingsManager?.transferPortNumber else {
+        guard let port = settingsManager?.transferPortNumber else {
             print(DEBUG_TAG+"No transfer port number (whomp whomp)")
             return
         }
-        let portNumber = Int(portnum)
+        let portNumber = Int(port)
         
         var logger = Logger(label: "warpinator.Server", factory: StreamLogHandler.standardOutput)
         logger.logLevel = .debug

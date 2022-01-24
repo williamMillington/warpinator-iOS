@@ -67,7 +67,8 @@ class MDNSListener {
         
         flushing = false
         
-        let port = NWEndpoint.Port(rawValue: UInt16( settingsManager!.transferPortNumber) )!
+        let transferPortNum =  UInt16( settingsManager!.transferPortNumber)
+        let port = NWEndpoint.Port(rawValue: transferPortNum)!
         
         let params = NWParameters.udp
         params.includePeerToPeer = true
@@ -90,8 +91,12 @@ class MDNSListener {
         listener?.stateUpdateHandler = stateDidUpdate(newState:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
-        let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
-                                           "auth-port" : "\(settingsManager!.registrationPortNumber)",
+        
+        let hostname = Server.SERVER_UUID
+        let authport = settingsManager!.registrationPortNumber
+        
+        let properties: [String:String] = ["hostname" : "\(hostname)",
+                                           "auth-port" : "\(authport)",
                                            "api-version": "2",
 //                                           "auth-port" : "\(Server.registration_port)",
 //                                           "api-version": "1",
@@ -147,7 +152,7 @@ class MDNSListener {
         case .waiting(let error):
             print(DEBUG_TAG+"waiting due to error\(error)")
         case .ready: print(DEBUG_TAG+"listener is ready")
-            delegate?.mDNSListenerIsReady() // break //print(DEBUG_TAG+"listener ready")
+            delegate?.mDNSListenerIsReady() // break 
         default: print(DEBUG_TAG+"statedidupdate: unforeseen case: \(newState)")
         }
         
@@ -167,7 +172,8 @@ class MDNSListener {
         
         connection.stateUpdateHandler = { [self] newState in
             switch newState {
-            case .ready: print(DEBUG_TAG+"established connection to \(connection.endpoint) is ready")
+            case .ready:
+                print(DEBUG_TAG+"established connection to \(connection.endpoint) is ready")
                 self.certificateServer.serveCertificate(to: connection) {
                     self.connections.removeValue(forKey: connection.endpoint)
                     connection.cancel()

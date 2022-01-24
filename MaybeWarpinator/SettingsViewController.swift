@@ -31,8 +31,27 @@ class SettingsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // TODO: get current saved configuraiton and update UI
+        // TODO: get current saved configuration and update UI
         
+        let autoaccepts = settingsManager!.automaticAccept
+        autoacceptSwitch.isOn = autoaccepts
+        
+        let overwrites = settingsManager!.overwriteFiles
+        overwriteSwitch.isOn = overwrites
+        
+        
+        let displayName = settingsManager!.name
+        displayNameLabel.text = displayName
+        
+        
+        let groupCode = settingsManager!.groupCode
+        groupCodeLabel.text = groupCode
+        
+        let transferPort = settingsManager!.transferPortNumber
+        transferPortNumberLabel.text = "\(transferPort)"
+        
+        let regPort = settingsManager!.registrationPortNumber
+        registrationPortNumberLabel.text = "\(regPort)"
         
     }
     
