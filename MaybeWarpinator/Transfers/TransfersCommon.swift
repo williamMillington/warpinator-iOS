@@ -15,16 +15,6 @@ enum TransferItemType: Int32 {
 }
 
 
-//protocol TransferSelection {
-//    var type: TransferItemType { get }
-//    var name: String     { get }
-//    var bytesCount: Int  { get }
-//
-//    var path: String     { get }
-//    var bookmark: Data   { get }
-//}
-
-
 struct TransferSelection: Hashable {
     
     var type: TransferItemType

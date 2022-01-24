@@ -490,6 +490,12 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
         }
     }
     
+    
+    func fileAdded() {
+        
+    }
+    
+    
     deinit {
         operation.removeObserver(self)
     }

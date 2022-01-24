@@ -19,6 +19,7 @@ protocol ObservesRemote: NSObject {
 // MARK: Observes Transfer
 protocol ObservesTransferOperation: NSObject {
     func infoDidUpdate()
+    func fileAdded()
 }
 
 

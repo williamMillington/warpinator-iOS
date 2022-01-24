@@ -159,35 +159,3 @@ extension FileWriter {
     }
 }
 
-
-
-
-
-
-//// MARK: Placeholder
-//class FilePlaceHolder {
-//    var observers: [FileReceiverViewModel] = []
-//}
-
-
-//extension FilePlaceHolder {
-//
-//    func addObserver(_ model: FileReceiverViewModel){
-//        observers.append(model)
-//    }
-//
-//    func removeObserver(_ model: FileReceiverViewModel){
-//
-//        for (i, observer) in observers.enumerated() {
-//            if observer === model {
-//                observers.remove(at: i)
-//            }
-//        }
-//    }
-//
-//    func updateObserversInfo(){
-//        observers.forEach { observer in
-//            observer.infoDidUpdate()
-//        }
-//    }
-//}
