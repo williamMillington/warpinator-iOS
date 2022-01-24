@@ -26,12 +26,8 @@ public class Utils {
     }
     
     
-    public static func getDeviceName() -> String {
-        return "MyDeviceName"
-    }
     
-    
-    
+    // MARK: get IPv4
     /** Why the everloving fuck is this what a person needs to do to get a goddamn IP address on iOS  jesus christ if
      I wanted to use pointers I'd go back to university
      */
@@ -74,6 +70,8 @@ public class Utils {
     }
     
     
+    
+    // MARK: get IPv6
     public static func getIP_V6_Address() -> String {
         
         // get address list
@@ -129,13 +127,7 @@ public class Utils {
     }
     
     
-//    static func checkFolderExists(){
-//        
-//        let url = FileManager.default.extended.documentsDirectory
-//        
-//    }
-    
-    
+    // MARK: get available disk space
     static func queryAvailableDiskSpace() -> Int64 {
         
         let url = FileManager.default.extended.documentsDirectory

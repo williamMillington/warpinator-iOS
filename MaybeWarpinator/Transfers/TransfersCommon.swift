@@ -170,9 +170,9 @@ class MockReceiveTransfer: TransferOperation {
     
     var operationInfo: OpInfo {
         return .with {
-            $0.ident = Server.SERVER_UUID
+            $0.ident = SettingsManager.shared.uuid
             $0.timestamp = UUID
-            $0.readableName = Utils.getDeviceName()
+            $0.readableName = SettingsManager.shared.displayName
         }
     }
     

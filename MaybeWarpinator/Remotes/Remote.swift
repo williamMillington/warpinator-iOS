@@ -113,8 +113,8 @@ public class Remote {
     
     var lookupName: LookupName {
         return LookupName.with {
-            $0.id =  Server.SERVER_UUID
-            $0.readableName = "Warpinator iOS"
+            $0.id =  SettingsManager.shared.uuid
+            $0.readableName = SettingsManager.shared.displayName
         }
     }
     
@@ -144,7 +144,7 @@ public class Remote {
             connect(withCertificate: certificate)
         } else {
             
-            if  details.api == "2" && details.ipAddress == RemoteDetails.NO_IP_ADDRESS {
+            if  details.api == "2" && (details.ipAddress == RemoteDetails.NO_IP_ADDRESS) {
                 print(DEBUG_TAG+"Remote does not yet have an IP Address")
                 return
             }
@@ -570,7 +570,7 @@ extension Remote {
 
 
 
-//MARK: observers
+//MARK: - observers
 extension Remote {
     
     func addObserver(_ model: ObservesRemote){
@@ -612,7 +612,7 @@ extension Remote {
 extension Remote: ConnectivityStateDelegate {
     
     
-    //MARK: connectivityStateDidChange
+    //MARK: - connectivityStateDidChange
     public func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
         print(DEBUG_TAG+"channel state has moved from \(oldState) to \(newState)".uppercased())
         switch newState {
@@ -638,7 +638,7 @@ extension Remote: ConnectivityStateDelegate {
 
 
 
-//MARK: ClientErrorDelegate
+//MARK: - ClientErrorDelegate
 extension Remote: ClientErrorDelegate {
     
     
@@ -657,6 +657,9 @@ extension Remote: ClientErrorDelegate {
         }
     }
 }
+
+
+
 
 
 

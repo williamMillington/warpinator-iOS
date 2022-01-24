@@ -40,7 +40,7 @@ class SettingsViewController: UIViewController {
         overwriteSwitch.isOn = overwrites
         
         
-        let displayName = settingsManager!.name
+        let displayName = settingsManager!.displayName
         displayNameLabel.text = displayName
         
         
@@ -64,7 +64,6 @@ class SettingsViewController: UIViewController {
         if let input = sender.text {
             print(DEBUG_TAG+"new DisplayName value is \(input)")
             
-            
             // trim whitespace
             let trimmedInput = input.trimmingCharacters(in: [" "])
             
@@ -74,7 +73,7 @@ class SettingsViewController: UIViewController {
             if(trimmedInput.count == 0) {
                 
                 //restore previous value
-                displayNameLabel.text = settingsManager!.name
+                displayNameLabel.text = settingsManager!.displayName
                 
                 showPopupError(withTitle: "Error", andMessage: "Display Name Required")
                 return
@@ -92,7 +91,7 @@ class SettingsViewController: UIViewController {
             
             
             // write to settings
-            settingsManager?.name = trimmedInput
+            settingsManager?.displayName = trimmedInput
         }
         
         
@@ -140,8 +139,6 @@ class SettingsViewController: UIViewController {
             // write to settings
             settingsManager?.groupCode = trimmedInput
         }
-        
-        
         
     }
     
@@ -314,7 +311,7 @@ class SettingsViewController: UIViewController {
     
     // MARK: back
     @IBAction func back(){
-        coordinator?.showMenu()
+        coordinator?.showMainViewController()
     }
     
 

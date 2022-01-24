@@ -24,23 +24,19 @@ class MDNSListener {
     
     private let DEBUG_TAG = "MDNSListener: "
     
-    var listener: NWListener?
-    var delegate: MDNSListenerDelegate?
-    
     private let SERVICE_TYPE = "_warpinator._tcp"
     private let SERVICE_DOMAIN = ""
     
-    public var displayName: String = "iOS Device"
+    public lazy var displayName: String = settingsManager!.displayName
+//    public lazy var hostname = settingsManager!.hostname
     
-    public lazy var hostname = Server.SERVER_UUID
-    
-    private var certificateServer = CertificateServer()
-    
-    var connections: [NWEndpoint:NWConnection] = [:]
+    var connections: [NWEndpoint : NWConnection] = [:]
     
     private var flushing = false
     
-    
+    private var certificateServer = CertificateServer()
+    var listener: NWListener?
+    var delegate: MDNSListenerDelegate?
     weak var settingsManager: SettingsManager?
     
     
@@ -91,8 +87,7 @@ class MDNSListener {
         listener?.stateUpdateHandler = stateDidUpdate(newState:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
-        
-        let hostname = Server.SERVER_UUID
+        let hostname = settingsManager!.hostname
         let authport = settingsManager!.registrationPortNumber
         
         let properties: [String:String] = ["hostname" : "\(hostname)",
@@ -101,8 +96,8 @@ class MDNSListener {
 //                                           "auth-port" : "\(Server.registration_port)",
 //                                           "api-version": "1",
                                            "type" : "real"]
-        
-        listener?.service = NWListener.Service(name: Server.SERVER_UUID, type: SERVICE_TYPE,
+        let uuid = settingsManager!.uuid
+        listener?.service = NWListener.Service(name: uuid, type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN, txtRecord:  NWTXTRecord(properties) )
         
         listener?.start(queue: .main)
@@ -133,10 +128,12 @@ class MDNSListener {
 //        listener?.stateUpdateHandler = stateDidUpdate(newState:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
-        let properties: [String:String] = ["hostname" : "\(Server.SERVER_UUID)",
+        let hostname = settingsManager!.hostname
+        let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "type" : "flush"]
         
-        listener?.service = NWListener.Service(name: Server.SERVER_UUID, type: SERVICE_TYPE,
+        let uuid = settingsManager!.uuid
+        listener?.service = NWListener.Service(name: uuid, type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN, txtRecord:  NWTXTRecord(properties) )
         listener?.start(queue: .main)
         

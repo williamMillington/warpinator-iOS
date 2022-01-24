@@ -71,13 +71,13 @@ class MainCoordinator: NSObject, Coordinator {
     
     func start() {
         
-        showMenu()
+        showMainViewController()
         
 //        mockRemote()
     }
     
     
-    func showMenu(){
+    func showMainViewController(){
         
         // if the previously exists in the stack, rewind
         if let mainMenuVC = navController.viewControllers.first(where: { controller in
@@ -166,7 +166,7 @@ class MainCoordinator: NSObject, Coordinator {
     func coordinatorDidFinish(_ child: Coordinator){
         for (i, coordinator) in childCoordinators.enumerated() {
             if coordinator === child {
-                showMenu()
+                showMainViewController()
                 childCoordinators.remove(at: i)
                 break
             }

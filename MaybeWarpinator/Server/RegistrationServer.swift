@@ -21,10 +21,10 @@ class RegistrationServer {
     
     private let DEBUG_TAG: String = "RegistrationServer: "
     
-    public static let REGISTRATION_PORT: Int = 42001
-    private var registration_port: Int = RegistrationServer.REGISTRATION_PORT
+//    public static let REGISTRATION_PORT: Int = 42001
+//    private var registration_port: Int = RegistrationServer.REGISTRATION_PORT
     
-    private lazy var uuid: String = Server.SERVER_UUID
+//    private lazy var uuid: String = Server.SERVER_UUID
     
     
     var mDNSBrowser: MDNSBrowser?
@@ -141,7 +141,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
         case .service(name: let name, type: _, domain: _, interface: _):
             
             serviceName = name
-            if name == uuid {
+            if name == settingsManager!.uuid {
                 print(DEBUG_TAG+"Found myself (\(result.endpoint))"); return
             } else {
                 print(DEBUG_TAG+"service discovered: \(name)")

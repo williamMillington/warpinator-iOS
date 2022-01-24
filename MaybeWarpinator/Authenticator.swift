@@ -60,7 +60,7 @@ class Authenticator {
     }
     
     
-    weak var settingsManager: SettingsManager?
+//    weak var settingsManager: SettingsManager?
     
     
     private init(){
@@ -84,10 +84,9 @@ class Authenticator {
     func unlockCertificate(_ certificateData: Data) -> NIOSSLCertificate? {
         
         
-        let keyCode = settingsManager?.groupCode ?? DEFAULT_GROUP_CODE
-        
-        
+        let keyCode = SettingsManager.shared.groupCode
         let keyCodeBytes = Array(keyCode.utf8)
+        
 
         let encryptedKey = SHA256.hash(data: keyCodeBytes )
         let encryptedKeyBytes: [UInt8] = encryptedKey.compactMap( {  return UInt8($0) })
@@ -135,8 +134,9 @@ class Authenticator {
     func getCertificateDataForSending() -> String {
         
         // generate encryption-key from key-code
-        let keyCode = settingsManager?.groupCode ?? DEFAULT_GROUP_CODE
+        let keyCode = SettingsManager.shared.groupCode
         let keyCodeBytes = Array(keyCode.utf8)
+        
         
         let encryptedKey = SHA256.hash(data: keyCodeBytes )
         let encryptedKeyBytes: [UInt8] = encryptedKey.compactMap( {  return UInt8($0) })
@@ -279,7 +279,7 @@ class Authenticator {
             do {
                 try KeyMaster.deletePrivateKey(forKey: uuid)
             } catch {
-                print("error deleting key")
+                print("error deleting key: \(error)")
             }
         }
         

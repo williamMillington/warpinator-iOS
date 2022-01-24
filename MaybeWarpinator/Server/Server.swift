@@ -35,7 +35,7 @@ public class Server: NSObject {
 //    public static var userName: String = "username"
 //    public static var hostname: String = Server.SERVER_UUID
     
-    public static var SERVER_UUID: String = "WarpinatorIOS"
+//    public static var SERVER_UUID: String = "WarpinatorIOS"
     
 //    private lazy var uuid: String = Server.SERVER_UUID
 //    public lazy var hostname = Server.SERVER_UUID

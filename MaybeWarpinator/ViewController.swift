@@ -49,14 +49,16 @@ final class ViewController: UIViewController {
         // remove placeholder from xib
         for view in remotesStack.arrangedSubviews {   view.removeFromSuperview()  }
         
-        
-        displayNameLabel.attributedText = NSAttributedString(string: "\(settingsManager!.name)",
+        let displayNameString = "\(settingsManager!.displayName)"
+        displayNameLabel.attributedText = NSAttributedString(string: displayNameString,
                                                              attributes: [ .font: UIFont.boldSystemFont(ofSize: 22)])
         
-        deviceLabel.attributedText = NSAttributedString(string: "@hostname",
+        let deviceString = "\(settingsManager!.userName)@\(settingsManager!.hostname)"
+        deviceLabel.attributedText = NSAttributedString(string: deviceString,
                                                              attributes: [ .font: UIFont.boldSystemFont(ofSize: 20)])
         
-        IPaddressLabel.attributedText = NSAttributedString(string: "\(Utils.getIP_V4_Address())",
+        let ipstring = "\(Utils.getIP_V4_Address())"
+        IPaddressLabel.attributedText = NSAttributedString(string: ipstring,
                                                            attributes: [ .font: UIFont.systemFont(ofSize: 20,
                                                                                                   weight: .light)])
         

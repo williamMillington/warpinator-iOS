@@ -148,8 +148,8 @@ public class WarpinatorServiceProvider: WarpProvider {
         print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
         
         var info = RemoteMachineInfo()
-        info.displayName = settingsManager!.name 
-        info.userName = settingsManager!.name
+        info.displayName = settingsManager!.displayName 
+        info.userName = settingsManager!.userName
         
         return context.eventLoop.makeSucceededFuture(info)
     }

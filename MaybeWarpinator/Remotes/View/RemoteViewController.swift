@@ -318,9 +318,9 @@ final class RemoteViewModel: NSObject, ObservesRemote {
         return remote.details.username + "@" + remote.details.hostname
     }
     
-    var userName: String {
-        return remote.details.username
-    }
+//    var userName: String {
+//        return remote.details.username
+//    }
     
     var iNetAddress: String {
         return remote.details.ipAddress

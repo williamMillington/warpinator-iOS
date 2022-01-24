@@ -198,8 +198,9 @@ class GRPCConnection: AuthenticationConnection {
     
     
     func sendCertificateRequest() {
+        
         let request: RegRequest = .with {
-            $0.hostname = Server.SERVER_UUID
+            $0.hostname = SettingsManager.shared.hostname
             $0.ip = Utils.getIP_V4_Address()
         }
         

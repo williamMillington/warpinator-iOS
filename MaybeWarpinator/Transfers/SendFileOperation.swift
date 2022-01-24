@@ -77,9 +77,9 @@ class SendFileOperation: TransferOperation {
     
     var operationInfo: OpInfo {
         return .with {
-            $0.ident = Server.SERVER_UUID
+            $0.ident = SettingsManager.shared.uuid
             $0.timestamp = timestamp
-            $0.readableName = Utils.getDeviceName()
+            $0.readableName = SettingsManager.shared.displayName 
         }
     }
     
@@ -87,7 +87,7 @@ class SendFileOperation: TransferOperation {
     var transferRequest: TransferOpRequest {
         return .with {
             $0.info = operationInfo
-            $0.senderName = Server.SERVER_UUID
+            $0.senderName = SettingsManager.shared.displayName
             $0.size = UInt64(totalSize)
             $0.count = UInt64(fileCount)
             $0.nameIfSingle = singleName

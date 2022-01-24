@@ -108,9 +108,9 @@ class ReceiveFileOperation: TransferOperation {
         directories = transferRequest.topDirBasenames
         
         operationInfo = .with {
-            $0.ident = Server.SERVER_UUID
+            $0.ident = SettingsManager.shared.uuid
             $0.timestamp = transferRequest.info.timestamp
-            $0.readableName = Utils.getDeviceName()
+            $0.readableName = SettingsManager.shared.displayName
         }
         
     }
