@@ -9,96 +9,70 @@ import Foundation
 
 
 // MARK: FolderWriter
-class FolderWriter: WritesFile {
+class FolderWriter: NSObject, WritesFile {
     
     static var DEBUG_TAG: String = "FolderWriter (static): "
-    lazy var DEBUG_TAG: String = "FolderWriter \(originalName): "
+    lazy var DEBUG_TAG: String = "FolderWriter \(downloadName): "
     
     // Names of files, as provided by the client.
     // Used in determining the file in which a given chunk belongs, which may change,
     // depending on renaming
-    var originalName: String
-    var originalRelativePath: String
+    var downloadName: String
+    var downloadRelativePath: String
     
-    // provided by owner if any of parent folders were renamed due to conflicts
-//    var modifiedRelativePath: String?
+    // The values that will be written to the filesystem (renaming feature)
+    lazy var fileSystemName: String = downloadName
+    var fileSystemParentPath: String
+    var fileSystemRelativePath: String { return  fileSystemParentPath + "\(fileSystemName)"  }
     
+    var renameCount = 0
+    var overwrite = false
+    
+    
+    let baseURL = FileManager.default.extended.documentsDirectory
+    var itemURL: URL {
+        return baseURL.appendingPathComponent(fileSystemRelativePath)
+    }
     
     var completedFiles: [WritesFile] = []
     var currentWriter: WritesFile? = nil
     
-    
-    lazy var writtenName: String = originalName
-    
-    var writtenParentPath: String
-//    {
-//        var path = originalRelativePath
-//        if let modpath = modifiedRelativePath {  path = modpath  }
-//
-//        let parentPathParts = path.components(separatedBy: "/").dropLast()
-//        //TODO: possibly needs to include edge-case <count == 1>?
-//        return parentPathParts.count == 0 ? "" : parentPathParts.joined(separator: "/") + "/"
-//    }
-    
-    var writtenRelativePath: String { return  writtenParentPath + "\(writtenName)"  }
-    
-    var renameCount = 0
-    
-    let baseURL = FileManager.default.extended.documentsDirectory
-    var folderURL: URL {
-        return baseURL.appendingPathComponent(writtenRelativePath)
-    }
-    
-//    var folderURL.path: String {
-//        return folderURL.path
-//    }
-    
     var bytesWritten: Int {
         return completedFiles.map { return $0.bytesWritten  }.reduce(0, +)
     }
-    var overwrite: Bool = false
     
     var observers: [ObservesFileOperation] = []
     
     
     
-    init(withRelativePath path: String, modifiedRelativeParentPath moddedParentPath: String? = nil, overwrite: Bool) {
+    init(withRelativePath path: String, fileSystemParentPath moddedParentPath: String? = nil, overwrite: Bool) {
         
-        originalRelativePath = path
-//        modifiedRelativePath = moddedParentPath
+        downloadRelativePath = path
         
         let pathParts = path.components(separatedBy: "/")
         
         let parentPathParts = pathParts.dropLast()
         let parentPath = parentPathParts.isEmpty  ?  ""  :  parentPathParts.joined(separator: "/") + "/"
-        writtenParentPath = moddedParentPath ?? parentPath
+        fileSystemParentPath = moddedParentPath ?? parentPath
         
-        originalName = pathParts.last ?? ""
+        downloadName = pathParts.last ?? ""
         
-        
-//        if let modPath = moddedParentPath {
-//            modifiedRelativePath = modPath + "/\(originalName)"
-//        }
-        
-        
-//        let directoryURL = fileManager.extended.documentsDirectory.appendingPathComponent("\(foldername)")
-        
-//        print(DEBUG_TAG+"attempting to create new directory: \(directoryURL.path)")
+        super.init()
         
         let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: folderURL.path) {
+        if fileManager.fileExists(atPath: itemURL.path) {
             
             // Rename
             if !overwrite {
-                writtenName = rename(originalName)
+                fileSystemName = rename(downloadName)
             } else { //overwrite
                 do {
                     print(DEBUG_TAG+"overwriting preexisting folder...")
-                    try fileManager.removeItem(at: folderURL)
+                    try fileManager.removeItem(at: itemURL)
                 } catch {
                     
                     print(DEBUG_TAG+"Error overwriting folder: \(error)")
-                    writtenName = rename(originalName)
+                    fileSystemName = rename(downloadName)
                 }
             }
             
@@ -107,12 +81,12 @@ class FolderWriter: WritesFile {
         
         // create new directory
         // TODO: rewrite to unambiguously deal with the inability to write
-        do {  try fileManager.createDirectory(atPath: folderURL.path,
+        do {  try fileManager.createDirectory(atPath: itemURL.path,
                                     withIntermediateDirectories: true,
                                     attributes: nil)
-            print("created folder called \(writtenRelativePath)")
-//            print("\t\t(system path: \(folderURL.path))")
-        } catch { print(DEBUG_TAG+"Error: can't create folder: \(folderURL.path)") }
+            print("created folder called \(fileSystemRelativePath)")
+//            print("\t\t(system path: \(itemURL.path))")
+        } catch { print(DEBUG_TAG+"Error: can't create folder: \(itemURL.path)") }
         
         
     }
@@ -132,20 +106,13 @@ class FolderWriter: WritesFile {
             
             newName = name + "\(renameCount)"
             
-            let path = baseURL.path + "/" + writtenParentPath + "\(newName)"
+            let path = baseURL.path + "/" + fileSystemParentPath + "\(newName)"
             
             if FileManager.default.fileExists(atPath: path)  {
                 return rename(newName)
             }
         }
-        
-        
-//        modifiedRelativePath = writtenParentPath + "\(newName)"
-        
         print(DEBUG_TAG+"new name is \(newName)")
-//        print(DEBUG_TAG+"\t\told relativePath \(originalRelativePath)")
-//        print(DEBUG_TAG+"\t\tnew relativePath \( writtenParentPath + "\(newName)" )")
-        
         return newName
     }
     
@@ -155,51 +122,43 @@ class FolderWriter: WritesFile {
     func processChunk(_ chunk: FileChunk) throws {
         
         
-        // CHECK IF RELATIVE PATH IS SUB-PATH
-//        print(DEBUG_TAG+"comparing relative paths")
-//        print(DEBUG_TAG+"\tfolder originalRelativePath: \(originalRelativePath)")
-//        print(DEBUG_TAG+"\tchunk relativePath: \(chunk.relativePath)")
-        
+        // Check chunk belongs in this folder
         guard isValidSubPath(chunk.relativePath) else {
-            print(DEBUG_TAG+"\t\(chunk.relativePath) does not belong in \(originalRelativePath)")
+            print(DEBUG_TAG+"\t\(chunk.relativePath) does not belong in \(downloadRelativePath)")
             throw WritingError.FILENAME_MISMATCH
         }
         
-        defer {
-            updateObserversInfo()
-        }
         
+        defer { updateObserversInfo() }
         
+        // if we have a writer, try it
         if let writer = currentWriter {
-            
-            
             do {
                 try writer.processChunk(chunk)
-                return // If no error, we're done here
-            } catch WritingError.FILENAME_MISMATCH {
-
+                return // If successful, we're done here
+            } catch WritingError.FILENAME_MISMATCH { // New File/Folder
                     // close out old writer
                     writer.close()
                     completedFiles.append(writer)
-                    
             }
-        }  // New item!
-            
-            // check if folder or file
+        }
+        
+        // Create writer to handle chunk
+        
+        // check if folder or file
         if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
             currentWriter = FolderWriter(withRelativePath: chunk.relativePath,
-                                         modifiedRelativeParentPath: writtenRelativePath,
+                                         fileSystemParentPath: fileSystemRelativePath,
                                          overwrite: overwrite)
         } else {
             
-            // create file writer
             currentWriter = FileWriter(withRelativePath: chunk.relativePath,
-                                    modifiedRelativeParentPath: writtenRelativePath ,
+                                    modifiedRelativeParentPath: fileSystemRelativePath ,
                                     overwrite: overwrite)
             
             // - Pass along chunk.
-            // - If we still encounter an error here, it's a 'real' error related to writing, and outside the scope
-            // of this function
+            // - no need to catch, if we still encounter an error here, it's a 'real' error related to writing,
+            // and outside the scope of this function
             try currentWriter?.processChunk(chunk)
         }
         
@@ -210,9 +169,9 @@ class FolderWriter: WritesFile {
     //MARK: isValidSubpath
     private func isValidSubPath(_ otherPath: String) -> Bool {
         
-        print(DEBUG_TAG+"checking if \(otherPath) is a subpath of \(originalRelativePath) ")
+        print(DEBUG_TAG+"checking if \(otherPath) is a subpath of \(downloadRelativePath) ")
         
-        let pathParts = originalRelativePath.components(separatedBy: "/")
+        let pathParts = downloadRelativePath.components(separatedBy: "/")
         let subpathParts = otherPath.components(separatedBy: "/")
         
         // a subpath will contain it's parentpath, so subPathParts.count
@@ -223,24 +182,14 @@ class FolderWriter: WritesFile {
         }
         
         
-        // if -at any point- these bad boys don't match up, then otherpath does not
-        // belong in this folder
         for i in 0..<pathParts.count {
             
-//            let pathComponent = pathParts[i]
-//            let subpathComponent = subpathParts[i]
-            
+            // if -at any point- these bad boys don't match up, then otherpath does not
+            // belong in this folder
             guard let subpathComponent = subpathParts[nullable: i],
                   subpathComponent == subpathParts[i] else {
                 return false
             }
-            
-//            print(DEBUG_TAG+"\tpathComponent: \(pathComponent)")
-//            print(DEBUG_TAG+"\tsubpathComponent: \(subpathComponent)")
-            
-//            if pathParts[i] != subpathParts[i] {
-//                return false
-//            }
         }
         
         return true
@@ -249,38 +198,9 @@ class FolderWriter: WritesFile {
     
     
     func close() {
-        
         currentWriter?.close()
         updateObserversInfo()
-        
     }
-    
-    
-    
-    //MARK:   ////////OLDSTUFF///////
-//    // M ARK: write
-//    func write(_ data: Data){
-////        print(DEBUG_TAG+"\t\t writing to file...")
-////
-////        guard let handle = fileHandle else {
-////            print(DEBUG_TAG+"\t\tERROR: writing to file failed...")
-////            return
-////        }
-////
-////        handle.seekToEndOfFile()
-////        handle.write(data)
-////
-////        writtenBytesCount += data.count
-//        updateObserversInfo()
-//    }
-    
-    
-    // M ARK: finish
-//    func finish(){
-////        fileHandle?.closeFile()
-//        updateObserversInfo()
-//    }
-    
     
     // M ARK: fail
 //    func fail(){
@@ -297,30 +217,6 @@ class FolderWriter: WritesFile {
 ////        }
 //        updateObserversInfo()
 //    }
-    
-    // M ARK: static createDir
-//    static func createNewDirectory(withName name: String) throws {
-//
-//        let fileManager = FileManager.default
-//        let directoryURL = fileManager.extended.documentsDirectory.appendingPathComponent("\(name)")
-//
-////        print(DEBUG_TAG+"attempting to create new directory: \(directoryURL.path)")
-//
-//        if fileManager.fileExists(atPath: directoryURL.path) {
-////            print(DEBUG_TAG+"\t \(directoryURL.path) already exists")
-//            throw FolderReceiveError.DIRECTORY_EXISTS
-//        } else {
-//            do {
-//                try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
-////                print(DEBUG_TAG+"\tSuccessfully created directory")
-//            } catch {
-////                print(DEBUG_TAG+"\tFailed to create directory")
-//                throw FolderReceiveError.SYSTEM_ERROR(error)
-//            }
-//        }
-//    }
-    
-    //MARK:   ////////OLDSTUFF///////
 }
 
 
@@ -346,5 +242,11 @@ extension FolderWriter {
             observer.infoDidUpdate()
         }
     }
-    
+}
+
+
+extension FolderWriter: ObservesFileOperation {
+    func infoDidUpdate() {
+        updateObserversInfo()
+    }
 }

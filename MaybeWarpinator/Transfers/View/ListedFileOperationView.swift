@@ -284,7 +284,7 @@ final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFi
     
     var name: String {
         
-        return operation.originalName
+        return operation.downloadName
     }
     
     var size: String {
@@ -335,7 +335,7 @@ final class ListedFolderWriterViewModel: NSObject, ListedFileViewModel, Observes
     
     var name: String {
         
-        return operation.originalName
+        return operation.downloadName
     }
     
     var size: String {

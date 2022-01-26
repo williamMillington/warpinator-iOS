@@ -27,91 +27,72 @@ enum WritingError: Error {
 class FileWriter: WritesFile {
     
     static var DEBUG_TAG: String = "FileWriter (static): "
-    lazy var DEBUG_TAG: String = "FileWriter \(originalName): "
+    lazy var DEBUG_TAG: String = "FileWriter \(downloadName): "
     
     // Names of files, as provided by the client.
     // Used in determining the file in which a given chunk belongs, which may change,
     // depending on renaming
-    var originalName: String
-    var originalRelativePath: String
+    var downloadName: String
+    var downloadRelativePath: String
     
-    // used if any of parent folders were renamed due to conflicts
-    var modifiedRelativePath: String?
     
-    lazy var writtenName = originalName
+    // The values that will be written to the filesystem (renaming feature)
+    lazy var fileSystemName = downloadName
+    var fileSystemParentPath: String
+    
     var renameCount = 0
-    
-    var writtenParentPath: String
-//    {
-//        let path = modifiedRelativePath ?? originalRelativePath
-//        let parentPathParts = path.components(separatedBy: "/").dropLast()
-//
-//        return parentPathParts.count == 0  ?  ""  :  parentPathParts.joined(separator: "/") + "/"
-//    }
-    
-//    var writtenRelativePath : String {   return  writtenParentPath + "\(writtenName)"   }
-    
+    var overwrite = false
     
     let baseURL = FileManager.default.extended.documentsDirectory
-    var writtenURL: URL {   return baseURL.appendingPathComponent( writtenParentPath + "\(writtenName)" )  }
+    var itemURL: URL {
+        return baseURL.appendingPathComponent( fileSystemParentPath + "\(fileSystemName)" )
+    }
     
-    private var fileHandle: FileHandle?
-    private var overwrite = false
+    var fileHandle: FileHandle?
     
     var bytesWritten: Int = 0
     
-    
     var observers: [ObservesFileOperation] = []
-    
     
     // MARK: - init
     init(withRelativePath path: String, modifiedRelativeParentPath moddedParentPath: String? = nil, overwrite: Bool){
         
-        originalRelativePath = path
+        downloadRelativePath = path
         
         let pathParts = path.components(separatedBy: "/")
         
         let parentPathParts = pathParts.dropLast()
         let parentPath = parentPathParts.isEmpty  ?  ""  :  parentPathParts.joined(separator: "/") + "/"
-        writtenParentPath = moddedParentPath ?? parentPath //(parentPathParts.isEmpty ? "" : parentPathParts.joined(separator: "/") + "/" )
+        fileSystemParentPath = moddedParentPath ?? parentPath
         
-        originalName = pathParts.last ?? "File"
+        downloadName = pathParts.last ?? "File"
         
         
         // file already exists
         let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: writtenURL.path) {
+        if fileManager.fileExists(atPath: itemURL.path) {
             
             // Rename
             if !overwrite {
-                writtenName = rename(originalName)
+                fileSystemName = rename(downloadName)
             } else { //Overwrite
                 
                 do {
-                    print(DEBUG_TAG+"overwriting preexisting file")
-                    try fileManager.removeItem(at: writtenURL)
+                    print(DEBUG_TAG+"\toverwriting preexisting file")
+                    try fileManager.removeItem(at: itemURL)
                 } catch {
                     // if overwrite fails, rename
                     print(DEBUG_TAG+"\tfailed to overwrite, renaming...")
-                    writtenName = rename(originalName)
+                    fileSystemName = rename(downloadName)
                 }
             }
         }
         
         
-        fileManager.createFile(atPath: writtenURL.path, contents: nil)
+        fileManager.createFile(atPath: itemURL.path, contents: nil)
+        print(DEBUG_TAG+"created file called \( fileSystemParentPath + "\(fileSystemName)" )")
         
-        print(DEBUG_TAG+"created file called \( writtenParentPath + "\(writtenName)" )")
-//        print(DEBUG_TAG+"\t\t(system path: \(writtenURL.path))")
-        
-        do {
-             fileHandle = try FileHandle(forUpdating: writtenURL)
-        } catch {
-//            print(DEBUG_TAG+"couldn't aquire FileHandle from URL: \(error)")
-//            print(DEBUG_TAG+"\tattempting to load from path")
-//            fileHandle = FileHandle(forUpdatingAtPath: writtenURL.path)
-        }
-        
+        fileHandle = try? FileHandle(forUpdating: itemURL)
     }
     
     
@@ -128,7 +109,7 @@ class FileWriter: WritesFile {
         if renameCount <= 1000 {
             
             newName = name + "\(renameCount)"
-            let path = baseURL.path + "/" + writtenParentPath + "\(newName)"
+            let path = baseURL.path + "/" + fileSystemParentPath + "\(newName)"
             
             if FileManager.default.fileExists(atPath: path)  {
                 return rename(newName)
@@ -146,7 +127,7 @@ class FileWriter: WritesFile {
     func processChunk(_ chunk: FileChunk) throws {
         
         // CHECK IF CHUNK BELONGS
-        guard chunk.relativePath == originalRelativePath else {
+        guard chunk.relativePath == downloadRelativePath else {
             throw WritingError.FILENAME_MISMATCH
         }
         
@@ -156,7 +137,6 @@ class FileWriter: WritesFile {
         
         guard let handle = fileHandle else {
             print(DEBUG_TAG+"UnexpectedError: fileHandle not found?")
-//            updateObserversInfo()
             return
         }
         
@@ -166,7 +146,6 @@ class FileWriter: WritesFile {
         handle.write(data)
         
         bytesWritten += data.count
-//        updateObserversInfo()
         
     }
     
@@ -176,50 +155,6 @@ class FileWriter: WritesFile {
         fileHandle?.closeFile()
         updateObserversInfo()
     }
-    
-    
-    //MARK:   ////////OLDSTUFF///////
-//    // M ARK: createFile
-//    func createFile(){
-//        let fileManager = FileManager.default
-//
-//        // file already exists
-//        if fileManager.fileExists(atPath: filePath) {
-//            print(DEBUG_TAG+"deleting preexisting file")
-//            try! fileManager.removeItem(at: writtenURL)
-//        }
-//
-//        fileManager.createFile(atPath: filePath, contents: nil)
-//        updateObserversInfo()
-//    }
-    
-    // M ARK: write
-//    func write(_ data: Data){
-////        print(DEBUG_TAG+"\t\t writing to file...")
-//
-//        guard let handle = fileHandle else {
-//            print(DEBUG_TAG+"\t\tERROR: writing to file failed...")
-//
-//            FileManager.default.createFile(atPath: filePath, contents: nil)
-//            updateObserversInfo()
-//
-//            return
-//        }
-//
-//        handle.seekToEndOfFile()
-//        handle.write(data)
-//
-//        bytesWritten += data.count
-//        updateObserversInfo()
-//    }
-//
-    
-    // M ARK: finish
-//    func finish(){
-//        fileHandle?.closeFile()
-//        updateObserversInfo()
-//    }
-    
     
 //    // M ARK: fail
 //    func fail(){
@@ -236,30 +171,6 @@ class FileWriter: WritesFile {
 //        }
 //        updateObserversInfo()
 //    }
-    
-//     M ARK: static createDir
-//    static func createNewDirectory(withName name: String) throws {
-//
-//        let fileManager = FileManager.default
-//        let directoryURL = fileManager.extended.documentsDirectory.appendingPathComponent("\(name)")
-//
-////        print(DEBUG_TAG+"attempting to create new directory: \(directoryURL.path)")
-//
-//        if fileManager.fileExists(atPath: directoryURL.path) {
-////            print(DEBUG_TAG+"\t \(directoryURL.path) already exists")
-//            throw WritingError.DIRECTORY_EXISTS
-//        } else {
-//            do {
-//                try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
-////                print(DEBUG_TAG+"\tSuccessfully created directory")
-//            } catch {
-////                print(DEBUG_TAG+"\tFailed to create directory")
-//                throw WritingError.UNDEFINED_ERROR(error)
-//            }
-//        }
-//    }
-    
-    //MARK:   ////////OLDSTUFF///////
     
 }
 
@@ -287,58 +198,3 @@ extension FileWriter {
     }
 }
 
-//extension FileWriter: ObservesFileOperation {
-//    func infoDidUpdate() {
-//
-//    }
-//}
-
-
-
-
-
-
-//
-//extension FileWriter: WritesFile {
-//
-//    // MARK: processChunk
-//    func processChunk(_ chunk: FileChunk) throws {
-//
-//        // CHECK IF CHUNK BELONGS
-//        guard chunk.relativePath == originalRelativePath else {
-//            throw WritingError.FILENAME_MISMATCH
-//        }
-//
-//        guard let handle = fileHandle else {
-//            print(DEBUG_TAG+"UnexpectedError: fileHandle not found?")
-//            updateObserversInfo()
-//            return
-//        }
-//
-//        let data = chunk.chunk
-//
-//        handle.seekToEndOfFile()
-//        handle.write(data)
-//
-//        bytesWritten += data.count
-//        updateObserversInfo()
-//
-//    }
-//
-//
-//    // MARK: close
-//    func close(){
-//        fileHandle?.closeFile()
-//        updateObserversInfo()
-//    }
-//
-//
-//
-//
-//
-////    private func checkPathIsRelative(){
-////
-////    }
-//
-//
-//}
