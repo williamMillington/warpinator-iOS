@@ -152,7 +152,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
         }
         
         
-        print(DEBUG_TAG+"mDNSBrowser did add result:")
+        print(DEBUG_TAG+"mDNSBrowser added result:")
         print("\t\(result.endpoint)")
         print("\t\(result.metadata)")
         

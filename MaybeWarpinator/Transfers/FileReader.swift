@@ -35,7 +35,7 @@ extension FileSelection: Equatable {
 // MARK: FileReader
 final class FileReader: NSObject, ReadsFile {
     
-    lazy var DEBUG_TAG: String = "FileReader \"\(filename):\" "
+    lazy var DEBUG_TAG: String = "FileReader \"\(filename)\": "
     
     let file: FileSelection
     
@@ -126,7 +126,7 @@ final class FileReader: NSObject, ReadsFile {
             
             updateObserversInfo()
             
-            print(DEBUG_TAG+"No chunk for you!")
+            print(DEBUG_TAG+"No more data.")
             return nil
         }
         

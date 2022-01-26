@@ -232,9 +232,9 @@ class TransferViewController: UIViewController {
         
         updateDisplay()
         
-        for viewmodel in transferViewModel!.files {
-            addFileViewToStack(withViewModel: viewmodel)
-        }
+//        for viewmodel in transferViewModel!.files {
+//            addFileViewToStack(withViewModel: viewmodel)
+//        }
         
         
     }

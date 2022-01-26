@@ -9,10 +9,10 @@ import Foundation
 
 
 protocol WritesFile {
+    var bytesWritten: Int { get }
     func processChunk(_ chunk: FileChunk) throws
     func close()
 }
-
 
 enum WritingError: Error {
     case FILENAME_MISMATCH
@@ -24,18 +24,14 @@ enum WritingError: Error {
 
 
 // MARK: FileWriter
-class FileWriter {
-    
-//    enum FileReceiveError: Error {
-//        case FILE_EXISTS, DIRECTORY_EXISTS
-//        case SPACE_UNAVAILABLE
-//        case SYSTEM_ERROR(Error)
-//    }
-    
+class FileWriter: WritesFile {
     
     static var DEBUG_TAG: String = "FileWriter (static): "
     lazy var DEBUG_TAG: String = "FileWriter \(originalName): "
     
+    // Names of files, as provided by the client.
+    // Used in determining the file in which a given chunk belongs, which may change,
+    // depending on renaming
     var originalName: String
     var originalRelativePath: String
     
@@ -43,111 +39,57 @@ class FileWriter {
     var modifiedRelativePath: String?
     
     lazy var writtenName = originalName
-    
-    
-    var writtenParentPath: String {
-        var path = originalRelativePath
-        if let modpath = modifiedRelativePath {  path = modpath  }
-        
-        let pathParts = path.components(separatedBy: "/")
-        let parentPathParts = pathParts.dropLast()
-        
-        //TODO: possibly needs to include edge-case <count == 1>?
-        let parentPath = parentPathParts.count == 0 ? "" : parentPathParts.joined(separator: "/") + "/"
-//        parentPathParts.reduce("") { x, y in
-//            return x + "/" + y
-//        } + "/"
-        
-        print(DEBUG_TAG+"writtenRelativeParentPath is \(parentPath)")
-        
-        return  parentPath
-    }
-    
-    var writtenRelativePath : String {
-        
-        var path = originalRelativePath
-        if let modpath = modifiedRelativePath {  path = modpath  }
-        
-        let pathParts = path.components(separatedBy: "/")
-        let parentPathParts = pathParts.dropLast()
-        
-        //TODO: possibly needs to include edge-case <count == 1>?
-        let parentPath = parentPathParts.count == 0 ? "" : parentPathParts.joined(separator: "/") + "/"
-//        parentPathParts.reduce("") { x, y in
-//            return x + "/" + y
-//        } + "/"
-        
-        print(DEBUG_TAG+"writtenRelativePath is \(  (parentPath+"\(writtenName)")   )")
-        return  parentPath+"\(writtenName)"
-    }
-    
-    
     var renameCount = 0
     
-    let baseURL = FileManager.default.extended.documentsDirectory
-    
-    
-    var fileURL: URL {
-        return baseURL.appendingPathComponent(writtenRelativePath)
-    }
-    
-    var filePath: String {
-        return fileURL.path
-    }
-    
-    var fileHandle: FileHandle?
+    var writtenParentPath: String
 //    {
-//        do {
-//            return try FileHandle(forUpdating: fileURL)
-//        } catch {
-//            print(DEBUG_TAG+"couldn't aquire FileHandle from URL: \(error)")
-//            print(DEBUG_TAG+"\tattempting to load from path")
-//            return FileHandle(forUpdatingAtPath: filePath)
-//        }
+//        let path = modifiedRelativePath ?? originalRelativePath
+//        let parentPathParts = path.components(separatedBy: "/").dropLast()
+//
+//        return parentPathParts.count == 0  ?  ""  :  parentPathParts.joined(separator: "/") + "/"
 //    }
     
-    var writtenBytesCount: Int = 0
-    private var overwrite: Bool = false
+//    var writtenRelativePath : String {   return  writtenParentPath + "\(writtenName)"   }
+    
+    
+    let baseURL = FileManager.default.extended.documentsDirectory
+    var writtenURL: URL {   return baseURL.appendingPathComponent( writtenParentPath + "\(writtenName)" )  }
+    
+    private var fileHandle: FileHandle?
+    private var overwrite = false
+    
+    var bytesWritten: Int = 0
+    
     
     var observers: [ObservesFileOperation] = []
     
     
-//    init(originalName name: String){
-//        originalName = name
-////        fileURL = baseURL.appendingPathComponent(originalName)
-////        filePath = fileURL.path
-//        originalRelativePath = ""
-//    }
-    
-    
-    
-    init(withRelativePath path: String, modifiedRelativeParentPath modPath: String? = nil, overwrite: Bool){
+    // MARK: - init
+    init(withRelativePath path: String, modifiedRelativeParentPath moddedParentPath: String? = nil, overwrite: Bool){
         
         originalRelativePath = path
         
         let pathParts = path.components(separatedBy: "/")
+        
+        let parentPathParts = pathParts.dropLast()
+        let parentPath = parentPathParts.isEmpty  ?  ""  :  parentPathParts.joined(separator: "/") + "/"
+        writtenParentPath = moddedParentPath ?? parentPath //(parentPathParts.isEmpty ? "" : parentPathParts.joined(separator: "/") + "/" )
+        
         originalName = pathParts.last ?? "File"
         
-        if let modPath = modPath {
-            modifiedRelativePath = modPath + "/\(originalName)"
-        }
         
-        
-        
-        let fileManager = FileManager.default
         // file already exists
-        if fileManager.fileExists(atPath: filePath) {
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: writtenURL.path) {
             
             // Rename
             if !overwrite {
-                
                 writtenName = rename(originalName)
-                
             } else { //Overwrite
-                print(DEBUG_TAG+"overwriting preexisting file")
                 
                 do {
-                    try fileManager.removeItem(at: fileURL)
+                    print(DEBUG_TAG+"overwriting preexisting file")
+                    try fileManager.removeItem(at: writtenURL)
                 } catch {
                     // if overwrite fails, rename
                     print(DEBUG_TAG+"\tfailed to overwrite, renaming...")
@@ -157,24 +99,17 @@ class FileWriter {
         }
         
         
+        fileManager.createFile(atPath: writtenURL.path, contents: nil)
         
-//        // insert final name into path
-//        let parentPathParts = pathParts.dropLast()
-//        let parentPath = parentPathParts.count == 0 ? "" : parentPathParts.reduce("/",+)
-//
-//        let fileFinalPath = parentPath+"/\(writtenName)"
-//        print(DEBUG_TAG+"\tfile's written name: \(writtenName) (\(fileFinalPath)")
+        print(DEBUG_TAG+"created file called \( writtenParentPath + "\(writtenName)" )")
+//        print(DEBUG_TAG+"\t\t(system path: \(writtenURL.path))")
         
-        fileManager.createFile(atPath: filePath, contents: nil)
-        print(DEBUG_TAG+"created file called \(writtenRelativePath)")
-        print(DEBUG_TAG+"\t\t(system path: \(filePath))")
         do {
-             fileHandle = try FileHandle(forUpdating: fileURL)
-            
+             fileHandle = try FileHandle(forUpdating: writtenURL)
         } catch {
-            print(DEBUG_TAG+"couldn't aquire FileHandle from URL: \(error)")
-            print(DEBUG_TAG+"\tattempting to load from path")
-            fileHandle = FileHandle(forUpdatingAtPath: filePath)
+//            print(DEBUG_TAG+"couldn't aquire FileHandle from URL: \(error)")
+//            print(DEBUG_TAG+"\tattempting to load from path")
+//            fileHandle = FileHandle(forUpdatingAtPath: writtenURL.path)
         }
         
     }
@@ -193,7 +128,6 @@ class FileWriter {
         if renameCount <= 1000 {
             
             newName = name + "\(renameCount)"
-            
             let path = baseURL.path + "/" + writtenParentPath + "\(newName)"
             
             if FileManager.default.fileExists(atPath: path)  {
@@ -201,13 +135,50 @@ class FileWriter {
             }
         }
         
-        print(DEBUG_TAG+"new name is \(newName)")
+        print(DEBUG_TAG+"\tnew name is \(newName)")
         return newName
     }
     
     
     
     
+    // MARK: processChunk
+    func processChunk(_ chunk: FileChunk) throws {
+        
+        // CHECK IF CHUNK BELONGS
+        guard chunk.relativePath == originalRelativePath else {
+            throw WritingError.FILENAME_MISMATCH
+        }
+        
+        defer {
+            updateObserversInfo()
+        }
+        
+        guard let handle = fileHandle else {
+            print(DEBUG_TAG+"UnexpectedError: fileHandle not found?")
+//            updateObserversInfo()
+            return
+        }
+        
+        let data = chunk.chunk
+        
+        handle.seekToEndOfFile()
+        handle.write(data)
+        
+        bytesWritten += data.count
+//        updateObserversInfo()
+        
+    }
+    
+    
+    // MARK: close
+    func close(){
+        fileHandle?.closeFile()
+        updateObserversInfo()
+    }
+    
+    
+    //MARK:   ////////OLDSTUFF///////
 //    // M ARK: createFile
 //    func createFile(){
 //        let fileManager = FileManager.default
@@ -215,7 +186,7 @@ class FileWriter {
 //        // file already exists
 //        if fileManager.fileExists(atPath: filePath) {
 //            print(DEBUG_TAG+"deleting preexisting file")
-//            try! fileManager.removeItem(at: fileURL)
+//            try! fileManager.removeItem(at: writtenURL)
 //        }
 //
 //        fileManager.createFile(atPath: filePath, contents: nil)
@@ -238,7 +209,7 @@ class FileWriter {
 //        handle.seekToEndOfFile()
 //        handle.write(data)
 //
-//        writtenBytesCount += data.count
+//        bytesWritten += data.count
 //        updateObserversInfo()
 //    }
 //
@@ -287,6 +258,9 @@ class FileWriter {
 //            }
 //        }
 //    }
+    
+    //MARK:   ////////OLDSTUFF///////
+    
 }
 
 
@@ -313,57 +287,58 @@ extension FileWriter {
     }
 }
 
-
-
-
-
-
-
-
-
-extension FileWriter: WritesFile {
-    
-    // MARK: processChunk
-    func processChunk(_ chunk: FileChunk) throws {
-        
-        // CHECK IF CHUNK BELONGS
-        guard chunk.relativePath == originalRelativePath else {
-            throw WritingError.FILENAME_MISMATCH
-        }
-        
-        guard let handle = fileHandle else {
-            print(DEBUG_TAG+"UnexpectedError: fileHandle not found?")
-            updateObserversInfo()
-            return
-        }
-        
-        let data = chunk.chunk
-        
-        handle.seekToEndOfFile()
-        handle.write(data)
-        
-        writtenBytesCount += data.count
-        updateObserversInfo()
-        
-        
-        
-        
-    }
-    
-    
-    // MARK: close
-    func close(){
-        fileHandle?.closeFile()
-        updateObserversInfo()
-    }
-    
-    
-    
-    
-    
-//    private func checkPathIsRelative(){
+//extension FileWriter: ObservesFileOperation {
+//    func infoDidUpdate() {
 //
 //    }
-    
-    
-}
+//}
+
+
+
+
+
+
+//
+//extension FileWriter: WritesFile {
+//
+//    // MARK: processChunk
+//    func processChunk(_ chunk: FileChunk) throws {
+//
+//        // CHECK IF CHUNK BELONGS
+//        guard chunk.relativePath == originalRelativePath else {
+//            throw WritingError.FILENAME_MISMATCH
+//        }
+//
+//        guard let handle = fileHandle else {
+//            print(DEBUG_TAG+"UnexpectedError: fileHandle not found?")
+//            updateObserversInfo()
+//            return
+//        }
+//
+//        let data = chunk.chunk
+//
+//        handle.seekToEndOfFile()
+//        handle.write(data)
+//
+//        bytesWritten += data.count
+//        updateObserversInfo()
+//
+//    }
+//
+//
+//    // MARK: close
+//    func close(){
+//        fileHandle?.closeFile()
+//        updateObserversInfo()
+//    }
+//
+//
+//
+//
+//
+////    private func checkPathIsRelative(){
+////
+////    }
+//
+//
+//}

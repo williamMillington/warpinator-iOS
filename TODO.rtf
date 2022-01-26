@@ -2,10 +2,10 @@
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
 {\colortbl;\red255\green255\blue255;\red85\green142\blue40;\red0\green0\blue0;\red3\green45\blue153;
 \red5\green61\blue204;\red217\green11\blue5;\red183\green177\blue7;\red164\green8\blue3;\red1\green31\blue103;
-\red183\green177\blue7;}
+\red85\green142\blue40;\red183\green177\blue7;}
 {\*\expandedcolortbl;;\cssrgb\c39975\c61335\c20601;\cssrgb\c0\c0\c0;\cssrgb\c0\c25950\c66514;
 \cssrgb\c0\c33896\c83855;\cssrgb\c88946\c14202\c0;\cssrgb\c76768\c73671\c0;\cssrgb\c71055\c10387\c0;\cssrgb\c0\c18185\c48021;
-\cssrgb\c76768\c73671\c0;}
+\cssrgb\c39975\c61335\c20601;\cssrgb\c76768\c73671\c0;}
 \margl1440\margr1440\vieww19260\viewh13280\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
@@ -197,18 +197,18 @@ SendFileOperation:\
 \f1\b \cf4 (Will not cause error. Probably.)
 \f0\b0 \cf3  \
 		- \cf2 Currently working out FolderReader vs FileReader\cf3  \
-		- \cf10 Can/should we allow user to send a subfolder that has the same name as a top-level folder?\cf3  \
+		- \cf7 Can/should we allow user to send a subfolder that has the same name as a top-level folder?\cf3  \
 			- Rename on our end, or force client to deal with it? Can the other clients (android, linux ) handle it? \cf0 \
 	- \cf2 update progress\cf0 \
 \
 ReceiveFileOperation:\
 	- \cf2 Auto-accept receive setting\cf0  \
 	- \cf7 Receive Directories\cf0 \
-		\cf7 - BUG: a folder counts as a file to be transferred, and so receiving transfers end up with an extra filehandle/ view that doesn\'92t get used\cf3  \
-		- \cf10 Folders cause a discrepancy in writtenBytes and transferred amount\cf3  \cf0 \
-	- Support renaming duplicates\
-		- \cf10 support up to 1000 rename attempts\cf0  \
-	- \cf2 update progress\cf0 \
+		\cf3 -\cf10  BUG: a folder counts as a file to be transferred, and so receiving transfers end up with an extra filehandle/ view that doesn\'92t get used\cf3  \
+		- \cf7 Folders cause a discrepancy in writtenBytes and transferred amount\cf3  \cf0 \
+	- \cf11 Support renaming duplicates\cf0  \
+		- \cf7 support up to 1000 rename attempts\cf0  \
+	- \cf2 update progress\cf3  \cf0 \
 \
 \
 \

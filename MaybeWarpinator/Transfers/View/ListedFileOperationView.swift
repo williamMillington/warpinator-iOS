@@ -292,7 +292,7 @@ final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFi
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         
-        let bytes = operation.writtenBytesCount
+        let bytes = operation.bytesWritten
         
         return formatter.string(fromByteCount:  Int64( bytes) )
     }
@@ -343,7 +343,7 @@ final class ListedFolderWriterViewModel: NSObject, ListedFileViewModel, Observes
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         
-        let bytes = operation.writtenBytesCount
+        let bytes = operation.bytesWritten
         
         return formatter.string(fromByteCount:  Int64( bytes) )
     }

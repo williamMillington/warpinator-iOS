@@ -279,13 +279,9 @@ extension ReceiveFileOperation {
             
         }
         
-        
-        // NO CURRENT WRITER
-        
         // CREATE WRITER TO HANDLE CHUNK
         
         do {
-            
             
             // If folder
             if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
