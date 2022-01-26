@@ -100,20 +100,17 @@ class FolderWriter: NSObject, WritesFile {
     // TODO: rewrite to be gooder?
     //  - right now 5 renames result in "<name>12345" instead of "<name>5"
     func rename(_ name: String) -> String {
-//
-//        print(DEBUG_TAG+"Renaming \(name) (\(renameCount))")
-        
+
         var newName = "Folder_Renaming_Failed"
         
         while renameCount <= 1000 {
-            
             renameCount += 1
+            print("renaming \(name) (\(renameCount))")
             
             newName = name + "\(renameCount)"
-            
             let path = baseURL.path + "/" + fileSystemParentPath + "\(newName)"
             
-            if FileManager.default.fileExists(atPath: path)  {
+            if !FileManager.default.fileExists(atPath: path)  {
                 break // rename(downloadName)
             }
         }
@@ -127,13 +124,11 @@ class FolderWriter: NSObject, WritesFile {
     // MARK: processChunk
     func processChunk(_ chunk: FileChunk) throws {
         
-        
         // Check chunk belongs in this folder
         guard isValidSubPath(chunk.relativePath) else {
             print(DEBUG_TAG+"\t\(chunk.relativePath) does not belong in \(downloadRelativePath)")
             throw WritingError.FILENAME_MISMATCH
         }
-        
         
         defer { updateObserversInfo() }
         
@@ -154,12 +149,12 @@ class FolderWriter: NSObject, WritesFile {
         // check if folder or file
         if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
             currentWriter = FolderWriter(withRelativePath: chunk.relativePath,
-                                         fileSystemParentPath: fileSystemRelativePath,
+                                         fileSystemParentPath: fileSystemRelativePath + "/",
                                          overwrite: overwrite)
         } else {
             
             currentWriter = FileWriter(withRelativePath: chunk.relativePath,
-                                    modifiedRelativeParentPath: fileSystemRelativePath ,
+                                    modifiedRelativeParentPath: fileSystemRelativePath + "/",
                                     overwrite: overwrite)
             
             // - Pass along chunk.
@@ -205,24 +200,18 @@ class FolderWriter: NSObject, WritesFile {
     
     func close() {
         currentWriter?.close()
+        currentWriter = nil
         updateObserversInfo()
     }
     
-    // M ARK: fail
-//    func fail(){
-////        print(DEBUG_TAG+"\tfailing filewrite:")
-////        fileHandle?.closeFile()
-////
-////        // delete unfinished file
-////        let fileManager = FileManager.default
-////        do {
-////            print(DEBUG_TAG+"\tDeleting unfinished file: \(filepath)")
-////            try fileManager.removeItem(atPath: filepath)
-////        } catch {
-////            print(DEBUG_TAG+"\tAn error occurred attempting to delete file: \(filepath)")
-////        }
-//        updateObserversInfo()
-//    }
+    // MARK: fail
+    func fail(){
+        print(DEBUG_TAG+"\tfailing filewrite:")
+        guard currentWriter != nil else { return  }
+        
+        currentWriter?.fail()
+        currentWriter = nil
+    }
 }
 
 

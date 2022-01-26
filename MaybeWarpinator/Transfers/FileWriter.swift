@@ -12,6 +12,7 @@ protocol WritesFile {
     var bytesWritten: Int { get }
     func processChunk(_ chunk: FileChunk) throws
     func close()
+    func fail()
 }
 
 enum WritingError: Error {
@@ -71,7 +72,8 @@ class FileWriter: WritesFile {
         let parentPathParts = pathParts.dropLast()
         let parentPath = parentPathParts.isEmpty  ?  ""  :  parentPathParts.joined(separator: "/") + "/"
         fileSystemParentPath = moddedParentPath ?? parentPath
-        print(DEBUG_TAG+"fileystemparentpath is \(fileSystemParentPath)")
+        
+        print(DEBUG_TAG+"fileSystemParentPath is \(fileSystemParentPath)")
         fileExtension = itemURL.pathExtension
         
         
@@ -98,8 +100,6 @@ class FileWriter: WritesFile {
         
         fileManager.createFile(atPath: itemURL.path, contents: nil)
         print(DEBUG_TAG+"created file called \( fileSystemParentPath + "\(fileSystemName)" )")
-        
-        
         
         fileHandle = try? FileHandle(forUpdating: itemURL)
     }
@@ -162,24 +162,22 @@ class FileWriter: WritesFile {
     // MARK: close
     func close(){
         fileHandle?.closeFile()
+        fileHandle = nil
         updateObserversInfo()
     }
     
-//    // M ARK: fail
-//    func fail(){
-//        print(DEBUG_TAG+"\tfailing filewrite:")
-//        fileHandle?.closeFile()
-//
-//        // delete unfinished file
-//        let fileManager = FileManager.default
-//        do {
-//            print(DEBUG_TAG+"\tDeleting unfinished file: \(filePath)")
-//            try fileManager.removeItem(atPath: filePath)
-//        } catch {
-//            print(DEBUG_TAG+"\tAn error occurred attempting to delete file: \(filePath)")
-//        }
-//        updateObserversInfo()
-//    }
+    // MARK: fail
+    func fail(){
+        print(DEBUG_TAG+"\tfailing filewrite:")
+        guard fileHandle != nil else { return  }
+        
+        close()
+
+        // delete unfinished file
+        do {
+            try FileManager.default.removeItem(at: itemURL)
+        } catch {  print(DEBUG_TAG+"\tAn error occurred attempting to delete file: \(itemURL.path)") }
+    }
     
 }
 

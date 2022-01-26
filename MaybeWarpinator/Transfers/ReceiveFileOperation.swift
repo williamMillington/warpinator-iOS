@@ -358,7 +358,8 @@ extension ReceiveFileOperation {
             return
         }
         
-//        currentWriter?.finish()
+        currentWriter?.close()
+        
         status = .FINISHED
         print(DEBUG_TAG+"\t\tFinished")
     }
@@ -393,8 +394,8 @@ extension ReceiveFileOperation {
         status = .CANCELLED
         
         // cancel current writing operation
-//        currentWriter?.fail()
-        currentWriter?.close()
+        currentWriter?.fail()
+//        currentWriter?.close()
     }
     
     
@@ -406,8 +407,8 @@ extension ReceiveFileOperation {
         owningRemote?.callClientDeclineTransfer(self, error: error)
         status = .CANCELLED
         
-//        currentWriter?.fail()
-        currentWriter?.close()
+        currentWriter?.fail()
+//        currentWriter?.close()
     }
     
     
