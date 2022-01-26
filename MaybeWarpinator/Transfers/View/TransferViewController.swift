@@ -146,6 +146,10 @@ class TransferViewController: UIViewController {
             self.updateDisplay()
         }
         
+        transferViewModel?.onFileAdded = {
+            
+        }
+        
         remoteViewModel?.onInfoUpdated = {
             self.updateDisplay()
         }
@@ -293,7 +297,16 @@ class TransferViewController: UIViewController {
             }
             
         }
-//
+
+        operationsStack.arrangedSubviews.forEach { subview in
+            subview.removeFromSuperview()
+        }
+        
+        for viewmodel in transferViewModel.files {
+            addFileViewToStack(withViewModel: viewmodel)
+        }
+        
+        
 //        transferButton.isUserInteractionEnabled = buttonStatus.pressable
 //        transferButton.alpha = buttonStatus.pressable ? 1 : 0.5
 //
@@ -334,6 +347,7 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     private var operation: TransferOperation
     
     var onInfoUpdated: ()->Void = {}
+    var onFileAdded: ()->Void = {}
     
     var UUID: UInt64 {
         return operation.UUID
@@ -433,9 +447,24 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
             
             let transfer = operation as! ReceiveFileOperation
             
-            for filewriter in transfer.files {
-                let vm = ListedFileWriterViewModel(operation: filewriter)
+            for writer in transfer.fileWriters {
+                
+                
+                let vm: ListedFileViewModel
+                if let fileWriter = writer as? FileWriter {
+                    vm = ListedFileWriterViewModel(fileWriter)
+                } else {
+                    let folderWriter = writer as! FolderWriter
+                    vm = ListedFolderWriterViewModel(folderWriter)
+                }
+                
                 viewModels.append(vm)
+                
+                
+                
+                
+//                let vm = ListedFileWriterViewModel(operation: filewriter)
+//                viewModels.append(vm)
             }
             
         }
@@ -492,7 +521,9 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     
     
     func fileAdded() {
-        
+        DispatchQueue.main.async { // execute UI on main thread
+            self.onFileAdded()
+        }
     }
     
     

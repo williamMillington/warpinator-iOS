@@ -174,7 +174,7 @@ protocol ListedFileViewModel {
 
 
 // MARK: -
-// MARK: - Reader View Model
+// MARK: - FileReader VM
 final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
     private let operation: FileReader
@@ -222,7 +222,7 @@ final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFi
 }
 
 
-// MARK: - Folder Reader View Model
+// MARK: - FolderReader VM
 final class ListedFolderReaderViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
     private let operation: FolderReader
@@ -271,7 +271,7 @@ final class ListedFolderReaderViewModel: NSObject, ListedFileViewModel, Observes
 
 
 // MARK: -
-// MARK: - Sender View Model
+// MARK: - FileWriterVM
 final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
     private var operation: FileWriter
@@ -284,7 +284,7 @@ final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFi
     
     var name: String {
         
-        return operation.filename
+        return operation.originalName
     }
     
     var size: String {
@@ -303,7 +303,7 @@ final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFi
     }
     
     
-    init(operation: FileWriter){
+    init(_ operation: FileWriter){
         self.operation = operation
         super.init()
         operation.addObserver(self)
@@ -319,3 +319,57 @@ final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFi
         operation.removeObserver(self)
     }
 }
+
+
+// MARK: -
+// MARK: - FolderWriterVM
+final class ListedFolderWriterViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
+    
+    private var operation: FolderWriter
+    var onUpdated: ()->Void = {}
+    
+    var type: String {
+        // TODO: expose MIME
+        return "Folder"
+    }
+    
+    var name: String {
+        
+        return operation.originalName
+    }
+    
+    var size: String {
+        
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        
+        let bytes = operation.writtenBytesCount
+        
+        return formatter.string(fromByteCount:  Int64( bytes) )
+    }
+    
+    
+    var progress: Double {
+        return 0
+    }
+    
+    
+    init(_ operation: FolderWriter){
+        self.operation = operation
+        super.init()
+        operation.addObserver(self)
+    }
+    
+    func infoDidUpdate(){
+        DispatchQueue.main.async {
+            self.onUpdated()
+        }
+    }
+    
+    deinit {
+        operation.removeObserver(self)
+    }
+}
+
+
+

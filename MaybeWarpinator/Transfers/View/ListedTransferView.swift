@@ -205,6 +205,10 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
         }
     }
     
+    func fileAdded() {
+        
+    }
+    
     deinit {
         operation.removeObserver(self)
     }

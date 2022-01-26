@@ -76,9 +76,9 @@ class ReceiveFileOperation: TransferOperation {
     
     var currentRelativePath: String = ""
     
-    var files: [FileWriter] = []
-    var writerIndex = 0
-    var currentFile: FileWriter?
+    var fileWriters: [WritesFile] = []
+//    var writerIndex = 0
+    var currentWriter: WritesFile?
     
     
     var observers: [ObservesTransferOperation] = []
@@ -141,14 +141,14 @@ extension ReceiveFileOperation {
         bytesPerSecond = 0
         
         // reset filewriters
-        files = []
-        for i in 0..<fileCount {
+        fileWriters = []
+//        for i in 0..<fileCount {
             // Create 'empty' FileWriters
-            files.append(FileWriter(filename: "File \(i)"))
-        }
-        writerIndex = 0
+//            fileWriters.append(FileWriter(filename: "File \(i)"))
+//        }
+//        writerIndex = 0
         currentRelativePath = ""
-        currentFile = nil
+        currentWriter = nil
         
         dataStream = nil
         
@@ -236,57 +236,126 @@ extension ReceiveFileOperation {
     // MARK: processChunk
     func processChunk(_ chunk: FileChunk){
         
-//        print(DEBUG_TAG+" reading chunk:")
-//        print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
-//        print(DEBUG_TAG+"\tfileType: \( TransferItemType(rawValue: chunk.fileType)!) ")
-//        print(DEBUG_TAG+"\tfileMode: \(chunk.fileMode)")
-//        print(DEBUG_TAG+"\ttime: \(chunk.time)")
+        print(DEBUG_TAG+" reading chunk:")
+        print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
+        print(DEBUG_TAG+"\tfileType: \( TransferItemType(rawValue: chunk.fileType)!) ")
+        print(DEBUG_TAG+"\tfileMode: \(chunk.fileMode)")
+        print(DEBUG_TAG+"\ttime: \(chunk.time)")
         
-        // If Directory
-        if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+        
+        //  IF WE HAVE A WRITER CURRENTLY GOING
+        if let writer = currentWriter {
             
-            do { // Create the directory
-                try FileWriter.createNewDirectory(withName: chunk.relativePath)
+            
+            // TODO: I don't like this nested-do. MEH.
+            do {
+                do {
+                    // TRY TO WRITE TO CURRENT WRITER
+                    try writer.processChunk(chunk)
+                    
+                    bytesTransferred += chunk.chunk.count
+                    
+                    return // successfully processed (no errors)
+                    
+                } catch WritingError.FILENAME_MISMATCH { // WRITING FAILS
+                    print(DEBUG_TAG+"New file!")
+                    
+                    // close old writer
+                    writer.close()
+                    
+                    
+                    // If folder
+                    if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+                        currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+                    } else {
+                        currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+                        try currentWriter?.processChunk(chunk)
+                    }
+                    
+                } catch { throw error }
+            } catch {
+                print(DEBUG_TAG+" Unexpected Error: \(error)")
             }
-            catch let error as FileWriter.FileReceiveError { // If directory already exists
-                
-                switch error {
-                case .DIRECTORY_EXISTS: print(DEBUG_TAG+"Directory exists (\(error))")
-                    currentRelativePath = chunk.relativePath
-                default: print(DEBUG_TAG+"Error: \(error)"); break
-                }
-                
-            } catch { // uknown error
-                print(DEBUG_TAG+"Unknown error")
-            }
             
-        } else {// Else, write file
-            
-            // if starting a new file
-            if chunk.relativePath != currentRelativePath {
-                
-                print(DEBUG_TAG+" creating new file: \(chunk.relativePath)")
-                
-                // close out old file, if it exists
-                if let file = currentFile {
-                    file.finish()
-//                    files.append(file)
-                }
-                
-                currentRelativePath = chunk.relativePath
-                
-                // TODO: this automatically overwrites, provide option to avoid
-//                let file = FileWriter(filename: currentRelativePath)
-                currentFile = files[writerIndex] //   file
-                writerIndex += 1
-                currentFile?.filename = currentRelativePath
-                currentFile?.createFile()
-            } // else continue writing to current file
-            
-            currentFile?.write(chunk.chunk)
         }
         
-        bytesTransferred += chunk.chunk.count
+        
+        // NO CURRENT WRITER
+        
+        // CREATE WRITER TO HANDLE CHUNK
+        
+        do {
+            
+            
+            // If folder
+            if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+                currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+                fileWriters.append(currentWriter!)
+            } else {
+                currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+                fileWriters.append(currentWriter!)
+                
+                try currentWriter?.processChunk(chunk)
+            }
+            
+            
+            // Probably should do this as a computed variable of the sum of childwriter's bytestransferred?
+            bytesTransferred += chunk.chunk.count
+            
+            
+        } catch {
+            print(DEBUG_TAG+"Unexpected error: \(error)")
+            
+        }
+        
+        
+        
+        
+//        // If Directory
+//        if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+//
+//            do { // Create the directory
+//                try FileWriter.createNewDirectory(withName: chunk.relativePath)
+//            }
+//            catch let error as WritingError { // If directory already exists
+//
+//                switch error {
+//                case .DIRECTORY_EXISTS: print(DEBUG_TAG+"Directory exists (\(error))")
+//                    currentRelativePath = chunk.relativePath
+//                default: print(DEBUG_TAG+"Error: \(error)"); break
+//                }
+//
+//            } catch { // uknown error
+//                print(DEBUG_TAG+"Unknown error")
+//            }
+//
+//        } else {// Else, write file
+//
+//            // if starting a new file
+//            if chunk.relativePath != currentRelativePath {
+//
+//                print(DEBUG_TAG+" creating new file: \(chunk.relativePath)")
+//
+//                // close out old file, if it exists
+//                if let file = currentFile {
+//                    file.finish()
+////                    files.append(file)
+//                }
+//
+//                currentRelativePath = chunk.relativePath
+//
+//                // TODO: this automatically overwrites, provide option to avoid
+////                let file = FileWriter(filename: currentRelativePath)
+//                currentFile = files[writerIndex] //   file
+//                writerIndex += 1
+//                currentFile?.filename = currentRelativePath
+//                currentFile?.createFile()
+//            } // else continue writing to current file
+//
+//            currentFile?.write(chunk.chunk)
+//        }
+//
+//        bytesTransferred += chunk.chunk.count
         
         updateObserversInfo()
     }
@@ -301,7 +370,7 @@ extension ReceiveFileOperation {
             return
         }
         
-        currentFile?.finish()
+//        currentWriter?.finish()
         status = .FINISHED
         print(DEBUG_TAG+"\t\tFinished")
     }
@@ -336,7 +405,8 @@ extension ReceiveFileOperation {
         status = .CANCELLED
         
         // cancel current writing operation
-        currentFile?.fail()
+//        currentWriter?.fail()
+        currentWriter?.close()
     }
     
     
@@ -348,7 +418,8 @@ extension ReceiveFileOperation {
         owningRemote?.callClientDeclineTransfer(self, error: error)
         status = .CANCELLED
         
-        currentFile?.fail()
+//        currentWriter?.fail()
+        currentWriter?.close()
     }
     
     
@@ -376,6 +447,12 @@ extension ReceiveFileOperation {
     func updateObserversInfo(){
         observers.forEach { observer in
             observer.infoDidUpdate()
+        }
+    }
+    
+    func updateObserversFileAdded(){
+        observers.forEach { observer in
+            observer.fileAdded()
         }
     }
 }

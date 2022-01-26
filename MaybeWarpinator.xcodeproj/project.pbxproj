@@ -28,6 +28,7 @@
 		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
 		7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B0702753B538001FA7C9 /* ListedTransferView.swift */; };
 		7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */; };
+		79395589279F468F00D5EC8B /* FolderWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79395588279F468F00D5EC8B /* FolderWriter.swift */; };
 		7954F92F2795F98900F255AE /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7954F92E2795F98900F255AE /* SettingsManager.swift */; };
 		796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796328232757FF930056F76B /* RemoteCoordinator.swift */; };
 		7963282727599F030056F76B /* FileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7963282627599F030056F76B /* FileWriter.swift */; };
@@ -98,6 +99,7 @@
 		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
 		7936B0702753B538001FA7C9 /* ListedTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedTransferView.swift; sourceTree = "<group>"; };
 		7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewController.swift; sourceTree = "<group>"; };
+		79395588279F468F00D5EC8B /* FolderWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderWriter.swift; sourceTree = "<group>"; };
 		7954F92E2795F98900F255AE /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		796328232757FF930056F76B /* RemoteCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoordinator.swift; sourceTree = "<group>"; };
 		7963282627599F030056F76B /* FileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWriter.swift; sourceTree = "<group>"; };
@@ -310,6 +312,7 @@
 				791D77F9276A5F4B008140CC /* FileReader.swift */,
 				796B5A88278BB3CB009CEF73 /* FolderReader.swift */,
 				7963282627599F030056F76B /* FileWriter.swift */,
+				79395588279F468F00D5EC8B /* FolderWriter.swift */,
 				797C12BC2711102700A2795C /* ReceiveFileOperation.swift */,
 				79343EB22743502B008E0890 /* SendFileOperation.swift */,
 				79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */,
@@ -498,6 +501,7 @@
 				79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */,
 				79B8A0F7274561C600369E62 /* Coordinator.swift in Sources */,
 				791D781527717575008140CC /* Observable.swift in Sources */,
+				79395589279F468F00D5EC8B /* FolderWriter.swift in Sources */,
 				79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */,
 				796B5A89278BB3CB009CEF73 /* FolderReader.swift in Sources */,
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
