@@ -40,6 +40,11 @@ class FileWriter: WritesFile {
     lazy var fileSystemName = downloadName
     var fileSystemParentPath: String
     
+    
+    var fileExtension: String = ""
+    lazy var extensionlessFileSystemName = itemURL.deletingPathExtension().lastPathComponent
+    
+    
     var renameCount = 0
     var overwrite = false
     
@@ -49,23 +54,25 @@ class FileWriter: WritesFile {
     }
     
     var fileHandle: FileHandle?
-    
     var bytesWritten: Int = 0
     
     var observers: [ObservesFileOperation] = []
     
+    
     // MARK: - init
     init(withRelativePath path: String, modifiedRelativeParentPath moddedParentPath: String? = nil, overwrite: Bool){
         
-        downloadRelativePath = path
         
         let pathParts = path.components(separatedBy: "/")
+        
+        downloadRelativePath = path
+        downloadName = pathParts.last ?? "File"
         
         let parentPathParts = pathParts.dropLast()
         let parentPath = parentPathParts.isEmpty  ?  ""  :  parentPathParts.joined(separator: "/") + "/"
         fileSystemParentPath = moddedParentPath ?? parentPath
-        
-        downloadName = pathParts.last ?? "File"
+        print(DEBUG_TAG+"fileystemparentpath is \(fileSystemParentPath)")
+        fileExtension = itemURL.pathExtension
         
         
         // file already exists
@@ -74,7 +81,7 @@ class FileWriter: WritesFile {
             
             // Rename
             if !overwrite {
-                fileSystemName = rename(downloadName)
+                fileSystemName = rename(downloadName) + ".\(fileExtension)"
             } else { //Overwrite
                 
                 do {
@@ -83,7 +90,7 @@ class FileWriter: WritesFile {
                 } catch {
                     // if overwrite fails, rename
                     print(DEBUG_TAG+"\tfailed to overwrite, renaming...")
-                    fileSystemName = rename(downloadName)
+                    fileSystemName = rename(downloadName) + ".\(fileExtension)"
                 }
             }
         }
@@ -91,6 +98,8 @@ class FileWriter: WritesFile {
         
         fileManager.createFile(atPath: itemURL.path, contents: nil)
         print(DEBUG_TAG+"created file called \( fileSystemParentPath + "\(fileSystemName)" )")
+        
+        
         
         fileHandle = try? FileHandle(forUpdating: itemURL)
     }
@@ -101,18 +110,18 @@ class FileWriter: WritesFile {
     // TODO: rewrite to be gooder?
     private func rename(_ name: String) -> String {
         
-        print(DEBUG_TAG+"Renaming \(name)")
+        print(DEBUG_TAG+"Renaming \(name) (\(renameCount))")
         
         var newName = "File_Renaming_Failed"
-        renameCount += 1
         
-        if renameCount <= 1000 {
+        while renameCount <= 1000 {
+            renameCount += 1
             
-            newName = name + "\(renameCount)"
-            let path = baseURL.path + "/" + fileSystemParentPath + "\(newName)"
+            newName = extensionlessFileSystemName + "\(renameCount)"
+            let path = baseURL.path + "/" + fileSystemParentPath + "\(newName)" + fileExtension
             
-            if FileManager.default.fileExists(atPath: path)  {
-                return rename(newName)
+            if !FileManager.default.fileExists(atPath: path)  {
+                break // return rename(fileSystemName)
             }
         }
         

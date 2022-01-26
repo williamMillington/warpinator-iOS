@@ -38,7 +38,8 @@ class FolderWriter: NSObject, WritesFile {
     var currentWriter: WritesFile? = nil
     
     var bytesWritten: Int {
-        return completedFiles.map { return $0.bytesWritten  }.reduce(0, +)
+        let currWriterBytes = currentWriter?.bytesWritten ?? 0
+        return currWriterBytes + completedFiles.map { return $0.bytesWritten  }.reduce(0, +)
     }
     
     var observers: [ObservesFileOperation] = []
@@ -79,6 +80,9 @@ class FolderWriter: NSObject, WritesFile {
         }
         
         
+        
+        
+        
         // create new directory
         // TODO: rewrite to unambiguously deal with the inability to write
         do {  try fileManager.createDirectory(atPath: itemURL.path,
@@ -96,22 +100,24 @@ class FolderWriter: NSObject, WritesFile {
     // TODO: rewrite to be gooder?
     //  - right now 5 renames result in "<name>12345" instead of "<name>5"
     func rename(_ name: String) -> String {
-        
-        print(DEBUG_TAG+"Renaming \(name)")
+//
+//        print(DEBUG_TAG+"Renaming \(name) (\(renameCount))")
         
         var newName = "Folder_Renaming_Failed"
-        renameCount += 1
         
-        if renameCount <= 1000 {
+        while renameCount <= 1000 {
+            
+            renameCount += 1
             
             newName = name + "\(renameCount)"
             
             let path = baseURL.path + "/" + fileSystemParentPath + "\(newName)"
             
             if FileManager.default.fileExists(atPath: path)  {
-                return rename(newName)
+                break // rename(downloadName)
             }
         }
+        
         print(DEBUG_TAG+"new name is \(newName)")
         return newName
     }

@@ -13,7 +13,7 @@ import GRPC
 // MARK: ReceiveFileOperation
 class ReceiveFileOperation: TransferOperation {
     
-    lazy var DEBUG_TAG: String = "ReceiveFileOperation (\(owningRemoteUUID),\(direction)):"
+    lazy var DEBUG_TAG: String = "ReceiveFileOperation (\(owningRemoteUUID),\(direction)): "
     
     
     struct MockOperation {
@@ -58,7 +58,10 @@ class ReceiveFileOperation: TransferOperation {
     var timestamp: UInt64
     
     var totalSize: Int
-    var bytesTransferred: Int = 0
+    var bytesTransferred: Int {
+        let currWriterBytes = currentWriter?.bytesWritten ?? 0
+        return currWriterBytes + fileWriters.map{ return $0.bytesWritten }.reduce(0, +)
+    }
     var bytesPerSecond: Double = 0
     var progress: Double {
         return Double(bytesTransferred) / Int(totalSize)
@@ -137,7 +140,6 @@ extension ReceiveFileOperation {
         print(DEBUG_TAG+"\t Space is available");
         
         // In case of retry
-        bytesTransferred = 0
         bytesPerSecond = 0
         
         // reset filewriters
@@ -238,22 +240,17 @@ extension ReceiveFileOperation {
         
         print(DEBUG_TAG+" reading chunk:")
         print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
-        print(DEBUG_TAG+"\tfileType: \( TransferItemType(rawValue: chunk.fileType)!) ")
-        print(DEBUG_TAG+"\tfileMode: \(chunk.fileMode)")
-        print(DEBUG_TAG+"\ttime: \(chunk.time)")
+        print(DEBUG_TAG+"\tfile/folder: \( TransferItemType(rawValue: chunk.fileType)!) ")
         
         
         //  IF WE HAVE A WRITER CURRENTLY GOING
         if let writer = currentWriter {
-            
             
             // TODO: I don't like this nested-do. MEH.
             do {
                 do {
                     // TRY TO WRITE TO CURRENT WRITER
                     try writer.processChunk(chunk)
-                    
-                    bytesTransferred += chunk.chunk.count
                     
                     return // successfully processed (no errors)
                     
@@ -293,11 +290,6 @@ extension ReceiveFileOperation {
                 
                 try currentWriter?.processChunk(chunk)
             }
-            
-            
-            // Probably should do this as a computed variable of the sum of childwriter's bytestransferred?
-            bytesTransferred += chunk.chunk.count
-            
             
         } catch {
             print(DEBUG_TAG+"Unexpected error: \(error)")
