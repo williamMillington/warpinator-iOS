@@ -203,35 +203,6 @@ extension ReceiveFileOperation {
             
         }
         
-//        dataStream = client.startTransfer(operationInfo) { chunk in
-//
-//            guard self.status == .TRANSFERRING else {
-//                print("canceling chunk processing")
-//                return
-//            }
-//
-//            self.receivingChunksQueue.async {
-//                self.processChunk(chunk)
-//            }
-//        }
-//        print(DEBUG_TAG+"Data stream is \(dataStream)")
-//        
-//        dataStream?.status.whenComplete { result in
-//            
-//            print(self.DEBUG_TAG+"completed with result \(result)")
-//            
-//        }
-//        
-//        dataStream?.status.whenSuccess { status in
-//            print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
-//            self.finishReceive()
-//        }
-//        
-//        dataStream?.status.whenFailure { error in
-//            print(self.DEBUG_TAG+"transfer failed: \(error)")
-//            self.receiveWasCancelled()
-//        }
-        
     }
     
     

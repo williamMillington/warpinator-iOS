@@ -187,7 +187,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         
         var details = RemoteDetails(endpoint: result.endpoint)
-        details.serviceName = serviceName
+//        details.serviceName = serviceName
         details.hostname = hostname
         details.uuid = serviceName
         details.api = api

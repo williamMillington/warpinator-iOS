@@ -72,6 +72,7 @@
 		79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */; };
 		79C688F627611A7E00353C53 /* ListedFileOperationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C688F527611A7E00353C53 /* ListedFileOperationView.swift */; };
 		79C688FB2766905800353C53 /* AuthenticationConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C688FA2766905800353C53 /* AuthenticationConnection.swift */; };
+		79CBD45827A34273002C29D3 /* Data+ChunkIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CBD45727A34273002C29D3 /* Data+ChunkIterator.swift */; };
 		79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */; };
 		79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */; };
 		79F5FBE3277E592600323DC4 /* SendTransferViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 79F5FBE2277E592600323DC4 /* SendTransferViewController.xib */; };
@@ -141,6 +142,7 @@
 		79C002BD270E696F002DB22B /* WarpinatorServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorServiceProvider.swift; sourceTree = "<group>"; };
 		79C688F527611A7E00353C53 /* ListedFileOperationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileOperationView.swift; sourceTree = "<group>"; };
 		79C688FA2766905800353C53 /* AuthenticationConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationConnection.swift; sourceTree = "<group>"; };
+		79CBD45727A34273002C29D3 /* Data+ChunkIterator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+ChunkIterator.swift"; sourceTree = "<group>"; };
 		79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransfersCommon.swift; sourceTree = "<group>"; };
 		79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Misc.swift"; sourceTree = "<group>"; };
 		79F5FBE2277E592600323DC4 /* SendTransferViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SendTransferViewController.xib; sourceTree = "<group>"; };
@@ -365,6 +367,7 @@
 				79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */,
 				79B8A0E927449EB500369E62 /* String+substring.swift */,
 				791D7825277378F0008140CC /* Array+Index_nillable.swift */,
+				79CBD45727A34273002C29D3 /* Data+ChunkIterator.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -479,6 +482,7 @@
 				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
 				79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
+				79CBD45827A34273002C29D3 /* Data+ChunkIterator.swift in Sources */,
 				791D77E72767B244008140CC /* SendTransferViewController.swift in Sources */,
 				79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */,
 				797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */,

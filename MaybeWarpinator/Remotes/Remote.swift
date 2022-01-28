@@ -37,12 +37,12 @@ struct RemoteDetails {
     
     var endpoint: NWEndpoint
     
-    var displayName: String = "No_DisplayName"
-    var username: String = "No_Username"
+    var displayName: String = "Name"
+    var username: String = "username"
     var userImage: UIImage?
     
-    var serviceName: String = "No_ServiceName"
-    var hostname: String = "No_Hostname"
+//    var serviceName: String = "No_ServiceName"
+    var hostname: String = "hostname"
     var ipAddress: String = RemoteDetails.NO_IP_ADDRESS
     var port: Int = 0 //"No_Port"
     var authPort: Int = 0 //"No_Auth_Port"
@@ -64,7 +64,8 @@ extension RemoteDetails {
         let mock = RemoteDetails(DEBUG_TAG: "MoCkReMoTe",
                                  endpoint: mockEndpoint,
                                  displayName: "mOcK ReMoTe",   username: "mOcK uSeR",
-                                 serviceName: "MoCk SeRvIcE",  hostname: "mOcK hOsT",  ipAddress: "Som.eAd.dre.ss",
+//                                 serviceName: "MoCk SeRvIcE",
+                                 hostname: "mOcK hOsT",  ipAddress: "Som.eAd.dre.ss",
                                  port: 8080,   authPort: 8081,
                                  uuid: "mOcK uUiD",  api: "2",
                                  status: .Disconnected,  serviceAvailable: false)
@@ -344,7 +345,7 @@ extension Remote {
     }
     
     
-    //MARK: retrieveRemoteInfo
+    //MARK: getRemoteInfo
     func retrieveRemoteInfo(){
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
@@ -371,6 +372,7 @@ extension Remote {
         var avatarBytes: Data = Data()
         
         let imageCall = warpClient?.getRemoteMachineAvatar(lookupName) { avatar in
+            print(self.DEBUG_TAG+"avatar chunk is \(avatar.avatarChunk.count) bytes long")
             avatarBytes.append( avatar.avatarChunk )
         }
         

@@ -5,7 +5,7 @@
 //  Created by William Millington on 2021-10-06.
 //
 
-import Foundation
+import UIKit
 import GRPC
 import NIO
 
@@ -53,11 +53,12 @@ public class WarpinatorServiceProvider: WarpProvider {
     lazy var duplexQueueLabel = "Serve_Duplex"
     lazy var duplexQueue = DispatchQueue(label: duplexQueueLabel, qos: .userInitiated)
     
+    lazy var avatarQueueLabel = "Serve_Avatar"
+    lazy var sendingAvaratChunksQueue = DispatchQueue(label: avatarQueueLabel, qos: .utility)
+    
     // TODO: I thiiiiiink there needs to be a timer for each remote, otherwise we can only handle one duplex at a time.
     // I think.
     var timer: Timer?
-    
-    
     
     
     // MARK: Duplex
@@ -158,9 +159,67 @@ public class WarpinatorServiceProvider: WarpProvider {
     // receive request for avatar image
     public func getRemoteMachineAvatar(request: LookupName, context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
         
-        print(DEBUG_TAG+"Avatar is being retrieved by \(request.readableName) (\(request.id))")
+        print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
         
-        return context.eventLoop.makeSucceededFuture(GRPC.GRPCStatus.ok)
+        let systemPhoneImage = UIImage(systemName: "iphone")!.withRenderingMode(.alwaysTemplate)
+        let avatarImg = settingsManager?.avatarImage ?? systemPhoneImage
+
+        let avatarImgBytes = avatarImg.pngData()
+
+        let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
+
+//        struct dataIterator: Sequence, IteratorProtocol {
+//            let data: Data
+//            let chunkSize: Int
+//            var index = 0
+//            mutating func next() -> Data? {
+//                
+//                guard index < data.count else { return nil }
+//                
+//                var endIndex = index + chunkSize
+//                if endIndex >= data.count {
+//                    endIndex = data.count - 1
+//                }
+//                
+//                defer {  index = endIndex + 1  }
+//                
+//                return Data( data[index...endIndex] )
+//            }
+//        }
+        
+        if let bytes = avatarImgBytes {
+            
+            sendingAvaratChunksQueue.async {
+                
+                for (i, chunk) in bytes.iterator(withChunkSize: 1024 * 1024).enumerated(){
+                    
+                    let result = context.sendResponse( RemoteMachineAvatar.with {
+                        $0.avatarChunk = chunk
+                    })
+                    
+                    do {     try result.wait()      }
+                    catch {
+                        print(self.DEBUG_TAG+"avatar chunk \(i) prevented from waiting. Reason: \(error)")
+                    }
+                    
+                    result.whenSuccess { result in
+                        print(self.DEBUG_TAG+"avatar chunk succeeded (\(result))")
+                    }
+                    result.whenFailure{ error in
+                        print(self.DEBUG_TAG+"avatar chunk failed (\(error))")
+                    }
+                    
+                }
+                
+                promise.succeed(.ok)
+            }
+            
+        } else {
+            // no image
+            promise.succeed(GRPCStatus.init(code: .notFound, message: "No avatar image found"))
+        }
+        
+        return promise.futureResult
     }
     
     
