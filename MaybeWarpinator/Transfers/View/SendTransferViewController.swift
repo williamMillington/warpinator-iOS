@@ -207,11 +207,11 @@ class SendTransferViewController: UIViewController {
 //    func addFile(_ file: FileSelection ){
     func addFile(_ file: TransferSelection ){
         
-        print(DEBUG_TAG+"adding file: \(file)")
+        print(DEBUG_TAG+"adding file: \(file.name)")
 //        print(DEBUG_TAG+"\tstack frame: \(filesStack.frame)")
         
         guard selections[file] == nil else {
-            print(DEBUG_TAG+"File \(file.name) already selected")
+            print(DEBUG_TAG+"\t\tFile \(file.name) already selected")
             return
         }
         

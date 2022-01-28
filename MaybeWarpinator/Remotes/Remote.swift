@@ -7,19 +7,11 @@
 
 import UIKit
 
-
 import NIO
 import NIOSSL
 import Network
 
 import GRPC
-import SwiftProtobuf
-
-
-import CryptoKit
-import Sodium
-
-
 import Logging
 
 
@@ -28,7 +20,7 @@ struct RemoteDetails {
     enum ConnectionStatus: String {
         case OpeningConnection, FetchingCredentials, AquiringDuplex, DuplexAquired
         case Error
-        case Connected, Disconnected
+        case Connected, Idle, Disconnected
     }
     
     static let NO_IP_ADDRESS = "No_IPAddress"
@@ -41,7 +33,6 @@ struct RemoteDetails {
     var username: String = "username"
     var userImage: UIImage?
     
-//    var serviceName: String = "No_ServiceName"
     var hostname: String = "hostname"
     var ipAddress: String = RemoteDetails.NO_IP_ADDRESS
     var port: Int = 0 //"No_Port"
@@ -63,12 +54,16 @@ extension RemoteDetails {
                                                port: NWEndpoint.Port(integerLiteral: 8080))
         let mock = RemoteDetails(DEBUG_TAG: "MoCkReMoTe",
                                  endpoint: mockEndpoint,
-                                 displayName: "mOcK ReMoTe",   username: "mOcK uSeR",
-//                                 serviceName: "MoCk SeRvIcE",
-                                 hostname: "mOcK hOsT",  ipAddress: "Som.eAd.dre.ss",
-                                 port: 8080,   authPort: 8081,
-                                 uuid: "mOcK uUiD",  api: "2",
-                                 status: .Disconnected,  serviceAvailable: false)
+                                 displayName: "mOcK ReMoTe",
+                                 username: "mOcK uSeR",
+                                 hostname: "mOcK hOsT",
+                                 ipAddress: "Som.eAd.dre.ss",
+                                 port: 8080,
+                                 authPort: 8081,
+                                 uuid: "mOcK uUiD",
+                                 api: "2",
+                                 status: .Disconnected,
+                                 serviceAvailable: false)
         return mock
     }()
 }
@@ -82,9 +77,7 @@ public class Remote {
     lazy var DEBUG_TAG: String = "REMOTE (hostname: \"\(details.hostname)\"): "
     
     var details: RemoteDetails {
-        didSet {
-            self.informObserversInfoDidChange()
-        }
+        didSet {  informObserversInfoDidChange()  }
     }
     
     var sendingOperations: [SendFileOperation] = []
@@ -93,7 +86,7 @@ public class Remote {
     var channel: ClientConnection?
     var warpClient: WarpClient?
     
-    var eventloopGroup: EventLoopGroup? //(numberOfThreads: 5) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var eventloopGroup: EventLoopGroup?
     
     
     var authenticationConnection: AuthenticationConnection?
@@ -135,6 +128,7 @@ public class Remote {
     }
     
     
+    //
     // MARK: startConnection
     func startConnection(){
         
@@ -155,6 +149,7 @@ public class Remote {
     }
     
     
+    //
     //MARK: connect
     func connect(withCertificate certificate: NIOSSLCertificate){
         
@@ -164,7 +159,7 @@ public class Remote {
         }
         
         details.status = .OpeningConnection
-        
+
         var keepalive = ClientConnectionKeepalive()
         keepalive.permitWithoutCalls = true
         
@@ -194,7 +189,7 @@ public class Remote {
     
     
     
-    
+    //
     // MARK: onDisconnect
     func onDisconnect(_ error: Error? = nil){
         print(self.DEBUG_TAG+"channel disconnected")
@@ -216,13 +211,15 @@ public class Remote {
         
         if let error = error {
             print(DEBUG_TAG+"with error: \(error)")
-        } else {
-            details.status = .Disconnected
         }
+        
+        details.status = .Disconnected
+        
     }
     
     
-    
+    //
+    //
     func stopAllTransfers(forStatus status: TransferDirection){
         
         if status == .SENDING {
@@ -239,7 +236,6 @@ public class Remote {
             }
         }
     }
-    
 }
 
 
@@ -247,11 +243,12 @@ public class Remote {
 
 
 
-
-//MARK: - Duplex
+//
+// MARK: - Duplex
 extension Remote {
     
     
+    //
     // MARK: acquireDuplex
     private func aquireDuplex(){
         
@@ -308,14 +305,14 @@ extension Remote {
             
         }
     }
-    
-    
 }
 
 
-//MARK: -
+//
+// MARK: -
 extension Remote {
     
+    //
     // MARK: Ping
     public func ping(){
         
@@ -323,8 +320,8 @@ extension Remote {
             print(DEBUG_TAG+"no client connection"); return
         }
         
-        // if we're currently transferring something, no need to ping.
-        if sendingOperations.count == 0 {
+        
+//        if sendingOperations.count == 0 {
             
             print(self.DEBUG_TAG+"pinging")
             
@@ -334,7 +331,7 @@ extension Remote {
                 print(self.DEBUG_TAG+"ping failed")
 //                self.details.status = .Disconnected
             }
-        }
+//        }
         
         // ping again in 5 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
@@ -345,11 +342,10 @@ extension Remote {
     }
     
     
-    //MARK: getRemoteInfo
+    // MARK: getRemoteInfo
     func retrieveRemoteInfo(){
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
-        
         
         // get info
         let infoCall = warpClient?.getRemoteMachineInfo(lookupName)
@@ -395,26 +391,24 @@ extension Remote {
 
 
 
-
-//MARK: - Transfers Common
+//
+// MARK: - Transfers Common
 extension Remote {
     
-    
-    
-    //MARK: find transfer operation
+    //
+    // MARK: find transfer operation
     func findTransferOperation(for uuid: UInt64) -> TransferOperation? {
         
         if let operation = findReceiveOperation(withStartTime: uuid) {
-            return operation
-        }
+            return operation  }
         
         if let operation = findSendOperation(withStartTime: uuid){
-            return operation
-        }
+            return operation  }
         
         return nil
     }
     
+    //
     // MARK: Stop Transfer
     func callClientStopTransfer(_ operation: TransferOperation, error: Error?) {
         
@@ -422,10 +416,8 @@ extension Remote {
         
         if let op = findTransferOperation(for: operation.UUID) {
             
-            let info = op.operationInfo
-            
             let stopInfo: StopInfo = .with {
-                $0.info = info
+                $0.info = op.operationInfo
                 $0.error = (error != nil)
             }
             
@@ -434,11 +426,12 @@ extension Remote {
                 print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
             }
         } else {
-            print(DEBUG_TAG+"error trying to find operation: \(operation)")
+            print(DEBUG_TAG+"Couldn't find operation: \(operation)")
         }
     }
     
     
+    //
     // MARK: Decline Receive Request
     func callClientDeclineTransfer(_ operation: TransferOperation, error: Error? = nil) {
         
@@ -460,11 +453,11 @@ extension Remote {
 
 
 
-
+//
 //MARK: - Receive operations
 extension Remote {
     
-    
+    //
     // MARK: add
     func addReceivingOperation(_ operation: ReceiveFileOperation){
         
@@ -476,6 +469,8 @@ extension Remote {
         operation.status = .WAITING_FOR_PERMISSION
     }
     
+    
+    //
     // MARK: find
     func findReceiveOperation(withStartTime time: UInt64 ) -> ReceiveFileOperation? {
         for operation in receivingOperations {
@@ -486,15 +481,32 @@ extension Remote {
         return nil
     }
     
+    //
     //MARK: start
     func callClientStartTransfer(for operation: ReceiveFileOperation){
         
         print(DEBUG_TAG+"callClientStartTransfer ")
         
         guard let client = warpClient else {
-            print(DEBUG_TAG+"No client becAuSE THERE'S A PROBLEM ")
+            print(DEBUG_TAG+"cancel receiving; no client connection "); return
+        }
+        
+        // ping to wake up before sending, if idle
+        guard details.status != .Idle else {
+            
+            let result = client.ping(lookupName)
+            
+            result.response.whenComplete { result in
+                switch result {
+                case .success(_):
+                    self.details.status = .Connected
+                    operation.startReceive(usingClient: client) // if still connected, proceed with sending
+                case .failure(let error): self.onDisconnect(error)          // if connection is dead, signal disconnect
+                }
+            }
             return
         }
+        
         
         operation.startReceive(usingClient: client)
         
@@ -504,11 +516,11 @@ extension Remote {
 
 
 
-
+//
 // MARK: - Sending operations
 extension Remote {
     
-    
+    //
     // MARK: add
     func addSendingOperation(_ operation: SendFileOperation){
         
@@ -521,7 +533,7 @@ extension Remote {
 
     }
     
-    
+    //
     // MARK: find
     func findSendOperation(withStartTime time: UInt64 ) -> SendFileOperation? {
         for operation in sendingOperations {
@@ -532,19 +544,10 @@ extension Remote {
         return nil
     }
     
-    //MARK send files
-//    func sendFiles(_ filenames: [FileName]){
-//
-////        let operation = SendFileOperation(for: filenames)
-////
-////        addSendingOperation(operation)
-////        sendRequest(toTransfer: operation)
-////
-//    }
     
-    
-    //MARK: send files
-//    func sendFiles(_ selections: [FileSelection]){
+    //
+    // MARK: send
+    // create sending operation from selection of files
     func sendFiles(_ selections: [TransferSelection]){
         
         let operation = SendFileOperation(for: selections) 
@@ -554,14 +557,37 @@ extension Remote {
         
     }
     
-    
+    //
+    // send client a message that we have files we want to send
     func sendRequest(toTransfer operation: SendFileOperation ){
         
         print(DEBUG_TAG+"Sending request: \(operation.transferRequest)")
         
-        let response = warpClient?.processTransferOpRequest(operation.transferRequest)
+        // check if we're connected
+        guard let client = warpClient else {
+            print(DEBUG_TAG+"cancelled sending; no client connection"); return
+        }
         
-        response?.response.whenComplete { result in
+        // ping to wake up before sending, if idle
+        guard details.status != .Idle else {
+            
+            let result = client.ping(lookupName)
+            
+            result.response.whenComplete { result in
+                switch result {
+                case .success(_):
+                    self.details.status = .Connected
+                    self.sendRequest(toTransfer: operation) // if still connected, proceed with sending
+                case .failure(let error): self.onDisconnect(error)          // if connection is dead, signal disconnect
+                }
+            }
+            return
+        }
+        
+        
+        let response = client.processTransferOpRequest(operation.transferRequest)
+        
+        response.response.whenComplete { result in
             print(self.DEBUG_TAG+"process request completed; result: \(result)")
         }
         
@@ -575,10 +601,14 @@ extension Remote {
 //MARK: - observers
 extension Remote {
     
+    //
+    //
     func addObserver(_ model: ObservesRemote){
         observers.append(model)
     }
     
+    //
+    //
     func removeObserver(_ model: ObservesRemote){
         
         for (i, observer) in observers.enumerated() {
@@ -588,12 +618,16 @@ extension Remote {
         }
     }
     
+    //
+    //
     func informObserversInfoDidChange(){
         observers.forEach { observer in
             observer.infoDidUpdate()
         }
     }
     
+    //
+    //
     func informObserversOperationAdded(_ operation: TransferOperation){
         observers.forEach { observer in
             observer.operationAdded(operation)
@@ -614,6 +648,7 @@ extension Remote {
 extension Remote: ConnectivityStateDelegate {
     
     
+    //
     //MARK: - connectivityStateDidChange
     public func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
         print(DEBUG_TAG+"channel state has moved from \(oldState) to \(newState)".uppercased())
@@ -631,7 +666,9 @@ extension Remote: ConnectivityStateDelegate {
             if transientFailureCount == 10 {
                 onDisconnect( AuthenticationError.ConnectionError )
             }
-        case .idle, .shutdown: onDisconnect()
+        case .idle:
+            details.status = .Idle
+        case .shutdown: onDisconnect()
         default: break
         }
         
@@ -640,14 +677,13 @@ extension Remote: ConnectivityStateDelegate {
 
 
 
-//MARK: - ClientErrorDelegate
 extension Remote: ClientErrorDelegate {
     
-    
-    //MARK: didCatchError
+    //
+    // MARK: handle bad certificate
     public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
         
-        // if bad cert, discard and retry
+        // if bad cert, discard certificate and retry
         if case NIOSSLError.handshakeFailed(_) = error {
             print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
             authenticationCertificate = nil
@@ -664,11 +700,11 @@ extension Remote: ClientErrorDelegate {
 
 
 
-
+//
 // MARK: - Authentication
 extension Remote: AuthenticationRecipient {
     
-    
+    //
     // MARK: fetch cert
     func obtainCertificate(){
         
@@ -681,7 +717,7 @@ extension Remote: AuthenticationRecipient {
         authenticationConnection?.requestCertificate()
     }
     
-    
+    //
     // MARK: success
     func authenticationCertificateObtained(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
         
@@ -692,6 +728,7 @@ extension Remote: AuthenticationRecipient {
         connect(withCertificate: certificate)
     }
     
+    //
     // MARK: failure
     func failedToObtainCertificate(forRemote details: RemoteDetails, _ error: AuthenticationError){
         print(DEBUG_TAG+"failed to retrieve certificate, error: \(error)")
