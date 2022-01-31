@@ -32,18 +32,25 @@ class RegistrationServer {
     
     var certificateServer = CertificateServer()
     
-    
-    var eventLoopGroup: EventLoopGroup? // = MultiThreadedEventLoopGroup(numberOfThreads: (System.coreCount / 2) ) //GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var eventLoopGroup: EventLoopGroup?
 
-//    private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
-    
     
     var remoteManager: RemoteManager? {
         didSet {  warpinatorRegistrationProvider.remoteManager = remoteManager  }
     }
-    var settingsManager: SettingsManager? {
+    var settingsManager: SettingsManager {
         didSet {  warpinatorRegistrationProvider.settingsManager = settingsManager  }
+    }
+    
+    var server : GRPC.Server?
+    
+    lazy var queueLabel = "RegistrationServerQueue"
+    lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .utility)
+
+    
+    init(settingsManager manager: SettingsManager) {
+        settingsManager = manager
     }
     
     
@@ -52,45 +59,58 @@ class RegistrationServer {
         
         guard let registrationServerELG = eventLoopGroup else { return }
         
-        guard let port = settingsManager?.registrationPortNumber else {
-            print(DEBUG_TAG+"no port number from settings"); return }
-        let portNumber = Int(port)
+        let portNumber = Int( settingsManager.registrationPortNumber )
         
         
-        let registrationServerFuture = GRPC.Server.insecure(group: registrationServerELG)
+//        let serverFuture =
+            GRPC.Server.insecure(group: registrationServerELG)
             .withServiceProviders([warpinatorRegistrationProvider])
-            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
-            
-        
-        registrationServerFuture.map {
-            $0.channel.localAddress
-        }.whenSuccess { address in
+            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber).whenSuccess { server in
+                
+            print(self.DEBUG_TAG+"registration server started on: \(String(describing: server.channel.localAddress))")
+                
+            self.server = server
             self.startMDNSServices()
-            print(self.DEBUG_TAG+"registration server started on: \(String(describing: address))")
+                
         }
         
+//        serverFuture.map {
+//            $0.channel.localAddress
+//        }.whenSuccess { address in
+//            self.startMDNSServices()
+//            print(self.DEBUG_TAG+"registration server started on: \(String(describing: address))")
+//        }
         
-        let closefuture = registrationServerFuture.flatMap {
-            $0.onClose
-        }
-        
-        closefuture.whenCompleteBlocking(onto: .main) { _ in
-            print(self.DEBUG_TAG+" registration server exited")
-        }
-        closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
-            try! self.eventLoopGroup?.syncShutdownGracefully()
-        }
+        // When server exits, cleanup eventloop
+//        serverFuture.flatMap { $0.onClose }.whenCompleteBlocking(onto: serverQueue) { _ in
+//            print(self.DEBUG_TAG+" registration server exited")
+//            try! self.eventLoopGroup?.syncShutdownGracefully()
+//        }
         
     }
     
     
-    //MARK:  startMDNSServices
-    func startMDNSServices(){
+    
+    // MARK: stop server
+    func stop(){
+//        do {
+            
+            _ = server?.initiateGracefulShutdown()
+            
+//            try eventLoopGroup?.syncShutdownGracefully()
+//        } catch {
+//            print(DEBUG_TAG+"could not shut down server")
+//        }
+    }
+    
+    
+    // MARK:  startMDNSServices
+    private func startMDNSServices(){
         print(DEBUG_TAG+"Starting MDNS services...")
         mDNSBrowser = MDNSBrowser()
         mDNSBrowser?.delegate = self
         
-        mDNSListener = MDNSListener()
+        mDNSListener = MDNSListener(settingsManager: settingsManager)
         mDNSListener?.delegate = self
         mDNSListener?.settingsManager = settingsManager
         mDNSListener?.start()
@@ -102,6 +122,13 @@ class RegistrationServer {
 //        }
         
     }
+    
+    
+    private func stopMDNSServices(){
+        mDNSBrowser?.stop()
+        mDNSListener?.stop()
+    }
+    
     
     
     func mockStart(){
@@ -122,7 +149,7 @@ class RegistrationServer {
 // MARK: - MDNSListenerDelegate
 extension RegistrationServer: MDNSListenerDelegate {
     func mDNSListenerIsReady() {
-        mDNSBrowser?.startBrowsing()
+        mDNSBrowser?.start()
     }
 }
 
@@ -130,6 +157,8 @@ extension RegistrationServer: MDNSListenerDelegate {
 
 // MARK: - MDNSBrowserDelegate
 extension RegistrationServer: MDNSBrowserDelegate {
+    
+    
     
     // MARK: didAddResult
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
@@ -144,13 +173,12 @@ extension RegistrationServer: MDNSBrowserDelegate {
         }
         print(DEBUG_TAG+"assuming service is real, continuing...")
         
-        
         var serviceName = "unknown_service"
         switch result.endpoint {
         case .service(name: let name, type: _, domain: _, interface: _):
             
             serviceName = name
-            if name == settingsManager!.uuid {
+            if name == settingsManager.uuid {
                 print(DEBUG_TAG+"Found myself (\(result.endpoint))"); return
             } else {
                 print(DEBUG_TAG+"service discovered: \(name)")

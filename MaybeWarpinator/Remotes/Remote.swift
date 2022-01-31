@@ -47,7 +47,6 @@ struct RemoteDetails {
     
 }
 
-// MARK: Mock Remote Details
 extension RemoteDetails {
     static var MOCK_DETAILS: RemoteDetails = {
         let mockEndpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("So.me.Ho.st") ,
@@ -71,6 +70,15 @@ extension RemoteDetails {
 
 
 
+
+
+
+
+
+
+
+
+// MARK: -
 // MARK: - Remote
 public class Remote {
     
@@ -190,8 +198,8 @@ public class Remote {
     
     
     //
-    // MARK: onDisconnect
-    func onDisconnect(_ error: Error? = nil){
+    // MARK: disconnect
+    func disconnect(_ error: Error? = nil){
         print(self.DEBUG_TAG+"channel disconnected")
         
         // stop all transfers
@@ -292,7 +300,7 @@ extension Remote {
             // check number of tries (10)
             guard self.duplexAttempts < 10 else {
                 print(self.DEBUG_TAG+"unable to establish duplex")
-                self.onDisconnect( DuplexError.DuplexNotEstablished )
+                self.disconnect( DuplexError.DuplexNotEstablished )
                 return
             }
             
@@ -501,7 +509,7 @@ extension Remote {
                 case .success(_):
                     self.details.status = .Connected
                     operation.startReceive(usingClient: client) // if still connected, proceed with sending
-                case .failure(let error): self.onDisconnect(error)          // if connection is dead, signal disconnect
+                case .failure(let error): self.disconnect(error)          // if connection is dead, signal disconnect
                 }
             }
             return
@@ -578,7 +586,7 @@ extension Remote {
                 case .success(_):
                     self.details.status = .Connected
                     self.sendRequest(toTransfer: operation) // if still connected, proceed with sending
-                case .failure(let error): self.onDisconnect(error)          // if connection is dead, signal disconnect
+                case .failure(let error): self.disconnect(error)          // if connection is dead, signal disconnect
                 }
             }
             return
@@ -664,11 +672,11 @@ extension Remote: ConnectivityStateDelegate {
             
             print(DEBUG_TAG+"\tTransientFailure #\(transientFailureCount)")
             if transientFailureCount == 10 {
-                onDisconnect( AuthenticationError.ConnectionError )
+                disconnect( AuthenticationError.ConnectionError )
             }
         case .idle:
             details.status = .Idle
-        case .shutdown: onDisconnect()
+        case .shutdown: disconnect()
         default: break
         }
         
@@ -688,7 +696,7 @@ extension Remote: ClientErrorDelegate {
             print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
             authenticationCertificate = nil
             
-            onDisconnect()
+            disconnect()
             startConnection()
         } else {
             print(DEBUG_TAG+"Unknown error: \(error)")

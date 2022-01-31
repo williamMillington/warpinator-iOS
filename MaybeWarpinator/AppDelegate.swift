@@ -36,7 +36,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
+    
+    
+    
+    
+    
+    
+    // TODO:
+    func applicationWillResignActive(_ application: UIApplication) {
+        // About to enter inactive, do some saving
+    }
+    
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        // just started back up from background, do some updating
+    }
+    
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        // just entered background, do some stuff?
+    }
 
-
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        // coming back from background; would I update here, or applicationDidBecomeActive?
+    }
+    
+    func applicationWillTerminate(_ application: UIApplication) {
+        // about to quit. do some saving.
+    }
+    
 }
 

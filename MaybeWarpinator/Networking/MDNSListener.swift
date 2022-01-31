@@ -27,7 +27,7 @@ class MDNSListener {
     private let SERVICE_TYPE = "_warpinator._tcp"
     private let SERVICE_DOMAIN = ""
     
-    public lazy var displayName: String = settingsManager!.displayName
+    public lazy var displayName: String = settingsManager.displayName
 //    public lazy var hostname = settingsManager!.hostname
     
     var connections: [NWEndpoint : NWConnection] = [:]
@@ -37,15 +37,30 @@ class MDNSListener {
     private var certificateServer = CertificateServer()
     var listener: NWListener?
     var delegate: MDNSListenerDelegate?
-    weak var settingsManager: SettingsManager?
+    var settingsManager: SettingsManager
     
     lazy var queueLabel = "MDNSListenerQueue"
     lazy var listenerQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
     
+    
+    init(settingsManager manager: SettingsManager) {
+        settingsManager = manager
+    }
+    
+    
     func start(){
         print(DEBUG_TAG+"starting...")
         flushPublish()
+    }
+    
+    
+    
+    func stop(){
+        
+        listener?.cancel()
+        
+        
     }
     
     
@@ -57,7 +72,7 @@ class MDNSListener {
         
         flushing = false
         
-        let transferPortNum =  UInt16( settingsManager!.transferPortNumber)
+        let transferPortNum =  UInt16( settingsManager.transferPortNumber)
         let port = NWEndpoint.Port(rawValue: transferPortNum)!
         
         let params = NWParameters.udp
@@ -71,14 +86,14 @@ class MDNSListener {
         listener?.stateUpdateHandler = stateDidUpdate(state:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
-        let hostname = settingsManager!.hostname
-        let authport = settingsManager!.registrationPortNumber
+        let hostname = settingsManager.hostname
+        let authport = settingsManager.registrationPortNumber
         
         let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "auth-port" : "\(authport)",
                                            "api-version": "2",
                                            "type" : "real"]
-        let uuid = settingsManager!.uuid
+        let uuid = settingsManager.uuid
         listener?.service = NWListener.Service(name: uuid, type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN, txtRecord:  NWTXTRecord(properties) )
         
@@ -93,7 +108,7 @@ class MDNSListener {
         print(DEBUG_TAG+"\tFlushing...")
         flushing = true
         
-        let port = NWEndpoint.Port(rawValue: UInt16( settingsManager!.transferPortNumber ) )!
+        let port = NWEndpoint.Port(rawValue: UInt16( settingsManager.transferPortNumber ) )!
         
         let params = NWParameters.udp
         params.includePeerToPeer = true
@@ -113,7 +128,7 @@ class MDNSListener {
             switch state {
             case .ready:
                 self.listenerQueue.asyncAfter(deadline: .now() + 3) {
-                    self.listener?.cancel()
+                    self.stop()
                     self.listenerQueue.asyncAfter(deadline: .now() + 3) {
                         self.publishServiceAndListen()
                     }
@@ -122,11 +137,11 @@ class MDNSListener {
             }
         }
         
-        let hostname = settingsManager!.hostname
+        let hostname = settingsManager.hostname
         let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "type" : "flush"]
         
-        listener?.service = NWListener.Service(name: settingsManager!.uuid,
+        listener?.service = NWListener.Service(name: settingsManager.uuid,
                                                type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN,
                                                txtRecord:  NWTXTRecord(properties) )
@@ -138,6 +153,8 @@ class MDNSListener {
     private func stateDidUpdate(state: NWListener.State ) {
         
         switch state {
+        case.cancelled:
+            listener = nil
         case .ready: print(DEBUG_TAG+"listener is ready")
             delegate?.mDNSListenerIsReady() // break 
         default: print(DEBUG_TAG+"State updated: \(state)")

@@ -57,6 +57,13 @@ public class Server: NSObject {
     weak var authenticationManager: Authenticator?
     
     
+    var server: GRPC.Server?
+    
+    
+    lazy var queueLabel = "WarpinatorServerQueue"
+    lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .utility)
+    
+    
     func start(){
         
         startWarpinatorServer()
@@ -96,30 +103,35 @@ public class Server: NSObject {
             .withServiceProviders([warpinatorProvider])
 //            .withLogger(logger)
 
-        let serverFuture = serverBuilder.bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
-
-
-
-        serverFuture.map {
-            $0.channel.localAddress
-        }.whenSuccess { address in
-            print(self.DEBUG_TAG+"transfer server started on port: \(String(describing: address))")
+        serverBuilder.bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
+            .whenSuccess { server in
+            print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
+            self.server = server
         }
+
+
+//        serverFuture.map {
+//            $0.channel.localAddress
+//        }.whenSuccess { address in
+//            print(self.DEBUG_TAG+"transfer server started on: \(String(describing: address))")
+//        }
         
         
-        let closefuture = serverFuture.flatMap {
-            $0.onClose
-        }
-
-        closefuture.whenCompleteBlocking(onto: .main) { _ in
-            print(self.DEBUG_TAG+"transfer server exited")
-        }
-        closefuture.whenCompleteBlocking(onto: DispatchQueue(label: "cleanup-queue")){ _ in
-            try! self.eventLoopGroup?.syncShutdownGracefully()
-        }
+//        serverFuture.flatMap {  $0.onClose }.whenCompleteBlocking(onto: serverQueue) { _ in
+//            print(self.DEBUG_TAG+"transfer server exited")
+//            try! self.eventLoopGroup?.syncShutdownGracefully()
+//        }
         
         
     }
+    
+    
+    func stop() {
+        
+        _ = server?.initiateGracefulShutdown()
+        
+    }
+    
     
 }
 

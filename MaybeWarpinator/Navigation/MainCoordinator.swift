@@ -29,9 +29,14 @@ class MainCoordinator: NSObject, Coordinator {
     var authManager: Authenticator = Authenticator.shared
     
     var server: Server = Server()
-    var registrationServer = RegistrationServer()
+    lazy var registrationServer = RegistrationServer(settingsManager: settingsManager)
     
-//    var mainService: MainService = MainService()
+    
+    
+    
+    lazy var queueLabel = "MainCoordinatorCleanupQueue"
+    lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
+
     
     
     init(withNavigationController controller: UINavigationController){
@@ -40,8 +45,6 @@ class MainCoordinator: NSObject, Coordinator {
         navController.setNavigationBarHidden(true, animated: false)
         
         Utils.lockOrientation(.portrait)
-        
-//        MainService.shared.start()
         
         super.init()
 //        mockRemote()
@@ -77,6 +80,7 @@ class MainCoordinator: NSObject, Coordinator {
     }
     
     
+    // MARK: main viewcontroller
     func showMainViewController(){
         
         // if the previously exists in the stack, rewind
@@ -94,13 +98,13 @@ class MainCoordinator: NSObject, Coordinator {
             
             remoteManager.remotesViewController = mainMenuVC
             
-            
             navController.pushViewController(mainMenuVC, animated: false)
         }
     }
     
     
     
+    // MARK: remote selected
     func userSelected(_ remoteUUID: String){
         
 //        print(DEBUG_TAG+"user selected remote \(remoteUUID)")
@@ -113,13 +117,12 @@ class MainCoordinator: NSObject, Coordinator {
             remoteCoordinator.start()
             
         }
-        
     }
     
     
     
     
-    
+    // MARK: show settings
     func showSettings() {
         
         
@@ -136,31 +139,45 @@ class MainCoordinator: NSObject, Coordinator {
             settingsVC.coordinator = self
             settingsVC.settingsManager = settingsManager
             
-            
             navController.pushViewController(settingsVC, animated: false)
         }
-    
         
+    }
+    
+    //
+    // MARK: shutdown
+    func shutdown(){
+        
+        remoteManager.shutdownAllRemotes()
+        
+        // TODO: make these receive a future, so we
+        // can try to coordinate the eventloopgroup shutdown
+        
+        server.stop()
+        registrationServer.stop()
+        
+        serverEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
+            print(self.DEBUG_TAG+"Completed serverEventLoopGroup shutdown")
+        }
+        remoteEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
+            print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
+        }
         
         
     }
     
     
-    
-    
-    
-    
-    func mockTransferReceive(){
-        
-        let remote = Remote(details: RemoteDetails.MOCK_DETAILS)
-        let transfer = MockReceiveTransfer()
-        
-        let vm = ReceiveTransferViewModel(operation: transfer, from: remote)
-        let vc = ReceiveTransferViewController(withViewModel: vm)
-        
-        navController.pushViewController(vc, animated: false)
-        
-    }
+//    func mockTransferReceive(){
+//
+//        let remote = Remote(details: RemoteDetails.MOCK_DETAILS)
+//        let transfer = MockReceiveTransfer()
+//
+//        let vm = ReceiveTransferViewModel(operation: transfer, from: remote)
+//        let vc = ReceiveTransferViewController(withViewModel: vm)
+//
+//        navController.pushViewController(vc, animated: false)
+//
+//    }
     
     
     func coordinatorDidFinish(_ child: Coordinator){
@@ -180,7 +197,6 @@ extension MainCoordinator {
     func mockRemote(){
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            
             
             for i in 0..<2 {
                 

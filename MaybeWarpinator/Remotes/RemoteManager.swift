@@ -27,6 +27,7 @@ class RemoteManager {
      remote once it is detected   [hostname:ipaddress] */
     var ipPlaceHolders : [String:String] = [:]
     
+    // MARK: add Remote
     func addRemote(_ remote: Remote){
         print(DEBUG_TAG+"adding remote with UUID: \(remote.details.uuid)")
         
@@ -46,6 +47,8 @@ class RemoteManager {
     }
     
     
+    
+    // MARK: remove Remote
     func removeRemote(withUUID uuid: String){
             print(DEBUG_TAG+"removing remote...")
         guard remotes[uuid] != nil else {
@@ -59,6 +62,7 @@ class RemoteManager {
     }
     
     
+    // MARK: storeIPAddress
     func storeIPAddress(_ address: String, forHostname hostname: String){
         
         print(DEBUG_TAG+"storing address (\(address)) for \(hostname)")
@@ -75,17 +79,10 @@ class RemoteManager {
         }
         
         ipPlaceHolders[hostname] = address
-        
-//        if let remote = remotes[hostname] {
-//            print(DEBUG_TAG+"Remote found, starting connection")
-//            remote.details.ipAddress = address
-//            remote.startConnection()
-//        } else {
-//
-//        }
-        
     }
     
+    
+    // MARK: find remote
     @discardableResult
     func containsRemote(for uuid: String) -> Remote? {
         
@@ -96,6 +93,21 @@ class RemoteManager {
         
         return nil
     }
+    
+    
+    
+    
+    
+    // MARK: shutdown all remotes
+    func shutdownAllRemotes() {
+        
+        remotes.values.forEach { remote in
+            remote.disconnect()
+        }
+        
+        
+    }
+    
     
     
 }

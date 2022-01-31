@@ -27,7 +27,7 @@ class MDNSBrowser {
     lazy var queueLabel = "MDNSBrowserQueue"
     lazy var browserQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
-    func startBrowsing(){
+    func start(){
         
         guard browser == nil  else {
             print(DEBUG_TAG+"Browser already running")
@@ -55,13 +55,20 @@ class MDNSBrowser {
         
     }
     
+    
+    func stop(){
+        
+        browser?.cancel()
+        browser = nil
+        
+    }
+    
     func restart(){
         print(self.DEBUG_TAG+"restarting in 2 seconds...")
         self.browserQueue.asyncAfter(deadline: .now() + 2) {
-            self.browser = nil
-            self.startBrowsing()
+            self.stop()
+            self.start()
         }
-        browser?.cancel()
     }
     
     
@@ -79,7 +86,7 @@ class MDNSBrowser {
                 restart()
             } else {
                 print(DEBUG_TAG+"Browser failed with \(error), stopping")
-                browser?.cancel()
+                self.stop()
             }
         default: print(DEBUG_TAG+"\(newState)")
         }
