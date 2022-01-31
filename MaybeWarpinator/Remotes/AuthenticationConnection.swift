@@ -209,7 +209,6 @@ class GRPCConnection: AuthenticationConnection {
 //            logger.logLevel = .debug
 //            return logger }()
         
-        
 //        let options = CallOptions(timeLimit: .timeout( .seconds(10)), logger: logger )
 //        let options = CallOptions(logger: logger )
 
@@ -229,3 +228,13 @@ class GRPCConnection: AuthenticationConnection {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+

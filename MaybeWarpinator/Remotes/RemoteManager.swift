@@ -63,11 +63,11 @@ class RemoteManager {
         
         print(DEBUG_TAG+"storing address (\(address)) for \(hostname)")
         
-        
         // TODO: this fails if two remotes share a hostname. Not good. No bueno.
+        // Can't use uuid because it's not provided in the Registration request
         remotes.forEach { (key,remote) in
             if remote.details.hostname == hostname {
-                print(self.DEBUG_TAG+"\tfound remote")
+                print(self.DEBUG_TAG+"\tfound remote for hostname\(hostname)")
                 remote.details.ipAddress = address
                 remote.startConnection()
                 return

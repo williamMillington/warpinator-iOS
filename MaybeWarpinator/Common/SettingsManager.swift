@@ -93,6 +93,10 @@ class SettingsManager {
         transferPortNumber = UInt32( defaults.integer(forKey: StorageKeys.transferPortNumber) )
         registrationPortNumber = UInt32( defaults.integer(forKey: StorageKeys.registrationPortNumber) )
         
+        // uuid is generated on first opening, so write settings here to
+        // make sure we're not creating a brand new uuid every time
+        // (won't be remembered by remotes)
+        writeSettings()
     }
     
     

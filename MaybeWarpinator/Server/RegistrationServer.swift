@@ -52,7 +52,8 @@ class RegistrationServer {
         
         guard let registrationServerELG = eventLoopGroup else { return }
         
-        guard let port = settingsManager?.registrationPortNumber else { return }
+        guard let port = settingsManager?.registrationPortNumber else {
+            print(DEBUG_TAG+"no port number from settings"); return }
         let portNumber = Int(port)
         
         
@@ -83,8 +84,9 @@ class RegistrationServer {
     }
     
     
-    
+    //MARK:  startMDNSServices
     func startMDNSServices(){
+        print(DEBUG_TAG+"Starting MDNS services...")
         mDNSBrowser = MDNSBrowser()
         mDNSBrowser?.delegate = self
         
@@ -92,6 +94,13 @@ class RegistrationServer {
         mDNSListener?.delegate = self
         mDNSListener?.settingsManager = settingsManager
         mDNSListener?.start()
+        
+        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
+//            print(self.DEBUG_TAG+"RESTARTING IN  15...")
+//            self.mDNSBrowser?.restart()
+//        }
+        
     }
     
     
@@ -187,7 +196,6 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         
         var details = RemoteDetails(endpoint: result.endpoint)
-//        details.serviceName = serviceName
         details.hostname = hostname
         details.uuid = serviceName
         details.api = api
@@ -196,9 +204,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
         details.status = .Disconnected
         
         
-        
         let newRemote = Remote(details: details)
-        
         
         remoteManager?.addRemote(newRemote)
     }
@@ -219,7 +225,6 @@ extension RegistrationServer {
             let mockRemote = Remote(details: mockDetails)
             
             remoteManager?.addRemote(mockRemote)
-            
         }
         
     }
