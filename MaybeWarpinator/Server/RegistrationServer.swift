@@ -33,14 +33,16 @@ class RegistrationServer {
     
     var eventLoopGroup: EventLoopGroup?
 
-    private var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
+    private lazy var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
     
     var remoteManager: RemoteManager? {
         didSet {  warpinatorRegistrationProvider.remoteManager = remoteManager  }
     }
-    var settingsManager: SettingsManager {
-        didSet {  warpinatorRegistrationProvider.settingsManager = settingsManager  }
-    }
+    
+    var settingsManager: SettingsManager
+//    {
+//        didSet {    }
+//    }
     
     var server : GRPC.Server?
     
@@ -50,6 +52,7 @@ class RegistrationServer {
     
     init(settingsManager manager: SettingsManager) {
         settingsManager = manager
+        warpinatorRegistrationProvider.settingsManager = settingsManager
     }
     
     
@@ -70,16 +73,21 @@ class RegistrationServer {
                 self.startMDNSServices()
                 
             }
-        
     }
     
     
     
     // MARK: stop server
-    func stop(){
+    func stop() -> EventLoopFuture<Void>? {
         
-            _ = server?.initiateGracefulShutdown()
-            
+        guard let server = server else {
+            return eventLoopGroup?.next().makeSucceededVoidFuture()
+        }
+        
+        mDNSListener?.stop()
+        mDNSBrowser?.stop()
+        
+        return server.initiateGracefulShutdown()
     }
     
     

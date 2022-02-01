@@ -168,25 +168,6 @@ public class WarpinatorServiceProvider: WarpProvider {
 
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
 
-//        struct dataIterator: Sequence, IteratorProtocol {
-//            let data: Data
-//            let chunkSize: Int
-//            var index = 0
-//            mutating func next() -> Data? {
-//                
-//                guard index < data.count else { return nil }
-//                
-//                var endIndex = index + chunkSize
-//                if endIndex >= data.count {
-//                    endIndex = data.count - 1
-//                }
-//                
-//                defer {  index = endIndex + 1  }
-//                
-//                return Data( data[index...endIndex] )
-//            }
-//        }
-        
         if let bytes = avatarImgBytes {
             
             sendingAvaratChunksQueue.async {

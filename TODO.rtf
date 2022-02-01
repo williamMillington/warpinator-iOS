@@ -146,9 +146,6 @@ Network: \
 	- Investigate/Fix slow connection bullshirt\
 	- Handle network change \
 		- Servers need to restart on new ip addresses\
-	- Improve remote detection. Fuck around with mDNSBrowser a bit\
-		- I think(?) there are times when NWBrowser\'92s resultsDidChange() contains a \'93.changed\'94, but not a \'93.added\'94, but only .added triggers \
-		- I think when remote moves from \'91flushing\'92 to \'91real\'92, and NWBrowser doesn\'92t register that as an added NWBrowser result\
 \
 \
 \cf2 ViewController:\cf0  \
@@ -287,6 +284,11 @@ ListedFileOperationView:\
 \
 - Potential bug due to RecieveFileOperation containing a reference to warpClient, which may be rendered nil. \
 \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0  Improve remote detection. Fuck around with mDNSBrowser a bit\
+		- I think(?) there are times when NWBrowser\'92s resultsDidChange() contains a \'93.changed\'94, but not a \'93.added\'94, but only .added triggers \
+		- I think when remote moves from \'91flushing\'92 to \'91real\'92, and NWBrowser doesn\'92t register that as an added NWBrowser result\
+\
 Settings:\
 	- Store/load remotes\
 		- Store/load autoconnect choice (\'91No\'92 by default)\
@@ -304,8 +306,9 @@ ViewController:\
 \
 \
 \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
-\f1\b \ul Future Additions
+\f1\b \cf0 \ul Future Additions
 \f0\b0 \ulnone   \
 \
 - Different default avatar images for iPhone/iPad\

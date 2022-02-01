@@ -28,11 +28,8 @@ class MainCoordinator: NSObject, Coordinator {
     
     var authManager: Authenticator = Authenticator.shared
     
-    var server: Server = Server()
+    lazy var server: Server = Server(settingsManager: settingsManager)
     lazy var registrationServer = RegistrationServer(settingsManager: settingsManager)
-    
-    
-    
     
     lazy var queueLabel = "MainCoordinatorCleanupQueue"
     lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
@@ -65,18 +62,42 @@ class MainCoordinator: NSObject, Coordinator {
         
         server.authenticationManager = authManager
         
+    }
+    //
+    // MARK: start
+    func start() {
+        
+        showMainViewController()
+        startServers()
+//        mockRemote()
+    }
+    
+    
+    
+    
+    //
+    // MARK: start servers
+    private func startServers(){
+        print(DEBUG_TAG+"starting servers: ")
         server.start()
         registrationServer.start()
-        
         
     }
     
     
-    func start() {
+    //
+    // MARK: restart servers
+    func restartServers(){
         
-        showMainViewController()
+        remoteManager.shutdownAllRemotes()
         
-//        mockRemote()
+        _ = server.stop()
+        _ = registrationServer.stop()
+        
+        
+        startServers()
+        
+        
     }
     
     
@@ -115,7 +136,6 @@ class MainCoordinator: NSObject, Coordinator {
             
             childCoordinators.append(remoteCoordinator)
             remoteCoordinator.start()
-            
         }
     }
     
@@ -146,7 +166,7 @@ class MainCoordinator: NSObject, Coordinator {
     
     //
     // MARK: shutdown
-    func shutdown(){
+    func beginShutdown(){
         
         remoteManager.shutdownAllRemotes()
         
@@ -165,19 +185,6 @@ class MainCoordinator: NSObject, Coordinator {
         
         
     }
-    
-    
-//    func mockTransferReceive(){
-//
-//        let remote = Remote(details: RemoteDetails.MOCK_DETAILS)
-//        let transfer = MockReceiveTransfer()
-//
-//        let vm = ReceiveTransferViewModel(operation: transfer, from: remote)
-//        let vc = ReceiveTransferViewController(withViewModel: vm)
-//
-//        navController.pushViewController(vc, animated: false)
-//
-//    }
     
     
     func coordinatorDidFinish(_ child: Coordinator){

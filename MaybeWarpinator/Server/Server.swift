@@ -15,7 +15,7 @@ import Network
 import Logging
 
 
-public class Server: NSObject {
+public class Server { //}: NSObject {
     
     
     private let DEBUG_TAG: String = "Server: "
@@ -44,15 +44,13 @@ public class Server: NSObject {
     
     var eventLoopGroup: EventLoopGroup?
     
-    private var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
+    private lazy var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     
     weak var remoteManager: RemoteManager? {
         didSet {  warpinatorProvider.remoteManager = remoteManager  }
     }
     
-    weak var settingsManager: SettingsManager? {
-        didSet {  warpinatorProvider.settingsManager = settingsManager  }
-    }
+    var settingsManager: SettingsManager
     
     weak var authenticationManager: Authenticator?
     
@@ -62,74 +60,53 @@ public class Server: NSObject {
     
     lazy var queueLabel = "WarpinatorServerQueue"
     lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .utility)
+    var logger: Logger = {
+        var log = Logger(label: "warpinator.Server", factory: StreamLogHandler.standardOutput)
+        log.logLevel = .debug
+        return log
+    }()
     
-    
-    func start(){
+    init(settingsManager manager: SettingsManager) {
+        settingsManager = manager
         
-        startWarpinatorServer()
-        
+        warpinatorProvider.settingsManager = settingsManager
     }
     
     
-    // MARK: Transfer Server
-    func startWarpinatorServer(){
+    //
+    // MARK: start server
+    func start(){
         
         guard let serverELG = eventLoopGroup else { return }
         
+        
         authenticationManager?.generateNewCertificate()
         
-        guard let serverCertificate = authenticationManager?.serverCert,
-              let serverPrivateKey = authenticationManager?.serverKey else {
-                print(DEBUG_TAG+"Error with server credentials")
-            return
-        }
         
+        let serverCertificate = authenticationManager!.serverCert!
+        let serverPrivateKey = authenticationManager!.serverKey!
         
-        guard let port = settingsManager?.transferPortNumber else {
-            print(DEBUG_TAG+"No transfer port number (whomp whomp)")
-            return
-        }
-        let portNumber = Int(port)
-        
-        var logger = Logger(label: "warpinator.Server", factory: StreamLogHandler.standardOutput)
-        logger.logLevel = .debug
-        
-        
-        
-        let serverBuilder = GRPC.Server.usingTLSBackedByNIOSSL(on: serverELG,
-                                                               certificateChain: [ serverCertificate  ],
-                                                               privateKey: serverPrivateKey)
-            .withTLS(trustRoots: .certificates( [serverCertificate] ) )
-            .withServiceProviders([warpinatorProvider])
-//            .withLogger(logger)
-
-        serverBuilder.bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
+        GRPC.Server.usingTLSBackedByNIOSSL(on: serverELG,
+                                           certificateChain: [ serverCertificate  ],
+                                           privateKey: serverPrivateKey )
+            .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
+            .withServiceProviders( [ warpinatorProvider ] )
+            .bind(host: "\(Utils.getIP_V4_Address())",
+                  port: Int( settingsManager.transferPortNumber ))
             .whenSuccess { server in
             print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
             self.server = server
         }
 
-
-//        serverFuture.map {
-//            $0.channel.localAddress
-//        }.whenSuccess { address in
-//            print(self.DEBUG_TAG+"transfer server started on: \(String(describing: address))")
-//        }
-        
-        
-//        serverFuture.flatMap {  $0.onClose }.whenCompleteBlocking(onto: serverQueue) { _ in
-//            print(self.DEBUG_TAG+"transfer server exited")
-//            try! self.eventLoopGroup?.syncShutdownGracefully()
-//        }
-        
-        
     }
     
     
-    func stop() {
-        
-        _ = server?.initiateGracefulShutdown()
-        
+    // MARK: stop server
+    func stop() -> EventLoopFuture<Void>? {
+        guard let server = server else {
+            return eventLoopGroup?.next().makeSucceededVoidFuture()
+        }
+        return server.initiateGracefulShutdown()
     }
     
     
