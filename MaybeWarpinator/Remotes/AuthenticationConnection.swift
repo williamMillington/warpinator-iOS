@@ -29,8 +29,8 @@ protocol AuthenticationConnection {
     var details: RemoteDetails { get }
     var registree: AuthenticationRecipient { get }
     
-    var uuid: Int { get }
-    var attempts: Int { get set }
+//    var uuid: Int { get }
+//    var attempts: Int { get set }
     
     func requestCertificate()
 }
@@ -50,10 +50,6 @@ class UDPConnection: AuthenticationConnection {
     
     var details: RemoteDetails
     var registree: AuthenticationRecipient
-    
-    var uuid: Int {
-        return details.endpoint.hashValue
-    }
     
     var attempts: Int = 0
     
@@ -144,9 +140,15 @@ class UDPConnection: AuthenticationConnection {
 
                 } else {  print("Failed to decode certificate")  }
 
+                self.finish()
             } else {   print("No data received") }
         }
         
+    }
+    
+    
+    func finish(){
+        connection.cancel()
     }
     
 }
@@ -162,14 +164,18 @@ class GRPCConnection: AuthenticationConnection {
     var details: RemoteDetails
     var registree: AuthenticationRecipient
     
-    var uuid: Int {
-        return details.endpoint.hashValue
-    }
+    let ipConnection: NWConnection
+    
     
     var attempts: Int = 0
     
-    var channel: ClientConnection
-    var warpClient: WarpRegistrationClient
+    let request: RegRequest = .with {
+        $0.hostname = SettingsManager.shared.hostname
+        $0.ip = Utils.getIP_V4_Address()
+    }
+    
+    var channel: ClientConnection?
+    var warpClient: WarpRegistrationClient?
     
     let group = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
@@ -178,31 +184,61 @@ class GRPCConnection: AuthenticationConnection {
         registree = manager
         
         
-        let hostname = details.ipAddress // "192.168.2.18"
-//        let hostname = details.hostname
-        let port = details.authPort
+        let params = NWParameters.udp
+        params.includePeerToPeer = true
+        params.allowLocalEndpointReuse = true
         
-        print(DEBUG_TAG+"created for \"\(hostname):\(port)\"")
+        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+//            print(DEBUG_TAG+"restrict connection to v4")
+            inetOptions.version = .v4
+        }
         
         
-        channel = ClientConnection.insecure(group: group).connect(host: hostname, port: port)
-        warpClient = WarpRegistrationClient(channel: channel)
+//        print(DEBUG_TAG+"attempting to retrieve IPaddress")
+        ipConnection = NWConnection(to: details.endpoint, using: params)
+        ipConnection.stateUpdateHandler = { state in
+            
+//            print(self.DEBUG_TAG+"ipconnection state: \(state)")
+            
+            if case .ready = state {
+                if let ip4_string = self.ipConnection.currentPath?.remoteEndpoint?.debugDescription {
+//                    print(self.DEBUG_TAG+"connection to \(self.endpoint) ready (ipv4 address: \(ip4))");
+                    // ip4_string should be a string formatted as 0.0.0.0%en0:0000. IP address is section of string before the '%'
+                    let components = ip4_string.split(separator: Character("%"))
+                    let ip4_address: String = String(components[0])
+                    print(self.DEBUG_TAG+"extracted IP Address: \(ip4_address)")
+                    self.details.ipAddress = ip4_address //String(components[0])
+                }
+                self.ipConnection.cancel()
+                self.sendCertificateRequest()
+            }
+        }
     }
     
-    
+    //
+    // MARK: start request
     func requestCertificate(){
-        print(DEBUG_TAG+"requesting certificate from \(details.hostname):\(details.authPort)")
-        details.status = .FetchingCredentials
-        sendCertificateRequest()
+        ipConnection.start(queue: .main)
     }
     
     
+    //
+    // MARK: send request
     func sendCertificateRequest() {
         
-        let request: RegRequest = .with {
-            $0.hostname = SettingsManager.shared.hostname
-            $0.ip = Utils.getIP_V4_Address()
+        channel = ClientConnection.insecure(group: group)
+            .connect(host: details.ipAddress, port: details.authPort)
+        
+        guard let channel = channel else {
+            print(DEBUG_TAG+"failed to start client connection channel"); return
+            
         }
+        warpClient = WarpRegistrationClient(channel: channel)
+        
+        
+        print(DEBUG_TAG+"requesting certificate from \(details.hostname) (\(details.ipAddress):\(details.authPort))")
+        details.status = .FetchingCredentials
+        
         
 //        let logger: Logger = {
 //            var logger = Logger(label: "warpinator.GRPCConnection", factory: StreamLogHandler.standardOutput)
@@ -212,9 +248,9 @@ class GRPCConnection: AuthenticationConnection {
 //        let options = CallOptions(timeLimit: .timeout( .seconds(10)), logger: logger )
 //        let options = CallOptions(logger: logger )
 
-        let registrationRequest = warpClient.requestCertificate(request)
+        let registrationRequest = warpClient?.requestCertificate(request)
 
-        registrationRequest.response.whenSuccess { result in
+        registrationRequest?.response.whenSuccess { result in
             if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
                 self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
             } else {
@@ -222,10 +258,18 @@ class GRPCConnection: AuthenticationConnection {
             }
         }
         
-        registrationRequest.response.whenFailure { error in
+        registrationRequest?.response.whenFailure { error in
             print(self.DEBUG_TAG+"Certificate request failed: \(error)")
             self.registree.failedToObtainCertificate(forRemote: self.details, .ConnectionError)
         }
+    }
+    
+    
+    //
+    // MARK: finish
+    func finish(){
+        warpClient = nil
+        _ = channel?.close()
     }
 }
 

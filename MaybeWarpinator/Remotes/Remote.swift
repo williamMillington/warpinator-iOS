@@ -146,11 +146,11 @@ public class Remote {
         if let certificate = authenticationCertificate {
             connect(withCertificate: certificate)
         } else {
-            
-            if  details.api == "2" && (details.ipAddress == RemoteDetails.NO_IP_ADDRESS) {
-                print(DEBUG_TAG+"Remote does not yet have an IP Address")
-                return
-            }
+//            
+//            if  details.api == "2" && (details.ipAddress == RemoteDetails.NO_IP_ADDRESS) {
+//                print(DEBUG_TAG+"Remote does not yet have an IP Address")
+//                return
+//            }
             
             obtainCertificate()
         }

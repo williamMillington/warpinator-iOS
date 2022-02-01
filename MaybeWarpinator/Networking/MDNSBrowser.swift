@@ -99,7 +99,11 @@ class MDNSBrowser {
             
             switch change {
             case .added(let result):
-                delegate?.mDNSBrowserDidAddResult(result)
+                
+                // results in UI update
+                DispatchQueue.main.async {
+                    self.delegate?.mDNSBrowserDidAddResult(result)
+                }
             case .changed(old: _, new: let new, flags: let flags):
                 print(DEBUG_TAG+"\t\t\(new.endpoint), \(flags)")
             default: break //;print(DEBUG_TAG+"unforeseen result change")

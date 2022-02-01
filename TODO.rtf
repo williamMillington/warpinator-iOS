@@ -1,11 +1,11 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2513
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
 {\colortbl;\red255\green255\blue255;\red85\green142\blue40;\red0\green0\blue0;\red3\green45\blue153;
-\red5\green61\blue204;\red217\green11\blue5;\red183\green177\blue7;\red217\green11\blue5;\red3\green45\blue153;
-\red1\green31\blue103;\red85\green142\blue40;}
+\red5\green61\blue204;\red217\green11\blue5;\red183\green177\blue7;\red85\green142\blue40;\red217\green11\blue5;
+\red3\green45\blue153;\red1\green31\blue103;}
 {\*\expandedcolortbl;;\cssrgb\c39975\c61335\c20601;\cssrgb\c0\c0\c0;\cssrgb\c0\c25950\c66514;
-\cssrgb\c0\c33896\c83855;\cssrgb\c88946\c14202\c0;\cssrgb\c76768\c73671\c0;\cssrgb\c88946\c14202\c0;\cssrgb\c0\c25950\c66514;
-\cssrgb\c0\c18185\c48021;\cssrgb\c39975\c61335\c20601;}
+\cssrgb\c0\c33896\c83855;\cssrgb\c88946\c14202\c0;\cssrgb\c76768\c73671\c0;\cssrgb\c39975\c61335\c20601;\cssrgb\c88946\c14202\c0;
+\cssrgb\c0\c25950\c66514;\cssrgb\c0\c18185\c48021;}
 \margl1440\margr1440\vieww18240\viewh13040\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
@@ -120,15 +120,15 @@
 		- \cf2 SettingsVC\cf3  \cf0 \
 	\
 	\
-- work around new bug introduced into Warpinator where the desktop app sends the wrong IP address when requesting a certificate\
+\cf8 - work around new bug introduced into Warpinator where the desktop app sends the wrong IP address when requesting a certificate\
 	- send github request to fix OR implement this NWconnection to resolve IP\
-		- Will need to implement NwConnection, because even if they fix the bug people can\'92t connect unless the client is on the absolute latest\
+		- Will need to implement NwConnection, because even if they fix the bug people can\'92t connect unless the client is on the absolute latest\cf0 \
 - \cf6 channel moving to idle should ping before shutting down to verify that connection is really lost\cf3     \
 	- 
 \f1\b \cf4 Can\'92t connect if Warpinator thinks it\'92s offline, which I can\'92t control from my end. Possibly flushing and republishing? But that seems a little too \'91turn everything off and on again\'92. I\'92m hoping there\'92s a better solution
 \f0\b0 \cf3 \
 	- I think I may file a request that the desktop app be more lenient when it considers a remote offline/unreachable (allow idle connections)\cf0 \
-- \cf8 Persist/remove known/favourited remotes when they are disconnected/unavailable?\cf0  
+- \cf9 Persist/remove known/favourited remotes when they are disconnected/unavailable?\cf0  
 \f1\b \cf4 pushing this to RC_1
 \f0\b0 \cf0  \
 - \cf2 Ensure all Remotes are sharing a single eventloop group\cf0  \
@@ -170,29 +170,29 @@ Network: \
 		- Store/load autoconnect choice (\'91No\'92 by default)\
 		- remember \'91Favourites\'92, same as OG warpinator\cf0 \
 	- \cf6 Select storage location?\cf0  
-\f1\b \cf9 (Maybe later.)
+\f1\b \cf10 (Maybe later.)
 \f0\b0  \cf0 \
 	- \cf2 Store/load passcode\cf0  \
 	- \cf2 Store/load port selections\cf0  \
 	- \cf2 Store/load display name\cf0  \
 		- \cf6 Get actual user\'92s name for username (default, changeable)\cf0  
-\f1\b \cf9 (Apple no like. Bad privacy.)
+\f1\b \cf10 (Apple no like. Bad privacy.)
 \f0\b0  \cf0 \
 	- \cf6 Delete files on transfer cancel? \
 			- (if some of a transfer\'92s files have been completely downloaded at the time of cancellation, would you like to automatically delete them?)\cf0  
-\f1\b \cf10 (No)
+\f1\b \cf11 (No)
 \f0\b0 \cf3  \
 				- \cf2 DO delete partial-files\cf0 \
 \
-\cf11 Remote:\cf0 \
-	- \cf8 \'93Autoconnect\'94 option\cf0  \
+\cf8 Remote:\cf0 \
+	- \cf9 \'93Autoconnect\'94 option\cf0  \
 \
-\cf11 ViewController:\cf0 \
+\cf8 ViewController:\cf0 \
 	- \cf6 Listed remotes highlight when transfer is incoming\cf0  
 \f1\b \cf4 pushing this to RC_1
 \f0\b0 \cf0 \
 \
-\cf11 RemoteViewController:\cf0  \
+\cf8 RemoteViewController:\cf0  \
 	- \cf2 Scrollable transfers list\cf0 \
 	- \cf2 get\cf0 /\cf2 have Avatar image\cf0 \
 		- \cf6 iOS Warpinator Logo?\cf0  

@@ -49,22 +49,21 @@ class MDNSListener {
     }
     
     
+    //
+    // MARK: start
     func start(){
         print(DEBUG_TAG+"starting...")
         flushPublish()
     }
     
-    
-    
+    //
+    // MARK: stop
     func stop(){
-        
         listener?.cancel()
-        
-        
     }
     
     
-    
+    //
     // MARK: - Service Registration
     func publishServiceAndListen(){
         
@@ -88,13 +87,15 @@ class MDNSListener {
         
         let hostname = settingsManager.hostname
         let authport = settingsManager.registrationPortNumber
+        let uuid = settingsManager.uuid
         
         let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "auth-port" : "\(authport)",
                                            "api-version": "2",
                                            "type" : "real"]
-        let uuid = settingsManager.uuid
-        listener?.service = NWListener.Service(name: uuid, type: SERVICE_TYPE,
+        
+        listener?.service = NWListener.Service(name: uuid,
+                                               type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN, txtRecord:  NWTXTRecord(properties) )
         
         listener?.start(queue: listenerQueue)
@@ -127,9 +128,9 @@ class MDNSListener {
             print("flush listener (\(state))")
             switch state {
             case .ready:
-                self.listenerQueue.asyncAfter(deadline: .now() + 3) {
+                self.listenerQueue.asyncAfter(deadline: .now() + 2) {
                     self.stop()
-                    self.listenerQueue.asyncAfter(deadline: .now() + 3) {
+                    self.listenerQueue.asyncAfter(deadline: .now() + 2) {
                         self.publishServiceAndListen()
                     }
                 }
@@ -138,10 +139,12 @@ class MDNSListener {
         }
         
         let hostname = settingsManager.hostname
+        let uuid = settingsManager.uuid
+        
         let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "type" : "flush"]
         
-        listener?.service = NWListener.Service(name: settingsManager.uuid,
+        listener?.service = NWListener.Service(name: uuid,
                                                type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN,
                                                txtRecord:  NWTXTRecord(properties) )

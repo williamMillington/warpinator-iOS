@@ -26,7 +26,6 @@ class RegistrationServer {
     
 //    private lazy var uuid: String = Server.SERVER_UUID
     
-    
     var mDNSBrowser: MDNSBrowser?
     var mDNSListener: MDNSListener?
     
@@ -61,31 +60,16 @@ class RegistrationServer {
         
         let portNumber = Int( settingsManager.registrationPortNumber )
         
-        
-//        let serverFuture =
-            GRPC.Server.insecure(group: registrationServerELG)
+        GRPC.Server.insecure(group: registrationServerELG)
             .withServiceProviders([warpinatorRegistrationProvider])
             .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber).whenSuccess { server in
                 
-            print(self.DEBUG_TAG+"registration server started on: \(String(describing: server.channel.localAddress))")
+                print(self.DEBUG_TAG+"registration server started on: \(String(describing: server.channel.localAddress))")
                 
-            self.server = server
-            self.startMDNSServices()
+                self.server = server
+                self.startMDNSServices()
                 
-        }
-        
-//        serverFuture.map {
-//            $0.channel.localAddress
-//        }.whenSuccess { address in
-//            self.startMDNSServices()
-//            print(self.DEBUG_TAG+"registration server started on: \(String(describing: address))")
-//        }
-        
-        // When server exits, cleanup eventloop
-//        serverFuture.flatMap { $0.onClose }.whenCompleteBlocking(onto: serverQueue) { _ in
-//            print(self.DEBUG_TAG+" registration server exited")
-//            try! self.eventLoopGroup?.syncShutdownGracefully()
-//        }
+            }
         
     }
     
@@ -93,14 +77,9 @@ class RegistrationServer {
     
     // MARK: stop server
     func stop(){
-//        do {
-            
+        
             _ = server?.initiateGracefulShutdown()
             
-//            try eventLoopGroup?.syncShutdownGracefully()
-//        } catch {
-//            print(DEBUG_TAG+"could not shut down server")
-//        }
     }
     
     
@@ -236,7 +215,7 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         remoteManager?.addRemote(newRemote)
     }
-    
+
 }
 
 
