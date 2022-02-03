@@ -73,8 +73,6 @@ class MainCoordinator: NSObject, Coordinator {
     }
     
     
-    
-    
     //
     // MARK: start servers
     private func startServers(){
@@ -82,18 +80,34 @@ class MainCoordinator: NSObject, Coordinator {
         server.start()
         registrationServer.start()
         
+        
     }
     
     
     //
-    // MARK: restart servers
-    func restartServers(){
+    // MARK: stop servers
+    private func stopServers(){
+        print(DEBUG_TAG+"stopping servers: ")
         
         remoteManager.shutdownAllRemotes()
         
         _ = server.stop()
         _ = registrationServer.stop()
         
+        
+    }
+    
+    
+    
+    //
+    // MARK: restart servers
+    func restartServers(){
+        
+//        remoteManager.shutdownAllRemotes()
+//
+//        _ = server.stop()
+//        _ = registrationServer.stop()
+        stopServers()
         
         startServers()
         
@@ -126,7 +140,7 @@ class MainCoordinator: NSObject, Coordinator {
     
     
     // MARK: remote selected
-    func userSelected(_ remoteUUID: String){
+    func remoteSelected(_ remoteUUID: String){
         
 //        print(DEBUG_TAG+"user selected remote \(remoteUUID)")
         
@@ -163,6 +177,27 @@ class MainCoordinator: NSObject, Coordinator {
         }
         
     }
+    
+    
+    
+    //
+    // MARK: returnFromSettings
+    func  returnFromSettings(restartRequired restart: Bool) {
+        
+        if restart {
+            restartServers()
+        }
+        
+        
+        
+        
+        
+        
+    }
+    
+    
+    
+    
     
     //
     // MARK: shutdown

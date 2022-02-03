@@ -94,7 +94,7 @@ final class ViewController: UIViewController {
         print(DEBUG_TAG+"Adding view for connection \(viewModel.displayName)")
         
         let remoteView = ListedRemoteView(withViewModel: viewModel) {
-            self.coordinator?.userSelected(viewModel.uuid)
+            self.coordinator?.remoteSelected(viewModel.uuid)
         }
         
         // insert right before expanderviewr

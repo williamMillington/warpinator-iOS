@@ -24,34 +24,52 @@ class SettingsViewController: UIViewController {
     
     
     var coordinator: MainCoordinator?
-    var settingsManager: SettingsManager?
+    var settingsManager: SettingsManager!
+    
+    var currentSettings: [String: SettingsManager.SettingsType]!
+    
+    var changesOccurred: Bool {
+        let OGSettings = settingsManager.getSettingsCopy()
+        let settingsChanges: [Bool] = currentSettings.map { return OGSettings[$0.key] != $0.value  } // report if they're NOT the same
+        
+        // returns true if any are true
+        return settingsChanges.reduce(false) { result, next in
+            return result || next
+        }
+    }
+    var restartRequired: Bool = false
+    
+    
+    
+    
+    
+    
+    
+    init(settingsManager manager: SettingsManager) {
+        
+        settingsManager = manager
+        currentSettings = settingsManager.getSettingsCopy()
+        
+        super.init(nibName: "SendTransferViewController", bundle: Bundle(for: type(of: self)))
+    }
+    
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        
+    }
     
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // TODO: get current saved configuration and update UI
-        
-        let autoaccepts = settingsManager!.automaticAccept
-        autoacceptSwitch.isOn = autoaccepts
-        
-        let overwrites = settingsManager!.overwriteFiles
-        overwriteSwitch.isOn = overwrites
-        
-        
-        let displayName = settingsManager!.displayName
-        displayNameLabel.text = displayName
-        
-        
-        let groupCode = settingsManager!.groupCode
-        groupCodeLabel.text = groupCode
-        
-        let transferPort = settingsManager!.transferPortNumber
-        transferPortNumberLabel.text = "\(transferPort)"
-        
-        let regPort = settingsManager!.registrationPortNumber
-        registrationPortNumberLabel.text = "\(regPort)"
+        autoacceptSwitch.isOn = settingsManager.automaticAccept
+        overwriteSwitch.isOn = settingsManager.overwriteFiles
+        displayNameLabel.text = settingsManager.displayName
+        groupCodeLabel.text = settingsManager.groupCode
+        transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
+        registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
         
     }
     
@@ -73,14 +91,14 @@ class SettingsViewController: UIViewController {
             if(trimmedInput.count == 0) {
                 
                 //restore previous value
-                displayNameLabel.text = settingsManager!.displayName
+                displayNameLabel.text = settingsManager.displayName
                 
                 showPopupError(withTitle: "Error", andMessage: "Display Name Required")
                 return
             } else if trimmedInput.count > 15 {
                 
                 //restore previous value
-                groupCodeLabel.text = settingsManager!.groupCode
+                groupCodeLabel.text = settingsManager.groupCode
                 
                 showPopupError(withTitle: "Error", andMessage: "Group Code needs to be under 15 characters")
                 return
@@ -91,7 +109,8 @@ class SettingsViewController: UIViewController {
             
             
             // write to settings
-            settingsManager?.displayName = trimmedInput
+            settingsManager.displayName = trimmedInput
+            restartRequired = true
         }
         
         
@@ -119,14 +138,14 @@ class SettingsViewController: UIViewController {
             if(trimmedInput.count == 0) {
                 
                 //restore previous value
-                groupCodeLabel.text = settingsManager!.groupCode
+                groupCodeLabel.text = settingsManager.groupCode
                 
                 showPopupError(withTitle: "Error", andMessage: "Group Code Required")
                 return
             } else if trimmedInput.count > 25 {
                 
                 //restore previous value
-                groupCodeLabel.text = settingsManager!.groupCode
+                groupCodeLabel.text = settingsManager.groupCode
                 
                 showPopupError(withTitle: "Error", andMessage: "Group Code needs to be under 25 characters")
                 return
@@ -137,7 +156,8 @@ class SettingsViewController: UIViewController {
             
             
             // write to settings
-            settingsManager?.groupCode = trimmedInput
+            settingsManager.groupCode = trimmedInput
+            restartRequired = true
         }
         
     }
@@ -162,7 +182,7 @@ class SettingsViewController: UIViewController {
             if(trimmedInput.count == 0) {
                 
                 //restore previous value
-                transferPortNumberLabel.text = "\(settingsManager!.transferPortNumber)"
+                transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
                 
                 showPopupError(withTitle: "Error", andMessage: "Port Number Required")
                 return
@@ -182,14 +202,14 @@ class SettingsViewController: UIViewController {
                 
                 
                 // write to settings
-                settingsManager?.transferPortNumber = UInt32(newPortNum)
-                
+                settingsManager.transferPortNumber = UInt32(newPortNum)
+                restartRequired = true
                 
                 
             } else {
                 
                 //restore previous value
-                transferPortNumberLabel.text = "\(settingsManager!.transferPortNumber)"
+                transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
                 
                 showPopupError(withTitle: "Error", andMessage: "Must be a number")
                 return
@@ -218,7 +238,7 @@ class SettingsViewController: UIViewController {
             if(trimmedInput.count == 0) {
                 
                 //restore previous value
-                registrationPortNumberLabel.text = "\(settingsManager!.registrationPortNumber)"
+                registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
                 
                 showPopupError(withTitle: "Error", andMessage: "Port Number Required")
                 return
@@ -238,14 +258,14 @@ class SettingsViewController: UIViewController {
                 
                 
                 // write to settings
-                settingsManager?.registrationPortNumber = UInt32(newPortNum)
-                
+                settingsManager.registrationPortNumber = UInt32(newPortNum)
+                restartRequired = true
                 
                 
             } else {
                 
                 //restore previous value
-                registrationPortNumberLabel.text = "\(settingsManager!.registrationPortNumber)"
+                registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
                 
                 showPopupError(withTitle: "Error", andMessage: "Must be a number")
                 return
@@ -266,7 +286,7 @@ class SettingsViewController: UIViewController {
         print(DEBUG_TAG+" autoaccept switch is on: \(newValue)")
         
         // write to settings
-        settingsManager?.automaticAccept = newValue
+        settingsManager.automaticAccept = newValue
         
         
     }
@@ -282,7 +302,8 @@ class SettingsViewController: UIViewController {
         print(DEBUG_TAG+"overwrite switch is on: \(newValue)")
         
         // write to settings
-        settingsManager?.overwriteFiles = newValue
+        settingsManager.overwriteFiles = newValue
+        restartRequired = true
         
         
     }
@@ -311,7 +332,8 @@ class SettingsViewController: UIViewController {
     
     // MARK: back
     @IBAction func back(){
-        coordinator?.showMainViewController()
+        
+        coordinator?.returnFromSettings(restartRequired: restartRequired)
     }
     
 

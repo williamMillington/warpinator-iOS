@@ -12,6 +12,28 @@ import UIKit
 class SettingsManager {
     
     
+    enum SettingsType: Equatable {
+        case Int(Int)
+        case UInt32(UInt32)
+        case String(String)
+        case Bool(Bool)
+        static func ==(lhs: SettingsType, rhs:SettingsType) -> Bool {
+            
+            switch (lhs,rhs){
+            case (.Int(let num1), .Int(let num2)): return num1 == num2
+            case (.UInt32(let num1), .UInt32(let num2)): return num1 == num2
+            case (.String(let str1), .String(let str2)): return str1 == str2
+            case (.Bool(let bool1), .Bool(let bool2)): return bool1 == bool2
+            case (.Int(_),_),
+                 (.UInt32(_),_),
+                 (.String(_),_),
+                 (.Bool(_),_): return false
+            }
+            
+        }
+    }
+    
+    
     struct StorageKeys {
         
         static let displayName = "displayName"
@@ -32,18 +54,18 @@ class SettingsManager {
     
     
     // MARK: default values
-    let defaultValues: [String : Any] = [ StorageKeys.displayName : "iOS Device",
-                                          StorageKeys.userName : "iosdevice",
+    let defaultValues: [String : SettingsType] = [ StorageKeys.displayName : .String("iOS Device"),
+                                                   StorageKeys.userName : .String("iosdevice"),
                                           
-                                          StorageKeys.overwriteFiles : false,
-                                          StorageKeys.automaticAccept : false,
+                                                   StorageKeys.overwriteFiles : .Bool(false),
+                                                   StorageKeys.automaticAccept : .Bool(false),
                                           
-                                          StorageKeys.hostname : "WarpinatoriOS",
-                                          StorageKeys.uuid : "WarpinatoriOS\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))", // TODO: make gooder
+                                                   StorageKeys.hostname : .String("WarpinatoriOS"),
+                                                   StorageKeys.uuid : .String("WarpinatoriOS\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))"), // TODO: make gooder
                                           
-                                          StorageKeys.groupCode : "Warpinator",
-                                          StorageKeys.transferPortNumber : 42_000,
-                                          StorageKeys.registrationPortNumber : 42_001
+                                                   StorageKeys.groupCode : .String("Warpinator"),
+                                                   StorageKeys.transferPortNumber : .Int(42_000),
+                                                   StorageKeys.registrationPortNumber : .Int(42_001)
     ]
     
     
@@ -52,16 +74,16 @@ class SettingsManager {
     
     
     // user settings
-    var displayName: String         {   didSet { writeSettings() } }
+    var displayName: String       {   didSet { writeSettings() } }
     var userName: String            {   didSet { writeSettings() } }
     var avatarImage: UIImage? = nil {   didSet { writeSettings() } }
     
-    var overwriteFiles: Bool = false    {   didSet { writeSettings() } }
-    var automaticAccept: Bool = false   {   didSet { writeSettings() } }
+    var overwriteFiles: Bool    {   didSet { writeSettings() } }
+    var automaticAccept: Bool   {   didSet { writeSettings() } }
     
     // connectionSettings
-    var hostname: String = "WarpinatoriOS"  {   didSet { writeSettings() } }
-    var uuid: String = "WarpinatoriOS"      {   didSet { writeSettings() } }
+    var hostname: String  {   didSet { writeSettings() } }
+    var uuid: String      {   didSet { writeSettings() } }
     
     var groupCode: String = "Warpinator"    {   didSet { writeSettings() } }
     
@@ -85,11 +107,11 @@ class SettingsManager {
         automaticAccept = defaults.bool(forKey: StorageKeys.automaticAccept)
         
         
-        hostname = defaults.string(forKey: StorageKeys.hostname) ?? (defaultValues[StorageKeys.hostname] as! String)
-        uuid = defaults.string(forKey: StorageKeys.uuid) ?? (defaultValues[StorageKeys.uuid] as! String)
+        hostname = defaults.string(forKey: StorageKeys.hostname)!
+        uuid = defaults.string(forKey: StorageKeys.uuid)!
         
         
-        groupCode = defaults.string(forKey: StorageKeys.groupCode) ?? (defaultValues[StorageKeys.groupCode] as! String)
+        groupCode = defaults.string(forKey: StorageKeys.groupCode)!
         transferPortNumber = UInt32( defaults.integer(forKey: StorageKeys.transferPortNumber) )
         registrationPortNumber = UInt32( defaults.integer(forKey: StorageKeys.registrationPortNumber) )
         
@@ -100,6 +122,27 @@ class SettingsManager {
     }
     
     
+    
+    
+    //
+    // copy of current settings values
+    // MARK: getSettingsCopy
+    func getSettingsCopy() -> [String : SettingsType] {
+        
+        return [ StorageKeys.displayName : .String(displayName),
+                 StorageKeys.userName : .String(userName),
+                 
+                 StorageKeys.overwriteFiles : .Bool(overwriteFiles),
+                 StorageKeys.automaticAccept : .Bool(automaticAccept),
+                 
+                 StorageKeys.hostname : .String(hostname),
+                 StorageKeys.uuid : .String(uuid), // TODO: make gooder
+                 
+                 StorageKeys.groupCode : .String(groupCode),
+                 StorageKeys.transferPortNumber : .UInt32(transferPortNumber),
+                 StorageKeys.registrationPortNumber : .UInt32(registrationPortNumber)
+        ]
+    }
     
     
     func writeSettings(){
@@ -123,6 +166,7 @@ class SettingsManager {
     }
     
     
+//    func settings
     
     
 }
