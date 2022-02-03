@@ -88,7 +88,7 @@
 		791D782927779261008140CC /* MainView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainView.xib; sourceTree = "<group>"; };
 		79331AF8274E8F3500A4022F /* TransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewController.swift; sourceTree = "<group>"; };
 		79343EB22743502B008E0890 /* SendFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFileOperation.swift; sourceTree = "<group>"; };
-		79360EB027069897008349D2 /* MaybeWarpinator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MaybeWarpinator.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		79360EB027069897008349D2 /* Warpinator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warpinator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79360EB327069897008349D2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		79360EB527069897008349D2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		79360EB727069897008349D2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -112,7 +112,7 @@
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
 		797C12B9270FC86A00A2795C /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		797C12BC2711102700A2795C /* ReceiveFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveFileOperation.swift; sourceTree = "<group>"; };
-		799E39E72745822700E60FFC /* ButtonScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ButtonScrollView.swift; path = MaybeWarpinator/Common/View/ButtonScrollView.swift; sourceTree = SOURCE_ROOT; };
+		799E39E72745822700E60FFC /* ButtonScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ButtonScrollView.swift; path = Warpinator/Common/View/ButtonScrollView.swift; sourceTree = SOURCE_ROOT; };
 		799E39EA2746989000E60FFC /* AutoLayoutDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutDebugView.swift; sourceTree = "<group>"; };
 		799E39EE27469CD800E60FFC /* OnTouchGestureRecognizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnTouchGestureRecognizer.swift; sourceTree = "<group>"; };
 		799E39EF27469CD800E60FFC /* TapGestureRecognizerWithClosure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TapGestureRecognizerWithClosure.swift; sourceTree = "<group>"; };
@@ -132,9 +132,9 @@
 		79B8A0F32745587C00369E62 /* ListedRemoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedRemoteView.swift; sourceTree = "<group>"; };
 		79B8A0F6274561C600369E62 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
 		79B8A0FA2745623900369E62 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
-		79C002A9270A92EC002DB22B /* warp.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.pb.swift; path = MaybeWarpinator/__gRPC/warp.pb.swift; sourceTree = SOURCE_ROOT; };
-		79C002AA270A92EC002DB22B /* warp.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.protobuf; name = warp.proto; path = MaybeWarpinator/__gRPC/warp.proto; sourceTree = SOURCE_ROOT; };
-		79C002AB270A92EC002DB22B /* warp.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.grpc.swift; path = MaybeWarpinator/__gRPC/warp.grpc.swift; sourceTree = SOURCE_ROOT; };
+		79C002A9270A92EC002DB22B /* warp.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.pb.swift; path = Warpinator/__gRPC/warp.pb.swift; sourceTree = SOURCE_ROOT; };
+		79C002AA270A92EC002DB22B /* warp.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.protobuf; name = warp.proto; path = Warpinator/__gRPC/warp.proto; sourceTree = SOURCE_ROOT; };
+		79C002AB270A92EC002DB22B /* warp.grpc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = warp.grpc.swift; path = Warpinator/__gRPC/warp.grpc.swift; sourceTree = SOURCE_ROOT; };
 		79C002B0270BC1A9002DB22B /* TestServiceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestServiceProvider.swift; sourceTree = "<group>"; };
 		79C002B3270BCC4E002DB22B /* Server.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Server.swift; sourceTree = "<group>"; };
 		79C002B7270E0C16002DB22B /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
@@ -235,7 +235,7 @@
 		79360EA727069897008349D2 = {
 			isa = PBXGroup;
 			children = (
-				79360EB227069897008349D2 /* MaybeWarpinator */,
+				79360EB227069897008349D2 /* Warpinator */,
 				79360EB127069897008349D2 /* Products */,
 				79C0029C270A90EC002DB22B /* Frameworks */,
 			);
@@ -244,12 +244,12 @@
 		79360EB127069897008349D2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				79360EB027069897008349D2 /* MaybeWarpinator.app */,
+				79360EB027069897008349D2 /* Warpinator.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		79360EB227069897008349D2 /* MaybeWarpinator */ = {
+		79360EB227069897008349D2 /* Warpinator */ = {
 			isa = PBXGroup;
 			children = (
 				79331B00274E90F600A4022F /* Common */,
@@ -276,7 +276,7 @@
 				79A063062797B9E200A5A99E /* SettingsViewController.xib */,
 				79A063092797BA0D00A5A99E /* SettingsViewController.swift */,
 			);
-			path = MaybeWarpinator;
+			path = Warpinator;
 			sourceTree = "<group>";
 		};
 		79360ED2270A1C7A008349D2 /* Test_Files */ = {
@@ -375,9 +375,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		79360EAF27069897008349D2 /* MaybeWarpinator */ = {
+		79360EAF27069897008349D2 /* Warpinator */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 79360EC427069899008349D2 /* Build configuration list for PBXNativeTarget "MaybeWarpinator" */;
+			buildConfigurationList = 79360EC427069899008349D2 /* Build configuration list for PBXNativeTarget "Warpinator" */;
 			buildPhases = (
 				79360EAC27069897008349D2 /* Sources */,
 				79360EAD27069897008349D2 /* Frameworks */,
@@ -388,15 +388,15 @@
 			dependencies = (
 				79C002A5270A9144002DB22B /* PBXTargetDependency */,
 			);
-			name = MaybeWarpinator;
+			name = Warpinator;
 			packageProductDependencies = (
 				79360ECC270928B3008349D2 /* GRPC */,
 				797C12C127150FB700A2795C /* Clibsodium */,
 				797C12C327150FB700A2795C /* Sodium */,
 				792D760D277954B3008E1114 /* Shield */,
 			);
-			productName = MaybeWarpinator;
-			productReference = 79360EB027069897008349D2 /* MaybeWarpinator.app */;
+			productName = Warpinator;
+			productReference = 79360EB027069897008349D2 /* Warpinator.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -416,7 +416,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 79360EAB27069897008349D2 /* Build configuration list for PBXProject "MaybeWarpinator" */;
+			buildConfigurationList = 79360EAB27069897008349D2 /* Build configuration list for PBXProject "Warpinator" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -434,7 +434,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				79360EAF27069897008349D2 /* MaybeWarpinator */,
+				79360EAF27069897008349D2 /* Warpinator */,
 			);
 		};
 /* End PBXProject section */
@@ -674,7 +674,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 96DC6YV3DR;
-				INFOPLIST_FILE = MaybeWarpinator/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Warpinator/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -694,7 +694,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 96DC6YV3DR;
-				INFOPLIST_FILE = MaybeWarpinator/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Warpinator/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -710,7 +710,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		79360EAB27069897008349D2 /* Build configuration list for PBXProject "MaybeWarpinator" */ = {
+		79360EAB27069897008349D2 /* Build configuration list for PBXProject "Warpinator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				79360EC227069899008349D2 /* Debug */,
@@ -719,7 +719,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		79360EC427069899008349D2 /* Build configuration list for PBXNativeTarget "MaybeWarpinator" */ = {
+		79360EC427069899008349D2 /* Build configuration list for PBXNativeTarget "Warpinator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				79360EC527069899008349D2 /* Debug */,
