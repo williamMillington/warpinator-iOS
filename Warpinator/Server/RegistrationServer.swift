@@ -202,10 +202,16 @@ extension RegistrationServer: MDNSBrowserDelegate {
         
         if let remote = remoteManager?.containsRemote(for: serviceName) {
                 print(DEBUG_TAG+"Service already added")
-            if remote.details.status == .Disconnected || remote.details.status == .Error {
+            if [ .Disconnected, .Idle, .Error ].contains(remote.details.status ) {
                 print(DEBUG_TAG+"\tstatus is not connected: reconnecting...")
                 remote.startConnection()
             }
+                
+                
+//                remote.details.status == .Disconnected || remote.details.status == .Error {
+//                print(DEBUG_TAG+"\tstatus is not connected: reconnecting...")
+//                remote.startConnection()
+//            }
             return
         }
         

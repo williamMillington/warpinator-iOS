@@ -47,6 +47,18 @@ class RemoteManager {
     }
     
     
+    // tells the remote with this uuid to start a connection,
+    // if it exists
+    func startConnection(forRemoteWithUUID uuid: String) {
+        
+        guard let remote = remotes[uuid] else {
+            print(DEBUG_TAG+"\t remote not found")
+            return
+        }
+        remote.startConnection()
+    }
+    
+    
     
     // MARK: remove Remote
     func removeRemote(withUUID uuid: String){

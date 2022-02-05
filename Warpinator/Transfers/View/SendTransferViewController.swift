@@ -146,7 +146,7 @@ class SendTransferViewController: UIViewController {
         super.viewDidLoad()
         
         
-        view.backgroundColor = .white
+        view.backgroundColor = Utils.backgroundColour
         
         for view in filesStack.arrangedSubviews {   view.removeFromSuperview()  }
         

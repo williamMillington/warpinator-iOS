@@ -86,7 +86,7 @@ class ReceiveTransferViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .white
+        view.backgroundColor = Utils.backgroundColour
         
         var viewConstraints: [NSLayoutConstraint] = []
         

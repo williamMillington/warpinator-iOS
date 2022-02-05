@@ -167,8 +167,9 @@ class MainCoordinator: NSObject, Coordinator {
             navController.popToViewController(settingsVC, animated: false)
         } else {
             
-            let bundle = Bundle(for: type(of: self))
-            let settingsVC = SettingsViewController(nibName: "SettingsViewController", bundle: bundle)
+//            let bundle = Bundle(for: type(of: self))
+            let settingsVC = SettingsViewController(settingsManager: settingsManager)
+//            (nibName: "SettingsViewController", bundle: bundle)
             
             settingsVC.coordinator = self
             settingsVC.settingsManager = settingsManager
@@ -188,10 +189,7 @@ class MainCoordinator: NSObject, Coordinator {
             restartServers()
         }
         
-        
-        
-        
-        
+        showMainViewController()
         
     }
     
@@ -217,7 +215,6 @@ class MainCoordinator: NSObject, Coordinator {
         remoteEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
             print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
         }
-        
         
     }
     

@@ -154,6 +154,8 @@ final class RemoteViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.backgroundColor = Utils.backgroundColour
+        
         for view in transfersStack.arrangedSubviews {   view.removeFromSuperview()  }
         
 //        view.backgroundColor = .white

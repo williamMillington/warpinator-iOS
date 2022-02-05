@@ -167,7 +167,7 @@ class TransferViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .white
+        view.backgroundColor = Utils.backgroundColour
         
         for view in operationsStack.arrangedSubviews {   view.removeFromSuperview()  }
         

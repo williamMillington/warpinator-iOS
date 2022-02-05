@@ -55,6 +55,9 @@ public class Server { //}: NSObject {
     weak var authenticationManager: Authenticator?
     
     
+    // We have to capture the serverBuilder future here or it will sometimes randomly be
+    // deallocated before it can finish for some idiot reason
+    var future: EventLoopFuture<GRPC.Server>?
     var server: GRPC.Server?
     
     
@@ -86,14 +89,16 @@ public class Server { //}: NSObject {
         let serverCertificate = authenticationManager!.serverCert!
         let serverPrivateKey = authenticationManager!.serverKey!
         
-        GRPC.Server.usingTLSBackedByNIOSSL(on: serverELG,
+        // 'future' will be deallocated before .whenSuccess can be called if we don't capture it here
+        future = GRPC.Server.usingTLSBackedByNIOSSL(on: serverELG,
                                            certificateChain: [ serverCertificate  ],
                                            privateKey: serverPrivateKey )
             .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
             .withServiceProviders( [ warpinatorProvider ] )
             .bind(host: "\(Utils.getIP_V4_Address())",
                   port: Int( settingsManager.transferPortNumber ))
-            .whenSuccess { server in
+            
+        future?.whenSuccess { server in
             print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
             self.server = server
         }

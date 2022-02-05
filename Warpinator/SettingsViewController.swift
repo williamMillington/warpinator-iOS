@@ -6,18 +6,19 @@
 //
 
 import UIKit
+import Sodium
 
 class SettingsViewController: UIViewController {
 
     private let DEBUG_TAG: String = "SettingsViewController: "
     
     @IBOutlet var backButton: UIButton!
+    @IBOutlet var resetButton: UIButton!
     
     @IBOutlet var displayNameLabel: UITextField!
     @IBOutlet var groupCodeLabel: UITextField!
     @IBOutlet var transferPortNumberLabel: UITextField!
     @IBOutlet var registrationPortNumberLabel: UITextField!
-//    @IBOutlet var displayNameLabel: UITextField!
     
     @IBOutlet var overwriteSwitch: UISwitch!
     @IBOutlet var autoacceptSwitch: UISwitch!
@@ -26,22 +27,31 @@ class SettingsViewController: UIViewController {
     var coordinator: MainCoordinator?
     var settingsManager: SettingsManager!
     
-    var currentSettings: [String: SettingsManager.SettingsType]!
-    
-    var changesOccurred: Bool {
-        let OGSettings = settingsManager.getSettingsCopy()
-        let settingsChanges: [Bool] = currentSettings.map { return OGSettings[$0.key] != $0.value  } // report if they're NOT the same
-        
-        // returns true if any are true
-        return settingsChanges.reduce(false) { result, next in
-            return result || next
+    var currentSettings: [String: SettingsManager.SettingsType]! {
+        didSet {
+            if settingsChanged {
+                
+                let text = restartRequired ? "Restart" : "Apply"
+                
+                backButton.setTitle(text, for: .normal)
+                resetButton.alpha = 1.0
+                resetButton.isUserInteractionEnabled = true
+                
+            } else {
+                resetButton.alpha = 0
+                resetButton.isUserInteractionEnabled = false
+            }
         }
     }
+    
+    var settingsChanged: Bool {
+        let OGSettings = settingsManager.getSettingsCopy()
+        return currentSettings.map { return OGSettings[$0.key] != $0.value  } // report if they're NOT the same
+            .reduce(false) { result, next in
+                return result || next // returns true if any are true
+            }
+    }
     var restartRequired: Bool = false
-    
-    
-    
-    
     
     
     
@@ -50,7 +60,7 @@ class SettingsViewController: UIViewController {
         settingsManager = manager
         currentSettings = settingsManager.getSettingsCopy()
         
-        super.init(nibName: "SendTransferViewController", bundle: Bundle(for: type(of: self)))
+        super.init(nibName: "SettingsViewController", bundle: Bundle(for: type(of: self)))
     }
     
     
@@ -64,18 +74,47 @@ class SettingsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        autoacceptSwitch.isOn = settingsManager.automaticAccept
-        overwriteSwitch.isOn = settingsManager.overwriteFiles
-        displayNameLabel.text = settingsManager.displayName
-        groupCodeLabel.text = settingsManager.groupCode
-        transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
-        registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
-        
+        view.backgroundColor = Utils.backgroundColour
+//        autoacceptSwitch.isOn = settingsManager.automaticAccept
+//        overwriteSwitch.isOn = settingsManager.overwriteFiles
+//        displayNameLabel.text = settingsManager.displayName
+//        groupCodeLabel.text = settingsManager.groupCode
+//        transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
+//        registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
+        setOriginalSettings()
     }
     
     
+    func setOriginalSettings(){
+        
+        if case let .settingsBool(boolval) =  currentSettings[SettingsManager.StorageKeys.automaticAccept] {
+            autoacceptSwitch.isOn = boolval  }
+        
+        if case let .settingsBool(boolval) =  currentSettings[SettingsManager.StorageKeys.overwriteFiles] {
+            overwriteSwitch.isOn = boolval  }
+        
+        if case let .settingsString(stringVal) =  currentSettings[SettingsManager.StorageKeys.overwriteFiles] {
+            displayNameLabel.text = stringVal  }
+        
+        if case let .settingsString(stringVal) =  currentSettings[SettingsManager.StorageKeys.groupCode] {
+            groupCodeLabel.text = stringVal  }
+        
+        if case let .settingsUInt32(uintval) =  currentSettings[SettingsManager.StorageKeys.transferPortNumber] {
+            transferPortNumberLabel.text = "\(uintval)"  }
+        
+        if case let .settingsUInt32(uintval) =  currentSettings[SettingsManager.StorageKeys.registrationPortNumber] {
+            registrationPortNumberLabel.text = "\(uintval)"  }
+        
+//        autoacceptSwitch.isOn = currentSettings[SettingsManager.StorageKeys.automaticAccept]
+//        overwriteSwitch.isOn = settingsManager.overwriteFiles
+//        displayNameLabel.text = settingsManager.displayName
+//        groupCodeLabel.text = settingsManager.groupCode
+//        transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
+//        registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
+    }
     
-    // MARK: group code changed
+    
+    // MARK: display name changed
     @IBAction func displayNameDidChange(_ sender: UITextField){
         
         // get text
@@ -109,10 +148,9 @@ class SettingsViewController: UIViewController {
             
             
             // write to settings
-            settingsManager.displayName = trimmedInput
+            currentSettings[ SettingsManager.StorageKeys.displayName ] =  .settingsString(trimmedInput)
             restartRequired = true
         }
-        
         
         
     }
@@ -156,7 +194,8 @@ class SettingsViewController: UIViewController {
             
             
             // write to settings
-            settingsManager.groupCode = trimmedInput
+//            settingsManager.groupCode = trimmedInput
+            currentSettings[SettingsManager.StorageKeys.groupCode ] = .settingsString(trimmedInput)
             restartRequired = true
         }
         
@@ -202,7 +241,8 @@ class SettingsViewController: UIViewController {
                 
                 
                 // write to settings
-                settingsManager.transferPortNumber = UInt32(newPortNum)
+//                settingsManager.transferPortNumber = UInt32(newPortNum)
+                currentSettings[SettingsManager.StorageKeys.transferPortNumber] = .settingsUInt32( UInt32(newPortNum) )
                 restartRequired = true
                 
                 
@@ -216,7 +256,6 @@ class SettingsViewController: UIViewController {
             }
             
         }
-        
     }
     
     
@@ -244,7 +283,6 @@ class SettingsViewController: UIViewController {
                 return
             }
             
-            
             // check if number
             if let newPortNum = Int(trimmedInput) {
                 
@@ -258,7 +296,8 @@ class SettingsViewController: UIViewController {
                 
                 
                 // write to settings
-                settingsManager.registrationPortNumber = UInt32(newPortNum)
+//                settingsManager.registrationPortNumber = UInt32(newPortNum)
+                currentSettings[SettingsManager.StorageKeys.registrationPortNumber] = .settingsUInt32( UInt32(newPortNum) )
                 restartRequired = true
                 
                 
@@ -287,6 +326,7 @@ class SettingsViewController: UIViewController {
         
         // write to settings
         settingsManager.automaticAccept = newValue
+        currentSettings[SettingsManager.StorageKeys.automaticAccept] = .settingsBool(newValue)
         
         
     }
@@ -303,6 +343,7 @@ class SettingsViewController: UIViewController {
         
         // write to settings
         settingsManager.overwriteFiles = newValue
+        currentSettings[SettingsManager.StorageKeys.overwriteFiles] = .settingsBool(newValue)
         restartRequired = true
         
         
@@ -328,6 +369,10 @@ class SettingsViewController: UIViewController {
     
     
     
+    @IBAction func reset(){
+        currentSettings = settingsManager.getSettingsCopy()
+        setOriginalSettings()
+    }
     
     
     // MARK: back
