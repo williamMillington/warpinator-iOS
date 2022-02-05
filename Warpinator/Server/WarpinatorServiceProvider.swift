@@ -186,7 +186,7 @@ public class WarpinatorServiceProvider: WarpProvider {
                     }
                     
                     result.whenSuccess { result in
-                        print(self.DEBUG_TAG+"avatar chunk succeeded (\(result))")
+//                        print(self.DEBUG_TAG+"avatar chunk succeeded (\(result))")
                     }
                     result.whenFailure{ error in
                         print(self.DEBUG_TAG+"avatar chunk failed (\(error))")

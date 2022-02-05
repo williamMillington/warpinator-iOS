@@ -123,8 +123,8 @@
                     <color key="textColor" red="0.38184886499999998" green="0.38548552089999999" blue="0.38548552089999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     <nil key="highlightedColor"/>
                 </label>
-                <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bPG-wy-zSh">
-                    <rect key="frame" x="16" y="20" width="62" height="36"/>
+                <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bPG-wy-zSh">
+                    <rect key="frame" x="16" y="20" width="93" height="36"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
                     <state key="normal" title="&lt; Back">
@@ -174,7 +174,6 @@
                         <color key="titleColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     </state>
                     <connections>
-                        <action selector="back" destination="-1" eventType="touchUpInside" id="pIY-f3-bVH"/>
                         <action selector="reset" destination="-1" eventType="touchUpInside" id="EZl-uJ-BzF"/>
                     </connections>
                 </button>

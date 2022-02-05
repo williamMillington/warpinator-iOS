@@ -38,6 +38,7 @@ class SettingsViewController: UIViewController {
                 resetButton.isUserInteractionEnabled = true
                 
             } else {
+                backButton.setTitle("<Back", for: .normal)
                 resetButton.alpha = 0
                 resetButton.isUserInteractionEnabled = false
             }
@@ -46,7 +47,9 @@ class SettingsViewController: UIViewController {
     
     var settingsChanged: Bool {
         let OGSettings = settingsManager.getSettingsCopy()
-        return currentSettings.map { return OGSettings[$0.key] != $0.value  } // report if they're NOT the same
+        return currentSettings.map {
+            print("OG: (\($0.key))\(OGSettings[$0.key]!) vs \($0.value)")
+            return OGSettings[$0.key] != $0.value  } // report if they're NOT the same
             .reduce(false) { result, next in
                 return result || next // returns true if any are true
             }
@@ -148,8 +151,8 @@ class SettingsViewController: UIViewController {
             
             
             // write to settings
-            currentSettings[ SettingsManager.StorageKeys.displayName ] =  .settingsString(trimmedInput)
             restartRequired = true
+            currentSettings[ SettingsManager.StorageKeys.displayName ] =  .settingsString(trimmedInput)
         }
         
         
@@ -195,8 +198,8 @@ class SettingsViewController: UIViewController {
             
             // write to settings
 //            settingsManager.groupCode = trimmedInput
-            currentSettings[SettingsManager.StorageKeys.groupCode ] = .settingsString(trimmedInput)
             restartRequired = true
+            currentSettings[SettingsManager.StorageKeys.groupCode ] = .settingsString(trimmedInput)
         }
         
     }
@@ -242,8 +245,8 @@ class SettingsViewController: UIViewController {
                 
                 // write to settings
 //                settingsManager.transferPortNumber = UInt32(newPortNum)
-                currentSettings[SettingsManager.StorageKeys.transferPortNumber] = .settingsUInt32( UInt32(newPortNum) )
                 restartRequired = true
+                currentSettings[SettingsManager.StorageKeys.transferPortNumber] = .settingsUInt32( UInt32(newPortNum) )
                 
                 
             } else {
@@ -297,8 +300,8 @@ class SettingsViewController: UIViewController {
                 
                 // write to settings
 //                settingsManager.registrationPortNumber = UInt32(newPortNum)
-                currentSettings[SettingsManager.StorageKeys.registrationPortNumber] = .settingsUInt32( UInt32(newPortNum) )
                 restartRequired = true
+                currentSettings[SettingsManager.StorageKeys.registrationPortNumber] = .settingsUInt32( UInt32(newPortNum) )
                 
                 
             } else {
@@ -325,9 +328,8 @@ class SettingsViewController: UIViewController {
         print(DEBUG_TAG+" autoaccept switch is on: \(newValue)")
         
         // write to settings
-        settingsManager.automaticAccept = newValue
+//        settingsManager.automaticAccept = newValue
         currentSettings[SettingsManager.StorageKeys.automaticAccept] = .settingsBool(newValue)
-        
         
     }
     
@@ -336,16 +338,14 @@ class SettingsViewController: UIViewController {
     // MARK: overwrite changed
     @IBAction func overwriteSettingDidChange(_ sender: UISwitch) {
         
-        
         // get state
         let newValue = sender.isOn
         print(DEBUG_TAG+"overwrite switch is on: \(newValue)")
         
         // write to settings
-        settingsManager.overwriteFiles = newValue
-        currentSettings[SettingsManager.StorageKeys.overwriteFiles] = .settingsBool(newValue)
+//        settingsManager.overwriteFiles = newValue
         restartRequired = true
-        
+        currentSettings[SettingsManager.StorageKeys.overwriteFiles] = .settingsBool(newValue)
         
     }
     
@@ -368,7 +368,7 @@ class SettingsViewController: UIViewController {
     }
     
     
-    
+    // MARK: reset
     @IBAction func reset(){
         currentSettings = settingsManager.getSettingsCopy()
         setOriginalSettings()

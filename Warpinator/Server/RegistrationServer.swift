@@ -40,9 +40,6 @@ class RegistrationServer {
     }
     
     var settingsManager: SettingsManager
-//    {
-//        didSet {    }
-//    }
     
     var server : GRPC.Server?
     

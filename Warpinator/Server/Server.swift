@@ -102,6 +102,10 @@ public class Server { //}: NSObject {
             print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
             self.server = server
         }
+        
+        future?.whenFailure { error in
+            print(self.DEBUG_TAG+"transfer server failed: \(error))")
+        }
 
     }
     
