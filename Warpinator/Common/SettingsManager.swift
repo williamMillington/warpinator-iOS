@@ -14,7 +14,8 @@ class SettingsManager {
     private let DEBUG_TAG: String = "SettingsManager: "
     
     
-    enum SettingsType: Equatable, Codable {
+    enum SettingsType: Equatable {
+//                       , Codable {
         case settingsInt(Int)
         case settingsUInt32(UInt32)
         case settingsString(String)

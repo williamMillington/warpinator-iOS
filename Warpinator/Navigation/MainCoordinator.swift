@@ -94,7 +94,6 @@ class MainCoordinator: NSObject, Coordinator {
         _ = server.stop()
         _ = registrationServer.stop()
         
-        
     }
     
     
@@ -108,7 +107,6 @@ class MainCoordinator: NSObject, Coordinator {
 //        _ = server.stop()
 //        _ = registrationServer.stop()
         stopServers()
-        
         startServers()
         
         
@@ -206,13 +204,13 @@ class MainCoordinator: NSObject, Coordinator {
         // TODO: make these receive a future, so we
         // can try to coordinate the eventloopgroup shutdown
         
-        server.stop()
-        registrationServer.stop()
+        _ = server.stop()
+        _ = registrationServer.stop() 
         
-        serverEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
+        _ = serverEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
             print(self.DEBUG_TAG+"Completed serverEventLoopGroup shutdown")
         }
-        remoteEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
+        _ = remoteEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
             print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
         }
         
@@ -228,6 +226,7 @@ class MainCoordinator: NSObject, Coordinator {
             }
         }
     }
+    
 }
 
 
