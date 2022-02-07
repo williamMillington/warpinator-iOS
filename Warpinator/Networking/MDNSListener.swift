@@ -156,9 +156,9 @@ class MDNSListener {
     private func stateDidUpdate(state: NWListener.State ) {
         
         switch state {
-        case.cancelled:
+        case.cancelled: print(DEBUG_TAG+" cancelled")
             listener = nil
-        case .ready: print(DEBUG_TAG+"listener is ready")
+        case .ready: print(DEBUG_TAG+" ready")
             delegate?.mDNSListenerIsReady() // break 
         default: print(DEBUG_TAG+"State updated: \(state)")
         }

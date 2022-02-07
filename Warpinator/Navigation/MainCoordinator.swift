@@ -76,7 +76,7 @@ class MainCoordinator: NSObject, Coordinator {
     
     //
     // MARK: start servers
-    private func startServers(){
+    func startServers(){
         print(DEBUG_TAG+"starting servers: ")
         server.start()
         registrationServer.start()
@@ -87,7 +87,7 @@ class MainCoordinator: NSObject, Coordinator {
     
     //
     // MARK: stop servers
-    private func stopServers(){
+    func stopServers(){
         print(DEBUG_TAG+"stopping servers: ")
         
         remoteManager.shutdownAllRemotes()
