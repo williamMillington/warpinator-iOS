@@ -34,8 +34,8 @@ class Authenticator {
     
     static var shared: Authenticator = Authenticator()
     
-    public var uuid: String = "WarpinatorIOS"
-    public lazy var hostname = uuid
+//    public var uuid: String = "WarpinatorIOS"
+//    public lazy var hostname = uuid
     
     
     var serverCertDERData: [UInt8]? = nil
@@ -273,15 +273,15 @@ class Authenticator {
         
         
         // delete old key, if exists
-        if let _ = try? KeyMaster.readPrivateKey(forKey: uuid) {
-            print(DEBUG_TAG+"key exists, deleting it")
-            
-            do {
-                try KeyMaster.deletePrivateKey(forKey: uuid)
-            } catch {
-                print("error deleting key: \(error)")
-            }
-        }
+//        if let _ = try? KeyMaster.readPrivateKey(forKey: uuid) {
+//            print(DEBUG_TAG+"key exists, deleting it")
+//
+//            do {
+//                try KeyMaster.deletePrivateKey(forKey: uuid)
+//            } catch {
+//                print("error deleting key: \(error)")
+//            }
+//        }
         
         
         

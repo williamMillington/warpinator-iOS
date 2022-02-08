@@ -69,7 +69,7 @@ class MainCoordinator: NSObject, Coordinator {
     func start() {
         
         showMainViewController()
-        startServers()
+//        startServers()
 //        mockRemote()
     }
     
