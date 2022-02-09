@@ -18,7 +18,7 @@ import Logging
 //MARK: Remote Details
 struct RemoteDetails {
     enum ConnectionStatus: String {
-        case OpeningConnection, FetchingCredentials, AquiringDuplex, DuplexAquired
+        case OpeningConnection, FetchingCredentials, AquiringDuplex //, DuplexAquired
         case Error
         case Connected, Idle, Disconnected
     }
@@ -190,7 +190,6 @@ public class Remote {
             
         warpClient = WarpClient(channel: channel!)
         
-        details.status = .AquiringDuplex
         aquireDuplex()
     }
     
@@ -260,6 +259,8 @@ extension Remote {
     // MARK: acquireDuplex
     private func aquireDuplex(){
         
+        details.status = .AquiringDuplex
+        
         duplexAttempts += 1
         
         print(DEBUG_TAG+"acquiring duplex, attempt: \(duplexAttempts)")
@@ -286,8 +287,8 @@ extension Remote {
                     
                     print(self.DEBUG_TAG+"duplex verified after \(self.duplexAttempts) attempts")
                     
-                    self.details.status = .DuplexAquired
-                    self.retrieveRemoteInfo() // retreive
+                    self.details.status = .Connected
+                    self.retrieveRemoteInfo()
                     
                     return
                 }

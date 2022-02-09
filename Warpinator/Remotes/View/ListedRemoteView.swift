@@ -250,7 +250,7 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
         
         switch remote.details.status {
         case .FetchingCredentials,
-             .AquiringDuplex, .DuplexAquired,
+             .AquiringDuplex, 
              .OpeningConnection : return "Connecting"
         default: return remote.details.status.rawValue
         }

@@ -57,7 +57,7 @@ public class WarpinatorServiceProvider: WarpProvider {
     lazy var sendingAvaratChunksQueue = DispatchQueue(label: avatarQueueLabel, qos: .utility)
     
     // TODO: I thiiiiiink there needs to be a timer for each remote, otherwise we can only handle one duplex at a time.
-    // I think.
+    // I think. I think?
     var timer: Timer?
     
     
@@ -65,43 +65,37 @@ public class WarpinatorServiceProvider: WarpProvider {
     
     
     
-    // MARK: Duplex v1
+    // MARK: v1
     // receive request for status of connection to remote specified in LookupName
     public func checkDuplexConnection(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
-        let id = request.id
-        
         print(DEBUG_TAG+"(API_V1) Duplex is being checked by \(request.readableName) (\(request.id))")
         
-        let duplexPromise = checkDuplex(forUUID: id, context)
-        
+        let duplexPromise = checkDuplex(forUUID: request.id, context)
         return duplexPromise.futureResult
     }
     
     
-    // MARK: Duplex v2
+    // MARK: v2
     // receive request for status of connection to remote specified in LookupName
     public func waitingForDuplex(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
         
-        let id = request.id
-        
         print(DEBUG_TAG+"(API_V2) Duplex is being waited for by \(request.readableName) (\(request.id))")
-        
-        
-        
-        let duplexPromise = checkDuplex(forUUID: id, context)
-        
+
+        let duplexPromise = checkDuplex(forUUID: request.id, context)
         return duplexPromise.futureResult
     }
     
     
     
-    // MARK: duplex timer
+    // MARK: checkDuplex
     private func checkDuplex(forUUID uuid: String, _ context: StatusOnlyCallContext) -> EventLoopPromise<HaveDuplex> {
 
         func checkDuplex() -> Bool {
+            print(DEBUG_TAG+"checking duplex for uuid: \(uuid)")
             if let remote = self.remoteManager?.containsRemote(for: uuid) {
-                if remote.details.status == .DuplexAquired || remote.details.status == .Connected {
+                print(DEBUG_TAG+"\t\tremote found (status: \(remote.details.status))")
+                if remote.details.status == .AquiringDuplex || remote.details.status == .Connected {
                     return true
                 }
             }; return false

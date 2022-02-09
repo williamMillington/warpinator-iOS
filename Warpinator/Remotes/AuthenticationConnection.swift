@@ -64,7 +64,7 @@ class UDPConnection: AuthenticationConnection {
         endpoint = candidate.endpoint
         
         let params = NWParameters.udp
-        params.includePeerToPeer = true
+//        params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
         params.requiredInterfaceType = .wifi
         
@@ -188,6 +188,7 @@ class GRPCConnection: AuthenticationConnection {
         let params = NWParameters.udp
 //        params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
+        params.requiredInterfaceType = .wifi
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
 //            print(DEBUG_TAG+"restrict connection to v4")
