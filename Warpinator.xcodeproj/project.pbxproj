@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -21,7 +21,7 @@
 		79360EB627069897008349D2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB527069897008349D2 /* SceneDelegate.swift */; };
 		79360EB827069897008349D2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB727069897008349D2 /* ViewController.swift */; };
 		79360EBB27069897008349D2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79360EB927069897008349D2 /* Main.storyboard */; };
-		79360EBD27069899008349D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 79360EBC27069899008349D2 /* Assets.xcassets */; };
+		79360EBD27069899008349D2 /* Contents.json in Resources */ = {isa = PBXBuildFile; fileRef = 79360EBC27069899008349D2 /* Contents.json */; };
 		79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79360EBE27069899008349D2 /* LaunchScreen.storyboard */; };
 		79360ECD270928B3008349D2 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 79360ECC270928B3008349D2 /* GRPC */; };
 		79360ED0270A1C73008349D2 /* TestFileToSend.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 79360ECF270A1C73008349D2 /* TestFileToSend.rtf */; };
@@ -35,6 +35,7 @@
 		796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328302759A96A0056F76B /* The_Last_Five_Years.pdf */; };
 		796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */; };
 		796638DF27821C2E004AB246 /* TransferViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 796638DE27821C2E004AB246 /* TransferViewController.xib */; };
+		796B1D8127B4658B00D00099 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 796B1D8027B4658B00D00099 /* Images.xcassets */; };
 		796B5A84278BB2DF009CEF73 /* ChunkIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796B5A83278BB2DF009CEF73 /* ChunkIterator.swift */; };
 		796B5A89278BB3CB009CEF73 /* FolderReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796B5A88278BB3CB009CEF73 /* FolderReader.swift */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
@@ -93,7 +94,7 @@
 		79360EB527069897008349D2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		79360EB727069897008349D2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		79360EBA27069897008349D2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		79360EBC27069899008349D2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		79360EBC27069899008349D2 /* Contents.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = Contents.json; path = Assets.xcassets/Contents.json; sourceTree = "<group>"; };
 		79360EBF27069899008349D2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		79360EC127069899008349D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		79360ECF270A1C73008349D2 /* TestFileToSend.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = TestFileToSend.rtf; sourceTree = "<group>"; };
@@ -107,6 +108,7 @@
 		796328302759A96A0056F76B /* The_Last_Five_Years.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = The_Last_Five_Years.pdf; sourceTree = "<group>"; };
 		796328332759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Dear_Evan_Hansen_PV_Score.pdf; sourceTree = "<group>"; };
 		796638DE27821C2E004AB246 /* TransferViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TransferViewController.xib; sourceTree = "<group>"; };
+		796B1D8027B4658B00D00099 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		796B5A83278BB2DF009CEF73 /* ChunkIterator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChunkIterator.swift; sourceTree = "<group>"; };
 		796B5A88278BB3CB009CEF73 /* FolderReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderReader.swift; sourceTree = "<group>"; };
 		797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpinatorRegistrationProvider.swift; sourceTree = "<group>"; };
@@ -263,7 +265,7 @@
 				799E39F72746DC4000E60FFC /* Transfers */,
 				79360EB327069897008349D2 /* AppDelegate.swift */,
 				797C12B9270FC86A00A2795C /* Authenticator.swift */,
-				79360EBC27069899008349D2 /* Assets.xcassets */,
+				79360EBC27069899008349D2 /* Contents.json */,
 				79360EC127069899008349D2 /* Info.plist */,
 				79B002442729B425003CEBCC /* KeyMaster.swift */,
 				79360EBE27069899008349D2 /* LaunchScreen.storyboard */,
@@ -275,6 +277,7 @@
 				791D782927779261008140CC /* MainView.xib */,
 				79A063062797B9E200A5A99E /* SettingsViewController.xib */,
 				79A063092797BA0D00A5A99E /* SettingsViewController.swift */,
+				796B1D8027B4658B00D00099 /* Images.xcassets */,
 			);
 			path = Warpinator;
 			sourceTree = "<group>";
@@ -417,7 +420,7 @@
 				};
 			};
 			buildConfigurationList = 79360EAB27069897008349D2 /* Build configuration list for PBXProject "Warpinator" */;
-			compatibilityVersion = "Xcode 9.3";
+			compatibilityVersion = "Xcode 13.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -449,10 +452,11 @@
 				79A063072797B9E200A5A99E /* SettingsViewController.xib in Resources */,
 				796328312759A96A0056F76B /* The_Last_Five_Years.pdf in Resources */,
 				796638DF27821C2E004AB246 /* TransferViewController.xib in Resources */,
-				79360EBD27069899008349D2 /* Assets.xcassets in Resources */,
+				79360EBD27069899008349D2 /* Contents.json in Resources */,
 				79AAD12A277CB50C00F46B9B /* RemoteViewController.xib in Resources */,
 				79F5FBE3277E592600323DC4 /* SendTransferViewController.xib in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
+				796B1D8127B4658B00D00099 /* Images.xcassets in Resources */,
 				791D782A27779261008140CC /* MainView.xib in Resources */,
 				796328342759AB2C0056F76B /* Dear_Evan_Hansen_PV_Score.pdf in Resources */,
 			);
@@ -672,6 +676,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 96DC6YV3DR;
 				INFOPLIST_FILE = "$(SRCROOT)/Warpinator/Info.plist";
@@ -680,6 +685,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.millington.Warpinator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -692,6 +698,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 96DC6YV3DR;
 				INFOPLIST_FILE = "$(SRCROOT)/Warpinator/Info.plist";
@@ -700,6 +707,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.millington.Warpinator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
