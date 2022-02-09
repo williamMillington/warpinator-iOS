@@ -71,16 +71,24 @@ class MDNSListener {
         
         flushing = false
         
-        let transferPortNum =  UInt16( settingsManager.transferPortNumber)
-        let port = NWEndpoint.Port(rawValue: transferPortNum)!
+//        let transferPortNum =  UInt16( settingsManager.transferPortNumber)
+//        let port = NWEndpoint.Port(rawValue: transferPortNum)!
         
         let params = NWParameters.udp
         params.includePeerToPeer = true
+        
         params.allowLocalEndpointReuse = true
+        params.requiredInterfaceType = .wifi
+//        params.requiredInterface = .RadioType.WiFi.
+        
+        
+//        params.acceptLocalOnly = true
+//        params.requiredLocalEndpoint = NWEndpoint.hostPort(host:  NWEndpoint.Host("\( Utils.getIP_V4_Address() )"), port: port)
         
         
         listener = nil
-        listener = try! NWListener(using: params, on: port )
+//        listener = try! NWListener(using: params )
+        listener = try! NWListener(using: params) //, on: port )
         
         listener?.stateUpdateHandler = stateDidUpdate(state:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
@@ -91,7 +99,7 @@ class MDNSListener {
         
         let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "auth-port" : "\(authport)",
-                                           "api-version": "2",
+                                           "api-version": "1",
                                            "type" : "real"]
         
         listener?.service = NWListener.Service(name: uuid,
@@ -114,6 +122,7 @@ class MDNSListener {
         let params = NWParameters.udp
         params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
+//        params.
         
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
@@ -169,22 +178,44 @@ class MDNSListener {
     // MARK: newConnectionEstablished
     private func newConnectionEstablished(newConnection connection: NWConnection) {
         
-//        print(DEBUG_TAG+"new connection: \n\(connection)")
+        print(DEBUG_TAG+"new connection: \n\t\(connection)")
         
         connection.parameters.allowLocalEndpointReuse = true
+        
+        
+        let transferPortNum =  UInt16( settingsManager.transferPortNumber)
+        let port = NWEndpoint.Port(rawValue: transferPortNum)!
+        connection.parameters.requiredLocalEndpoint = NWEndpoint.hostPort(host:  NWEndpoint.Host("\( Utils.getIP_V4_Address() )"),
+                                                                          port: port)
+        
         
         connections[connection.endpoint] = connection
         
         connection.stateUpdateHandler = { [self] newState in
             switch newState {
+            case .waiting(let error):
+                print(self.DEBUG_TAG+"\tnew connection is waiting/restaring")
+                
+                connection.stateUpdateHandler = { state in
+                    if case .ready = state {
+                        self.certificateServer.serveCertificate(to: connection) {
+                            self.connections.removeValue(forKey: connection.endpoint)
+                            connection.cancel()
+                        }
+                    }
+                }
+                
+                connection.restart()
             case .ready:
+//                break
                 self.certificateServer.serveCertificate(to: connection) {
                     self.connections.removeValue(forKey: connection.endpoint)
                     connection.cancel()
                 }
-            default: print(DEBUG_TAG+"\(connection.endpoint) updated state state: \(newState)")
+            default: print(DEBUG_TAG+"\(connection.endpoint) updated state: \(newState)")
             }
         }
+//        connection.restart()
         connection.start(queue: listenerQueue)
     }
 }

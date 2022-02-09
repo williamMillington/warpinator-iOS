@@ -157,13 +157,14 @@ extension RegistrationServer: MDNSBrowserDelegate {
         }
         print(DEBUG_TAG+"assuming service is real, continuing...")
         
+        
         var serviceName = "unknown_service"
         switch result.endpoint {
         case .service(name: let name, type: _, domain: _, interface: _):
-            
+            print(DEBUG_TAG+"Found service \(name) (at endpoint: \(result.endpoint))")
             serviceName = name
             if name == settingsManager.uuid {
-                print(DEBUG_TAG+"Found myself (\(result.endpoint))"); return
+                print(DEBUG_TAG+"\t\tFound myself (\(result.endpoint))"); return
             } else {
                 print(DEBUG_TAG+"service discovered: \(name)")
             }

@@ -66,6 +66,7 @@ class UDPConnection: AuthenticationConnection {
         let params = NWParameters.udp
         params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
+        params.requiredInterfaceType = .wifi
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
 //            print(DEBUG_TAG+"restrict connection to v4")
@@ -185,7 +186,7 @@ class GRPCConnection: AuthenticationConnection {
         
         
         let params = NWParameters.udp
-        params.includePeerToPeer = true
+//        params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
@@ -201,8 +202,9 @@ class GRPCConnection: AuthenticationConnection {
 //            print(self.DEBUG_TAG+"ipconnection state: \(state)")
             
             if case .ready = state {
+                print(self.DEBUG_TAG+"ipconnection endpoint \(self.ipConnection.endpoint )")
                 if let ip4_string = self.ipConnection.currentPath?.remoteEndpoint?.debugDescription {
-//                    print(self.DEBUG_TAG+"connection to \(self.endpoint) ready (ipv4 address: \(ip4))");
+                    print(self.DEBUG_TAG+"connection to \(self.details.endpoint) ready (ipv4 address: \(ip4_string))");
                     // ip4_string should be a string formatted as 0.0.0.0%en0:0000. IP address is section of string before the '%'
                     let components = ip4_string.split(separator: Character("%"))
                     let ip4_address: String = String(components[0])
