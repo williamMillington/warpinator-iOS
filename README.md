@@ -5,3 +5,10 @@ to the Linux Mint Warpinator file transfer application https://github.com/linuxm
 
 This project is not affiliated with the Linux Mint development team.
 
+
+# Download
+The app is currently in beta, and is available to test out through Apple's TestFlight app.
+
+https://testflight.apple.com/join/7ndmZa31
+
+
