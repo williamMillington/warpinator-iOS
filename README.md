@@ -1,6 +1,6 @@
 # warpinator-iOS
 
-This is an iOS application for connecting apple iOS devices (and hopefully, in the future, macOs computers)
+This is an iOS application for connecting iOS devices (and hopefully, in the future, macOs computers)
 to the Linux Mint Warpinator file transfer application https://github.com/linuxmint/warpinator . 
 
 This project is not affiliated with the Linux Mint development team.
