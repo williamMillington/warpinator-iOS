@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="SendTransferViewController" customModule="MaybeWarpinator" customModuleProvider="target">
+            <connections>
+                <outlet property="cancelButton" destination="a21-VJ-Nf4" id="lKx-X7-a2g"/>
+                <outlet property="filesStack" destination="0H7-04-xlF" id="ks1-lE-XVj"/>
+                <outlet property="sendButton" destination="ai1-Dr-tvt" id="DSQ-be-AdW"/>
+                <outlet property="transferDescriptionLabel" destination="ZLC-Me-efg" id="nAm-co-1pr"/>
+                <outlet property="view" destination="iN0-l3-epB" id="mLu-J3-gPp"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="916-lm-A5S" customClass="ButtonScrollView" customModule="MaybeWarpinator" customModuleProvider="target">
+                    <rect key="frame" x="19" y="106" width="337.5" height="413.5"/>
+                    <subviews>
+                        <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" axis="vertical" distribution="fillEqually" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="0H7-04-xlF" userLabel="filesStack">
+                            <rect key="frame" x="0.0" y="0.0" width="337.5" height="414"/>
+                        </stackView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="0H7-04-xlF" firstAttribute="top" secondItem="916-lm-A5S" secondAttribute="top" id="Lx5-uI-zsB"/>
+                        <constraint firstItem="0H7-04-xlF" firstAttribute="leading" secondItem="916-lm-A5S" secondAttribute="leading" id="Paw-96-XKa"/>
+                        <constraint firstItem="0H7-04-xlF" firstAttribute="width" secondItem="916-lm-A5S" secondAttribute="width" id="TGi-E0-3OR"/>
+                        <constraint firstAttribute="bottom" secondItem="0H7-04-xlF" secondAttribute="bottom" id="anB-g1-HOV"/>
+                        <constraint firstAttribute="trailing" secondItem="0H7-04-xlF" secondAttribute="trailing" id="ovH-9H-PHn"/>
+                    </constraints>
+                    <viewLayoutGuide key="contentLayoutGuide" id="g6u-bB-rmZ"/>
+                    <viewLayoutGuide key="frameLayoutGuide" id="dCK-in-P2U"/>
+                </scrollView>
+                <button opaque="NO" userInteractionEnabled="NO" alpha="0.5" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ai1-Dr-tvt" userLabel="sendFilesButton">
+                    <rect key="frame" x="15" y="590.5" width="345" height="66.5"/>
+                    <color key="backgroundColor" red="0.27051635930000001" green="0.4721807509" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
+                    <state key="normal" title="Send Files">
+                        <color key="titleColor" red="0.94117647059999998" green="0.94117647059999998" blue="0.94117647059999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="send" destination="-1" eventType="touchUpInside" id="uSo-OZ-Wwd"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WoL-bw-O3M" userLabel="addFilesButton">
+                    <rect key="frame" x="15" y="529.5" width="167.5" height="53.5"/>
+                    <color key="backgroundColor" red="0.27051635930000001" green="0.4721807509" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
+                    <state key="normal" title="Add Files">
+                        <color key="titleColor" red="0.94117647059999998" green="0.94117647059999998" blue="0.94117647059999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="selectFiles" destination="-1" eventType="touchUpInside" id="bhu-NI-NTv"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="a21-VJ-Nf4">
+                    <rect key="frame" x="15" y="20" width="80" height="36"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
+                    <state key="normal" title="&lt; Cancel">
+                        <color key="titleColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
+                    </state>
+                    <connections>
+                        <action selector="cancel" destination="-1" eventType="touchUpInside" id="JTZ-gn-BAw"/>
+                    </connections>
+                </button>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="750" text="Transfer 0 files to RemoteName" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZLC-Me-efg" userLabel="transferLabel">
+                    <rect key="frame" x="15" y="66" width="345" height="20.5"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <nil key="textColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7D8-jY-hVb" userLabel="addFolderButton">
+                    <rect key="frame" x="192.5" y="529" width="167.5" height="54"/>
+                    <color key="backgroundColor" red="0.27051635930000001" green="0.4721807509" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
+                    <state key="normal" title="Add Folder">
+                        <color key="titleColor" red="0.94117647059999998" green="0.94117647059999998" blue="0.94117647059999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="selectFolder" destination="-1" eventType="touchUpInside" id="gRS-Wc-Ylc"/>
+                    </connections>
+                </button>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="a21-VJ-Nf4" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="20" id="2hD-mR-EZe"/>
+                <constraint firstItem="7D8-jY-hVb" firstAttribute="trailing" secondItem="ai1-Dr-tvt" secondAttribute="trailing" id="7Nh-y4-kRx"/>
+                <constraint firstItem="WoL-bw-O3M" firstAttribute="leading" secondItem="ai1-Dr-tvt" secondAttribute="leading" id="8qq-JH-x4h"/>
+                <constraint firstItem="ZLC-Me-efg" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="15" id="9l1-mg-mVd"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="ZLC-Me-efg" secondAttribute="trailing" constant="15" id="CFP-MR-E2h"/>
+                <constraint firstItem="ZLC-Me-efg" firstAttribute="top" secondItem="a21-VJ-Nf4" secondAttribute="bottom" constant="10" id="EYZ-5u-KAh"/>
+                <constraint firstItem="7D8-jY-hVb" firstAttribute="centerY" secondItem="WoL-bw-O3M" secondAttribute="centerY" id="IFR-hs-wLr"/>
+                <constraint firstItem="ai1-Dr-tvt" firstAttribute="height" secondItem="vUN-kp-3ea" secondAttribute="height" multiplier="0.1" id="Rjc-SG-lKe"/>
+                <constraint firstItem="7D8-jY-hVb" firstAttribute="leading" secondItem="ai1-Dr-tvt" secondAttribute="centerX" constant="5" id="Ubr-hI-YTo"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="bottom" secondItem="ai1-Dr-tvt" secondAttribute="bottom" constant="10" id="XwP-qq-OXq"/>
+                <constraint firstItem="916-lm-A5S" firstAttribute="centerX" secondItem="vUN-kp-3ea" secondAttribute="centerX" id="bDg-z0-PAq"/>
+                <constraint firstItem="916-lm-A5S" firstAttribute="top" secondItem="ZLC-Me-efg" secondAttribute="bottom" constant="15" id="csg-fb-miP"/>
+                <constraint firstItem="WoL-bw-O3M" firstAttribute="height" secondItem="vUN-kp-3ea" secondAttribute="height" multiplier="0.08" id="dXv-O0-0UC"/>
+                <constraint firstItem="7D8-jY-hVb" firstAttribute="height" secondItem="WoL-bw-O3M" secondAttribute="height" multiplier="1.00935" id="fyz-p0-puw"/>
+                <constraint firstItem="ai1-Dr-tvt" firstAttribute="top" secondItem="WoL-bw-O3M" secondAttribute="bottom" constant="7.5" id="hrQ-2T-N9t"/>
+                <constraint firstItem="WoL-bw-O3M" firstAttribute="top" secondItem="916-lm-A5S" secondAttribute="bottom" constant="5" id="lbM-TH-oZW"/>
+                <constraint firstItem="WoL-bw-O3M" firstAttribute="trailing" secondItem="ai1-Dr-tvt" secondAttribute="centerX" constant="-5" id="m7B-4V-Tch"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="ai1-Dr-tvt" secondAttribute="trailing" constant="15" id="nSv-NO-SSE"/>
+                <constraint firstItem="a21-VJ-Nf4" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="15" id="qDc-ZH-Pw1"/>
+                <constraint firstItem="ai1-Dr-tvt" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="15" id="sKH-sK-i6I"/>
+                <constraint firstItem="916-lm-A5S" firstAttribute="width" secondItem="iN0-l3-epB" secondAttribute="width" multiplier="0.9" id="yg0-xB-wu2"/>
+            </constraints>
+            <point key="canvasLocation" x="136.80000000000001" y="69.715142428785612"/>
+        </view>
+    </objects>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
