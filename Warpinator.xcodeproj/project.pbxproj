@@ -270,17 +270,9 @@
 			path = Warpinator;
 			sourceTree = "<group>";
 		};
-		79360ED2270A1C7A008349D2 /* Test_Files */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Test_Files;
-			sourceTree = "<group>";
-		};
 		797C12C6271749A100A2795C /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				79360ED2270A1C7A008349D2 /* Test_Files */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
