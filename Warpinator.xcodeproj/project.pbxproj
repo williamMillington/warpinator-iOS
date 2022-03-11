@@ -14,7 +14,6 @@
 		791D781527717575008140CC /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D781427717575008140CC /* Observable.swift */; };
 		791D7826277378F0008140CC /* Array+Index_nillable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D7825277378F0008140CC /* Array+Index_nillable.swift */; };
 		791D782A27779261008140CC /* MainView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 791D782927779261008140CC /* MainView.xib */; };
-		792D760E277954B3008E1114 /* Shield in Frameworks */ = {isa = PBXBuildFile; productRef = 792D760D277954B3008E1114 /* Shield */; };
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
 		79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79343EB22743502B008E0890 /* SendFileOperation.swift */; };
 		79360EB427069897008349D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB327069897008349D2 /* AppDelegate.swift */; };
@@ -35,6 +34,7 @@
 		796B1D8127B4658B00D00099 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 796B1D8027B4658B00D00099 /* Images.xcassets */; };
 		796B5A84278BB2DF009CEF73 /* ChunkIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796B5A83278BB2DF009CEF73 /* ChunkIterator.swift */; };
 		796B5A89278BB3CB009CEF73 /* FolderReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796B5A88278BB3CB009CEF73 /* FolderReader.swift */; };
+		7974E75627DBD176003F43F6 /* Shield in Frameworks */ = {isa = PBXBuildFile; productRef = 7974E75527DBD176003F43F6 /* Shield */; };
 		797C12B4270FBC9700A2795C /* WarpinatorRegistrationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */; };
 		797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12B9270FC86A00A2795C /* Authenticator.swift */; };
 		797C12BD2711102700A2795C /* ReceiveFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797C12BC2711102700A2795C /* ReceiveFileOperation.swift */; };
@@ -148,7 +148,7 @@
 				79360ECD270928B3008349D2 /* GRPC in Frameworks */,
 				797C12C227150FB700A2795C /* Clibsodium in Frameworks */,
 				797C12C427150FB700A2795C /* Sodium in Frameworks */,
-				792D760E277954B3008E1114 /* Shield in Frameworks */,
+				7974E75627DBD176003F43F6 /* Shield in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -373,7 +373,7 @@
 				79360ECC270928B3008349D2 /* GRPC */,
 				797C12C127150FB700A2795C /* Clibsodium */,
 				797C12C327150FB700A2795C /* Sodium */,
-				792D760D277954B3008E1114 /* Shield */,
+				7974E75527DBD176003F43F6 /* Shield */,
 			);
 			productName = Warpinator;
 			productReference = 79360EB027069897008349D2 /* Warpinator.app */;
@@ -408,7 +408,7 @@
 			packageReferences = (
 				79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */,
 				797C12C027150FB700A2795C /* XCRemoteSwiftPackageReference "swift-sodium" */,
-				792D760C277954B3008E1114 /* XCRemoteSwiftPackageReference "Shield" */,
+				7974E75427DBD176003F43F6 /* XCRemoteSwiftPackageReference "Shield" */,
 			);
 			productRefGroup = 79360EB127069897008349D2 /* Products */;
 			projectDirPath = "";
@@ -711,20 +711,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		792D760C277954B3008E1114 /* XCRemoteSwiftPackageReference "Shield" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "file:///Users/williammillington/Downloads/Shield";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
 		79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/grpc/grpc-swift.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.4.2;
+			};
+		};
+		7974E75427DBD176003F43F6 /* XCRemoteSwiftPackageReference "Shield" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/outfoxx/Shield.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.1.2;
 			};
 		};
 		797C12C027150FB700A2795C /* XCRemoteSwiftPackageReference "swift-sodium" */ = {
@@ -738,15 +738,15 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		792D760D277954B3008E1114 /* Shield */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 792D760C277954B3008E1114 /* XCRemoteSwiftPackageReference "Shield" */;
-			productName = Shield;
-		};
 		79360ECC270928B3008349D2 /* GRPC */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 79360ECB270928B2008349D2 /* XCRemoteSwiftPackageReference "grpc-swift" */;
 			productName = GRPC;
+		};
+		7974E75527DBD176003F43F6 /* Shield */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7974E75427DBD176003F43F6 /* XCRemoteSwiftPackageReference "Shield" */;
+			productName = Shield;
 		};
 		797C12C127150FB700A2795C /* Clibsodium */ = {
 			isa = XCSwiftPackageProductDependency;
