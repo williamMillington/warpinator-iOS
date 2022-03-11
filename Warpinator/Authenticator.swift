@@ -114,7 +114,7 @@ final class Authenticator {
                 
                 print(DEBUG_TAG+"Success creating certificate from bytes: \(certificate)")
                 
-               let _ = convertDERBytesToPEM( try! certificate.toDERBytes() )
+//               let _ = convertDERBytesToPEM( try! certificate.toDERBytes() )
 //                print(DEBUG_TAG+"remote cert is \(convertDERBytesToPEM( try! certificate.toDERBytes() ) )")
                 
                 return certificate
@@ -307,7 +307,7 @@ final class Authenticator {
         serverCertDERData = Array(dbytes)
         
 //        print(DEBUG_TAG+"generated PEM string: \n\n\t\t\(serverCertPEMData!.utf8String!)\n\n")
-        convertDERBytesToPEM( serverCertDERData! )
+//        convertDERBytesToPEM( serverCertDERData! )
         
         serverKeyData = Array( try! privateKey.encode() )
         
@@ -323,7 +323,7 @@ final class Authenticator {
         
         let pemBytesString = "-----BEGIN CERTIFICATE-----\n" + derBytesString + "\n-----END CERTIFICATE-----\n"
         
-        print(DEBUG_TAG+"PEM string is \(pemBytesString)")
+//        print(DEBUG_TAG+"PEM string is \(pemBytesString)")
         
         return pemBytesString.bytes
     }
@@ -332,11 +332,11 @@ final class Authenticator {
 
 
 
-// MARK: - Loading from file:
+// MARK - Loading from file:
 //extension Authenticator {
     
     
-    //MARK: certificate
+    //MARK  certificate
 //     func loadNIOSSLCertificateFromFile() -> NIOSSLCertificate {
 //
 //        let certData = loadCertificateBytesFromFile()
