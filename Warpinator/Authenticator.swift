@@ -113,6 +113,10 @@ final class Authenticator {
                 let certificate = try NIOSSLCertificate(bytes: bytes, format: .pem)
                 
                 print(DEBUG_TAG+"Success creating certificate from bytes: \(certificate)")
+                
+//               let _ = convertDERBytesToPEM( try! certificate.toDERBytes() )
+//                print(DEBUG_TAG+"remote cert is \(convertDERBytesToPEM( try! certificate.toDERBytes() ) )")
+                
                 return certificate
                 
             } catch {
@@ -208,11 +212,11 @@ final class Authenticator {
         let day_seconds: Double = 60 * 60 * 24      // milliseconds in a day
         let expirationTime: Double = 30 * day_seconds // one month
         
-        let startDate = Date(timeInterval: -(day_seconds / 1000) , since: Date() ) // yesterday
+        let startDate = Date(timeInterval: -(day_seconds) , since: Date() ) // yesterday
         let endDate = Date(timeInterval: expirationTime, since: startDate) // one month from yesterday
         
-        let startTime = AnyTime(date: startDate, timeZone: .current)
-        let endTime = AnyTime(date: endDate, timeZone: .current)
+        let startTime = AnyTime(date: startDate, timeZone: .init(secondsFromGMT: 0) ?? .current )
+        let endTime = AnyTime(date: endDate, timeZone: .init(secondsFromGMT: 0)  ?? .current  )
         
         
         // COMMON NAME
@@ -303,7 +307,8 @@ final class Authenticator {
         serverCertDERData = Array(dbytes)
         
 //        print(DEBUG_TAG+"generated PEM string: \n\n\t\t\(serverCertPEMData!.utf8String!)\n\n")
-
+//        convertDERBytesToPEM( serverCertDERData! )
+        
         serverKeyData = Array( try! privateKey.encode() )
         
     }
@@ -318,6 +323,8 @@ final class Authenticator {
         
         let pemBytesString = "-----BEGIN CERTIFICATE-----\n" + derBytesString + "\n-----END CERTIFICATE-----\n"
         
+//        print(DEBUG_TAG+"PEM string is \(pemBytesString)")
+        
         return pemBytesString.bytes
     }
     
@@ -325,11 +332,11 @@ final class Authenticator {
 
 
 
-// MARK: - Loading from file:
+// MARK - Loading from file:
 //extension Authenticator {
     
     
-    //MARK: certificate
+    //MARK  certificate
 //     func loadNIOSSLCertificateFromFile() -> NIOSSLCertificate {
 //
 //        let certData = loadCertificateBytesFromFile()
