@@ -14,52 +14,52 @@ class SettingsManager {
     private let DEBUG_TAG: String = "SettingsManager: "
     
     
-    enum SettingsType: Equatable {
-        case settingsInt(Int)
-        case settingsUInt32(UInt32)
-        case settingsString(String)
-        case settingsBool(Bool)
+//    enum SettingsType: Equatable {
+//        case settingsInt(Int)
+//        case settingsUInt32(UInt32)
+//        case settingsString(String)
+//        case settingsBool(Bool)
+//
+//
+//        var dataDictionary: [String: Any] {
+//            switch self {
+//            case .settingsInt(let int): return ["settingsInt": int]
+//            case .settingsUInt32(let uint): return ["settingsUInt32": uint]
+//            case .settingsString(let string): return  ["settingsString": string]
+//            case .settingsBool(let boolean): return ["settingsBool": boolean]
+//            }
+//        }
+//
+//
+//        init?(fromDictionary dictionary: [String: Any]) {
+//            switch dictionary.keys.first! {
+//            case "settingsInt": self = .settingsInt(dictionary.values.first as! Int)
+//            case "settingsUInt32": self = .settingsUInt32(dictionary.values.first as! UInt32)
+//            case "settingsString": self = .settingsString(dictionary.values.first as! String)
+//            case "settingsBool": self = .settingsBool(dictionary.values.first as! Bool)
+//            default: return nil
+//            }
+//        }
         
         
-        var dataDictionary: [String: Any] {
-            switch self {
-            case .settingsInt(let int): return ["settingsInt": int]
-            case .settingsUInt32(let uint): return ["settingsUInt32": uint]
-            case .settingsString(let string): return  ["settingsString": string]
-            case .settingsBool(let boolean): return ["settingsBool": boolean]
-            }
-        }
         
         
-        init?(fromDictionary dictionary: [String: Any]) {
-            switch dictionary.keys.first! {
-            case "settingsInt": self = .settingsInt(dictionary.values.first as! Int)
-            case "settingsUInt32": self = .settingsUInt32(dictionary.values.first as! UInt32)
-            case "settingsString": self = .settingsString(dictionary.values.first as! String)
-            case "settingsBool": self = .settingsBool(dictionary.values.first as! Bool)
-            default: return nil
-            }
-        }
-        
-        
-        
-        
-        static func ==(lhs: SettingsType, rhs: SettingsType) -> Bool {
-            
-            switch (lhs,rhs){
-            case (.settingsInt(let num1), .settingsInt(let num2)): return num1 == num2
-            case (.settingsUInt32(let num1), .settingsUInt32(let num2)): return num1 == num2
-            case (.settingsString(let str1), .settingsString(let str2)): return str1 == str2
-            case (.settingsBool(let bool1), .settingsBool(let bool2)): return bool1 == bool2
-            case (.settingsInt(_),_),
-                 (.settingsUInt32(_),_),
-                 (.settingsString(_),_),
-                 (.settingsBool(_),_): return false
-            }
-            
-        }
-        
-    }
+//        static func ==(lhs: SettingsType, rhs: SettingsType) -> Bool {
+//
+//            switch (lhs,rhs){
+//            case (.settingsInt(let num1), .settingsInt(let num2)): return num1 == num2
+//            case (.settingsUInt32(let num1), .settingsUInt32(let num2)): return num1 == num2
+//            case (.settingsString(let str1), .settingsString(let str2)): return str1 == str2
+//            case (.settingsBool(let bool1), .settingsBool(let bool2)): return bool1 == bool2
+//            case (.settingsInt(_),_),
+//                 (.settingsUInt32(_),_),
+//                 (.settingsString(_),_),
+//                 (.settingsBool(_),_): return false
+//            }
+//
+//        }
+//
+//    }
     
     
     
@@ -81,43 +81,57 @@ class SettingsManager {
         static let registrationPortNumber = "registrationPortNumber"
     }
      
+    
     // remembered remotes
     var rememberedRemotes : [String : Remote] = [:]
     
     
     // user settings
-    var displayName: String = "iOS Device"      {
-        didSet { writeToSettings(displayName, forKey: StorageKeys.displayName) } }
-    var userName: String = "iosdevice"           {
-        didSet { writeToSettings(userName, forKey: StorageKeys.userName) } }
-    var avatarImage: UIImage? = nil {
-        didSet { writeToSettings(avatarImage, forKey: StorageKeys.avatarImage) } }
+    var displayName: String = "iOS Device"  {
+        didSet { writeToSettings(displayName, forKey: StorageKeys.displayName) }
+    }
+    
+    var userName: String = "iosdevice"  {
+        didSet { writeToSettings(userName, forKey: StorageKeys.userName) }
+    }
+    
+    var avatarImage: UIImage? = nil     {
+        didSet { writeToSettings(avatarImage, forKey: StorageKeys.avatarImage) }
+    }
     
     
-    var overwriteFiles: Bool  = false  {
-        didSet { writeToSettings(overwriteFiles, forKey: StorageKeys.overwriteFiles)} }
-    var automaticAccept: Bool = false  {
-        didSet { writeToSettings(automaticAccept, forKey: StorageKeys.automaticAccept)} }
+    var overwriteFiles: Bool  = false   {
+        didSet { writeToSettings(overwriteFiles, forKey: StorageKeys.overwriteFiles)}
+    }
+    
+    var automaticAccept: Bool = false   {
+        didSet { writeToSettings(automaticAccept, forKey: StorageKeys.automaticAccept)}
+    }
     
     
     
     // connectionSettings
-    var hostname: String  = "WarpinatoriOS" {
+    var hostname: String  = "WarpinatoriOS"
+                        {
         didSet  {   writeToSettings(hostname,   forKey: StorageKeys.hostname) } }
-    var uuid: String {
+    var uuid: String
+    {
         didSet  {   writeToSettings(uuid,       forKey: StorageKeys.uuid) } }
     
     
-    var groupCode: String = "Warpinator" {
+    var groupCode: String = "Warpinator"
+        {
         didSet {    writeToSettings(groupCode,     forKey: StorageKeys.groupCode) } }
     
-    var transferPortNumber: UInt32  = 42_000 {
+    var transferPortNumber: UInt32  = 42_000
+            {
         didSet {    writeToSettings(transferPortNumber,     forKey: StorageKeys.transferPortNumber) } }
-    var registrationPortNumber: UInt32 = 42_001 {
+    var registrationPortNumber: UInt32 = 42_001
+                {
         didSet {    writeToSettings(registrationPortNumber, forKey: StorageKeys.registrationPortNumber) } }
     
     
-    // MARK: singleton
+    // MARK: singleton init
     static var shared: SettingsManager = {
         let manager = SettingsManager()
         manager.loadSettings()
@@ -133,22 +147,23 @@ class SettingsManager {
     //
     // copy of current settings values
     // MARK: getSettingsCopy
-    func getSettingsCopy() -> [String : SettingsType] {
-//        print("getting copy")
-        return [ StorageKeys.displayName :  .settingsString(displayName),
-                 StorageKeys.userName :     .settingsString(userName),
-                 
-                 StorageKeys.overwriteFiles :  .settingsBool(overwriteFiles),
-                 StorageKeys.automaticAccept : .settingsBool(automaticAccept),
-                 
-                 StorageKeys.hostname : .settingsString(hostname),
-                 StorageKeys.uuid :     .settingsString(uuid),
-                 
-                 StorageKeys.groupCode : .settingsString(groupCode),
-                 StorageKeys.transferPortNumber :       .settingsUInt32(transferPortNumber),
-                 StorageKeys.registrationPortNumber :   .settingsUInt32(registrationPortNumber)
-        ]
-    }
+//    func getSettingsCopy() -> [String : SettingsType] {
+////        print("getting copy")
+//        return [ StorageKeys.displayName :  .settingsString(displayName),
+//                 StorageKeys.userName :     .settingsString(userName),
+//                 
+//                 StorageKeys.overwriteFiles :  .settingsBool(overwriteFiles),
+//                 StorageKeys.automaticAccept : .settingsBool(automaticAccept),
+//                 
+//                 StorageKeys.hostname : .settingsString(hostname),
+//                 StorageKeys.uuid :     .settingsString(uuid),
+//                 
+//                 StorageKeys.groupCode : .settingsString(groupCode),
+//                 StorageKeys.transferPortNumber :       .settingsUInt32(transferPortNumber),
+//                 StorageKeys.registrationPortNumber :   .settingsUInt32(registrationPortNumber)
+//        ]
+//    }
+    
     
     
     
