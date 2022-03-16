@@ -116,6 +116,7 @@ final class SettingsViewController: UIViewController {
         
         view.backgroundColor = Utils.backgroundColour
 //        setOriginalSettings()
+        implementCurrentSettings()
     }
     
     
@@ -127,7 +128,7 @@ final class SettingsViewController: UIViewController {
 //        if case let .settingsBool(boolval) =  currentSettings[SettingsManager.StorageKeys.overwriteFiles] {
 //            overwriteSwitch.isOn = boolval  }
 //
-//        if case let .settingsString(stringVal) =  currentSettings[SettingsManager.StorageKeys.overwriteFiles] {
+//    if case let .settingsString(stringVal) =  currentSettings[SettingsManager.StorageKeys.displayName] {
 //            displayNameLabel.text = stringVal  }
 //
 //        if case let .settingsString(stringVal) =  currentSettings[SettingsManager.StorageKeys.groupCode] {
@@ -140,6 +141,22 @@ final class SettingsViewController: UIViewController {
 //            registrationPortNumberLabel.text = "\(uintval)"  }
 //
 //    }
+    
+    func implementCurrentSettings(){
+        
+        
+        displayNameLabel.text = settingsManager.displayName
+        groupCodeLabel.text = settingsManager.groupCode
+        
+        registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
+        transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
+        
+        autoacceptSwitch.isOn = settingsManager.automaticAccept
+        overwriteSwitch.isOn = settingsManager.overwriteFiles
+        
+        
+        
+    }
     
     
     // MARK: display name changed
@@ -366,12 +383,12 @@ final class SettingsViewController: UIViewController {
         
         
         // get state
-        let newValue = sender.isOn
-        print(DEBUG_TAG+" autoaccept switch is on: \(newValue)")
+        let switchCheck = sender.isOn
+        print(DEBUG_TAG+"incoming transfers \(switchCheck ? "will" : "will NOT") begin automatically (switch is: \(switchCheck ? "ON" : "OFF") )")
         
-        // write to settings
+        // queue change
         changes.append(SettingsChange(restart: true, {
-            SettingsManager.shared.automaticAccept = newValue
+            SettingsManager.shared.automaticAccept = switchCheck
         }))
 //        settingsManager.automaticAccept = newValue
 //        currentSettings[SettingsManager.StorageKeys.automaticAccept] = .settingsBool(newValue)
@@ -384,12 +401,12 @@ final class SettingsViewController: UIViewController {
     @IBAction func overwriteSettingDidChange(_ sender: UISwitch) {
         
         // get state
-        let newValue = sender.isOn
-        print(DEBUG_TAG+"overwrite switch is on: \(newValue)")
+        let switchCheck = sender.isOn
+        print(DEBUG_TAG+"files will \(switchCheck ? "be" : "NOT be") overwritten (switch is: \(switchCheck ? "ON" : "OFF") )")
         
-        // write to settings
+        // queue change
         changes.append(SettingsChange(restart: true, {
-            SettingsManager.shared.overwriteFiles = newValue
+            SettingsManager.shared.overwriteFiles = switchCheck
         }))
 //        settingsManager.overwriteFiles = newValue
 //        restartRequired = true
@@ -420,13 +437,20 @@ final class SettingsViewController: UIViewController {
     @IBAction func reset(){
 //        currentSettings = settingsManager.getSettingsCopy()
 //        setOriginalSettings()
+        
+        changes = []
+        
+        implementCurrentSettings()
+        
     }
     
     
     // MARK: back
     @IBAction func back(){
         
-//        coordinator?.returnFromSettings(restartRequired: restartRequired)
+        
+        applyChanges()
+        coordinator?.returnFromSettings(restartRequired: restartRequired)
     }
     
 
@@ -440,18 +464,15 @@ final class SettingsViewController: UIViewController {
 extension SettingsViewController {
     
     
-    func applySettings(){
+    func applyChanges(){
         
-        
-        
-        
-        
+        changes.forEach {
+            $0.change()
+        }
     }
     
+    
 }
-
-
-
 
 
 

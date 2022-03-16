@@ -6,6 +6,25 @@
 //
 
 import UIKit
+import CNIOBoringSSL
+
+
+
+
+enum ValidationError: Error {
+    case VALUE_UNCHANGED
+    case INVALID_VALUE(String)
+    case INVALID_VALUE_TYPE(String)
+    
+    var localizedDescription: String {
+        switch self {
+        case .VALUE_UNCHANGED: return "No difference between entered value and recorded value"
+        case .INVALID_VALUE(let description): return description
+        case .INVALID_VALUE_TYPE(let description): return description
+        }
+    }
+}
+
 
 
 
@@ -151,13 +170,13 @@ class SettingsManager {
 ////        print("getting copy")
 //        return [ StorageKeys.displayName :  .settingsString(displayName),
 //                 StorageKeys.userName :     .settingsString(userName),
-//                 
+//
 //                 StorageKeys.overwriteFiles :  .settingsBool(overwriteFiles),
 //                 StorageKeys.automaticAccept : .settingsBool(automaticAccept),
-//                 
+//
 //                 StorageKeys.hostname : .settingsString(hostname),
 //                 StorageKeys.uuid :     .settingsString(uuid),
-//                 
+//
 //                 StorageKeys.groupCode : .settingsString(groupCode),
 //                 StorageKeys.transferPortNumber :       .settingsUInt32(transferPortNumber),
 //                 StorageKeys.registrationPortNumber :   .settingsUInt32(registrationPortNumber)
@@ -203,16 +222,51 @@ class SettingsManager {
     }
     
     
-    
 //    func applySettings(){
 //
 //    }
     
     
+    //
     // MARK: write settings
     func writeToSettings(_ value: Any?, forKey key: String) {
         UserDefaults.standard.setValue(value, forKey: key)
     }
+    
+    
+    //
+    // MARK: validate change
+    // - Does nothing if successful, throws error if not
+    // -
+    func validate(_ value: Any?, forKey key: String) throws {
+        
+        
+        switch key {
+        case StorageKeys.registrationPortNumber, StorageKeys.transferPortNumber:
+            guard let value = value as? UInt32 else {
+                throw ValidationError.INVALID_VALUE_TYPE("Invalid value type. Expected UInt32")
+            }
+            
+            if !(value > 0) {
+                throw ValidationError.INVALID_VALUE("Port value must be positive")
+            }
+            
+        case StorageKeys.overwriteFiles, StorageKeys.automaticAccept:
+            guard (value as? Bool) != nil else {
+                throw ValidationError.INVALID_VALUE_TYPE("Invalid value type. Expected Bool")
+            }
+        case StorageKeys.displayName, StorageKeys.groupCode:
+            guard (value as? String) != nil else {
+                throw ValidationError.INVALID_VALUE_TYPE("Invalid value type. Expected String")
+            }
+            
+            
+        default: throw ValidationError.INVALID_VALUE_TYPE("Value Type Unexpected")
+        }
+        
+        
+    }
+    
     
     
     func writeAllSettings(){
