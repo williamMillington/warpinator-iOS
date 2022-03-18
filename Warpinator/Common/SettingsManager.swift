@@ -10,7 +10,7 @@ import CNIOBoringSSL
 
 
 
-//MARK: ValidationError
+// MARK: - ValidationError
 enum ValidationError: Error {
     case VALUE_UNCHANGED
     case INVALID_VALUE(String)
@@ -27,59 +27,10 @@ enum ValidationError: Error {
 
 
 
-
+// MARK: - SettingsManager
 class SettingsManager {
     
     private let DEBUG_TAG: String = "SettingsManager: "
-    
-    
-//    enum SettingsType: Equatable {
-//        case settingsInt(Int)
-//        case settingsUInt32(UInt32)
-//        case settingsString(String)
-//        case settingsBool(Bool)
-//
-//
-//        var dataDictionary: [String: Any] {
-//            switch self {
-//            case .settingsInt(let int): return ["settingsInt": int]
-//            case .settingsUInt32(let uint): return ["settingsUInt32": uint]
-//            case .settingsString(let string): return  ["settingsString": string]
-//            case .settingsBool(let boolean): return ["settingsBool": boolean]
-//            }
-//        }
-//
-//
-//        init?(fromDictionary dictionary: [String: Any]) {
-//            switch dictionary.keys.first! {
-//            case "settingsInt": self = .settingsInt(dictionary.values.first as! Int)
-//            case "settingsUInt32": self = .settingsUInt32(dictionary.values.first as! UInt32)
-//            case "settingsString": self = .settingsString(dictionary.values.first as! String)
-//            case "settingsBool": self = .settingsBool(dictionary.values.first as! Bool)
-//            default: return nil
-//            }
-//        }
-        
-        
-        
-        
-//        static func ==(lhs: SettingsType, rhs: SettingsType) -> Bool {
-//
-//            switch (lhs,rhs){
-//            case (.settingsInt(let num1), .settingsInt(let num2)): return num1 == num2
-//            case (.settingsUInt32(let num1), .settingsUInt32(let num2)): return num1 == num2
-//            case (.settingsString(let str1), .settingsString(let str2)): return str1 == str2
-//            case (.settingsBool(let bool1), .settingsBool(let bool2)): return bool1 == bool2
-//            case (.settingsInt(_),_),
-//                 (.settingsUInt32(_),_),
-//                 (.settingsString(_),_),
-//                 (.settingsBool(_),_): return false
-//            }
-//
-//        }
-//
-//    }
-    
     
     
     struct StorageKeys {
@@ -215,8 +166,8 @@ class SettingsManager {
     static func validate(_ value: Any?, forKey key: String) throws {
         
         
-        // switch: check what we're storing
-        // guard let: check that the value is of the correct type
+        // switch: check what we're trying to store
+        // guard let: verify that the value is of the correct type
         switch key {
         case StorageKeys.registrationPortNumber, StorageKeys.transferPortNumber:
             
