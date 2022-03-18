@@ -77,7 +77,7 @@
                     <fontDescription key="fontDescription" type="system" pointSize="20"/>
                     <textInputTraits key="textInputTraits"/>
                     <connections>
-                        <action selector="transferPortDidChange:" destination="-1" eventType="editingDidEnd" id="lHi-Su-3cO"/>
+                        <action selector="transferPortDidChange:" destination="-1" eventType="editingChanged" id="OHG-RB-3O8"/>
                     </connections>
                 </textField>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Group Code" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iqh-zk-cvz" userLabel="GroupCodeLabel">
@@ -95,7 +95,7 @@
                     <fontDescription key="fontDescription" type="system" pointSize="25"/>
                     <textInputTraits key="textInputTraits"/>
                     <connections>
-                        <action selector="groupCodeDidChange:" destination="-1" eventType="editingDidEnd" id="Og0-KP-hHo"/>
+                        <action selector="groupCodeDidChange:" destination="-1" eventType="editingChanged" id="ybr-c5-sb6"/>
                     </connections>
                 </textField>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Display Name" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uYp-NB-LHD" userLabel="displayNameLabel">
@@ -113,7 +113,7 @@
                     <fontDescription key="fontDescription" type="system" pointSize="25"/>
                     <textInputTraits key="textInputTraits"/>
                     <connections>
-                        <action selector="displayNameDidChange:" destination="-1" eventType="editingDidEnd" id="pdP-uM-iBo"/>
+                        <action selector="displayNameDidChange:" destination="-1" eventType="editingChanged" id="gUB-gE-1Nr"/>
                     </connections>
                 </textField>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Files being downloaded will overwrite existing files of the same name." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yJf-hl-Zf7">
@@ -149,7 +149,7 @@
                     <fontDescription key="fontDescription" type="system" pointSize="20"/>
                     <textInputTraits key="textInputTraits"/>
                     <connections>
-                        <action selector="registrationPortDidChange:" destination="-1" eventType="editingDidEnd" id="mAx-ek-qTK"/>
+                        <action selector="registrationPortDidChange:" destination="-1" eventType="editingChanged" id="Izb-11-CGk"/>
                     </connections>
                 </textField>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Warpinator" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fHN-QP-SQS">

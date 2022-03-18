@@ -62,9 +62,9 @@ final class SettingsViewController: UIViewController {
 //            }
 //    }
     var restartRequired: Bool  {
-        return changes.map { $0.restartRequired }.contains(true)
+        return changes.values.map { $0.restartRequired }.contains(true)
     }
-    var changes: [SettingsChange] = [] {
+    var changes: [String: SettingsChange] = [:] {
         didSet {
             
             
@@ -197,16 +197,18 @@ final class SettingsViewController: UIViewController {
             // add
 //            let settingsChange = SettingsChange({
 //                SettingsManager.shared.displayName = trimmedInput
-//            })
+            //            })
             
-            let change = SettingsChange(restart: true,  validate: {
+            let change = SettingsChange(restart: true, validate: {
                 try SettingsManager.validate(trimmedInput,
                                              forKey: SettingsManager.StorageKeys.displayName )
-            }, change: {
+            },
+                                        change: {
                 SettingsManager.shared.displayName = trimmedInput
             })
             
-            changes.append(change)
+            changes[SettingsManager.StorageKeys.displayName] = change
+//            changes.append(change)
 //            restartRequired = true
 //            currentSettings[ SettingsManager.StorageKeys.displayName ] =  .settingsString(trimmedInput)
         }
@@ -256,12 +258,17 @@ final class SettingsViewController: UIViewController {
             
             
             // write to settings
-            changes.append(SettingsChange(restart: true,  validate: {
-                try SettingsManager.validate(trimmedInput,
-                                             forKey: SettingsManager.StorageKeys.groupCode )
-            }, change:  {
-                SettingsManager.shared.groupCode = trimmedInput
-            }))
+//            changes.append(
+        
+        let change = SettingsChange(restart: true,  validate: {
+          try SettingsManager.validate(trimmedInput,
+                                       forKey: SettingsManager.StorageKeys.groupCode )
+      }, change:  {
+          SettingsManager.shared.groupCode = trimmedInput
+      })
+        
+        changes[SettingsManager.StorageKeys.groupCode] = change
+//            )
 //            settingsManager.groupCode = trimmedInput
 //            restartRequired = true
 //            currentSettings[SettingsManager.StorageKeys.groupCode ] = .settingsString(trimmedInput)
@@ -311,14 +318,19 @@ final class SettingsViewController: UIViewController {
         
         let newPortNum = UInt32(trimmedInput)
         print(DEBUG_TAG+"new registration port num is \(String(describing: newPortNum))")
-                
+        
         // write to settings
-        changes.append(SettingsChange(restart: true,  validate: {
-            try SettingsManager.validate(UInt32(trimmedInput),
-                                         forKey: SettingsManager.StorageKeys.transferPortNumber )
-        }, change: {
-            SettingsManager.shared.transferPortNumber = UInt32(trimmedInput)!
-        }))
+//        changes.append(
+        
+        let change = SettingsChange(restart: true,  validate: {
+          try SettingsManager.validate(UInt32(trimmedInput),
+                                       forKey: SettingsManager.StorageKeys.transferPortNumber )
+      }, change: {
+          SettingsManager.shared.transferPortNumber = UInt32(trimmedInput)!
+      })
+        
+        changes[SettingsManager.StorageKeys.transferPortNumber] = change
+//        )
 //                settingsManager.transferPortNumber = UInt32(newPortNum)
 //                restartRequired = true
 //                currentSettings[SettingsManager.StorageKeys.transferPortNumber] = .settingsUInt32( UInt32(newPortNum) )
@@ -370,12 +382,18 @@ final class SettingsViewController: UIViewController {
             
                 
         // queue change
-        changes.append(SettingsChange(restart: true,  validate: {
+//        changes.append(
+        
+        let change = SettingsChange(restart: true,  validate: {
             try SettingsManager.validate(newPortNum,
                                          forKey: SettingsManager.StorageKeys.registrationPortNumber )
         }, change:  {
             SettingsManager.shared.registrationPortNumber = newPortNum!
-        }))
+        })
+        
+        
+        changes[SettingsManager.StorageKeys.registrationPortNumber] = change
+//        )
                 
 //                settingsManager.registrationPortNumber = UInt32(newPortNum)
 //                restartRequired = true
@@ -406,12 +424,19 @@ final class SettingsViewController: UIViewController {
         print(DEBUG_TAG+"incoming transfers \(switchCheck ? "will" : "will NOT") begin automatically (switch is: \(switchCheck ? "ON" : "OFF") )")
         
         // queue change
-        changes.append(SettingsChange(restart: true,  validate: {
+//        changes.append(
+        
+        let change = SettingsChange(restart: false,  validate: {
             try SettingsManager.validate(switchCheck,
                                          forKey: SettingsManager.StorageKeys.automaticAccept )
         }, change:  {
             SettingsManager.shared.automaticAccept = switchCheck
-        }))
+        })
+        
+        changes[SettingsManager.StorageKeys.automaticAccept] = change
+        
+        
+//        )
 //        settingsManager.automaticAccept = newValue
 //        currentSettings[SettingsManager.StorageKeys.automaticAccept] = .settingsBool(newValue)
         
@@ -427,12 +452,17 @@ final class SettingsViewController: UIViewController {
         print(DEBUG_TAG+"files will \(switchCheck ? "be" : "NOT be") overwritten (switch is: \(switchCheck ? "ON" : "OFF") )")
         
         // queue change
-        changes.append(SettingsChange(restart: true,  validate: {
+        //        changes.append(
+        
+        let change = SettingsChange(restart: true,  validate: {
             try SettingsManager.validate(switchCheck,
                                          forKey: SettingsManager.StorageKeys.overwriteFiles )
         }, change:  {
             SettingsManager.shared.overwriteFiles = switchCheck
-        }))
+        })
+        
+        changes[SettingsManager.StorageKeys.overwriteFiles] = change
+//        )
 //        settingsManager.overwriteFiles = newValue
 //        restartRequired = true
 //        currentSettings[SettingsManager.StorageKeys.overwriteFiles] = .settingsBool(newValue)
@@ -466,7 +496,7 @@ final class SettingsViewController: UIViewController {
 //        currentSettings = settingsManager.getSettingsCopy()
 //        setOriginalSettings()
         print(self.DEBUG_TAG+"resettings")
-        changes = []
+        changes.removeAll() //= [:]
         
         implementCurrentSettings()
         
@@ -483,8 +513,10 @@ final class SettingsViewController: UIViewController {
             applyChanges()
             coordinator?.returnFromSettings(restartRequired: restartRequired)
             
+        } catch let error as ValidationError {
+            showPopupError(withTitle: "Validation Error", andMessage: error.localizedDescription )
         } catch {
-            showPopupError(withTitle: "Error", andMessage: error.localizedDescription )
+            showPopupError(withTitle: "System Error", andMessage: error.localizedDescription )
         }
         
         
@@ -503,7 +535,7 @@ extension SettingsViewController {
     
     func validateChanges() throws {
         
-        try changes.forEach {
+        try changes.values.forEach {
             try $0.validate()
         }
         
@@ -511,28 +543,9 @@ extension SettingsViewController {
     
     
     func applyChanges() {
-        changes.forEach {
+        changes.values.forEach {
             $0.change()
         }
     }
 }
 
-
-
-struct SettingsChange {
-    
-    
-    var restartRequired: Bool = true
-    var validate: () throws ->()
-    var change: ()->()
-    
-    
-    init(restart: Bool,
-         validate v: @escaping () throws ->(),
-         change c: @escaping ()->()) {
-        restartRequired = restart
-        change = c
-        validate = v
-    }
-    
-}

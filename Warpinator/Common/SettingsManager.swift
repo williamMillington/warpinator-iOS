@@ -10,7 +10,7 @@ import CNIOBoringSSL
 
 
 
-
+//MARK: ValidationError
 enum ValidationError: Error {
     case VALUE_UNCHANGED
     case INVALID_VALUE(String)
@@ -105,7 +105,7 @@ class SettingsManager {
     var rememberedRemotes : [String : Remote] = [:]
     
     
-    // user settings
+    // MARK: user settings
     var displayName: String = "iOS Device"  {
         didSet { writeToSettings(displayName, forKey: StorageKeys.displayName) }
     }
@@ -129,7 +129,7 @@ class SettingsManager {
     
     
     
-    // connectionSettings
+    // MARK: connection settings
     var hostname: String  = "WarpinatoriOS"  {
         didSet  {   writeToSettings(hostname,   forKey: StorageKeys.hostname) } }
     var uuid: String {
@@ -219,10 +219,13 @@ class SettingsManager {
         // guard let: check that the value is of the correct type
         switch key {
         case StorageKeys.registrationPortNumber, StorageKeys.transferPortNumber:
+            
             guard let value = value as? UInt32 else {
                 throw ValidationError.INVALID_VALUE_TYPE("Invalid value type. Expected UInt32")
             }
             
+            // I suppose it's a bug that this will never be triggered, as the previous 'guard' statement
+            // will catch any non-negative numbers as it attempts to stuff them into a UInt32
             // port must be positive
             if !(value > 0) {
                 throw ValidationError.INVALID_VALUE("Port value must be positive")
@@ -244,7 +247,7 @@ class SettingsManager {
             
             
             if !(value.count > 0) {
-                throw ValidationError.INVALID_VALUE("Groupcode required")
+                throw ValidationError.INVALID_VALUE("\(key) required")
             }
             
             
@@ -278,5 +281,29 @@ class SettingsManager {
         
     }
     
+    
+}
+
+
+
+
+
+
+
+// MARK: SettingsChange
+struct SettingsChange {
+    
+    var restartRequired: Bool = true
+    var validate: () throws -> ()
+    var change: ()->()
+    
+    
+    init(restart: Bool,
+         validate v: @escaping () throws ->(),
+         change c: @escaping ()->()) {
+        restartRequired = restart
+        change = c
+        validate = v
+    }
     
 }
