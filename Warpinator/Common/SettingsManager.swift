@@ -130,26 +130,22 @@ class SettingsManager {
     
     
     // connectionSettings
-    var hostname: String  = "WarpinatoriOS"
-                        {
+    var hostname: String  = "WarpinatoriOS"  {
         didSet  {   writeToSettings(hostname,   forKey: StorageKeys.hostname) } }
-    var uuid: String
-    {
+    var uuid: String {
         didSet  {   writeToSettings(uuid,       forKey: StorageKeys.uuid) } }
     
     
-    var groupCode: String = "Warpinator"
-        {
+    var groupCode: String = "Warpinator"  {
         didSet {    writeToSettings(groupCode,     forKey: StorageKeys.groupCode) } }
     
-    var transferPortNumber: UInt32  = 42_000
-            {
+    var transferPortNumber: UInt32  = 42_000  {
         didSet {    writeToSettings(transferPortNumber,     forKey: StorageKeys.transferPortNumber) } }
-    var registrationPortNumber: UInt32 = 42_001
-                {
+    var registrationPortNumber: UInt32 = 42_001  {
         didSet {    writeToSettings(registrationPortNumber, forKey: StorageKeys.registrationPortNumber) } }
     
     
+    //
     // MARK: singleton init
     static var shared: SettingsManager = {
         let manager = SettingsManager()
@@ -163,29 +159,9 @@ class SettingsManager {
     }
     
     
+    
     //
-    // copy of current settings values
-    // MARK: getSettingsCopy
-//    func getSettingsCopy() -> [String : SettingsType] {
-////        print("getting copy")
-//        return [ StorageKeys.displayName :  .settingsString(displayName),
-//                 StorageKeys.userName :     .settingsString(userName),
-//
-//                 StorageKeys.overwriteFiles :  .settingsBool(overwriteFiles),
-//                 StorageKeys.automaticAccept : .settingsBool(automaticAccept),
-//
-//                 StorageKeys.hostname : .settingsString(hostname),
-//                 StorageKeys.uuid :     .settingsString(uuid),
-//
-//                 StorageKeys.groupCode : .settingsString(groupCode),
-//                 StorageKeys.transferPortNumber :       .settingsUInt32(transferPortNumber),
-//                 StorageKeys.registrationPortNumber :   .settingsUInt32(registrationPortNumber)
-//        ]
-//    }
-    
-    
-    
-    
+    // MARK: loadSettings
     func loadSettings(){
         
         let defaults = UserDefaults.standard
@@ -222,42 +198,53 @@ class SettingsManager {
     }
     
     
-//    func applySettings(){
-//
-//    }
-    
     
     //
-    // MARK: write settings
+    // MARK: write setting
     func writeToSettings(_ value: Any?, forKey key: String) {
+        
         UserDefaults.standard.setValue(value, forKey: key)
+        
     }
     
     
     //
-    // MARK: validate change
-    // - Does nothing if successful, throws error if not
-    // -
-    func validate(_ value: Any?, forKey key: String) throws {
+    /* MARK: validate change
+     - verifies that the proposed change is acceptable
+     (  ex. port numbers must be non-negative, strings must be non-empty ) */
+    static func validate(_ value: Any?, forKey key: String) throws {
         
         
+        // switch: check what we're storing
+        // guard let: check that the value is of the correct type
         switch key {
         case StorageKeys.registrationPortNumber, StorageKeys.transferPortNumber:
             guard let value = value as? UInt32 else {
                 throw ValidationError.INVALID_VALUE_TYPE("Invalid value type. Expected UInt32")
             }
             
+            // port must be positive
             if !(value > 0) {
                 throw ValidationError.INVALID_VALUE("Port value must be positive")
             }
+            
+            
+            
             
         case StorageKeys.overwriteFiles, StorageKeys.automaticAccept:
             guard (value as? Bool) != nil else {
                 throw ValidationError.INVALID_VALUE_TYPE("Invalid value type. Expected Bool")
             }
+            
+            
         case StorageKeys.displayName, StorageKeys.groupCode:
-            guard (value as? String) != nil else {
+            guard let value = value as? String else {
                 throw ValidationError.INVALID_VALUE_TYPE("Invalid value type. Expected String")
+            }
+            
+            
+            if !(value.count > 0) {
+                throw ValidationError.INVALID_VALUE("Groupcode required")
             }
             
             
@@ -274,6 +261,7 @@ class SettingsManager {
         let defaults = UserDefaults.standard
         
         print(DEBUG_TAG+" writing settings...")
+        
         // write to defaults
         defaults.setValue(displayName, forKey: StorageKeys.displayName)
         defaults.setValue(userName, forKey: StorageKeys.userName)
