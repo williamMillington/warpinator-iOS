@@ -36,13 +36,13 @@ final class SettingsViewController: UIViewController {
         return changes.values.map { $0.restartRequired }.contains(true)
     }
     
-    var changes: [String: SettingsChange] = [:] {
+    var changes: [String: SettingsChange] = [:] { // [SettingsManager.StorageKeys : SettingsChange]
         didSet {
             
             
             guard changes.count != 0 else {
                 
-                backButton.setTitle("<Back", for: .normal)
+                backButton.setTitle("< Back", for: .normal)
                 resetButton.alpha = 0
                 resetButton.isUserInteractionEnabled = false
                 
@@ -332,9 +332,6 @@ final class SettingsViewController: UIViewController {
     }
     
     
-    
-    
-    
     // MARK: reset
     @IBAction func reset(){
         
@@ -348,21 +345,17 @@ final class SettingsViewController: UIViewController {
     // MARK: back
     @IBAction func back(){
         
-        
         do {
             
             // validate changes
             try changes.values.forEach {
                 try $0.validate()
             }
-//            try validateChanges()
             
             // apply changes
             changes.values.forEach {
                 $0.change()
             }
-//            applyChanges()
-            
             // move back to settings
             coordinator?.returnFromSettings(restartRequired: restartRequired)
             
@@ -381,25 +374,21 @@ final class SettingsViewController: UIViewController {
 
 
 
-extension SettingsViewController {
-    
-//    //
-//    // MARK validate changes
-//    func validateChanges() throws {
-//
-//        try changes.values.forEach {
-//            try $0.validate()
-//        }
-//
-//    }
-    
-    
-//    //
-//    // MARK apply changes
-//    func applyChanges() {
-//        changes.values.forEach {
-//            $0.change()
-//        }
-//    }
-}
 
+
+
+class SettingsViewModel: NSObject {
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+}
