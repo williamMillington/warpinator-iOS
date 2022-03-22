@@ -97,9 +97,22 @@ class SettingsManager {
         manager.loadSettings()
         return manager }()
     
+    
     private init(){
-        print(DEBUG_TAG+"creating settings manager...")
-        uuid = UserDefaults.standard.string(forKey: StorageKey.uuid.rawValue) ?? "WarpinatoriOS\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))"
+        
+        func randomUUID() -> String {
+            
+            // stick 5 random digits after "WarpinatoriOS"
+            var uuidStr = "WarpinatoriOS"
+            for _ in 0...4 {
+                uuidStr += "\(Int.random(in: 0...9))"
+            }
+            
+            return uuidStr
+        }
+        
+        uuid = UserDefaults.standard.string(forKey: StorageKey.uuid.rawValue) ?? randomUUID()
+        
         writeToSettings(uuid, forKey: StorageKey.uuid)
     }
     
