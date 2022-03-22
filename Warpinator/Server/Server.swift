@@ -17,9 +17,9 @@ import Logging
 
 final class Server {
     
-    
     private let DEBUG_TAG: String = "Server: "
     
+    // TODO: turn into static Settings properties
     private let SERVICE_TYPE = "_warpinator._tcp."
     private let SERVICE_DOMAIN = "local"
     
@@ -33,11 +33,11 @@ final class Server {
     
     var settingsManager: SettingsManager
     
-    weak var authenticationManager: Authenticator?
+    var authenticationManager: Authenticator
     
     
-    // We have to capture the serverBuilder future here or it will sometimes randomly be
-    // deallocated before it can return
+    // We have to capture the serverBuilder future here or it will sometimes be
+    // deallocated before it can finish
     var future: EventLoopFuture<GRPC.Server>?
     var server: GRPC.Server?
     
@@ -52,8 +52,10 @@ final class Server {
 //    }()
     
     
-    init(settingsManager manager: SettingsManager) {
-        settingsManager = manager
+    init(settingsManager settings: SettingsManager, authenticationManager authenticator: Authenticator) {
+        
+        settingsManager = settings
+        authenticationManager = authenticator
         
         warpinatorProvider.settingsManager = settingsManager
     }
@@ -68,13 +70,14 @@ final class Server {
         }
         
         // TODO: check if this needs to be regenerated
-        authenticationManager?.generateNewCertificate()
+        authenticationManager.generateNewCertificate()
+        
+        
+        let serverCertificate = authenticationManager.getServerCertificate()
+        let serverPrivateKey = authenticationManager.getServerPrivateKey()
         
         //
-        let serverCertificate = authenticationManager!.serverCert!
-        let serverPrivateKey = authenticationManager!.serverKey!
-        
-        // 'future' will be deallocated before .whenSuccess can be called if we don't capture it here
+        // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
         future = GRPC.Server.usingTLSBackedByNIOSSL(on: serverELG,
                                            certificateChain: [ serverCertificate  ],
                                            privateKey: serverPrivateKey )
@@ -83,6 +86,7 @@ final class Server {
             .bind(host: "\(Utils.getIP_V4_Address())",
                   port: Int( settingsManager.transferPortNumber ))
             
+        
         future?.whenSuccess { server in
             print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
             self.server = server

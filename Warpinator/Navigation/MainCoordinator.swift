@@ -28,12 +28,13 @@ final class MainCoordinator: NSObject, Coordinator {
     
     var authManager: Authenticator = Authenticator.shared
     
-    lazy var server: Server = Server(settingsManager: settingsManager)
+    lazy var server: Server = Server(settingsManager: settingsManager,
+                                     authenticationManager: authManager)
     lazy var registrationServer = RegistrationServer(settingsManager: settingsManager)
+    
     
     let queueLabel = "MainCoordinatorCleanupQueue"
     lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
-
     
     
     
@@ -53,7 +54,6 @@ final class MainCoordinator: NSObject, Coordinator {
         server.settingsManager = settingsManager
         server.eventLoopGroup = serverEventLoopGroup
         server.remoteManager = remoteManager
-        server.authenticationManager = authManager
 
         
         registrationServer.settingsManager = settingsManager

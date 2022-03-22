@@ -160,8 +160,8 @@
 			children = (
 				79331AFD274E900400A4022F /* View */,
 				79C688FA2766905800353C53 /* AuthenticationConnection.swift */,
-				79B00232271C9DEE003CEBCC /* RemoteManager.swift */,
 				79360ED4270A29B0008349D2 /* Remote.swift */,
+				79B00232271C9DEE003CEBCC /* RemoteManager.swift */,
 			);
 			path = Remotes;
 			sourceTree = "<group>";
@@ -195,6 +195,8 @@
 			isa = PBXGroup;
 			children = (
 				79B002252717BDF6003CEBCC /* CertificateServer.swift */,
+				79B0022A27190F18003CEBCC /* MDNSBrowser.swift */,
+				79B0022F2719FCCB003CEBCC /* MDNSListener.swift */,
 				79B0029D27308798003CEBCC /* RegistrationServer.swift */,
 				79C002B3270BCC4E002DB22B /* Server.swift */,
 				797C12B3270FBC9700A2795C /* WarpinatorRegistrationProvider.swift */,
@@ -210,6 +212,7 @@
 				79C002B7270E0C16002DB22B /* Utils.swift */,
 				791D781427717575008140CC /* Observable.swift */,
 				7954F92E2795F98900F255AE /* SettingsManager.swift */,
+				797C12B9270FC86A00A2795C /* Authenticator.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -254,7 +257,6 @@
 				79331AFE274E903800A4022F /* Server */,
 				799E39F72746DC4000E60FFC /* Transfers */,
 				79360EB327069897008349D2 /* AppDelegate.swift */,
-				797C12B9270FC86A00A2795C /* Authenticator.swift */,
 				79360EBC27069899008349D2 /* Contents.json */,
 				79360EC127069899008349D2 /* Info.plist */,
 				79B002442729B425003CEBCC /* KeyMaster.swift */,
@@ -305,8 +307,6 @@
 		79B0022927190924003CEBCC /* Networking */ = {
 			isa = PBXGroup;
 			children = (
-				79B0022A27190F18003CEBCC /* MDNSBrowser.swift */,
-				79B0022F2719FCCB003CEBCC /* MDNSListener.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";

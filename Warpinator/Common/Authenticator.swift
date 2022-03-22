@@ -10,7 +10,6 @@ import NIOSSL
 import CryptoKit
 
 
-// 3rd party
 import Sodium
 
 import ShieldSecurity
@@ -35,21 +34,21 @@ final class Authenticator {
     public lazy var groupCode: String = DEFAULT_GROUP_CODE
     
     
-    var serverCertDERData: [UInt8]? = nil
-    var serverCertPEMData: [UInt8]? {
+    private var serverCertDERData: [UInt8]? = nil
+    private var serverCertPEMData: [UInt8]? {
         guard let derData = serverCertDERData else { return nil }
         return convertDERBytesToPEM(derData)
     }
     
-    var serverCert: NIOSSLCertificate? {
+    private var serverCert: NIOSSLCertificate? {
         guard let data = serverCertDERData,
               let cert = try? NIOSSLCertificate.init(bytes: data, format: .der) else { return nil }
         return cert
     }
     
     
-    var serverKeyData: [UInt8]? = nil
-    var serverKey: NIOSSLPrivateKey? {
+    private var serverKeyData: [UInt8]? = nil
+    private var serverKey: NIOSSLPrivateKey? {
         guard let keyData = serverKeyData,
               let key = try? NIOSSLPrivateKey.init(bytes: keyData, format: .der) else { return nil }
         
@@ -180,15 +179,20 @@ final class Authenticator {
     
     
     
-//    // MARK - server cert
-//    func getServerCertificate() -> NIOSSLCertificate {
+    // MARK - server cert
+    func getServerCertificate() -> NIOSSLCertificate {
+        
+        return serverCert!
+        
 //        return loadNIOSSLCertificateFromFile()
-//    }
-//
-//    // MARK - server PK
-//    func getServerPrivateKey() -> NIOSSLPrivateKey {
+    }
+
+    // MARK - server PK
+    func getServerPrivateKey() -> NIOSSLPrivateKey {
+        
+        return serverKey!
 //        return loadServerPrivateKeyFromFile()
-//    }
+    }
     
     
     
@@ -272,42 +276,10 @@ final class Authenticator {
                                                  digestAlgorithm: digestAlgorithm)
         
         
-        // delete old key, if exists
-//        if let _ = try? KeyMaster.readPrivateKey(forKey: uuid) {
-//            print(DEBUG_TAG+"key exists, deleting it")
-//
-//            do {
-//                try KeyMaster.deletePrivateKey(forKey: uuid)
-//            } catch {
-//                print("error deleting key: \(error)")
-//            }
-//        }
-        
-        
-        
-//        do {
-//            let keydata = try privateKey.encode() as CFData
-//            let attrs = try privateKey.attributes() as CFDictionary
-//
-//            let secKey =  SecKeyCreateWithData(keydata,
-//                                               attrs, nil)!
-//
-//            try KeyMaster.savePrivateKey( secKey, forKey: uuid)
-//
-//        } catch let error as KeyMaster.KeyMasterError {
-//            print(DEBUG_TAG+"generateNewCertificate KeyMaster error: \(error)")
-//        } catch {
-//            print(DEBUG_TAG+"some other error occured: \(error)")
-//        }
-        
-        
         let secCert = try! certificate.sec()
         let dbytes = secCert!.derEncoded
 
         serverCertDERData = Array(dbytes)
-        
-//        print(DEBUG_TAG+"generated PEM string: \n\n\t\t\(serverCertPEMData!.utf8String!)\n\n")
-//        convertDERBytesToPEM( serverCertDERData! )
         
         serverKeyData = Array( try! privateKey.encode() )
         
