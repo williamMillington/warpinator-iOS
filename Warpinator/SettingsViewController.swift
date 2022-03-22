@@ -34,7 +34,8 @@ final class SettingsViewController: UIViewController {
     }
     
     
-    var changes: [String: SettingsChange] = [:] { // [SettingsManager.StorageKeys : SettingsChange]
+    // MARK: changes
+    var changes: [SettingsManager.StorageKey: SettingsChange] = [:] {
         didSet {
             
             let title: String
@@ -53,6 +54,7 @@ final class SettingsViewController: UIViewController {
     
     
     
+    //
     // MARK: init
     init(settingsManager manager: SettingsManager) {
         
@@ -68,6 +70,7 @@ final class SettingsViewController: UIViewController {
     }
     
     
+    //
     //  MARK: viewDidload
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -78,6 +81,7 @@ final class SettingsViewController: UIViewController {
     }
     
     
+    //
     // MARK: implementCurrentSettings
     func implementCurrentSettings(){
         
@@ -94,6 +98,7 @@ final class SettingsViewController: UIViewController {
     }
     
     
+    //
     // MARK: display name changed
     @IBAction func displayNameDidChange(_ sender: UITextField){
         
@@ -110,7 +115,7 @@ final class SettingsViewController: UIViewController {
         // if the user re-enters the value already being used, no need
         // for a change/restart
         guard trimmedInput != settingsManager.displayName else {
-            changes.removeValue(forKey: SettingsManager.StorageKeys.displayName)
+            changes.removeValue(forKey: .displayName)
             return
         }
         
@@ -118,7 +123,7 @@ final class SettingsViewController: UIViewController {
         // validation action
         let onValidate = {
             try SettingsManager.validate(trimmedInput,
-                                         forKey: SettingsManager.StorageKeys.displayName )
+                                         forKey: .displayName )
         }
         
         // change setting
@@ -126,16 +131,16 @@ final class SettingsViewController: UIViewController {
             self.settingsManager.displayName = trimmedInput
         }
         
-        changes[SettingsManager.StorageKeys.displayName] = SettingsChange(restart: true,
-                                                                          validate: onValidate,
-                                                                          change: onChange)
+        changes[.displayName] = SettingsChange(restart: true,
+                                               validate: onValidate,
+                                               change: onChange)
         
     }
     
     
     
     
-    
+    //
     // MARK: group code changed
     @IBAction func groupCodeDidChange(_ sender: UITextField){
         
@@ -153,7 +158,7 @@ final class SettingsViewController: UIViewController {
         // if the user re-enters the value already being used, no need
         // for a change/restart
         guard trimmedInput != settingsManager.groupCode else {
-            changes.removeValue(forKey: SettingsManager.StorageKeys.groupCode)
+            changes.removeValue(forKey: .groupCode)
             return
         }
         
@@ -162,7 +167,7 @@ final class SettingsViewController: UIViewController {
         // validation action
         let onValidate = {
             try SettingsManager.validate(trimmedInput,
-                                         forKey: SettingsManager.StorageKeys.groupCode )
+                                         forKey:.groupCode )
         }
         
         // change setting
@@ -171,12 +176,9 @@ final class SettingsViewController: UIViewController {
         }
         
         
-        
-//        let change = SettingsChange(restart: true,  validate: onValidate, change: onChange)
-        
-        changes[SettingsManager.StorageKeys.groupCode] = SettingsChange(restart: true,
-                                                                        validate: onValidate,
-                                                                        change: onChange)
+        changes[.groupCode] = SettingsChange(restart: true,
+                                            validate: onValidate,
+                                            change: onChange)
     }
     
     
@@ -202,7 +204,7 @@ final class SettingsViewController: UIViewController {
         // if the user re-enters the value already being used, no need
         // for a change/restart
         if let num = newPortNum, num == settingsManager.transferPortNumber {
-            changes.removeValue(forKey: SettingsManager.StorageKeys.transferPortNumber)
+            changes.removeValue(forKey: .transferPortNumber)
             return
         }
         
@@ -210,7 +212,7 @@ final class SettingsViewController: UIViewController {
         // validation action
         let onValidate = {
             try SettingsManager.validate(newPortNum,
-                                         forKey: SettingsManager.StorageKeys.transferPortNumber )
+                                         forKey: .transferPortNumber )
         }
         
         // change setting
@@ -219,20 +221,9 @@ final class SettingsViewController: UIViewController {
         }
         
         
-        
-        
-        
-//        let change = SettingsChange(restart: true,  validate: {
-//            try SettingsManager.validate(newPortNum,
-//                                         forKey: SettingsManager.StorageKeys.transferPortNumber )
-//        }, change: { [unowned self] in
-//            self.settingsManager.transferPortNumber = newPortNum!
-//        })
-        
-        
-        changes[SettingsManager.StorageKeys.transferPortNumber] = SettingsChange(restart: true,
-                                                                                 validate: onValidate,
-                                                                                 change: onChange)
+        changes[.transferPortNumber] = SettingsChange(restart: true,
+                                                      validate: onValidate,
+                                                      change: onChange)
     }
     
     
@@ -259,7 +250,7 @@ final class SettingsViewController: UIViewController {
         // if the user re-enters the value already being used, no need
         // for a change/restart
         if let num = newPortNum, num == settingsManager.registrationPortNumber {
-            changes.removeValue(forKey: SettingsManager.StorageKeys.registrationPortNumber)
+            changes.removeValue(forKey: .registrationPortNumber)
             return
         }
         
@@ -267,7 +258,7 @@ final class SettingsViewController: UIViewController {
         // validation action
         let onValidate = {
             try SettingsManager.validate(newPortNum,
-                                         forKey: SettingsManager.StorageKeys.registrationPortNumber )
+                                         forKey: .registrationPortNumber )
         }
         
         // change setting
@@ -275,22 +266,9 @@ final class SettingsViewController: UIViewController {
             self.settingsManager.registrationPortNumber = newPortNum!
         }
         
-        
-        
-        
-        
-        // queue change
-//        let change = SettingsChange(restart: true,  validate: {
-//            try SettingsManager.validate(newPortNum,
-//                                         forKey: SettingsManager.StorageKeys.registrationPortNumber )
-//        }, change:  { [unowned self] in
-//            self.settingsManager.registrationPortNumber = newPortNum!
-//        })
-        
-        
-        changes[SettingsManager.StorageKeys.registrationPortNumber] = SettingsChange(restart: true,
-                                                                                     validate: onValidate,
-                                                                                     change: onChange)
+        changes[.registrationPortNumber] = SettingsChange(restart: true,
+                                                          validate: onValidate,
+                                                          change: onChange)
     }
     
     
@@ -306,7 +284,7 @@ final class SettingsViewController: UIViewController {
         // if the user re-enters the value already being used, no need
         // for a change/restart
         guard switchCheck != settingsManager.automaticAccept else {
-            changes.removeValue(forKey: SettingsManager.StorageKeys.automaticAccept)
+            changes.removeValue(forKey: .automaticAccept)
             return
         }
         
@@ -314,7 +292,7 @@ final class SettingsViewController: UIViewController {
         // validation action
         let onValidate = {
             try SettingsManager.validate(switchCheck,
-                                         forKey: SettingsManager.StorageKeys.automaticAccept )
+                                         forKey: .automaticAccept )
         }
         
         // change setting
@@ -323,20 +301,9 @@ final class SettingsViewController: UIViewController {
         }
         
         
-        
-        
-        // queue change
-//        let change = SettingsChange(restart: false,  validate: {
-//            try SettingsManager.validate(switchCheck,
-//                                         forKey: SettingsManager.StorageKeys.automaticAccept )
-//        }, change:  { [unowned self] in
-//            self.settingsManager.automaticAccept = switchCheck
-//        })
-        
-        changes[SettingsManager.StorageKeys.automaticAccept] = SettingsChange(restart: false,
-                                                                              validate: onValidate,
-                                                                              change: onChange)
-        
+        changes[.automaticAccept] = SettingsChange(restart: false,
+                                                   validate: onValidate,
+                                                   change: onChange)
     }
     
     
@@ -352,7 +319,7 @@ final class SettingsViewController: UIViewController {
         // if the user re-enters the value already being used, no need
         // for a change/restart
         guard switchCheck != settingsManager.overwriteFiles else {
-            changes.removeValue(forKey: SettingsManager.StorageKeys.overwriteFiles)
+            changes.removeValue(forKey: .overwriteFiles)
             return
         }
         
@@ -360,7 +327,7 @@ final class SettingsViewController: UIViewController {
         // validation action
         let onValidate = {
             try SettingsManager.validate(switchCheck,
-                                         forKey: SettingsManager.StorageKeys.overwriteFiles )
+                                         forKey: .overwriteFiles )
         }
         
         // change setting
@@ -369,19 +336,9 @@ final class SettingsViewController: UIViewController {
         }
         
         
-        
-        
-        // queue change
-//        let change = SettingsChange(restart: true,  validate: {
-//            try SettingsManager.validate(switchCheck,
-//                                         forKey: SettingsManager.StorageKeys.overwriteFiles )
-//        }, change:  { [unowned self] in
-//            self.settingsManager.overwriteFiles = switchCheck
-//        })
-        
-        changes[SettingsManager.StorageKeys.overwriteFiles] = SettingsChange(restart: true,
-                                                                             validate: onValidate,
-                                                                             change: onChange)
+        changes[.overwriteFiles] = SettingsChange(restart: true,
+                                                  validate: onValidate,
+                                                  change: onChange)
     }
     
     
