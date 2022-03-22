@@ -73,8 +73,13 @@ final class Server {
         authenticationManager.generateNewCertificate()
         
         
-        let serverCertificate = authenticationManager.getServerCertificate()
-        let serverPrivateKey = authenticationManager.getServerPrivateKey()
+        do {
+            let serverCertificate = try authenticationManager.getServerCertificate()
+            let serverPrivateKey = try authenticationManager.getServerPrivateKey()
+        
+        
+        
+        
         
         //
         // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
@@ -94,6 +99,10 @@ final class Server {
         
         future?.whenFailure { error in
             print(self.DEBUG_TAG+"transfer server failed: \(error))")
+        }
+            
+        } catch {
+            print(DEBUG_TAG+"Error retrieving server credentials: \n\t\t \(error)")
         }
 
     }

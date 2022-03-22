@@ -26,7 +26,11 @@ class KeyMaster {
     // MARK: - Certificates
     
     
-    
+    // MARK: - save
+    // save DER data of X509 certificate
+    static func saveCertificate(data: [UInt8], forKey key: String) throws {
+        try saveCertificate(data: Data(data) , forKey: key)
+    }
     
     // MARK: - save
     // save DER data of X509 certificate
@@ -36,6 +40,15 @@ class KeyMaster {
         guard let certificate = SecCertificateCreateWithData(nil, data as CFData) else {
             throw KeyMasterError.invalidFormat
         }
+        
+        
+        try saveCertificate(certificate, forKey: key)
+    }
+    
+    
+    // MARK: - save
+    // save SecCertificate
+    static func saveCertificate(_ certificate: SecCertificate, forKey key: String) throws {
         
         
         let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
@@ -55,9 +68,35 @@ class KeyMaster {
     }
     
     
+    
+    
+    
     //MARK: - read
     // read DER data of X509 certificate
-    static func readCertificate(forKey key: String) throws -> Data {
+//    static func readCertificate(forKey key: String) throws -> Data {
+//
+//        let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
+//                                     kSecAttrLabel as String : key,
+//                                     kSecMatchLimit as String: kSecMatchLimitOne,
+//                                     kSecReturnRef as String : kCFBooleanTrue ]
+//
+//        var itemCopy: CFTypeRef?
+//        let status = SecItemCopyMatching(query as CFDictionary,
+//                                         &itemCopy)
+//
+//        guard status != errSecItemNotFound else {
+//            throw KeyMasterError.itemNotFound
+//        }
+//
+//        guard status == errSecSuccess else {
+//            throw KeyMasterError.unexpectedStatus(status)
+//        }
+//
+//        let item = itemCopy as! SecCertificate
+//
+//        return item.derEncoded
+//    }
+    static func readCertificate(forKey key: String) throws -> SecCertificate {
         
         let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
                                      kSecAttrLabel as String : key,
@@ -76,9 +115,7 @@ class KeyMaster {
             throw KeyMasterError.unexpectedStatus(status)
         }
         
-        let item = itemCopy as! SecCertificate
-        
-        return item.derEncoded
+        return itemCopy as! SecCertificate
     }
     
     

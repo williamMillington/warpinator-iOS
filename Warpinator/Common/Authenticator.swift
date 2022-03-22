@@ -34,26 +34,26 @@ final class Authenticator {
     public lazy var groupCode: String = DEFAULT_GROUP_CODE
     
     
-    private var serverCertDERData: [UInt8]? = nil
-    private var serverCertPEMData: [UInt8]? {
-        guard let derData = serverCertDERData else { return nil }
-        return convertDERBytesToPEM(derData)
-    }
-    
-    private var serverCert: NIOSSLCertificate? {
-        guard let data = serverCertDERData,
-              let cert = try? NIOSSLCertificate.init(bytes: data, format: .der) else { return nil }
-        return cert
-    }
-    
-    
-    private var serverKeyData: [UInt8]? = nil
-    private var serverKey: NIOSSLPrivateKey? {
-        guard let keyData = serverKeyData,
-              let key = try? NIOSSLPrivateKey.init(bytes: keyData, format: .der) else { return nil }
-        
-        return key
-    }
+//    private var serverCertDERData: [UInt8]? = nil
+//    private var serverCertPEMData: [UInt8]? {
+//        guard let derData = serverCertDERData else { return nil }
+//        return convertDERBytesToPEM(derData)
+//    }
+//
+//    private var serverCert: NIOSSLCertificate? {
+//        guard let data = serverCertDERData,
+//              let cert = try? NIOSSLCertificate.init(bytes: data, format: .der) else { return nil }
+//        return cert
+//    }
+//
+//
+//    private var serverKeyData: [UInt8]? = nil
+//    private var serverKey: NIOSSLPrivateKey? {
+//        guard let keyData = serverKeyData,
+//              let key = try? NIOSSLPrivateKey.init(bytes: keyData, format: .der) else { return nil }
+//
+//        return key
+//    }
     
     
     static var shared: Authenticator = Authenticator()
@@ -145,9 +145,17 @@ final class Authenticator {
         
         // load certificate bytes
 //        let certificateBytes =  loadCertificateBytesFromFile()
-        guard let certificateBytes = serverCertPEMData else {
-            print(DEBUG_TAG+"problem with the cert data")
-            return "NOCERTIFICATEFORYOU"
+//        guard let certificateBytes = serverCertPEMData else {
+//            print(DEBUG_TAG+"problem with the cert data")
+//            return "NOCERTIFICATEFORYOU"
+//        }
+        
+        
+        guard let secCertData = try? loadCertificateFromKeychain().derEncoded,
+              let niocert = try? NIOSSLCertificate(bytes: Array(secCertData) , format: .der),
+              let certificateBytes = niocert.extended.pemBytes else {
+            print(DEBUG_TAG+"problem with the cert pem data")
+            return "PEM_DATA_UNAVAILABLE"
         }
         
         
@@ -180,19 +188,36 @@ final class Authenticator {
     
     
     // MARK: - server cert
-    func getServerCertificate() -> NIOSSLCertificate {
+    func getServerCertificate() throws -> NIOSSLCertificate {
         
+//        do {
+            
+            let sec_cert = try loadCertificateFromKeychain()
+            
+            let data = sec_cert.derEncoded
+            
+            return try NIOSSLCertificate(bytes: Array(data) , format: .der)
+            
+//        } catch {
+//            print(DEBUG_TAG+"error retrieving server cert \(error)")
+//        }
         
-        
-        
-        return serverCert!
+//        return loadCertificateFromKeychain()
+//        return serverCert!
 //        return loadNIOSSLCertificateFromFile()
     }
 
     // MARK: - server p_key
-    func getServerPrivateKey() -> NIOSSLPrivateKey {
+    func getServerPrivateKey() throws -> NIOSSLPrivateKey {
         
-        return serverKey!
+        let sec_key = try loadPrivateKeyFromKeychain()
+        
+        let keyBytes = try sec_key.encode()
+        
+        return try NIOSSLPrivateKey(bytes: Array(keyBytes), format: .der)
+        
+//        return loadPrivateKeyFromKeychain()
+//        return serverKey!
 //        return loadServerPrivateKeyFromFile()
     }
     
@@ -278,12 +303,26 @@ final class Authenticator {
                                                  digestAlgorithm: digestAlgorithm)
         
         
-        let secCert = try! certificate.sec()
-        let dbytes = secCert!.derEncoded
-
-        serverCertDERData = Array(dbytes)
         
-        serverKeyData = Array( try! privateKey.encode() )
+//        let dbytes = secCert!.derEncoded
+
+        
+        do {
+            
+            let secCert = try certificate.sec()
+            try saveCertificateToKeychain(secCert!)
+        
+            try savePrivateKeyToKeychain(privateKey)
+            
+        } catch {
+            print(DEBUG_TAG+"Error saving credentials:\n\t\t \(error)")
+        }
+        
+//        serverCertDERData = Array(dbytes)
+//        serverKeyData = Array( try! privateKey.encode() )
+        
+        
+        
         
     }
     
@@ -298,7 +337,7 @@ final class Authenticator {
         let pemBytesString = "-----BEGIN CERTIFICATE-----\n" + derBytesString + "\n-----END CERTIFICATE-----\n"
         
 //        print(DEBUG_TAG+"PEM string is \(pemBytesString)")
-        
+         
         return pemBytesString.bytes
     }
     
@@ -372,82 +411,97 @@ extension Authenticator {
 
 
 
-// MARK: load from Keychain
+// MARK: KeyMaster Access
 extension Authenticator {
 
     //
-    private func loadCertificateFromKeychain() -> NIOSSLCertificate? {
-
-        do {
-            
-//            let certificate: NIOSSLCertificate
-//            if let certBytes = try? KeyMaster.readCertificate(forKey: uuid) {
+//    private func loadCertificateFromKeychain() -> NIOSSLCertificate {
 //
-//                certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .der)
+//        let uuid = SettingsManager.shared.uuid
 //
-//            } else {
-//                print(DEBUG_TAG+"no certificate found in keychain")
+//        do {
 //
-//                let certBytes = generateNewCertificate(forHostname: uuid)
+////            let certificate: NIOSSLCertificate
+//            let certBytes = try KeyMaster.readCertificate(forKey: uuid)
 //
-//                certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .der)
+//            return try NIOSSLCertificate(bytes: Array(certBytes), format: .der)
 //
-//                try KeyMaster.saveCertificate(data: certBytes, forKey: uuid)
+////            } else {
+////                print(DEBUG_TAG+"no certificate found in keychain")
+////
+//////                let certBytes =
+//////                generateNewCertificate()
+////
+////                certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .der)
+////
+////                try KeyMaster.saveCertificate(data: certBytes, forKey: uuid)
+////
+////            }
 //
-//            }
+////            return certificate
 //
-//            return certificate
-
-        } catch let error as KeyMaster.KeyMasterError {
-            print(DEBUG_TAG+"getServerCertificate KeyMaster error: \(error)")
-        } catch {
-            print(DEBUG_TAG+"couldn't create NIOSSLCertificate from data \(error)")
-        }
-
-        return nil
+//        } catch let error as KeyMaster.KeyMasterError {
+//            print(DEBUG_TAG+"getServerCertificate KeyMaster error: \(error)")
+//        } catch {
+//            print(DEBUG_TAG+"couldn't create NIOSSLCertificate from data \(error)")
+//        }
+//
+////        return nil
+//    }
+    
+    private func loadCertificateFromKeychain() throws -> SecCertificate {
+        
+        let uuid = SettingsManager.shared.uuid
+        
+        return try KeyMaster.readCertificate(forKey: uuid)
+        
     }
-
     
     
-    func saveCertificateToKeychain(_ cert: NIOSSLCertificate) throws {
+    func saveCertificateToKeychain(_ cert: SecCertificate) throws {
         
+        let uuid = SettingsManager.shared.uuid
         
-        
-        
-        
+        try KeyMaster.saveCertificate(cert , forKey: uuid)
+          
     }
     
     
     
 
     //
-    private  func loadPrivateKeyFromKeychain() -> NIOSSLPrivateKey? {
-        do {
+    private func loadPrivateKeyFromKeychain() throws -> SecKey {
+        
+        let uuid = SettingsManager.shared.uuid
+        
+        return try KeyMaster.readPrivateKey(forKey: uuid)
+        
+//        do {
 
 //            let seckey = try KeyMaster.readPrivateKey(forKey: uuid)
 //            let pkBytes = try seckey.encode()
 //
 //            let privateKey = try NIOSSLPrivateKey(bytes: Array(pkBytes), format: .der)
-//
-//            return privateKey
 
 
-        } catch let error as KeyMaster.KeyMasterError {
-            print(DEBUG_TAG+"loadPrivateKeyFromKeychain KeyMaster error: \(error)")
-        } catch {
-            print(DEBUG_TAG+"couldn't create NIOSSLPrivateKey from data \(error)")
-        }
+
+//        } catch let error as KeyMaster.KeyMasterError {
+//            print(DEBUG_TAG+"loadPrivateKeyFromKeychain KeyMaster error: \(error)")
+//        } catch {
+//            print(DEBUG_TAG+"couldn't create NIOSSLPrivateKey from data \(error)")
+//        }
 
 
-        return nil
+//        return nil
     }
     
     
-    func saveCertificateToKeychain(_ cert: NIOSSLPrivateKey) throws {
+    
+    func savePrivateKeyToKeychain(_ key: SecKey) throws {
         
+        let uuid = SettingsManager.shared.uuid
         
-        
-        
+        try KeyMaster.savePrivateKey(key, forKey: uuid)
         
     }
     
