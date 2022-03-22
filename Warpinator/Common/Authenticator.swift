@@ -452,6 +452,15 @@ extension Authenticator {
         
         let uuid = SettingsManager.shared.uuid
         
+        
+        // delete old key
+        print(DEBUG_TAG+"\t\tdeleting old certificate...")
+        do {
+            try KeyMaster.deleteCertificate(forKey: uuid)
+        } catch KeyMaster.KeyMasterError.itemNotFound {
+            print(DEBUG_TAG+"\t\tNo certificate to delete")
+        }
+        
         try KeyMaster.saveCertificate(cert , forKey: uuid)
           
     }
@@ -494,6 +503,14 @@ extension Authenticator {
         print(DEBUG_TAG+"saving private key to keychain")
         
         let uuid = SettingsManager.shared.uuid
+        
+        // delete old key
+        print(DEBUG_TAG+"\tdeleting old private key...")
+        do {
+            try KeyMaster.deletePrivateKey(forKey: uuid)
+        } catch KeyMaster.KeyMasterError.itemNotFound {
+            print(DEBUG_TAG+"\t\tNo key to delete")
+        }
         
         try KeyMaster.savePrivateKey(key, forKey: uuid)
         
@@ -601,13 +618,14 @@ extension Authenticator {
         
         do {
             
+            
             let secCert = try certificate.sec()
             try saveCertificateToKeychain(secCert!)
         
             try savePrivateKeyToKeychain(privateKey)
             
         } catch {
-            print(DEBUG_TAG+"Error saving credentials:\n\t\t \(error)")
+            print(DEBUG_TAG+"(MOCK) Error saving credentials:\n\t\t \(error)")
         }
         
     }
