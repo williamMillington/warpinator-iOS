@@ -137,7 +137,6 @@ class SettingsManager {
         
         UserDefaults.standard.setValue(value, forKey:
                                         key.rawValue)
-        
     }
     
     
@@ -151,40 +150,63 @@ class SettingsManager {
         // switch: check what we're trying to store
         // guard let: verify that the value is of the correct type
         switch key {
+            
+            //
+            // All UInt32 settings
         case StorageKey.registrationPortNumber, StorageKey.transferPortNumber:
             
+            // cast down (up?) from Any
             guard let value = value as? UInt32 else {
                 throw ValidationError.INVALID_VALUE_TYPE("(\(key))Invalid value type. Expected UInt32")
             }
             
-            // I suppose it's a bug that this will never be triggered, as the previous 'guard' statement
-            // will catch any non-negative numbers as it attempts to stuff them into a UInt32
-            // port must be positive. Including it for clarity.
-            if !(value > 0) {
-                throw ValidationError.INVALID_VALUE("(\(key))Port value must be positive")
+            /* This will never be triggered, as the previous 'guard' statement
+             will catch any non-negative numbers as it attempts to stuff them into a UInt32.
+             Including it for clarity. */
+            guard value > 0 else {
+                throw ValidationError.INVALID_VALUE("(\(key)) Port value must be positive")
             }
             
             
+            // Must fit in UInt32
+            // 2^31 = 2147483648
+            guard value < 2147483648 else {
+                throw ValidationError.INVALID_VALUE("(\(key)) port value must be less than 2147483648")
+            }
             
-            
+           
+            //
+            // All Bool settings
         case StorageKey.overwriteFiles, StorageKey.automaticAccept:
+            
+            // cast down from Any
             guard (value as? Bool) != nil else {
-                throw ValidationError.INVALID_VALUE_TYPE("(\(key))Invalid value type. Expected Bool")
+                throw ValidationError.INVALID_VALUE_TYPE("(\(key)) Invalid value type. Expected Bool")
             }
             
             
+             //
+             // All String settings
         case StorageKey.displayName, StorageKey.groupCode:
+            
+            // cast down from Any
             guard let value = value as? String else {
-                throw ValidationError.INVALID_VALUE_TYPE("(\(key))Invalid value type. Expected String")
+                throw ValidationError.INVALID_VALUE_TYPE("(\(key)) Invalid value type. Expected String")
             }
             
             
-            if !(value.count > 0) {
+            guard value.count > 0 else {
                 throw ValidationError.INVALID_VALUE("(\(key)) \(key) required")
             }
             
             
-        default: throw ValidationError.INVALID_VALUE_TYPE("(\(key))Value Type Unexpected")
+            guard value.count < 100 else {
+                throw ValidationError.INVALID_VALUE("(\(key)) Must be under 100 characters")
+            }
+                    
+                    
+            
+        default: throw ValidationError.INVALID_VALUE_TYPE("(\(key)/\(String(describing: value))) Unexpected Key or Value Type")
         }
         
         

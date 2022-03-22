@@ -385,7 +385,8 @@ final class SettingsViewController: UIViewController {
             changes.values.forEach {
                 $0.change()
             }
-            // move back to settings
+            
+            // exit settings
             coordinator?.returnFromSettings(restartRequired: restartRequired)
             
         } catch let error as ValidationError {
