@@ -17,6 +17,21 @@ import Logging
 
 final class Server {
     
+    enum ServerError: Error {
+        case NO_EVENTLOOP
+        case CREDENTIALS_INVALID
+        case UKNOWN_ERROR
+        
+        var localizedDescription: String {
+            switch self {
+            case .NO_EVENTLOOP: return "No available eventloop"
+            case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"
+            case .UKNOWN_ERROR: return "Server has encountered an unknown error"
+            }
+        }
+    }
+    
+    
     private let DEBUG_TAG: String = "Server: "
     
     // TODO: turn into static Settings properties
@@ -63,14 +78,14 @@ final class Server {
     
     //
     // MARK: start
-    func start(){
+    func start() throws -> EventLoopFuture<GRPC.Server>?  {
         
         guard let serverELG = eventLoopGroup else {
-            print(DEBUG_TAG+"Error: no eventloop group"); return
+            throw ServerError.NO_EVENTLOOP
         }
         
         // TODO: check if this needs to be regenerated
-        authenticationManager.generateNewCertificate()
+//        authenticationManager.generateNewCertificate()
         
         
         do {
@@ -78,8 +93,9 @@ final class Server {
             let serverPrivateKey = try authenticationManager.getServerPrivateKey()
         
         
-        
-        
+            print(DEBUG_TAG+"verifying certificate")
+            print(DEBUG_TAG+"\t certificate is valid: \(authenticationManager.verify(certificate: serverCertificate))")
+            
         
         //
         // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
@@ -103,8 +119,10 @@ final class Server {
             
         } catch {
             print(DEBUG_TAG+"Error retrieving server credentials: \n\t\t \(error)")
+            throw ServerError.CREDENTIALS_INVALID
         }
 
+        return future
     }
     
     

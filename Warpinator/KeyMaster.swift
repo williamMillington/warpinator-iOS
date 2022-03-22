@@ -9,7 +9,9 @@ import Foundation
 
 
 
-class KeyMaster {
+final class KeyMaster {
+    
+    private static let DEBUG_TAG: String = "KeyMaster: "
     
     enum KeyMasterError: Error {
         case itemNotFound
@@ -26,13 +28,13 @@ class KeyMaster {
     // MARK: - Certificates
     
     
-    // MARK: - save
+    // MARK save
     // save DER data of X509 certificate
     static func saveCertificate(data: [UInt8], forKey key: String) throws {
         try saveCertificate(data: Data(data) , forKey: key)
     }
     
-    // MARK: - save
+    // MARK save
     // save DER data of X509 certificate
     static func saveCertificate(data: Data, forKey key: String) throws {
         
@@ -46,10 +48,11 @@ class KeyMaster {
     }
     
     
-    // MARK: - save
+    // MARK: save
     // save SecCertificate
     static func saveCertificate(_ certificate: SecCertificate, forKey key: String) throws {
         
+        print(DEBUG_TAG+"saving certificate")
         
         let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
                                      kSecAttrLabel as String : key,
@@ -59,6 +62,7 @@ class KeyMaster {
         let status = SecItemAdd(query as CFDictionary, nil)
         
         if status == errSecDuplicateItem {
+            print(DEBUG_TAG+"Duplicate Certificate")
             throw KeyMasterError.duplicateItem
         }
         
@@ -98,9 +102,11 @@ class KeyMaster {
 //    }
     static func readCertificate(forKey key: String) throws -> SecCertificate {
         
+        print(DEBUG_TAG+"reading certificate")
+        
         let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
                                      kSecAttrLabel as String : key,
-                                     kSecMatchLimit as String: kSecMatchLimitOne,
+//                                     kSecMatchLimit as String: kSecMatchLimitOne,
                                      kSecReturnRef as String : kCFBooleanTrue ]
         
         var itemCopy: CFTypeRef?
@@ -108,6 +114,7 @@ class KeyMaster {
                                          &itemCopy)
         
         guard status != errSecItemNotFound else {
+            print(DEBUG_TAG+"Certificate not found")
             throw KeyMasterError.itemNotFound
         }
         
@@ -122,6 +129,8 @@ class KeyMaster {
     //MARK: - delete
     static func deleteCertificate(forKey key: String) throws {
         
+        print(DEBUG_TAG+"deleting certificate")
+        
         let query: [String: Any] = [
             kSecClass as String: kSecClassCertificate,
             kSecAttrLabel as String: key,
@@ -131,6 +140,7 @@ class KeyMaster {
         let status = SecItemDelete(query as CFDictionary)
         
         guard status == errSecItemNotFound else {
+            print(DEBUG_TAG+"Certificate not found")
             throw KeyMasterError.itemNotFound
         }
         
@@ -154,6 +164,10 @@ class KeyMaster {
     //MARK: - save
     static func savePrivateKey(_ data: SecKey, forKey key: String) throws {
         
+        
+        print(DEBUG_TAG+"saving private key")
+        
+        
         let tag = key.data(using: .utf8)
 //        let pk = SEckey
         
@@ -171,6 +185,7 @@ class KeyMaster {
                                 nil)
         
         if status == errSecDuplicateItem {
+            print(DEBUG_TAG+"Duplicate Private Key ")
             throw KeyMasterError.duplicateItem
         }
         
@@ -183,6 +198,8 @@ class KeyMaster {
     //MARK: - read
     static func readPrivateKey(forKey key: String) throws -> SecKey {
         
+        print(DEBUG_TAG+"reading private key")
+        
         let tag = key.data(using: .utf8)
         let query: [String: Any] = [
 //            kSecAttrService as String : KeyMaster.service as AnyObject,
@@ -192,7 +209,7 @@ class KeyMaster {
             kSecClass as String: kSecClassKey,
             kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
             
-            kSecMatchLimit as String: kSecMatchLimitOne,
+//            kSecMatchLimit as String: kSecMatchLimitOne,
             
             kSecReturnRef as String : kCFBooleanTrue as Any
         ]
@@ -202,6 +219,7 @@ class KeyMaster {
                                          &itemCopy)
         
         guard status != errSecItemNotFound else {
+            print(DEBUG_TAG+"Private Key not found")
             throw KeyMasterError.itemNotFound
         }
         
@@ -217,6 +235,7 @@ class KeyMaster {
     //MARK: - delete
     static func deletePrivateKey(forKey key: String) throws {
         
+        print(DEBUG_TAG+"deleting private key")
         
         let query: [String: AnyObject] = [
             kSecAttrService as String : KeyMaster.service as AnyObject,
@@ -229,6 +248,7 @@ class KeyMaster {
         let status = SecItemDelete(query as CFDictionary)
         
         guard status == errSecItemNotFound else {
+            print(DEBUG_TAG+"Private Key not found")
             throw KeyMasterError.itemNotFound
         }
         

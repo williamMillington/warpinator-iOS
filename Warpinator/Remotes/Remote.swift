@@ -481,6 +481,7 @@ extension Remote {
         print(DEBUG_TAG+"callClientStartTransfer ")
         
         guard let client = warpClient else {
+            callClientStopTransfer(operation, error: TransferError.ConnectionInterrupted )
             print(DEBUG_TAG+"cancel receiving; no client connection "); return
         }
         
@@ -676,6 +677,8 @@ extension Remote: ClientErrorDelegate {
     //
     // MARK: didCatchError
     public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
+        
+        print(DEBUG_TAG+"ERROR (\(file):\(line)): \(error)")
         
         // if certificate is bad
         if case NIOSSLError.handshakeFailed(_) = error {

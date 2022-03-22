@@ -190,21 +190,11 @@ final class Authenticator {
     // MARK: - server cert
     func getServerCertificate() throws -> NIOSSLCertificate {
         
-//        do {
-            
             let sec_cert = try loadCertificateFromKeychain()
             
             let data = sec_cert.derEncoded
             
             return try NIOSSLCertificate(bytes: Array(data) , format: .der)
-            
-//        } catch {
-//            print(DEBUG_TAG+"error retrieving server cert \(error)")
-//        }
-        
-//        return loadCertificateFromKeychain()
-//        return serverCert!
-//        return loadNIOSSLCertificateFromFile()
     }
 
     // MARK: - server p_key
@@ -214,11 +204,7 @@ final class Authenticator {
         
         let keyBytes = try sec_key.encode()
         
-        return try NIOSSLPrivateKey(bytes: Array(keyBytes), format: .der)
-        
-//        return loadPrivateKeyFromKeychain()
-//        return serverKey!
-//        return loadServerPrivateKeyFromFile()
+        return try NIOSSLPrivateKey.init(bytes: Array(keyBytes), format: .der)
     }
     
     
@@ -240,7 +226,7 @@ final class Authenticator {
         
         
         // SET VALIDITY TIME FRAME
-        let day_seconds: Double = 60 * 60 * 24      // milliseconds in a day
+        let day_seconds: Double = 60 * 60 * 24      // seconds in a day
         let expirationTime: Double = 30 * day_seconds // one month
         
         let startDate = Date(timeInterval: -(day_seconds) , since: Date() ) // yesterday
@@ -303,10 +289,6 @@ final class Authenticator {
                                                  digestAlgorithm: digestAlgorithm)
         
         
-        
-//        let dbytes = secCert!.derEncoded
-
-        
         do {
             
             let secCert = try certificate.sec()
@@ -317,12 +299,6 @@ final class Authenticator {
         } catch {
             print(DEBUG_TAG+"Error saving credentials:\n\t\t \(error)")
         }
-        
-//        serverCertDERData = Array(dbytes)
-//        serverKeyData = Array( try! privateKey.encode() )
-        
-        
-        
         
     }
     
@@ -336,18 +312,28 @@ final class Authenticator {
         
         let pemBytesString = "-----BEGIN CERTIFICATE-----\n" + derBytesString + "\n-----END CERTIFICATE-----\n"
         
-//        print(DEBUG_TAG+"PEM string is \(pemBytesString)")
-         
         return pemBytesString.bytes
     }
     
     
     
-    func verify(certificate: NIOSSLCertificate) throws -> Bool {
+    // MARK: verify
+    func verify(certificate: NIOSSLCertificate) -> Bool {
                 
+        let before = certificate.notValidBefore
+        let after = certificate.notValidAfter
+        
+        let now = Int(Date().timeIntervalSince1970)
+        
+//        Date(timeIntervalSince1970: TimeInterval( before) )
+        
+        print(DEBUG_TAG+"before: \(before) \t(\( Date(timeIntervalSince1970: TimeInterval( before) ) ))")
+        print(DEBUG_TAG+"now: \(now) \t(\( Date(timeIntervalSince1970: TimeInterval( now) ) ))")
+        print(DEBUG_TAG+"after: \(after) \t (\( Date(timeIntervalSince1970: TimeInterval( after) ) ))")
         
         
-        return true
+        
+        return (now > before) && (now < after)
     }
     
     
@@ -451,6 +437,8 @@ extension Authenticator {
     
     private func loadCertificateFromKeychain() throws -> SecCertificate {
         
+        print(DEBUG_TAG+"load certificate from keychain")
+        
         let uuid = SettingsManager.shared.uuid
         
         return try KeyMaster.readCertificate(forKey: uuid)
@@ -459,6 +447,8 @@ extension Authenticator {
     
     
     func saveCertificateToKeychain(_ cert: SecCertificate) throws {
+        
+        print(DEBUG_TAG+"saving certificate to keychain")
         
         let uuid = SettingsManager.shared.uuid
         
@@ -471,6 +461,8 @@ extension Authenticator {
 
     //
     private func loadPrivateKeyFromKeychain() throws -> SecKey {
+        
+        print(DEBUG_TAG+"load private key from keychain")
         
         let uuid = SettingsManager.shared.uuid
         
@@ -499,6 +491,8 @@ extension Authenticator {
     
     func savePrivateKeyToKeychain(_ key: SecKey) throws {
         
+        print(DEBUG_TAG+"saving private key to keychain")
+        
         let uuid = SettingsManager.shared.uuid
         
         try KeyMaster.savePrivateKey(key, forKey: uuid)
@@ -507,3 +501,115 @@ extension Authenticator {
     
 }
 
+
+
+
+
+extension Authenticator {
+    
+    // MARK: - mock bad credentials
+    func generateBadCertificate() {
+        
+        print(DEBUG_TAG+"=========================================================================")
+        print(DEBUG_TAG+"=========================================================================")
+        print(DEBUG_TAG+"\t\t\tALERT")
+        print(DEBUG_TAG+"=========================================================================")
+        print(DEBUG_TAG+"=========================================================================")
+        print(DEBUG_TAG+"GENERATING BAD CREDENTIALS")
+        
+        // CREATE KEYS
+        let keypair = try! SecKeyPair.Builder(type: .rsa, keySize: 2048)  .generate()
+
+        let publicKey = keypair.publicKey
+        let publicKeyEncoded = try! publicKey.encode()
+        let pubKeyInfo = SubjectPublicKeyInfo(algorithm: try! AlgorithmIdentifier(publicKey: publicKey),
+                                                  subjectPublicKey: publicKeyEncoded)
+        
+        let privateKey = keypair.privateKey
+        
+        
+        // SET VALIDITY TIME FRAME
+        let day_seconds: Double = 60 * 60 * 24      // seconds in a day
+//        let expirationTime: Double = 30 * day_seconds // one month
+        let expirationTime: Double = 2 * day_seconds // 4 days
+        
+        let startDate = Date(timeInterval: -(day_seconds * 5) , since: Date() ) // 5 days ago
+        let endDate = Date(timeInterval: expirationTime, since: startDate) // should end 1 day ago
+        
+        
+        print(DEBUG_TAG+"startdate: \(startDate)")
+        print(DEBUG_TAG+"enddate: \(endDate)")
+        
+        
+        
+        let startTime = AnyTime(date: startDate, timeZone: .init(secondsFromGMT: 0) ?? .current )
+        let endTime = AnyTime(date: endDate, timeZone: .init(secondsFromGMT: 0)  ?? .current  )
+        
+        
+        // COMMON NAME
+        let hostname = "WarpinatorIOS"
+        let x500Name = try! NameBuilder.parse(string:"CN="+hostname)
+        
+        
+        // SERIAL NUMBER
+        let currentTime = Double(Date.timeIntervalBetween1970AndReferenceDate + Date.timeIntervalSinceReferenceDate)
+        let serialNumber = TBSCertificate.SerialNumber( String(currentTime) )
+        
+        
+        // -- EXTENSIONS
+        
+        // Subject Alternative Name: IP address
+        let ipAddress = Utils.getIP_V4_Address()
+        
+        var IPparts: [UInt8] = [] // break apart IP string into
+        ipAddress.components(separatedBy: ".").forEach { part in
+            if let uint = UInt8(part) {
+                IPparts.append(uint)
+            }
+        }
+        
+        let ipAddressExtension = GeneralName.ipAddress( Data( IPparts ) )
+        
+        
+        // SUBJECT AND ISSUER KEY IDENTIFIERS (self-signed, so same identifier for both)
+        let keyID: KeyIdentifier = Digester.digest( publicKeyEncoded, using: .sha1)
+        
+        // EXTENDED KEY USAGES
+        let kp = iso.org.dod.internet.security.mechanisms.pkix.kp.self
+        let usages: Set<OID> = [ kp.clientAuth.oid, kp.serverAuth.oid  ]
+        
+        
+        // CREATE CERTIFICATE BUILDER
+        let certBuilder = try! Certificate.Builder(serialNumber: serialNumber,
+                                              issuer: x500Name,
+                                              subject: x500Name,
+                                              subjectPublicKeyInfo: pubKeyInfo,
+                                              notBefore: startTime,
+                                              notAfter: endTime)
+            .subjectKeyIdentifier(keyID)
+            .authorityKeyIdentifier(keyID)
+            .basicConstraints(ca: true)
+            .addSubjectAlternativeNames(names: ipAddressExtension)
+            .extendedKeyUsage(keyPurposes: usages , isCritical: true)
+            
+            
+        // CREATE/SIGN CERTIFICATE
+        let digestAlgorithm = Digester.Algorithm.sha256
+        let certificate = try! certBuilder.build(signingKey: privateKey,
+                                                 digestAlgorithm: digestAlgorithm)
+        
+        
+        do {
+            
+            let secCert = try certificate.sec()
+            try saveCertificateToKeychain(secCert!)
+        
+            try savePrivateKeyToKeychain(privateKey)
+            
+        } catch {
+            print(DEBUG_TAG+"Error saving credentials:\n\t\t \(error)")
+        }
+        
+    }
+    
+}

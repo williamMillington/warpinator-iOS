@@ -7,7 +7,7 @@
 
 import UIKit
 import GRPC
-
+import NIOSSL
 
 
 final class MainCoordinator: NSObject, Coordinator {
@@ -25,8 +25,8 @@ final class MainCoordinator: NSObject, Coordinator {
     var remoteManager: RemoteManager = RemoteManager()
     
     var settingsManager: SettingsManager = SettingsManager.shared
-    
     var authManager: Authenticator = Authenticator.shared
+    
     
     lazy var server: Server = Server(settingsManager: settingsManager,
                                      authenticationManager: authManager)
@@ -60,6 +60,10 @@ final class MainCoordinator: NSObject, Coordinator {
         registrationServer.eventLoopGroup = serverEventLoopGroup
         registrationServer.remoteManager = remoteManager
         
+        
+        // MARK: BAD CERTIFICATE
+        authManager.generateBadCertificate()
+        
     }
     
     
@@ -76,9 +80,30 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: start servers
     func startServers(){
-        print(DEBUG_TAG+"starting servers: ")
-        server.start()
-        registrationServer.start()
+        
+        print(DEBUG_TAG+"starting servers ")
+        
+        do {
+            
+            // TODO: capture future and pop-up any errors if it fails
+            _ = try server.start()
+            
+            registrationServer.start()
+            
+        } catch Server.ServerError.CREDENTIALS_INVALID {
+            print(DEBUG_TAG+"Credentials are invalid, regenerating...")
+            authManager.generateNewCertificate()
+            
+            /* TODO: this assumes the problem will be solved by regenerating creds, which opens us up to crashing when error is unresolvable
+            */
+            startServers(); return
+            
+        } catch let server_error as Server.ServerError {
+            print(DEBUG_TAG+"Error starting server: \(server_error)")
+        } catch  {
+            print(DEBUG_TAG+"Error starting server: \(error)")
+        }
+        
         
         
     }
