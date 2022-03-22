@@ -71,6 +71,7 @@
 		79CBD45827A34273002C29D3 /* Data+ChunkIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CBD45727A34273002C29D3 /* Data+ChunkIterator.swift */; };
 		79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */; };
 		79D089E0273F0BC200B14FAB /* FileManager+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */; };
+		79DCBB4527EA1A8500E1B847 /* NIOSSLCertificate_PEM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79DCBB4427EA1A8500E1B847 /* NIOSSLCertificate_PEM.swift */; };
 		79F5FBE3277E592600323DC4 /* SendTransferViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 79F5FBE2277E592600323DC4 /* SendTransferViewController.xib */; };
 /* End PBXBuildFile section */
 
@@ -137,6 +138,7 @@
 		79CBD45727A34273002C29D3 /* Data+ChunkIterator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+ChunkIterator.swift"; sourceTree = "<group>"; };
 		79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransfersCommon.swift; sourceTree = "<group>"; };
 		79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Misc.swift"; sourceTree = "<group>"; };
+		79DCBB4427EA1A8500E1B847 /* NIOSSLCertificate_PEM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NIOSSLCertificate_PEM.swift; sourceTree = "<group>"; };
 		79F5FBE2277E592600323DC4 /* SendTransferViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SendTransferViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -342,12 +344,13 @@
 		79D089DE273F0B9400B14FAB /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				791D7825277378F0008140CC /* Array+Index_nillable.swift */,
+				79CBD45727A34273002C29D3 /* Data+ChunkIterator.swift */,
 				799E39FD2746DFC600E60FFC /* Double+Int.swift */,
 				79B8A0EC27449EE300369E62 /* ExtensionManagement.swift */,
 				79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */,
+				79DCBB4427EA1A8500E1B847 /* NIOSSLCertificate_PEM.swift */,
 				79B8A0E927449EB500369E62 /* String+substring.swift */,
-				791D7825277378F0008140CC /* Array+Index_nillable.swift */,
-				79CBD45727A34273002C29D3 /* Data+ChunkIterator.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -461,6 +464,7 @@
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
 				79CBD45827A34273002C29D3 /* Data+ChunkIterator.swift in Sources */,
 				791D77E72767B244008140CC /* SendTransferViewController.swift in Sources */,
+				79DCBB4527EA1A8500E1B847 /* NIOSSLCertificate_PEM.swift in Sources */,
 				79B00233271C9DEF003CEBCC /* RemoteManager.swift in Sources */,
 				797C12BA270FC86B00A2795C /* Authenticator.swift in Sources */,
 				79C688F627611A7E00353C53 /* ListedFileOperationView.swift in Sources */,

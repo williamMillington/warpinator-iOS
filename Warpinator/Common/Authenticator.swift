@@ -179,15 +179,17 @@ final class Authenticator {
     
     
     
-    // MARK - server cert
+    // MARK: - server cert
     func getServerCertificate() -> NIOSSLCertificate {
         
-        return serverCert!
         
+        
+        
+        return serverCert!
 //        return loadNIOSSLCertificateFromFile()
     }
 
-    // MARK - server PK
+    // MARK: - server p_key
     func getServerPrivateKey() -> NIOSSLPrivateKey {
         
         return serverKey!
@@ -299,6 +301,20 @@ final class Authenticator {
         
         return pemBytesString.bytes
     }
+    
+    
+    
+    func verify(certificate: NIOSSLCertificate) throws -> Bool {
+        
+        
+        let start = certificate.notValidAfter
+        
+        
+        
+        return true
+    }
+    
+    
     
 }
 
