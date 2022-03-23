@@ -137,8 +137,12 @@ class SettingsManager {
         groupCode = defaults.string(forKey: StorageKey.groupCode.rawValue)  ?? groupCode
         
         
-        transferPortNumber = UInt32(defaults.integer(forKey: StorageKey.transferPortNumber.rawValue))
-        registrationPortNumber = UInt32(defaults.integer(forKey: StorageKey.registrationPortNumber.rawValue))
+        // defaults.integer returns 0 instead of nil when there's no entry
+        let tport = defaults.integer(forKey: StorageKey.transferPortNumber.rawValue)
+        transferPortNumber = tport == 0 ? transferPortNumber : UInt32(tport)
+        
+        let rport = defaults.integer(forKey: StorageKey.registrationPortNumber.rawValue)
+        registrationPortNumber = rport == 0 ? registrationPortNumber : UInt32(rport)
         
     }
     
