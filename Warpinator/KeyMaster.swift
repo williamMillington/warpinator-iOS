@@ -28,44 +28,44 @@ final class KeyMaster {
     // MARK: - Certificates
     
     
-    // MARK save
-    // save DER data of X509 certificate
-    static func saveCertificate(data: [UInt8], forKey key: String) throws {
-        try saveCertificate(data: Data(data) , forKey: key)
-    }
-    
-    // MARK save
-    // save DER data of X509 certificate
-    static func saveCertificate(data: Data, forKey key: String) throws {
-        
-        
-        guard let certificate = SecCertificateCreateWithData(nil, data as CFData) else {
-            throw KeyMasterError.invalidFormat
-        }
-        
-        print(DEBUG_TAG+"saving certificate")
-        
-        let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
-                                     kSecAttrLabel as String : key,
-                                     kSecValueRef as String: certificate ]
-        
-        
-        let status = SecItemAdd(query as CFDictionary, nil)
-        
-        
-        // IF: duplicate item
-        if status == errSecDuplicateItem {
-            print(DEBUG_TAG+"Duplicate Certificate")
-            throw KeyMasterError.duplicateItem
-        }
-        
-        guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: nil)
-//            throw KeyMasterError.unexpectedStatus(status)
-        }
-//        try saveCertificate(certificate, forKey: key)
-        print(DEBUG_TAG+"\t\t (DATA) certificate saved successfully")
-    }
+//    // MARK save
+//    // save DER data of X509 certificate
+//    static func saveCertificate(data: [UInt8], forKey key: String) throws {
+//        try saveCertificate(data: Data(data) , forKey: key)
+//    }
+//
+//    // MARK save
+//    // save DER data of X509 certificate
+//    static func saveCertificate(data: Data, forKey key: String) throws {
+//
+//
+//        guard let certificate = SecCertificateCreateWithData(nil, data as CFData) else {
+//            throw KeyMasterError.invalidFormat
+//        }
+//
+//        print(DEBUG_TAG+"saving certificate")
+//
+//        let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
+//                                     kSecAttrLabel as String : key,
+//                                     kSecValueRef as String: certificate ]
+//
+//
+//        let status = SecItemAdd(query as CFDictionary, nil)
+//
+//
+//        // IF: duplicate item
+//        if status == errSecDuplicateItem {
+//            print(DEBUG_TAG+"Duplicate Certificate")
+//            throw KeyMasterError.duplicateItem
+//        }
+//
+//        guard status == errSecSuccess else {
+//            throw errorForOSStatus(status)
+////            throw KeyMasterError.unexpectedStatus(status)
+//        }
+////        try saveCertificate(certificate, forKey: key)
+//        print(DEBUG_TAG+"\t\t (DATA) certificate saved successfully")
+//    }
     
     
     // MARK: save
@@ -74,6 +74,7 @@ final class KeyMaster {
         
         print(DEBUG_TAG+"saving certificate")
         
+        
         let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
                                      kSecAttrLabel as String : key,
                                      kSecValueRef as String: certificate ]
@@ -82,13 +83,16 @@ final class KeyMaster {
         let status = SecItemAdd(query as CFDictionary, nil)
         
         // IF: duplicate item
-        if status == errSecDuplicateItem {
+        guard status != errSecDuplicateItem else {
             print(DEBUG_TAG+"Duplicate Certificate")
             throw KeyMasterError.duplicateItem
         }
         
         guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: nil)
+            
+            throw NSError(domain: NSOSStatusErrorDomain,
+                          code: Int(status),
+                          userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status, nil) ?? "Undefined Error"] )
 //            throw KeyMasterError.unexpectedStatus(status)
         }
         
@@ -140,13 +144,13 @@ final class KeyMaster {
         
         
         // IF: item not found
-        if status == errSecItemNotFound {
-            print(DEBUG_TAG+"Certificate not found")
+        guard status != errSecItemNotFound else {
+            print(DEBUG_TAG+"No certificate not found for key \"\(key)\"")
             throw KeyMasterError.itemNotFound
         }
         
         guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: nil)
+            throw errorForOSStatus(status)
 //            throw KeyMasterError.unexpectedStatus(status)
         }
         
@@ -169,14 +173,14 @@ final class KeyMaster {
         
         
         // IF: item not found
-        if status == errSecItemNotFound {
-            print(DEBUG_TAG+"Certificate not found")
-            throw KeyMasterError.itemNotFound
+        guard status != errSecItemNotFound else {
+            print(DEBUG_TAG+"Certificate deletion unsuccessful: no item found for key: \(key)")
+            return //throw KeyMasterError.itemNotFound
         }
         
         
         guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: nil)
+            throw errorForOSStatus(status)
 //            throw KeyMasterError.unexpectedStatus(status)
         }
         
@@ -225,7 +229,7 @@ final class KeyMaster {
         }
         
         guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: nil)
+            throw errorForOSStatus(status)
 //            throw KeyMasterError.unexpectedStatus(status)
         }
         
@@ -233,7 +237,8 @@ final class KeyMaster {
     }
     
     
-    //MARK: - read
+    //
+    // MARK: - read
     static func readPrivateKey(forKey key: String) throws -> SecKey {
         
         print(DEBUG_TAG+"reading private key")
@@ -259,13 +264,13 @@ final class KeyMaster {
         
         
         // IF: item not found
-        if status == errSecItemNotFound {
-            print(DEBUG_TAG+"Private Key not found")
+        guard status != errSecItemNotFound else {
+            print(DEBUG_TAG+"No private key found for key \(key)")
             throw KeyMasterError.itemNotFound
         }
         
         guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: nil)
+            throw errorForOSStatus(status)
 //            throw KeyMasterError.unexpectedStatus(status)
         }
         
@@ -292,18 +297,30 @@ final class KeyMaster {
         
         
         // IF: item not found
-        if status == errSecItemNotFound {
-            print(DEBUG_TAG+"Private Key not found")
-            throw KeyMasterError.itemNotFound
+        guard status != errSecItemNotFound else {
+            print(DEBUG_TAG+"Private key deletion unsuccessful: no item found for key: \(key)")
+            return
+//            throw KeyMasterError.itemNotFound
         }
         
         guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: nil)
+            throw errorForOSStatus(status)
 //            throw KeyMasterError.unexpectedStatus(status)
         }
         
         print(DEBUG_TAG+"\t\tprivate key deleted successfully")
     }
     
+    
+    
+    
+    private static func errorForOSStatus(_ status: OSStatus) -> NSError {
+        
+        let description = SecCopyErrorMessageString(status, nil) ?? "Undefined Error" as CFString
+        
+        return NSError(domain: NSOSStatusErrorDomain,
+                       code: Int(status),
+                       userInfo: [NSLocalizedDescriptionKey: description] )
+    }
     
 }

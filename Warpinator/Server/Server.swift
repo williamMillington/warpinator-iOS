@@ -20,12 +20,14 @@ final class Server {
     enum ServerError: Error {
         case NO_EVENTLOOP
         case CREDENTIALS_INVALID
+        case CREDENTIALS_NOT_FOUND
         case UKNOWN_ERROR
         
         var localizedDescription: String {
             switch self {
             case .NO_EVENTLOOP: return "No available eventloop"
             case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"
+            case .CREDENTIALS_NOT_FOUND: return "Server certificate and/or private key could not be found"
             case .UKNOWN_ERROR: return "Server has encountered an unknown error"
             }
         }
