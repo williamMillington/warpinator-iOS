@@ -198,7 +198,8 @@ extension RegistrationServer: MDNSBrowserDelegate {
                 case "hostname": hostname = value
                 case "api-version": api = value
                 case "auth-port": authPort = Int(value) ?? 42000
-                default: print("unknown TXT record type: \(key)-\(value)")
+                case "type": break
+                default: print("unknown TXT record type: \"\(key)\":\"\(value)\"")
                 }
             }
         }

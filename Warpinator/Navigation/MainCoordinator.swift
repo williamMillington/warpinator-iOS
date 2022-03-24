@@ -7,7 +7,7 @@
 
 import UIKit
 import GRPC
-
+import NIOSSL
 
 
 final class MainCoordinator: NSObject, Coordinator {
@@ -25,8 +25,8 @@ final class MainCoordinator: NSObject, Coordinator {
     var remoteManager: RemoteManager = RemoteManager()
     
     var settingsManager: SettingsManager = SettingsManager.shared
-    
     var authManager: Authenticator = Authenticator.shared
+    
     
     lazy var server: Server = Server(settingsManager: settingsManager,
                                      authenticationManager: authManager)
@@ -76,9 +76,36 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: start servers
     func startServers(){
-        print(DEBUG_TAG+"starting servers: ")
-        server.start()
-        registrationServer.start()
+        
+        print(DEBUG_TAG+"starting servers ")
+        
+        do {
+            
+            // TODO: capture future and pop-up any errors if it fails
+            _ = try server.start()
+            
+            registrationServer.start()
+            
+        } catch let server_error as Server.ServerError {
+            
+            switch server_error {
+            case .CREDENTIALS_INVALID, .CREDENTIALS_NOT_FOUND:
+                print(DEBUG_TAG+"credentials error (\(server_error.localizedDescription))")
+                print(DEBUG_TAG+"\t\t regenerating credentials and restarting")
+                
+                authManager.generateNewCertificate()
+                
+                /* TODO: if problem is not solved by regenerating credentials, this recurses infinitely
+                */
+                startServers()
+                
+            default: print(DEBUG_TAG+"Server error: \(server_error)")
+            }
+            
+        } catch  {
+            print(DEBUG_TAG+"Uknown error starting server: \(error)")
+        }
+        
         
         
     }

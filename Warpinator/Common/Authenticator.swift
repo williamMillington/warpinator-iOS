@@ -34,29 +34,8 @@ final class Authenticator {
     public lazy var groupCode: String = DEFAULT_GROUP_CODE
     
     
-    private var serverCertDERData: [UInt8]? = nil
-    private var serverCertPEMData: [UInt8]? {
-        guard let derData = serverCertDERData else { return nil }
-        return convertDERBytesToPEM(derData)
-    }
-    
-    private var serverCert: NIOSSLCertificate? {
-        guard let data = serverCertDERData,
-              let cert = try? NIOSSLCertificate.init(bytes: data, format: .der) else { return nil }
-        return cert
-    }
-    
-    
-    private var serverKeyData: [UInt8]? = nil
-    private var serverKey: NIOSSLPrivateKey? {
-        guard let keyData = serverKeyData,
-              let key = try? NIOSSLPrivateKey.init(bytes: keyData, format: .der) else { return nil }
-        
-        return key
-    }
-    
-    
     static var shared: Authenticator = Authenticator()
+    
     
     private init(){
         
@@ -113,9 +92,6 @@ final class Authenticator {
                 
                 print(DEBUG_TAG+"Success creating certificate from bytes: \(certificate)")
                 
-//               let _ = convertDERBytesToPEM( try! certificate.toDERBytes() )
-//                print(DEBUG_TAG+"remote cert is \(convertDERBytesToPEM( try! certificate.toDERBytes() ) )")
-                
                 return certificate
                 
             } catch {
@@ -142,12 +118,9 @@ final class Authenticator {
         
         let sKey = SecretBox.Key(encryptedKeyBytes)
         
-        
-        // load certificate bytes
-//        let certificateBytes =  loadCertificateBytesFromFile()
-        guard let certificateBytes = serverCertPEMData else {
-            print(DEBUG_TAG+"problem with the cert data")
-            return "NOCERTIFICATEFORYOU"
+        guard let certificateBytes = try? getServerCertificate().extended.pemBytes else {
+            print(DEBUG_TAG+"problem with the cert pem data")
+            return "PEM_DATA_UNAVAILABLE"
         }
         
         
@@ -170,7 +143,6 @@ final class Authenticator {
             messageBytes.append(byte)
         }
         
-        
         // encode bytes to base64 string
         let messageBytesEncoded = Data(messageBytes).base64EncodedString()
         
@@ -180,20 +152,23 @@ final class Authenticator {
     
     
     // MARK: - server cert
-    func getServerCertificate() -> NIOSSLCertificate {
+    func getServerCertificate() throws -> NIOSSLCertificate {
         
+        let sec_cert = try KeyMaster.readCertificate(forTag: SettingsManager.shared.uuid)
         
+        let bytes = Array(sec_cert.derEncoded)
         
-        
-        return serverCert!
-//        return loadNIOSSLCertificateFromFile()
+        return try NIOSSLCertificate(bytes: bytes , format: .der)
     }
 
     // MARK: - server p_key
-    func getServerPrivateKey() -> NIOSSLPrivateKey {
+    func getServerPrivateKey() throws -> NIOSSLPrivateKey {
         
-        return serverKey!
-//        return loadServerPrivateKeyFromFile()
+        let sec_key = try KeyMaster.readPrivateKey(forTag: SettingsManager.shared.uuid)
+        
+        let keyBytes = Array( try sec_key.encode() )
+        
+        return try NIOSSLPrivateKey.init(bytes: keyBytes, format: .der)
     }
     
     
@@ -204,7 +179,7 @@ final class Authenticator {
         print(DEBUG_TAG+"generating new server certificate...")
         
         // CREATE KEYS
-        let keypair = try! SecKeyPair.Builder(type: .rsa, keySize: 2048)  .generate()
+        let keypair = try! SecKeyPair.Builder(type: .rsa, keySize: 2048).generate()
 
         let publicKey = keypair.publicKey
         let publicKeyEncoded = try! publicKey.encode()
@@ -215,12 +190,12 @@ final class Authenticator {
         
         
         // SET VALIDITY TIME FRAME
-        let day_seconds: Double = 60 * 60 * 24      // milliseconds in a day
+        let day_seconds: Double = 60 * 60 * 24      // seconds in a day
         let expirationTime: Double = 30 * day_seconds // one month
-        
+
         let startDate = Date(timeInterval: -(day_seconds) , since: Date() ) // yesterday
         let endDate = Date(timeInterval: expirationTime, since: startDate) // one month from yesterday
-        
+
         let startTime = AnyTime(date: startDate, timeZone: .init(secondsFromGMT: 0) ?? .current )
         let endTime = AnyTime(date: endDate, timeZone: .init(secondsFromGMT: 0)  ?? .current  )
         
@@ -278,157 +253,43 @@ final class Authenticator {
                                                  digestAlgorithm: digestAlgorithm)
         
         
-        let secCert = try! certificate.sec()
-        let dbytes = secCert!.derEncoded
-
-        serverCertDERData = Array(dbytes)
+        let uuid = SettingsManager.shared.uuid
         
-        serverKeyData = Array( try! privateKey.encode() )
+        do {
+            
+            guard let secCert = try certificate.sec() else {
+                print(DEBUG_TAG+"could not create new certificate"); return
+            }
+            
+            // delete old certificate
+            try KeyMaster.deleteCertificate(forTag: uuid)
+            
+            // save new certificate
+            try KeyMaster.saveCertificate(secCert , withTag: uuid)
+            
+            
+            // delete old key
+            try KeyMaster.deletePrivateKey(forTag: uuid)
+            
+            // save new key
+            try KeyMaster.savePrivateKey(privateKey, forTag: uuid)
+            
+            
+        } catch {
+            print(DEBUG_TAG+"Error saving credentials:\n\t\t \(error)")
+        }
         
     }
     
     
-    
-    
-    // Attempt to convert DER bytes to a PEM encoding by appending header/footer
-    private func convertDERBytesToPEM(_ derBytes: [UInt8]) -> [UInt8] {
+    //
+    // MARK: verify cert
+    // verify that we're still in the certificate's valid timeframe
+    func verify(certificate: NIOSSLCertificate) -> Bool {
         
-        let derBytesString = Data(derBytes).base64EncodedString()
+        let now = Int( Date().timeIntervalSince1970 )
         
-        let pemBytesString = "-----BEGIN CERTIFICATE-----\n" + derBytesString + "\n-----END CERTIFICATE-----\n"
-        
-//        print(DEBUG_TAG+"PEM string is \(pemBytesString)")
-        
-        return pemBytesString.bytes
+        // check that we're between 'not before' and 'not after'
+        return (certificate.notValidBefore < now)  &&  (now < certificate.notValidAfter)
     }
-    
-    
-    
-    func verify(certificate: NIOSSLCertificate) throws -> Bool {
-        
-        
-        let start = certificate.notValidAfter
-        
-        
-        
-        return true
-    }
-    
-    
-    
 }
-
-
-
-// MARK - Loading from file:
-//extension Authenticator {
-    
-    
-    //MARK  certificate
-//     func loadNIOSSLCertificateFromFile() -> NIOSSLCertificate {
-//
-//        let certData = loadCertificateBytesFromFile()
-//
-//        let cert = try! NIOSSLCertificate.fromPEMBytes(certData)[0]
-//
-//        return cert
-//    }
-    
-    
-    //MARK certificate Data
-//     func loadCertificateBytesFromFile() -> [UInt8] {
-//
-//        let filename = "root"
-//        let ext = "pem"
-//
-//        let filepath = Bundle.main.path(forResource: filename,
-//                                        ofType: ext)!
-//
-//        let certURL = URL(fileURLWithPath: filepath)
-//        let certBytes = try! Data(contentsOf: certURL)
-//
-//        return Array(certBytes)
-//    }
-    
-    
-    
-    
-    //MARK -private key
-//    private  func loadServerPrivateKeyFromFile() -> NIOSSLPrivateKey {
-//
-//        let filename = "rootkey"
-//        let ext = "key"
-//
-//        let filepath = Bundle.main.path(forResource: filename,
-//                                        ofType: ext)!
-//
-//        let keyURL = URL(fileURLWithPath: filepath)
-//        let keyBytes = try! Data(contentsOf: keyURL)
-//
-//        let privateKey = try! NIOSSLPrivateKey(bytes: Array(keyBytes), format: .pem)
-//
-//        return privateKey
-//    }
-//}
-
-
-
-
-// MARK loading creds from Keychain
-//extension Authenticator {
-//
-//    //
-//    private func loadCertificateFromKeychain() -> NIOSSLCertificate? {
-//
-//        do {
-//            let certificate: NIOSSLCertificate
-//            if let certBytes = try? KeyMaster.readCertificate(forKey: uuid) {
-//
-//                certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .der)
-//
-//            } else {
-//                print(DEBUG_TAG+"no certificate found in keychain")
-//
-//                let certBytes = generateNewCertificate(forHostname: uuid)
-//
-//                certificate = try NIOSSLCertificate(bytes: Array(certBytes), format: .der)
-//
-//                try KeyMaster.saveCertificate(data: certBytes, forKey: uuid)
-//
-//            }
-//
-//            return certificate
-//
-//        } catch let error as KeyMaster.KeyMasterError {
-//            print(DEBUG_TAG+"getServerCertificate KeyMaster error: \(error)")
-//        } catch {
-//            print(DEBUG_TAG+"couldn't create NIOSSLCertificate from data \(error)")
-//        }
-//
-//        return nil
-//    }
-//
-//
-//    //
-//    private  func loadPrivateKeyFromKeychain() -> NIOSSLPrivateKey? {
-//        do {
-//
-//            let seckey = try KeyMaster.readPrivateKey(forKey: uuid)
-//            let pkBytes = try seckey.encode()
-//
-//            let privateKey = try NIOSSLPrivateKey(bytes: Array(pkBytes), format: .der)
-//
-//            return privateKey
-//
-//
-//        } catch let error as KeyMaster.KeyMasterError {
-//            print(DEBUG_TAG+"loadPrivateKeyFromKeychain KeyMaster error: \(error)")
-//        } catch {
-//            print(DEBUG_TAG+"couldn't create NIOSSLPrivateKey from data \(error)")
-//        }
-//
-//
-//        return nil
-//    }
-//}
-

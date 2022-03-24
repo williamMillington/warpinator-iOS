@@ -6,8 +6,6 @@
 //
 
 import UIKit
-//import CNIOBoringSSL
-
 
 
 // MARK: - ValidationError
@@ -77,7 +75,7 @@ class SettingsManager {
     // MARK: connection settings
     var hostname: String  = "WarpinatoriOS"  {
         didSet  {   writeToSettings(hostname,   forKey: StorageKey.hostname) } }
-    var uuid: String {
+    var uuid: String { // generated on first start
         didSet  {   writeToSettings(uuid,       forKey: StorageKey.uuid) } }
     
     
@@ -97,9 +95,25 @@ class SettingsManager {
         manager.loadSettings()
         return manager }()
     
+    
     private init(){
-        print(DEBUG_TAG+"creating settings manager...")
-        uuid = UserDefaults.standard.string(forKey: StorageKey.uuid.rawValue) ?? "WarpinatoriOS\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))"
+        
+        
+        // generate random UUID
+        func randomUUID() -> String {
+            
+            var uuidStr = "WarpinatoriOS"
+            
+            // stick 5 random digits after "WarpinatoriOS"
+            for _ in 0...4 {
+                uuidStr += "\(Int.random(in: 0...9))"
+            }
+            
+            return uuidStr
+        }
+        
+        uuid = UserDefaults.standard.string(forKey: StorageKey.uuid.rawValue) ?? randomUUID()
+        
         writeToSettings(uuid, forKey: StorageKey.uuid)
     }
     
@@ -124,8 +138,12 @@ class SettingsManager {
         groupCode = defaults.string(forKey: StorageKey.groupCode.rawValue)  ?? groupCode
         
         
-        transferPortNumber = UInt32(defaults.integer(forKey: StorageKey.transferPortNumber.rawValue))
-        registrationPortNumber = UInt32(defaults.integer(forKey: StorageKey.registrationPortNumber.rawValue))
+        // defaults.integer returns 0 instead of nil when there's no entry
+        let tport = defaults.integer(forKey: StorageKey.transferPortNumber.rawValue)
+        transferPortNumber = tport == 0 ? transferPortNumber : UInt32(tport)
+        
+        let rport = defaults.integer(forKey: StorageKey.registrationPortNumber.rawValue)
+        registrationPortNumber = rport == 0 ? registrationPortNumber : UInt32(rport)
         
     }
     
@@ -142,13 +160,14 @@ class SettingsManager {
     
     //
     /* MARK: validate change
-     - verifies that the proposed change is acceptable
-     (  ex. port numbers must be non-negative, strings must be non-empty ) */
+     - verifies that the proposed change to setting is acceptable
+     (  i.e. port numbers must be non-negative, strings must be non-empty, etc ) */
     static func validate(_ value: Any?, forKey key: StorageKey) throws {
         
         
-        // switch: check what we're trying to store
-        // guard let: verify that the value is of the correct type
+        // - switch: checks what we're trying to store
+        // - guard let: verifies that the value is of the correct type
+        // - misc, settings-specific checks
         switch key {
             
             //
@@ -171,7 +190,7 @@ class SettingsManager {
             // Must fit in UInt32
             // 2^31 = 2147483648
             guard value < 2147483648 else {
-                throw ValidationError.INVALID_VALUE("(\(key)) port value must be less than 2147483648")
+                throw ValidationError.INVALID_VALUE("(\(key)) port value must be less than 2147483648 because computers")
             }
             
            
@@ -248,7 +267,7 @@ class SettingsManager {
 // MARK: SettingsChange
 struct SettingsChange {
     
-    var restartRequired: Bool = true
+    var restartRequired: Bool
     var validate: () throws -> ()
     var change: ()->()
     

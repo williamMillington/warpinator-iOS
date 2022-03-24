@@ -17,6 +17,23 @@ import Logging
 
 final class Server {
     
+    enum ServerError: Error {
+        case NO_EVENTLOOP
+        case CREDENTIALS_INVALID
+        case CREDENTIALS_NOT_FOUND
+        case UKNOWN_ERROR
+        
+        var localizedDescription: String {
+            switch self {
+            case .NO_EVENTLOOP: return "No available eventloop"
+            case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"
+            case .CREDENTIALS_NOT_FOUND: return "Server certificate and/or private key could not be found"
+            case .UKNOWN_ERROR: return "Server has encountered an unknown error"
+            }
+        }
+    }
+    
+    
     private let DEBUG_TAG: String = "Server: "
     
     // TODO: turn into static Settings properties
@@ -63,18 +80,27 @@ final class Server {
     
     //
     // MARK: start
-    func start(){
+    func start() throws -> EventLoopFuture<GRPC.Server>?  {
         
         guard let serverELG = eventLoopGroup else {
-            print(DEBUG_TAG+"Error: no eventloop group"); return
+            throw ServerError.NO_EVENTLOOP
         }
         
-        // TODO: check if this needs to be regenerated
-        authenticationManager.generateNewCertificate()
         
         
-        let serverCertificate = authenticationManager.getServerCertificate()
-        let serverPrivateKey = authenticationManager.getServerPrivateKey()
+        do {
+            let serverCertificate = try authenticationManager.getServerCertificate()
+            let serverPrivateKey = try authenticationManager.getServerPrivateKey()
+        
+        
+            let certIsValid = authenticationManager.verify(certificate: serverCertificate)
+            print(DEBUG_TAG+"verifying certificate")
+            print(DEBUG_TAG+"\t certificate is valid: \(certIsValid)")
+            
+            if !certIsValid {
+                throw Server.ServerError.CREDENTIALS_INVALID
+            }
+            
         
         //
         // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
@@ -95,7 +121,13 @@ final class Server {
         future?.whenFailure { error in
             print(self.DEBUG_TAG+"transfer server failed: \(error))")
         }
+            
+        } catch {
+            print(DEBUG_TAG+"Error retrieving server credentials: \n\t\t \(error)")
+            throw ServerError.CREDENTIALS_NOT_FOUND
+        }
 
+        return future
     }
     
     
