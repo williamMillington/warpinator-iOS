@@ -17,7 +17,6 @@ final class KeyMaster {
         case itemNotFound
         case duplicateItem
         case invalidFormat
-//        case unexpectedStatus(OSStatus)
     }
     
     
@@ -27,56 +26,16 @@ final class KeyMaster {
     
     // MARK: - Certificates
     
-    
-//    // MARK save
-//    // save DER data of X509 certificate
-//    static func saveCertificate(data: [UInt8], forKey key: String) throws {
-//        try saveCertificate(data: Data(data) , forKey: key)
-//    }
-//
-//    // MARK save
-//    // save DER data of X509 certificate
-//    static func saveCertificate(data: Data, forKey key: String) throws {
-//
-//
-//        guard let certificate = SecCertificateCreateWithData(nil, data as CFData) else {
-//            throw KeyMasterError.invalidFormat
-//        }
-//
-//        print(DEBUG_TAG+"saving certificate")
-//
-//        let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
-//                                     kSecAttrLabel as String : key,
-//                                     kSecValueRef as String: certificate ]
-//
-//
-//        let status = SecItemAdd(query as CFDictionary, nil)
-//
-//
-//        // IF: duplicate item
-//        if status == errSecDuplicateItem {
-//            print(DEBUG_TAG+"Duplicate Certificate")
-//            throw KeyMasterError.duplicateItem
-//        }
-//
-//        guard status == errSecSuccess else {
-//            throw errorForOSStatus(status)
-////            throw KeyMasterError.unexpectedStatus(status)
-//        }
-////        try saveCertificate(certificate, forKey: key)
-//        print(DEBUG_TAG+"\t\t (DATA) certificate saved successfully")
-//    }
-    
-    
+
     // MARK: save
     // save SecCertificate
-    static func saveCertificate(_ certificate: SecCertificate, forKey key: String) throws {
+    static func saveCertificate(_ certificate: SecCertificate, withTag tag: String) throws {
         
-        print(DEBUG_TAG+"saving certificate")
+        print(DEBUG_TAG+"saving certificate for tag \'\(tag)\'")
         
         
         let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
-                                     kSecAttrLabel as String : key,
+                                     kSecAttrLabel as String : tag,
                                      kSecValueRef as String: certificate ]
         
         
@@ -89,11 +48,7 @@ final class KeyMaster {
         }
         
         guard status == errSecSuccess else {
-            
-            throw NSError(domain: NSOSStatusErrorDomain,
-                          code: Int(status),
-                          userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status, nil) ?? "Undefined Error"] )
-//            throw KeyMasterError.unexpectedStatus(status)
+            throw errorForOSStatus(status)
         }
         
         
@@ -105,38 +60,17 @@ final class KeyMaster {
     
     
     //MARK: - read
-    // read DER data of X509 certificate
-//    static func readCertificate(forKey key: String) throws -> Data {
-//
-//        let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
-//                                     kSecAttrLabel as String : key,
-//                                     kSecMatchLimit as String: kSecMatchLimitOne,
-//                                     kSecReturnRef as String : kCFBooleanTrue ]
-//
-//        var itemCopy: CFTypeRef?
-//        let status = SecItemCopyMatching(query as CFDictionary,
-//                                         &itemCopy)
-//
-//        guard status != errSecItemNotFound else {
-//            throw KeyMasterError.itemNotFound
-//        }
-//
-//        guard status == errSecSuccess else {
-//            throw KeyMasterError.unexpectedStatus(status)
-//        }
-//
-//        let item = itemCopy as! SecCertificate
-//
-//        return item.derEncoded
-//    }
-    static func readCertificate(forKey key: String) throws -> SecCertificate {
+    // read SecCertificate from keychain
+    static func readCertificate(forTag tag: String) throws -> SecCertificate {
         
-        print(DEBUG_TAG+"reading certificate")
+        print(DEBUG_TAG+"searching for certificate with tag \'\(tag)\'")
         
-        let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
-                                     kSecAttrLabel as String : key,
-//                                     kSecMatchLimit as String: kSecMatchLimitOne,
-                                     kSecReturnRef as String : kCFBooleanTrue ]
+        let tagData = tag.data(using: .utf8)
+        
+        let query: [String: Any] = [ kSecAttrApplicationTag as String: tagData as Any,
+                                     kSecClass as String: kSecClassCertificate,
+                                     kSecMatchLimit as String: kSecMatchLimitOne,
+                                     kSecReturnRef as String : kCFBooleanTrue as Any ]
         
         var itemCopy: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary,
@@ -145,28 +79,28 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"No certificate not found for key \"\(key)\"")
+            print(DEBUG_TAG+"No certificate not found for tag \'\(tag)\'")
             throw KeyMasterError.itemNotFound
         }
         
         guard status == errSecSuccess else {
             throw errorForOSStatus(status)
-//            throw KeyMasterError.unexpectedStatus(status)
         }
         
         return itemCopy as! SecCertificate
     }
     
     
+    
     //MARK: - delete
-    static func deleteCertificate(forKey key: String) throws {
+    static func deleteCertificate(forTag tag: String) throws {
         
-        print(DEBUG_TAG+"deleting certificate")
+        print(DEBUG_TAG+"deleting certificate for tag \'\(tag)\'")
         
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassCertificate,
-            kSecAttrLabel as String: key,
-        ]
+        let tagData = tag.data(using: .utf8)
+        
+        let query: [String: Any] = [  kSecAttrApplicationTag as String: tagData as Any,
+                                      kSecClass as String: kSecClassCertificate ]
         
         
         let status = SecItemDelete(query as CFDictionary)
@@ -174,22 +108,18 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"Certificate deletion unsuccessful: no item found for key: \(key)")
-            return //throw KeyMasterError.itemNotFound
+            print(DEBUG_TAG+"Certificate deletion unsuccessful; no item found for tag \'\(tag)\'")
+            return
         }
         
         
         guard status == errSecSuccess else {
             throw errorForOSStatus(status)
-//            throw KeyMasterError.unexpectedStatus(status)
         }
         
         
         print(DEBUG_TAG+"\t\tcertificate deleted successfully")
     }
-    
-    
-    
     
     
     
@@ -199,38 +129,26 @@ final class KeyMaster {
     
     
     //MARK: - save
-    static func savePrivateKey(_ data: SecKey, forKey key: String) throws {
+    static func savePrivateKey(_ data: SecKey, forTag tag: String) throws {
         
+        print(DEBUG_TAG+"saving private key for tag \'\(tag)\'")
         
-        print(DEBUG_TAG+"saving private key")
+        let tagData = tag.data(using: .utf8)
         
+        let query: [String: Any ] = [ kSecAttrApplicationTag as String : tagData as Any,
+                                      kSecValueRef as String: data,
+                                      kSecClass as String: kSecClassKey ]
         
-        let tag = key.data(using: .utf8)
-//        let pk = SEckey
-        
-        
-        let query: [String: Any ] = [
-//            kSecAttrService as String : KeyMaster.service as AnyObject,
-//            kSecAttrAccount as String : key as AnyObject,
-            
-            kSecAttrApplicationTag as String : tag as Any,
-            kSecValueRef as String: data,
-            kSecClass as String: kSecClassKey
-        ]
-        
-        let status = SecItemAdd(query as CFDictionary,
-                                nil)
-        
+        let status = SecItemAdd(query as CFDictionary, nil)
         
         // IF: duplicate item
         if status == errSecDuplicateItem {
-            print(DEBUG_TAG+"Duplicate Private Key ")
+            print(DEBUG_TAG+"Duplicate private key")
             throw KeyMasterError.duplicateItem
         }
         
         guard status == errSecSuccess else {
             throw errorForOSStatus(status)
-//            throw KeyMasterError.unexpectedStatus(status)
         }
         
         print(DEBUG_TAG+"\t\tprivate key saved successfully")
@@ -239,24 +157,20 @@ final class KeyMaster {
     
     //
     // MARK: - read
-    static func readPrivateKey(forKey key: String) throws -> SecKey {
+    static func readPrivateKey(forTag tag: String) throws -> SecKey {
         
-        print(DEBUG_TAG+"reading private key")
+        print(DEBUG_TAG+"searching for private key with tag \'\(tag)\'")
         
-        let tag = key.data(using: .utf8)
+        let tagData = tag.data(using: .utf8)
         
-        let query: [String: Any] = [
-//            kSecAttrService as String : KeyMaster.service as AnyObject,
-//            kSecAttrAccount as String : key as AnyObject,
-            kSecAttrApplicationTag as String: tag as Any,
-            
-            kSecClass as String: kSecClassKey,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
-            
-            kSecMatchLimit as String: kSecMatchLimitOne,
-            
-            kSecReturnRef as String : kCFBooleanTrue as Any
-        ]
+        let query: [String: Any] = [ kSecAttrApplicationTag as String: tagData as Any,
+                                     
+                                     kSecClass as String: kSecClassKey,
+                                     kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
+                                     
+                                     kSecMatchLimit as String: kSecMatchLimitOne,
+                                     
+                                     kSecReturnRef as String : kCFBooleanTrue as Any  ]
         
         var itemCopy: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary,
@@ -265,32 +179,27 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"No private key found for key \(key)")
+            print(DEBUG_TAG+"No private key found for key \(tag)")
             throw KeyMasterError.itemNotFound
         }
         
         guard status == errSecSuccess else {
             throw errorForOSStatus(status)
-//            throw KeyMasterError.unexpectedStatus(status)
         }
         
-        let item = itemCopy as! SecKey
-        return item
+        return itemCopy as! SecKey
     }
     
     
     //MARK: - delete
-    static func deletePrivateKey(forKey key: String) throws {
+    static func deletePrivateKey(forTag tag: String) throws {
         
-        print(DEBUG_TAG+"deleting private key")
+        print(DEBUG_TAG+"deleting private key for tag \'\(tag)\'")
         
-        let tag = key.data(using: .utf8)
+        let tagData = tag.data(using: .utf8)
         
-        let query: [String: Any] = [
-                kSecAttrApplicationTag as String: tag as Any,
-//            kSecAttrService as String : KeyMaster.service,
-//                                     kSecAttrAccount as String : key,
-                                     kSecClass as String: kSecClassKey ]
+        let query: [String: Any] = [  kSecAttrApplicationTag as String: tagData as Any,
+                                      kSecClass as String: kSecClassKey ]
         
         
         let status = SecItemDelete(query as CFDictionary)
@@ -298,14 +207,13 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"Private key deletion unsuccessful: no item found for key: \(key)")
+            print(DEBUG_TAG+"Private key deletion unsuccessful: no item found for tag \'\(tag)\'")
             return
-//            throw KeyMasterError.itemNotFound
         }
+        
         
         guard status == errSecSuccess else {
             throw errorForOSStatus(status)
-//            throw KeyMasterError.unexpectedStatus(status)
         }
         
         print(DEBUG_TAG+"\t\tprivate key deleted successfully")

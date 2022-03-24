@@ -86,8 +86,6 @@ final class Server {
             throw ServerError.NO_EVENTLOOP
         }
         
-        // TODO: check if this needs to be regenerated
-//        authenticationManager.generateNewCertificate()
         
         
         do {
@@ -126,7 +124,7 @@ final class Server {
             
         } catch {
             print(DEBUG_TAG+"Error retrieving server credentials: \n\t\t \(error)")
-            throw ServerError.CREDENTIALS_INVALID
+            throw ServerError.CREDENTIALS_NOT_FOUND
         }
 
         return future

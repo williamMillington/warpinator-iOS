@@ -60,11 +60,6 @@ final class MainCoordinator: NSObject, Coordinator {
         registrationServer.eventLoopGroup = serverEventLoopGroup
         registrationServer.remoteManager = remoteManager
         
-        
-        // MARK BAD CERTIFICATE
-//        authManager.generateBadCertificate()
-//        authManager.generateNewCertificate()
-        
     }
     
     
@@ -91,25 +86,16 @@ final class MainCoordinator: NSObject, Coordinator {
             
             registrationServer.start()
             
-        } catch Server.ServerError.CREDENTIALS_INVALID,
-                    Server.ServerError.CREDENTIALS_NOT_FOUND {
-            
-            authManager.generateNewCertificate()
-            
-            /* TODO: this assumes the problem will be solved by regenerating creds, which opens us up to crashing when error is unresolvable
-            */
-            startServers()
-            
         } catch let server_error as Server.ServerError {
             
             switch server_error {
             case .CREDENTIALS_INVALID, .CREDENTIALS_NOT_FOUND:
-                print(DEBUG_TAG+"credentials error \(server_error.localizedDescription)")
+                print(DEBUG_TAG+"credentials error (\(server_error.localizedDescription))")
                 print(DEBUG_TAG+"\t\t regenerating credentials and restarting")
                 
                 authManager.generateNewCertificate()
                 
-                /* TODO: this assumes the problem will be solved by regenerating creds, which opens us up to stackoverflow when error is unresolvable
+                /* TODO: if problem is not solved by regenerating credentials, this recurses infinitely
                 */
                 startServers()
                 
