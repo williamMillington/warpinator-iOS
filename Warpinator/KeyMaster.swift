@@ -34,8 +34,8 @@ final class KeyMaster {
         print(DEBUG_TAG+"saving certificate for tag \'\(tag)\'")
         
         
-        let query: [String: Any] = [ kSecClass as String: kSecClassCertificate,
-                                     kSecAttrLabel as String : tag,
+        let query: [String: Any] = [ kSecAttrLabel as String : tag,
+                                     kSecClass as String: kSecClassCertificate,
                                      kSecValueRef as String: certificate ]
         
         
@@ -63,11 +63,11 @@ final class KeyMaster {
     // read SecCertificate from keychain
     static func readCertificate(forTag tag: String) throws -> SecCertificate {
         
-        print(DEBUG_TAG+"searching for certificate with tag \'\(tag)\'")
+        print(DEBUG_TAG+"Searching for certificate with tag \'\(tag)\'")
         
-        let tagData = tag.data(using: .utf8)
+//        let tagData = tag.data(using: .utf8)
         
-        let query: [String: Any] = [ kSecAttrApplicationTag as String: tagData as Any,
+        let query: [String: Any] = [  kSecAttrLabel as String : tag,
                                      kSecClass as String: kSecClassCertificate,
                                      kSecMatchLimit as String: kSecMatchLimitOne,
                                      kSecReturnRef as String : kCFBooleanTrue as Any ]
@@ -79,7 +79,7 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"No certificate not found for tag \'\(tag)\'")
+            print(DEBUG_TAG+"\tNo certificate not found for tag \'\(tag)\'")
             throw KeyMasterError.itemNotFound
         }
         
@@ -87,6 +87,7 @@ final class KeyMaster {
             throw errorForOSStatus(status)
         }
         
+        print(DEBUG_TAG+"\tSuccessfully retrieved certificate for tag \'\(tag)\'")
         return itemCopy as! SecCertificate
     }
     
@@ -95,11 +96,12 @@ final class KeyMaster {
     //MARK: - delete
     static func deleteCertificate(forTag tag: String) throws {
         
-        print(DEBUG_TAG+"deleting certificate for tag \'\(tag)\'")
+        print(DEBUG_TAG+"Deleting certificate for tag \'\(tag)\'")
         
-        let tagData = tag.data(using: .utf8)
+//        let tagData = tag.data(using: .utf8)
         
-        let query: [String: Any] = [  kSecAttrApplicationTag as String: tagData as Any,
+        let query: [String: Any] = [   kSecAttrLabel as String : tag,
+//                                       kSecAttrApplicationTag as String: tagData as Any,
                                       kSecClass as String: kSecClassCertificate ]
         
         
@@ -108,7 +110,7 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"Certificate deletion unsuccessful; no item found for tag \'\(tag)\'")
+            print(DEBUG_TAG+"\tCertificate deletion unsuccessful; no item found for tag \'\(tag)\'")
             return
         }
         
@@ -118,7 +120,7 @@ final class KeyMaster {
         }
         
         
-        print(DEBUG_TAG+"\t\tcertificate deleted successfully")
+        print(DEBUG_TAG+"\tCertificate deleted successfully")
     }
     
     
@@ -131,7 +133,7 @@ final class KeyMaster {
     //MARK: - save
     static func savePrivateKey(_ data: SecKey, forTag tag: String) throws {
         
-        print(DEBUG_TAG+"saving private key for tag \'\(tag)\'")
+        print(DEBUG_TAG+"Saving private key for tag \'\(tag)\'")
         
         let tagData = tag.data(using: .utf8)
         
@@ -143,7 +145,7 @@ final class KeyMaster {
         
         // IF: duplicate item
         if status == errSecDuplicateItem {
-            print(DEBUG_TAG+"Duplicate private key")
+            print(DEBUG_TAG+"\tDuplicate private key found for tag \"\(tag)\"")
             throw KeyMasterError.duplicateItem
         }
         
@@ -151,7 +153,7 @@ final class KeyMaster {
             throw errorForOSStatus(status)
         }
         
-        print(DEBUG_TAG+"\t\tprivate key saved successfully")
+        print(DEBUG_TAG+"\tPrivate key saved successfully")
     }
     
     
@@ -159,7 +161,7 @@ final class KeyMaster {
     // MARK: - read
     static func readPrivateKey(forTag tag: String) throws -> SecKey {
         
-        print(DEBUG_TAG+"searching for private key with tag \'\(tag)\'")
+        print(DEBUG_TAG+"Searching for private key with tag \'\(tag)\'")
         
         let tagData = tag.data(using: .utf8)
         
@@ -179,7 +181,7 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"No private key found for key \(tag)")
+            print(DEBUG_TAG+"\tNo private key found for key \(tag)")
             throw KeyMasterError.itemNotFound
         }
         
@@ -187,6 +189,7 @@ final class KeyMaster {
             throw errorForOSStatus(status)
         }
         
+        print(DEBUG_TAG+"\tSuccessfully retrieved private key for tag \'\(tag)\'")
         return itemCopy as! SecKey
     }
     
@@ -194,7 +197,7 @@ final class KeyMaster {
     //MARK: - delete
     static func deletePrivateKey(forTag tag: String) throws {
         
-        print(DEBUG_TAG+"deleting private key for tag \'\(tag)\'")
+        print(DEBUG_TAG+"Deleting private key for tag \'\(tag)\'")
         
         let tagData = tag.data(using: .utf8)
         
@@ -207,7 +210,7 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"Private key deletion unsuccessful: no item found for tag \'\(tag)\'")
+            print(DEBUG_TAG+"\tPrivate key deletion unsuccessful: no item found for tag \'\(tag)\'")
             return
         }
         
@@ -216,7 +219,7 @@ final class KeyMaster {
             throw errorForOSStatus(status)
         }
         
-        print(DEBUG_TAG+"\t\tprivate key deleted successfully")
+        print(DEBUG_TAG+"\tPrivate key deleted successfully")
     }
     
     

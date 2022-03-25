@@ -133,7 +133,21 @@ class SettingsManager {
         automaticAccept = defaults.bool(forKey: StorageKey.automaticAccept.rawValue)
         
         hostname = defaults.string(forKey: StorageKey.hostname.rawValue) ?? hostname
-        uuid = defaults.string(forKey: StorageKey.uuid.rawValue)  ?? uuid
+        
+        
+        uuid = defaults.string(forKey: StorageKey.uuid.rawValue)  ?? { // generate random UUID
+            
+            var uuidStr = "WarpinatoriOS"
+            
+            // stick 5 random digits after "WarpinatoriOS"
+            for _ in 0...4 {
+                uuidStr += "\(Int.random(in: 0...9))"
+            }
+            
+            return uuidStr
+        }()
+        
+        print(DEBUG_TAG+"uuid is \(uuid)")
         
         groupCode = defaults.string(forKey: StorageKey.groupCode.rawValue)  ?? groupCode
         
