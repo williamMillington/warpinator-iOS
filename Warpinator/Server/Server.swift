@@ -40,13 +40,11 @@ final class Server {
     private let SERVICE_TYPE = "_warpinator._tcp."
     private let SERVICE_DOMAIN = "local"
     
-    var eventLoopGroup: EventLoopGroup?
+    var eventLoopGroup: EventLoopGroup
     
     private lazy var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
     
-    weak var remoteManager: RemoteManager? {
-        didSet {  warpinatorProvider.remoteManager = remoteManager  }
-    }
+    var remoteManager: RemoteManager
     
     var settingsManager: SettingsManager
     
@@ -69,22 +67,28 @@ final class Server {
 //    }()
     
     
-    init(settingsManager settings: SettingsManager, authenticationManager authenticator: Authenticator) {
+    init(eventloopGroup group: EventLoopGroup,
+         settingsManager settings: SettingsManager,
+         authenticationManager authenticator: Authenticator,
+         remoteManager: RemoteManager) {
         
+        eventLoopGroup = group
         settingsManager = settings
         authenticationManager = authenticator
+        self.remoteManager = remoteManager
         
         warpinatorProvider.settingsManager = settingsManager
+        warpinatorProvider.remoteManager = remoteManager
     }
     
     
     //
     // MARK: start
-    func start() throws -> EventLoopFuture<GRPC.Server>?  {
+    func start() throws -> EventLoopFuture<GRPC.Server>  {
         
-        guard let serverELG = eventLoopGroup else {
-            throw ServerError.NO_EVENTLOOP
-        }
+//        guard let serverELG = eventLoopGroup else {
+//            throw ServerError.NO_EVENTLOOP
+//        }
         
         
         
@@ -94,6 +98,7 @@ final class Server {
         
         
             let certIsValid = authenticationManager.verify(certificate: serverCertificate)
+            
             print(DEBUG_TAG+"verifying certificate")
             print(DEBUG_TAG+"\t certificate is valid: \(certIsValid)")
             
@@ -101,41 +106,42 @@ final class Server {
                 throw Server.ServerError.CREDENTIALS_INVALID
             }
             
-        
-        //
-        // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
-        future = GRPC.Server.usingTLSBackedByNIOSSL(on: serverELG,
-                                           certificateChain: [ serverCertificate  ],
-                                           privateKey: serverPrivateKey )
-            .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
-            .withServiceProviders( [ warpinatorProvider ] )
-            .bind(host: "\(Utils.getIP_V4_Address())",
-                  port: Int( settingsManager.transferPortNumber ))
             
-        
-        future?.whenSuccess { server in
-            print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
-            self.server = server
-        }
-        
-        future?.whenFailure { error in
-            print(self.DEBUG_TAG+"transfer server failed: \(error))")
-        }
+            //
+            // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
+            future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
+                                                        certificateChain: [ serverCertificate  ],
+                                                        privateKey: serverPrivateKey )
+                .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
+                .withServiceProviders( [ warpinatorProvider ] )
+                .bind(host: "\(Utils.getIP_V4_Address())",
+                      port: Int( settingsManager.transferPortNumber ))
+            
+            
+            future?.whenSuccess { server in
+                print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
+                self.server = server
+            }
+            
+            future?.whenFailure { error in
+                print(self.DEBUG_TAG+"transfer server failed: \(error))")
+            }
             
         } catch {
             print(DEBUG_TAG+"Error retrieving server credentials: \n\t\t \(error)")
             throw ServerError.CREDENTIALS_NOT_FOUND
         }
 
-        return future
+        return future!
     }
     
     
     // MARK: stop
-    func stop() -> EventLoopFuture<Void>? {
+    func stop() -> EventLoopFuture<Void> {
         guard let server = server else {
-            return eventLoopGroup?.next().makeSucceededVoidFuture()
+            return eventLoopGroup.next().makeSucceededVoidFuture()
         }
+        
         return server.initiateGracefulShutdown()
     }
     

@@ -7,6 +7,7 @@
 
 import UIKit
 import GRPC
+import NIO
 import NIOSSL
 
 
@@ -18,8 +19,8 @@ final class MainCoordinator: NSObject, Coordinator {
     var navController: UINavigationController
     
     
-    var serverEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-    var remoteEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var serverEventLoopGroup: EventLoopGroup?
+    var remoteEventLoopGroup: EventLoopGroup?
     
     
     var remoteManager: RemoteManager = RemoteManager()
@@ -28,13 +29,13 @@ final class MainCoordinator: NSObject, Coordinator {
     var authManager: Authenticator = Authenticator.shared
     
     
-    lazy var server: Server = Server(settingsManager: settingsManager,
-                                     authenticationManager: authManager)
-    lazy var registrationServer = RegistrationServer(settingsManager: settingsManager)
+    var server: Server?      // = Server(settingsManager: settingsManager,
+                                     //authenticationManager: authManager)
+    var registrationServer: RegistrationServer?      // = RegistrationServer(settingsManager: settingsManager)
     
     
-    let queueLabel = "MainCoordinatorCleanupQueue"
-    lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
+//    let queueLabel = "MainCoordinatorCleanupQueue"
+//    lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
     
     
     
@@ -51,16 +52,18 @@ final class MainCoordinator: NSObject, Coordinator {
         remoteManager.remoteEventloopGroup = remoteEventLoopGroup
         
         
-        server.settingsManager = settingsManager
-        server.eventLoopGroup = serverEventLoopGroup
-        server.remoteManager = remoteManager
-
-        
-        registrationServer.settingsManager = settingsManager
-        registrationServer.eventLoopGroup = serverEventLoopGroup
-        registrationServer.remoteManager = remoteManager
+//        server.settingsManager = settingsManager
+//        server.eventLoopGroup = serverEventLoopGroup
+//        server.remoteManager = remoteManager
+//
+//
+//        registrationServer.settingsManager = settingsManager
+//        registrationServer.eventLoopGroup = serverEventLoopGroup
+//        registrationServer.remoteManager = remoteManager
         
     }
+    
+    
     
     
     //
@@ -73,18 +76,38 @@ final class MainCoordinator: NSObject, Coordinator {
     }
     
     
+    
     //
     // MARK: start servers
     func startServers(){
         
         print(DEBUG_TAG+"starting servers ")
         
+        
+        // create eventloops
+        serverEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+        remoteEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+        
+        
+        remoteManager.remoteEventloopGroup = remoteEventLoopGroup
+        
+        server = Server(eventloopGroup: serverEventLoopGroup!,
+                        settingsManager: settingsManager,
+                        authenticationManager: authManager,
+                        remoteManager: remoteManager)
+        
+        registrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup!,
+                                                settingsManager: settingsManager,
+                                                remoteManager: remoteManager)
+        
+        
+        
         do {
             
             // TODO: capture future and pop-up any errors if it fails
-            _ = try server.start()
+            _ = try server?.start()
             
-            registrationServer.start()
+            registrationServer?.start()
             
         } catch let server_error as Server.ServerError {
             
@@ -97,7 +120,7 @@ final class MainCoordinator: NSObject, Coordinator {
                 
                 /* TODO: if problem is not solved by regenerating credentials, this recurses infinitely
                 */
-                startServers()
+//                startServers()
                 
             default: print(DEBUG_TAG+"Server error: \(server_error)")
             }
@@ -105,7 +128,6 @@ final class MainCoordinator: NSObject, Coordinator {
         } catch  {
             print(DEBUG_TAG+"Uknown error starting server: \(error)")
         }
-        
         
         
     }
@@ -118,8 +140,8 @@ final class MainCoordinator: NSObject, Coordinator {
         
         remoteManager.shutdownAllRemotes()
         
-        _ = server.stop()
-        _ = registrationServer.stop()
+        _ = server?.stop()
+        _ = registrationServer?.stop()
         
     }
     
@@ -174,7 +196,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     
-    // MARK: show settings
+    // MARK: move to settings
     func showSettings() {
         
         
@@ -198,7 +220,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    // MARK: returnFromSettings
+    // MARK: return from settings
     func  returnFromSettings(restartRequired restart: Bool) {
         
         if restart {
@@ -211,28 +233,63 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     
+    func showErrorPop(withTitle title: String, andMessage message: String){
+        
+        let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        alertVC.addAction( UIAlertAction(title: "Okay", style: .default) )
+        
+        navController.visibleViewController?.present(alertVC, animated: true) {
+            print(self.DEBUG_TAG+"continuing...")
+        }
+    }
+    
     
     
     //
     // MARK: shutdown
-    func beginShutdown(){
+    func beginShutdown() -> EventLoopFuture<(Void, Void)>? {
         
         remoteManager.shutdownAllRemotes()
+        
+        guard let s1 = server,
+              let s2 = registrationServer else {
+                  print(DEBUG_TAG+"no servers to shut down")
+                  return nil
+              }
         
         // TODO: make these receive a future, so we
         // can try to coordinate the eventloopgroup shutdown
         
-        _ = server.stop()
-        _ = registrationServer.stop() 
+        let future_1 = s1.stop()
+        future_1.whenComplete { result in
+            print(self.DEBUG_TAG+"Server has completed shutdown")
+            self.server = nil
+        }
         
-        _ = serverEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
+        let future_2 = s2.stop()
+        future_2.whenComplete { result in
+            print(self.DEBUG_TAG+"Registration Server has completed shutdown")
+            self.registrationServer = nil
+        }
+        
+        
+        
+        serverEventLoopGroup?.shutdownGracefully (queue:  .main) { error in
             print(self.DEBUG_TAG+"Completed serverEventLoopGroup shutdown")
-        }
-        _ = remoteEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
-            print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
+            self.serverEventLoopGroup = nil
         }
         
+        
+        remoteEventLoopGroup?.shutdownGracefully(queue: .main) { error in
+            print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
+            self.remoteEventLoopGroup = nil
+        }
+        
+        
+        return future_1.and(future_2)
     }
+    
     
     
     func coordinatorDidFinish(_ child: Coordinator){
@@ -246,6 +303,8 @@ final class MainCoordinator: NSObject, Coordinator {
     }
     
 }
+
+
 
 
 
@@ -266,8 +325,5 @@ extension MainCoordinator {
             }
             
         }
-        
-        
     }
-    
 }

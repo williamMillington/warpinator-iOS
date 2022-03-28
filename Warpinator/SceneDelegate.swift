@@ -68,7 +68,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
         
-        coordinator?.beginShutdown()
+        let future = coordinator?.beginShutdown()
+        
+        
+        
+        do {
+            let result = try future?.wait()
+            
+            print(DEBUG_TAG+"resulting of shutdown is \(String(describing: result))")
+            
+        } catch {
+            print(DEBUG_TAG+"Failed to block thread when shutting down")
+        }
         
         
         print(DEBUG_TAG+"sceneDidEnterBackground")

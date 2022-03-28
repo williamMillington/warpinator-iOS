@@ -94,6 +94,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
 
         func checkDuplex() -> Bool {
             print(DEBUG_TAG+"checking duplex for uuid: \(uuid)")
+//            print(DEBUG_TAG+"\t\tmanager: \(self.remoteManager)")
+//            print(DEBUG_TAG+"\t\tremote: \(self.remoteManager?.containsRemote(for: uuid))")
             if let remote = self.remoteManager?.containsRemote(for: uuid) {
                 print(DEBUG_TAG+"\t\tremote found (status: \(remote.details.status))")
                 if remote.details.status == .AquiringDuplex || remote.details.status == .Connected {

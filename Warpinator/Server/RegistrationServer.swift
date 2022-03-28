@@ -24,16 +24,11 @@ final class RegistrationServer {
     var mDNSBrowser: MDNSBrowser?
     var mDNSListener: MDNSListener?
     
-//    var certificateServer = CertificateServer()
-    
-    var eventLoopGroup: EventLoopGroup?
+    var eventLoopGroup: EventLoopGroup
 
     private lazy var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
     
     var remoteManager: RemoteManager?
-//    {
-//        didSet {  warpinatorRegistrationProvider.remoteManager = remoteManager  }
-//    }
     
     var settingsManager: SettingsManager
     
@@ -43,9 +38,11 @@ final class RegistrationServer {
     lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
 
     
-    init(settingsManager manager: SettingsManager) {
+    init(eventloopGroup group: EventLoopGroup, settingsManager manager: SettingsManager, remoteManager: RemoteManager) {
+        
+        eventLoopGroup = group
         settingsManager = manager
-//        warpinatorRegistrationProvider.settingsManager = settingsManager
+        self.remoteManager = remoteManager
     }
     
     
@@ -53,11 +50,11 @@ final class RegistrationServer {
     // MARK: start
     func start(){
         
-        guard let registrationServerELG = eventLoopGroup else { return }
+//        guard let registrationServerELG = eventLoopGroup else { return }
         
         let portNumber = Int( settingsManager.registrationPortNumber )
         
-        GRPC.Server.insecure(group: registrationServerELG)
+        GRPC.Server.insecure(group: eventLoopGroup)
             .withServiceProviders([warpinatorRegistrationProvider])
             .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber).whenSuccess { server in
                 
@@ -73,10 +70,10 @@ final class RegistrationServer {
     
     //
     // MARK: stop
-    func stop() -> EventLoopFuture<Void>? {
+    func stop() -> EventLoopFuture<Void> {
         
         guard let server = server else {
-            return eventLoopGroup?.next().makeSucceededVoidFuture()
+            return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
         mDNSListener?.stop()
