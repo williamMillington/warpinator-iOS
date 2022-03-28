@@ -31,7 +31,7 @@ final class KeyMaster {
     // save SecCertificate
     static func saveCertificate(_ certificate: SecCertificate, withTag tag: String) throws {
         
-        print(DEBUG_TAG+"saving certificate for tag \'\(tag)\'")
+//        print(DEBUG_TAG+"saving certificate for tag \'\(tag)\'")
         
         
         let query: [String: Any] = [ kSecAttrLabel as String : tag,
@@ -43,7 +43,7 @@ final class KeyMaster {
         
         // IF: duplicate item
         guard status != errSecDuplicateItem else {
-            print(DEBUG_TAG+"Duplicate Certificate")
+//            print(DEBUG_TAG+"Duplicate Certificate")
             throw KeyMasterError.duplicateItem
         }
         
@@ -52,7 +52,7 @@ final class KeyMaster {
         }
         
         
-        print(DEBUG_TAG+"\t\t (SEC) certificate saved successfully")
+//        print(DEBUG_TAG+"\t\t (SEC) certificate saved successfully")
     }
     
     
@@ -63,7 +63,7 @@ final class KeyMaster {
     // read SecCertificate from keychain
     static func readCertificate(forTag tag: String) throws -> SecCertificate {
         
-        print(DEBUG_TAG+"Searching for certificate with tag \'\(tag)\'")
+//        print(DEBUG_TAG+"Searching for certificate with tag \'\(tag)\'")
         
 //        let tagData = tag.data(using: .utf8)
         
@@ -79,7 +79,7 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"\tNo certificate not found for tag \'\(tag)\'")
+//            print(DEBUG_TAG+"\tNo certificate not found for tag \'\(tag)\'")
             throw KeyMasterError.itemNotFound
         }
         
@@ -87,7 +87,7 @@ final class KeyMaster {
             throw errorForOSStatus(status)
         }
         
-        print(DEBUG_TAG+"\tSuccessfully retrieved certificate for tag \'\(tag)\'")
+//        print(DEBUG_TAG+"\tSuccessfully retrieved certificate for tag \'\(tag)\'")
         return itemCopy as! SecCertificate
     }
     
@@ -96,7 +96,7 @@ final class KeyMaster {
     //MARK: - delete
     static func deleteCertificate(forTag tag: String) throws {
         
-        print(DEBUG_TAG+"Deleting certificate for tag \'\(tag)\'")
+//        print(DEBUG_TAG+"Deleting certificate for tag \'\(tag)\'")
         
 //        let tagData = tag.data(using: .utf8)
         
@@ -110,7 +110,7 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"\tCertificate deletion unsuccessful; no item found for tag \'\(tag)\'")
+//            print(DEBUG_TAG+"\tCertificate deletion unsuccessful; no item found for tag \'\(tag)\'")
             return
         }
         
@@ -120,7 +120,7 @@ final class KeyMaster {
         }
         
         
-        print(DEBUG_TAG+"\tCertificate deleted successfully")
+//        print(DEBUG_TAG+"\tCertificate deleted successfully")
     }
     
     
@@ -133,7 +133,7 @@ final class KeyMaster {
     //MARK: - save
     static func savePrivateKey(_ data: SecKey, forTag tag: String) throws {
         
-        print(DEBUG_TAG+"Saving private key for tag \'\(tag)\'")
+//        print(DEBUG_TAG+"Saving private key for tag \'\(tag)\'")
         
         let tagData = tag.data(using: .utf8)
         
@@ -145,7 +145,7 @@ final class KeyMaster {
         
         // IF: duplicate item
         if status == errSecDuplicateItem {
-            print(DEBUG_TAG+"\tDuplicate private key found for tag \"\(tag)\"")
+//            print(DEBUG_TAG+"\tDuplicate private key found for tag \"\(tag)\"")
             throw KeyMasterError.duplicateItem
         }
         
@@ -153,7 +153,7 @@ final class KeyMaster {
             throw errorForOSStatus(status)
         }
         
-        print(DEBUG_TAG+"\tPrivate key saved successfully")
+//        print(DEBUG_TAG+"\tPrivate key saved successfully")
     }
     
     
@@ -161,7 +161,7 @@ final class KeyMaster {
     // MARK: - read
     static func readPrivateKey(forTag tag: String) throws -> SecKey {
         
-        print(DEBUG_TAG+"Searching for private key with tag \'\(tag)\'")
+//        print(DEBUG_TAG+"Searching for private key with tag \'\(tag)\'")
         
         let tagData = tag.data(using: .utf8)
         
@@ -181,7 +181,7 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"\tNo private key found for key \(tag)")
+//            print(DEBUG_TAG+"\tNo private key found for key \(tag)")
             throw KeyMasterError.itemNotFound
         }
         
@@ -189,7 +189,7 @@ final class KeyMaster {
             throw errorForOSStatus(status)
         }
         
-        print(DEBUG_TAG+"\tSuccessfully retrieved private key for tag \'\(tag)\'")
+//        print(DEBUG_TAG+"\tSuccessfully retrieved private key for tag \'\(tag)\'")
         return itemCopy as! SecKey
     }
     
@@ -197,7 +197,7 @@ final class KeyMaster {
     //MARK: - delete
     static func deletePrivateKey(forTag tag: String) throws {
         
-        print(DEBUG_TAG+"Deleting private key for tag \'\(tag)\'")
+//        print(DEBUG_TAG+"Deleting private key for tag \'\(tag)\'")
         
         let tagData = tag.data(using: .utf8)
         
@@ -210,7 +210,7 @@ final class KeyMaster {
         
         // IF: item not found
         guard status != errSecItemNotFound else {
-            print(DEBUG_TAG+"\tPrivate key deletion unsuccessful: no item found for tag \'\(tag)\'")
+//            print(DEBUG_TAG+"\tPrivate key deletion unsuccessful: no item found for tag \'\(tag)\'")
             return
         }
         
@@ -219,7 +219,7 @@ final class KeyMaster {
             throw errorForOSStatus(status)
         }
         
-        print(DEBUG_TAG+"\tPrivate key deleted successfully")
+//        print(DEBUG_TAG+"\tPrivate key deleted successfully")
     }
     
     
