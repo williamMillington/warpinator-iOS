@@ -49,8 +49,6 @@ final class RegistrationServer {
         mDNSBrowser.delegate = remoteManager
         
         mDNSListener = MDNSListener(settingsManager: settingsManager)
-//        mDNSListener.delegate = remoteManager
-        mDNSListener.settingsManager = settingsManager
         
         defer {
             mDNSListener.delegate = self
@@ -61,8 +59,6 @@ final class RegistrationServer {
     //
     // MARK: start
     func start(){
-        
-//        guard let registrationServerELG = eventLoopGroup else { return }
         
         let portNumber = Int( settingsManager.registrationPortNumber )
         
@@ -98,21 +94,8 @@ final class RegistrationServer {
     //
     // MARK:  startMDNSServices
     private func startMDNSServices(){
-        print(DEBUG_TAG+"Starting MDNS services...")
-//        mDNSBrowser = MDNSBrowser()
-//        mDNSBrowser.delegate = self
-        
-//        mDNSListener = MDNSListener(settingsManager: settingsManager)
-//        mDNSListener.delegate = self
-//        mDNSListener.settingsManager = settingsManager
+//        print(DEBUG_TAG+"Starting MDNS services...")
         mDNSListener.start()
-        
-        
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
-//            print(self.DEBUG_TAG+"RESTARTING IN  15...")
-//            self.mDNSBrowser?.restart()
-//        }
-        
     }
     
     
@@ -124,18 +107,6 @@ final class RegistrationServer {
     }
     
     
-    
-    
-    func mockStart(){
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            print(self.DEBUG_TAG+"mocking registration")
-            self.mockRegistration()
-        }
-    }
-    
-    
-
 }
 
 
@@ -150,116 +121,21 @@ extension RegistrationServer: MDNSListenerDelegate {
 
 
 
-//
-//// MARK: - MDNSBrowserDelegate
-//extension RegistrationServer: MDNSBrowserDelegate {
-//
-//
-//
-//    // MARK didAddResult
-//    func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
-//
-//
-//        print(DEBUG_TAG+"mDNSBrowser added result:")
-//        print(DEBUG_TAG+"\t\(result.endpoint)")
-//
-//        // if the metadata has a record "type",
-//        // and if type is 'flush', then ignore this service
-//        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
-//           let type = record.dictionary["type"],
-//           type == "flush" {
-//            print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
-//        }
-//        print(DEBUG_TAG+"assuming service is real, continuing...")
-//        print(DEBUG_TAG+"\tmetadata: \(result.metadata)")
-//
-//
-//        var serviceName = "unknown_service"
-//        switch result.endpoint {
-//        case .service(name: let name, type: _, domain: _, interface: _):
-//
-//            print(DEBUG_TAG+"Found service \(name) (at endpoint: \(result.endpoint))")
-//
-//            serviceName = name
-//
-//            // Check if we found own MDNS record
-//            if name == settingsManager.uuid {
-//                print(DEBUG_TAG+"\t\tFound myself (\(result.endpoint))"); return
-//            } else {
-//                print(DEBUG_TAG+"service discovered: \(name)")
-//            }
-//
-//        default: print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
-//        }
-//
-//
-//        //
-//        var hostname = serviceName
-//        var api = "1"
-//        var authPort = 42000
-//
-//        // parse TXT record for metadata
-//        if case let NWBrowser.Result.Metadata.bonjour(txtRecord) = result.metadata {
-//
-//            for (key, value) in txtRecord.dictionary {
-//                switch key {
-//                case "hostname": hostname = value
-//                case "api-version": api = value
-//                case "auth-port": authPort = Int(value) ?? 42000
-//                case "type": break
-//                default: print("unknown TXT record type: \"\(key)\":\"\(value)\"")
-//                }
-//            }
-//        }
-//
-//
-//
-//        // check if we already know this remote
-//        if let remote = remoteManager?.containsRemote(for: serviceName) {
-//
-//            print(DEBUG_TAG+"Service already added")
-//
-//            // Are we connected?
-//            if [ .Disconnected, .Idle, .Error ].contains(remote.details.status ) {
-//                print(DEBUG_TAG+"\t\t not connected: reconnecting...")
-//                remote.startConnection()
-//            }
-//            return
-//        }
-//
-//
-//        var details = RemoteDetails(endpoint: result.endpoint)
-//        details.hostname = hostname
-//        details.uuid = serviceName
-//        details.api = api
-//        details.port = 42000
-//        details.authPort = authPort //"42000"
-//        details.status = .Disconnected
-//
-//
-//        let newRemote = Remote(details: details)
-//
-//        remoteManager?.addRemote(newRemote)
-//    }
-//
-//
-//
-//    func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result) {
-//
-//
-//
-//
-//
-//
-//    }
-//
-//
-//}
 
 
 
-//MARK: - Mock Registration
+// MARK: - Mock functions
 extension RegistrationServer {
+    
+    func mockStart(){
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            print(self.DEBUG_TAG+"mocking registration")
+            self.mockRegistration()
+        }
+    }
+    
+    
     func mockRegistration(){
         
         for i in 0...5 {

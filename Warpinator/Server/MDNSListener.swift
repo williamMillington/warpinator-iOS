@@ -48,7 +48,7 @@ final class MDNSListener {
     //
     // MARK: start
     func start(){
-        print(DEBUG_TAG+"starting...")
+//        print(DEBUG_TAG+"starting...")
         flushPublish()
     }
     
@@ -64,7 +64,7 @@ final class MDNSListener {
     // MARK: publishServiceAndListen
     func publishServiceAndListen(){
         
-        print(DEBUG_TAG+"\tpublishing for reals...")
+//        print(DEBUG_TAG+"\tpublishing for reals...")
         
         flushing = false
         
@@ -111,7 +111,7 @@ final class MDNSListener {
     // MARK: flushPublish
     func flushPublish(){
         
-        print(DEBUG_TAG+"\tFlushing...")
+//        print(DEBUG_TAG+"\tFlushing...")
         flushing = true
         
         let port = NWEndpoint.Port(rawValue: UInt16( settingsManager.transferPortNumber ) )!

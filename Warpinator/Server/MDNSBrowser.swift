@@ -117,18 +117,17 @@ final class MDNSBrowser {
             case .added(let result):
                 print(DEBUG_TAG+"result added \(change)")
                 
-//                DispatchQueue.main.async { // results in UI update
-                    delegate?.mDNSBrowserDidAddResult(result)
+                delegate?.mDNSBrowserDidAddResult(result)
+                
+//            case .changed(old: let old, new: let new, flags: let flags):
+//                print(DEBUG_TAG+"\t\(old.endpoint) changed to \(new.endpoint), \(flags)")
+//                switch flags {
+//                case .identical: print(DEBUG_TAG+"\t\tidentical")
+//                case .interfaceRemoved: print(DEBUG_TAG+"\t\tinterfaceRemoved")
+//                case .interfaceAdded: print(DEBUG_TAG+"\t\tinterfaceAdded")
+//                case .metadataChanged: print(DEBUG_TAG+"\t\tmetadataChanged")
+//                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
 //                }
-            case .changed(old: let old, new: let new, flags: let flags):
-                print(DEBUG_TAG+"\t\(old.endpoint) changed to \(new.endpoint), \(flags)")
-                switch flags {
-                case .identical: print(DEBUG_TAG+"\t\tidentical")
-                case .interfaceRemoved: print(DEBUG_TAG+"\t\tinterfaceRemoved")
-                case .interfaceAdded: print(DEBUG_TAG+"\t\tinterfaceAdded")
-                case .metadataChanged: print(DEBUG_TAG+"\t\tmetadataChanged")
-                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
-                }
             case .removed(let result):
                 print(DEBUG_TAG+"result removed \(result)")
                 delegate?.mDNSBrowserDidRemoveResult(result)
