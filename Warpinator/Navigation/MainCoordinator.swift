@@ -33,6 +33,8 @@ final class MainCoordinator: NSObject, Coordinator {
                                      //authenticationManager: authManager)
     var registrationServer: RegistrationServer?      // = RegistrationServer(settingsManager: settingsManager)
     
+    
+    // used when a method needs to return a future, but server/remote eventloops are in shutdown
     var errorEventLoop = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1)
     
 //    let queueLabel = "MainCoordinatorCleanupQueue"
@@ -151,8 +153,18 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: restart servers
     func restartServers(){
-        stopServers()
-        startServers()
+        
+        let stopFuture = stopServers()
+        
+        
+        stopFuture.whenFailure { error in
+            print(self.DEBUG_TAG+"servers failed to stop: \(error)")
+        }
+        
+        // wait until servers have stopped, then start them
+        stopFuture.whenSuccess { _ in
+            self.startServers()
+        }
     }
     
     
@@ -337,8 +349,11 @@ extension MainCoordinator: ErrorDelegate {
     
     func reportError(_ error: Error, withMessage message: String) {
         
+        print(self.DEBUG_TAG+"error reported: \(error) \n\twith message: \(message)")
+        
+        
+        // Error reporting that updates UI --MUST-- be done on Main thread
         DispatchQueue.main.async {
-            print(self.DEBUG_TAG+"error reported: \(error) \n\twith message: \(message)")
             
             // only the main controller has an error screen, for now
             if let vc = self.navController.visibleViewController as? ViewController {

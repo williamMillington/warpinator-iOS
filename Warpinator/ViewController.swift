@@ -125,7 +125,7 @@ final class ViewController: UIViewController {
     }
     
     
-    
+    // MARK: show error screen
     func showErrorScreen(){
         
         print(DEBUG_TAG+"showing error screen")
@@ -152,6 +152,7 @@ final class ViewController: UIViewController {
     }
     
     
+    // MARK: hide error screen
     func hideErrorScreen(){
         
         guard let screen = errorScreen else {
@@ -181,7 +182,7 @@ final class ErrorView: UIView {
     
     let errorAnnouncementLabel: UILabel = {
         let label = UILabel()
-        label.text = "An error occurred: "
+        label.text = "An error occurred, tap to restart server "
         label.tintColor = Utils.textColour
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
