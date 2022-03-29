@@ -131,6 +131,7 @@ final class MDNSBrowser {
                 }
             case .removed(let result):
                 print(DEBUG_TAG+"result removed \(result)")
+                delegate?.mDNSBrowserDidRemoveResult(result)
             default: print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
                 
             }

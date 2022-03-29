@@ -79,6 +79,11 @@ final class RemoteManager {
         }
         
         remotes.removeValue(forKey: uuid)
+        
+        DispatchQueue.main.async {
+            self.remotesViewController?.remoteRemoved(with: uuid)
+        }
+        
         print(DEBUG_TAG+"\t remote removed")
         
     }
@@ -232,6 +237,46 @@ extension RemoteManager: MDNSBrowserDelegate {
     
     func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result) {
         
+        
+        print(DEBUG_TAG+"mDNSBrowser removed result:")
+        print(DEBUG_TAG+"\t\(result.endpoint)")
+        
+        // check metadata for "type",
+        // and if type is 'flush', then ignore
+        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
+           let type = record.dictionary["type"],
+           type == "flush" {
+            print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
+        }
+        print(DEBUG_TAG+"assuming service is real, continuing...")
+        print(DEBUG_TAG+"\tmetadata: \(result.metadata)")
+        
+        
+//        var serviceName = "unknown_service"
+        switch result.endpoint {
+        case .service(name: let name, type: _, domain: _, interface: _):
+            
+            print(DEBUG_TAG+"Found service \(name) (at endpoint: \(result.endpoint))")
+            
+            
+            // check if we have a remote registered to the service name
+            if let remote = containsRemote(for: name) {
+                
+                // remove it
+                removeRemote(withUUID: remote.details.uuid)
+            }
+            
+//            serviceName = name
+//
+//            // Check if we found own MDNS record
+//            if name == SettingsManager.shared.uuid {
+//                print(DEBUG_TAG+"\t\tFound myself (\(result.endpoint))"); return
+//            } else {
+//                print(DEBUG_TAG+"service discovered: \(name)")
+//            }
+            
+        default: print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
+        }
         
         
     }
