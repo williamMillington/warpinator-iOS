@@ -132,6 +132,7 @@ final class ViewController: UIViewController {
             self.coordinator?.restartServers()
             self.hideErrorScreen()
         })
+        
         errorScreen?.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(errorScreen!)

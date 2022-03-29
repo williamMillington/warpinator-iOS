@@ -9,6 +9,7 @@ import UIKit
 
 import GRPC
 import NIO
+import NIOSSL
 
 import Network
 
@@ -20,14 +21,18 @@ final class Server {
     enum ServerError: Error {
         case NO_EVENTLOOP
         case CREDENTIALS_INVALID
-        case CREDENTIALS_NOT_FOUND
+        case CREDENTIALS_UNAVAILABLE
+        case CREDENTIALS_GENERATION_ERROR
+        case SERVER_FAILURE
         case UKNOWN_ERROR
         
         var localizedDescription: String {
             switch self {
             case .NO_EVENTLOOP: return "No available eventloop"
             case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"
-            case .CREDENTIALS_NOT_FOUND: return "Server certificate and/or private key could not be found"
+            case .CREDENTIALS_UNAVAILABLE: return "Server certificate and/or private key could not be found"
+            case .CREDENTIALS_GENERATION_ERROR: return "Server credentials could not be created"
+            case .SERVER_FAILURE: return "Server failed to start"
             case .UKNOWN_ERROR: return "Server has encountered an unknown error"
             }
         }
@@ -84,6 +89,7 @@ final class Server {
     
     //
     // MARK: start
+//    func start(withCredentials credentials: Utils.Credentials) -> EventLoopFuture<GRPC.Server>  {
     func start() throws -> EventLoopFuture<GRPC.Server>  {
         
 //        guard let serverELG = eventLoopGroup else {
@@ -93,14 +99,16 @@ final class Server {
         
         
         do {
-            let serverCertificate = try authenticationManager.getServerCertificate()
-            let serverPrivateKey = try authenticationManager.getServerPrivateKey()
+            let credentials = try authenticationManager.getServerCredentials()
+            
+            let serverCertificate =  credentials.certificate
+            let serverPrivateKey = credentials.key
         
         
             let certIsValid = authenticationManager.verify(certificate: serverCertificate)
             
-//            print(DEBUG_TAG+"verifying certificate")
-//            print(DEBUG_TAG+"\t certificate is valid: \(certIsValid)")
+            print(DEBUG_TAG+"verifying certificate")
+            print(DEBUG_TAG+"\t certificate is valid: \(certIsValid)")
             
             if !certIsValid {
                 throw Server.ServerError.CREDENTIALS_INVALID
@@ -129,7 +137,7 @@ final class Server {
             
         } catch {
             print(DEBUG_TAG+"Error retrieving server credentials: \n\t\t \(error)")
-            throw ServerError.CREDENTIALS_NOT_FOUND
+            throw ServerError.CREDENTIALS_UNAVAILABLE
         }
 
         return future!

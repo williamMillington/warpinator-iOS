@@ -33,7 +33,6 @@ final class Authenticator {
     
     public lazy var groupCode: String = DEFAULT_GROUP_CODE
     
-    
     static var shared: Authenticator = Authenticator()
     
     
@@ -169,6 +168,51 @@ final class Authenticator {
         let keyBytes = Array( try sec_key.encode() )
         
         return try NIOSSLPrivateKey.init(bytes: keyBytes, format: .der)
+    }
+    
+    
+    
+    
+    typealias Credentials = (certificate: NIOSSLCertificate, key: NIOSSLPrivateKey)
+    var credential_generation_attempts: Int = 0
+    
+    
+    func getServerCredentials() throws -> Credentials {
+        
+        credential_generation_attempts += 1
+        
+        // if, for some unknown reason, we can't generate credentials,
+        // don't attempt endlessly.
+        guard credential_generation_attempts < 5 else {
+            throw Server.ServerError.CREDENTIALS_GENERATION_ERROR
+        }
+        
+        
+        let credentials: Credentials
+        do {
+            
+            let cert = try getServerCertificate()
+            let key = try getServerPrivateKey()
+            
+            
+            // check cert is still valid  (certs only last 1 month)
+            guard verify(certificate: cert) else {
+                throw Server.ServerError.CREDENTIALS_INVALID
+            }
+            
+            credentials = (cert, key)
+            
+        } catch Server.ServerError.CREDENTIALS_INVALID {
+            
+            return try getServerCredentials()
+            
+        } // If an error of any other type occurs,
+        // then something real broken, so propogate back up
+        
+        
+        
+        return credentials
+        
     }
     
     

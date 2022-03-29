@@ -105,14 +105,24 @@ final class MainCoordinator: NSObject, Coordinator {
         do {
             
             // TODO: capture future and pop-up any errors if it fails
-            _ = try server?.start()
             
-            registrationServer?.start()
+//            let serverCertificate = try authManager.getServerCertificate()
+//            let serverPrivateKey = try authManager.getServerPrivateKey()
+            
+            
+            let serverFuture = try server?.start()
+            
+            serverFuture?.whenSuccess { server in
+            
+                // registrationServer is responsible for starting mDNS, so wait until
+                // our server is ready before announcing ourselves
+                self.registrationServer?.start()
+            }
             
         } catch let server_error as Server.ServerError {
             
             switch server_error {
-            case .CREDENTIALS_INVALID, .CREDENTIALS_NOT_FOUND:
+            case .CREDENTIALS_INVALID, .CREDENTIALS_UNAVAILABLE:
                 print(DEBUG_TAG+"credentials error (\(server_error.localizedDescription))")
                 print(DEBUG_TAG+"\t\t regenerating credentials and restarting")
                 

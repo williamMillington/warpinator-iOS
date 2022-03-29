@@ -6,8 +6,14 @@
 //
 import UIKit
 
+import NIO
+import NIOSSL
+
 
 public class Utils {
+    
+    typealias Credentials = (certificate: NIOSSLCertificate, key: NIOSSLPrivateKey)
+    
     
     
     static let borderColour: UIColor = #colorLiteral(red: 0.7877369523, green: 0.7877556682, blue: 0.7877456546, alpha: 1)
@@ -139,8 +145,15 @@ public class Utils {
     }
     
     
-    
-    
-    
-    
 }
+
+
+
+//protocol ErrorDelegate {
+//    
+//    func reportError(_ error: Error, withMessage: String)
+//    
+//}
+
+
+
