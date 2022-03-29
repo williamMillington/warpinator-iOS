@@ -26,6 +26,9 @@ final class ViewController: UIViewController {
 //        return button
 //    }()
     
+    
+    @IBOutlet var titleLabel: UILabel!
+    
     @IBOutlet var settingsButton: UIButton!
     
     @IBOutlet var remotesStack: UIStackView!
@@ -38,6 +41,9 @@ final class ViewController: UIViewController {
     
     
     weak var settingsManager: SettingsManager?
+    
+    
+    var errorScreen: ErrorView?
     
     
     override func viewDidLoad() {
@@ -61,6 +67,7 @@ final class ViewController: UIViewController {
                                                            attributes: [ .font: UIFont.systemFont(ofSize: 20,
                                                                                                   weight: .light)])
         
+//        showErrorScreen()
     }
 
     
@@ -76,16 +83,18 @@ final class ViewController: UIViewController {
     }
     
     
-    
+    //
+    // MARK: go to settings
     @IBAction func userDidPushSettingsButton(){
         
         coordinator?.showSettings()
-        
         
     }
     
     
     
+    //
+    // MARK: remote added
     func remoteAdded(_ remote: Remote){
         
         let viewModel = ListedRemoteViewModel(remote)
@@ -117,5 +126,114 @@ final class ViewController: UIViewController {
     
     
     
+    func showErrorScreen(){
+        
+        errorScreen = ErrorView(onTap: {
+            self.coordinator?.restartServers()
+            self.hideErrorScreen()
+        })
+        errorScreen?.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(errorScreen!)
+        
+        let constraints = [
+            errorScreen!.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            errorScreen!.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            errorScreen!.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            errorScreen!.bottomAnchor.constraint(equalTo: IPaddressLabel.topAnchor, constant: 10)
+        ]
+        
+        NSLayoutConstraint.activate(constraints)
+        
+        view.setNeedsLayout()
+    }
+    
+    
+    func hideErrorScreen(){
+        
+        guard let screen = errorScreen else {
+            print(DEBUG_TAG+"No error screen"); return
+        }
+        
+        NSLayoutConstraint.deactivate(screen.constraints)
+        
+        screen.removeFromSuperview()
+        errorScreen = nil
+        
+    }
+    
+    
 }
 
+
+
+
+
+
+
+
+
+// MARK: Error View
+final class ErrorView: UIView {
+    
+    private let DEBUG_TAG: String = "ErrorView: "
+    
+    let errorAnnouncementLabel: UILabel = {
+        let label = UILabel()
+        label.text = "An error occurred: "
+        label.tintColor = Utils.textColour
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
+        return label
+    }()
+    
+    
+    var tapRecognizer: TapGestureRecognizerWithClosure?
+    
+    override init(frame: CGRect){
+        super.init(frame: frame)
+        setUpView()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setUpView()
+    }
+    
+    
+    convenience init(onTap action: @escaping ()->Void = {}){
+        self.init(frame: .zero)
+        
+        // add subviews and constraints
+        setUpView()
+        
+        // add onTap action
+        tapRecognizer = TapGestureRecognizerWithClosure(action: action)
+        addGestureRecognizer(tapRecognizer!)
+        
+    }
+    
+    
+    //
+    // MARK: setUpView
+    func setUpView(){
+        
+        addSubview(errorAnnouncementLabel)
+        
+        let constraints = [
+            errorAnnouncementLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            errorAnnouncementLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
+        ]
+        
+        NSLayoutConstraint.activate(constraints)
+        
+        backgroundColor = UIColor.blue.withAlphaComponent(0.5)//Utils.foregroundColour
+        
+        layer.cornerRadius = 5
+        
+        layer.borderWidth = 1
+//        layer.borderColor = Utils.borderColour.cgColor
+        
+    }
+    
+}

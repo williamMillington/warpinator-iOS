@@ -99,8 +99,8 @@ final class Server {
         
             let certIsValid = authenticationManager.verify(certificate: serverCertificate)
             
-            print(DEBUG_TAG+"verifying certificate")
-            print(DEBUG_TAG+"\t certificate is valid: \(certIsValid)")
+//            print(DEBUG_TAG+"verifying certificate")
+//            print(DEBUG_TAG+"\t certificate is valid: \(certIsValid)")
             
             if !certIsValid {
                 throw Server.ServerError.CREDENTIALS_INVALID

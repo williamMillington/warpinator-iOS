@@ -174,6 +174,7 @@ final class MainCoordinator: NSObject, Coordinator {
             remoteManager.remotesViewController = mainMenuVC
             
             navController.pushViewController(mainMenuVC, animated: false)
+            
         }
     }
     
@@ -233,6 +234,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     
+    // MARK: error popup
     func showErrorPop(withTitle title: String, andMessage message: String){
         
         let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
