@@ -73,12 +73,16 @@ final class RemoteManager {
     // MARK: remove Remote
     func removeRemote(withUUID uuid: String){
             print(DEBUG_TAG+"removing remote...")
-        guard remotes[uuid] != nil else {
+        
+        guard let remote = remotes[uuid] else {
             print(DEBUG_TAG+"\t remote not found")
             return
         }
         
-        remotes.removeValue(forKey: uuid)
+        
+        remote.disconnect()
+        
+        remotes.removeValue(forKey: remote.details.uuid)
         
         DispatchQueue.main.async {
             self.remotesViewController?.remoteRemoved(with: uuid)
