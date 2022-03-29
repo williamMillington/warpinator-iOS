@@ -149,11 +149,11 @@ public class Utils {
 
 
 
-//protocol ErrorDelegate {
-//    
-//    func reportError(_ error: Error, withMessage: String)
-//    
-//}
+protocol ErrorDelegate {
+
+    func reportError(_ error: Error, withMessage: String)
+
+}
 
 
 

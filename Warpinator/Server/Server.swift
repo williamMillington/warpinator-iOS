@@ -55,6 +55,7 @@ final class Server {
     
     var authenticationManager: Authenticator
     
+    var errorDelegate: ErrorDelegate?
     
     // We have to capture the serverBuilder future here or it will sometimes be
     // deallocated before it can finish
@@ -75,12 +76,14 @@ final class Server {
     init(eventloopGroup group: EventLoopGroup,
          settingsManager settings: SettingsManager,
          authenticationManager authenticator: Authenticator,
-         remoteManager: RemoteManager) {
+         remoteManager: RemoteManager, errorDelegate delegate: ErrorDelegate) {
         
         eventLoopGroup = group
         settingsManager = settings
         authenticationManager = authenticator
         self.remoteManager = remoteManager
+        
+        errorDelegate = delegate
         
         warpinatorProvider.settingsManager = settingsManager
         warpinatorProvider.remoteManager = remoteManager
@@ -89,13 +92,7 @@ final class Server {
     
     //
     // MARK: start
-//    func start(withCredentials credentials: Utils.Credentials) -> EventLoopFuture<GRPC.Server>  {
-    func start() throws -> EventLoopFuture<GRPC.Server>  {
-        
-//        guard let serverELG = eventLoopGroup else {
-//            throw ServerError.NO_EVENTLOOP
-//        }
-        
+    func start() -> EventLoopFuture<GRPC.Server>?  {
         
         
         do {
@@ -104,17 +101,6 @@ final class Server {
             let serverCertificate =  credentials.certificate
             let serverPrivateKey = credentials.key
         
-        
-            let certIsValid = authenticationManager.verify(certificate: serverCertificate)
-            
-            print(DEBUG_TAG+"verifying certificate")
-            print(DEBUG_TAG+"\t certificate is valid: \(certIsValid)")
-            
-            if !certIsValid {
-                throw Server.ServerError.CREDENTIALS_INVALID
-            }
-            
-            
             //
             // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
             future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
@@ -136,11 +122,13 @@ final class Server {
             }
             
         } catch {
-            print(DEBUG_TAG+"Error retrieving server credentials: \n\t\t \(error)")
-            throw ServerError.CREDENTIALS_UNAVAILABLE
+            errorDelegate?.reportError(error, withMessage: "Unexpected error while starting server")
         }
+        
+        
+        
 
-        return future!
+        return future
     }
     
     

@@ -48,19 +48,6 @@ final class MainCoordinator: NSObject, Coordinator {
         
         super.init()
 //        mockRemote()
-        
-        remoteManager.remoteEventloopGroup = remoteEventLoopGroup
-        
-        
-//        server.settingsManager = settingsManager
-//        server.eventLoopGroup = serverEventLoopGroup
-//        server.remoteManager = remoteManager
-//
-//
-//        registrationServer.settingsManager = settingsManager
-//        registrationServer.eventLoopGroup = serverEventLoopGroup
-//        registrationServer.remoteManager = remoteManager
-        
     }
     
     
@@ -81,20 +68,22 @@ final class MainCoordinator: NSObject, Coordinator {
     // MARK: start servers
     func startServers(){
         
-        print(DEBUG_TAG+"starting servers ")
+        print(DEBUG_TAG+"starting servers...")
         
         
         // create eventloops
         serverEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
         remoteEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
         
-        
+        // remoteManager is responsible for providing remotes with an eventloop
         remoteManager.remoteEventloopGroup = remoteEventLoopGroup
+        
         
         server = Server(eventloopGroup: serverEventLoopGroup!,
                         settingsManager: settingsManager,
                         authenticationManager: authManager,
-                        remoteManager: remoteManager)
+                        remoteManager: remoteManager,
+                        errorDelegate: self)
         
         registrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup!,
                                                 settingsManager: settingsManager,
@@ -102,42 +91,49 @@ final class MainCoordinator: NSObject, Coordinator {
         
         
         
-        do {
+//        do {
             
             // TODO: capture future and pop-up any errors if it fails
-            
-//            let serverCertificate = try authManager.getServerCertificate()
-//            let serverPrivateKey = try authManager.getServerPrivateKey()
-            
-            
-            let serverFuture = try server?.start()
-            
-            serverFuture?.whenSuccess { server in
-            
-                // registrationServer is responsible for starting mDNS, so wait until
-                // our server is ready before announcing ourselves
-                self.registrationServer?.start()
-            }
-            
-        } catch let server_error as Server.ServerError {
-            
-            switch server_error {
-            case .CREDENTIALS_INVALID, .CREDENTIALS_UNAVAILABLE:
-                print(DEBUG_TAG+"credentials error (\(server_error.localizedDescription))")
-                print(DEBUG_TAG+"\t\t regenerating credentials and restarting")
-                
-                authManager.generateNewCertificate()
-                
-                /* TODO: if problem is not solved by regenerating credentials, this recurses infinitely
-                */
-//                startServers()
-                
-            default: print(DEBUG_TAG+"Server error: \(server_error)")
-            }
-            
-        } catch  {
-            print(DEBUG_TAG+"Uknown error starting server: \(error)")
+        // Note: the optional we care about unwrapping here is the EventLoopFuture<GRPC.Server>? returned
+        // by server, not server itself
+        guard let serverFuture = server?.start() else {
+            print(DEBUG_TAG+"server failed")
+            return
         }
+        
+        
+        
+        serverFuture.whenFailure { error in
+            self.reportError(error, withMessage: "Server future failed")
+        }
+        
+        serverFuture.whenSuccess { server in
+            print(self.DEBUG_TAG+"server succeeded")
+            // registrationServer is responsible for starting mDNS, so wait until
+            // our server is ready before announcing ourselves
+            self.registrationServer?.start()
+        }
+//        } catch let server_error as Server.ServerError {
+//
+//            switch server_error {
+//            case .CREDENTIALS_INVALID, .CREDENTIALS_UNAVAILABLE:
+//                print(DEBUG_TAG+"credentials error (\(server_error.localizedDescription))")
+//                print(DEBUG_TAG+"\t\t regenerating credentials and restarting")
+//
+//                authManager.generateNewCertificate()
+//
+//                /* TODO if problem is not solved by regenerating credentials, this recurses infinitely
+//                */
+////                startServers()
+//
+//            default: print(DEBUG_TAG+"Server error: \(server_error)")
+//
+//            }
+//
+//        } catch  {
+//            print(DEBUG_TAG+"Uknown error starting server: \(error)")
+//            reportError(error, withMessage: "Uknown error starting server")
+//        }
         
         
     }
@@ -146,7 +142,7 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: stop servers
     func stopServers(){
-        print(DEBUG_TAG+"stopping servers: ")
+        print(DEBUG_TAG+"stopping servers... ")
         
         remoteManager.shutdownAllRemotes()
         
@@ -254,6 +250,7 @@ final class MainCoordinator: NSObject, Coordinator {
         navController.visibleViewController?.present(alertVC, animated: true) {
             print(self.DEBUG_TAG+"continuing...")
         }
+        
     }
     
     
@@ -338,4 +335,23 @@ extension MainCoordinator {
             
         }
     }
+}
+
+
+
+
+
+extension MainCoordinator: ErrorDelegate {
+    
+    func reportError(_ error: Error, withMessage message: String) {
+        
+        print(DEBUG_TAG+"error reported: \(error) \n\twith message: \(message)")
+        
+        // only the main controller has an error screen, for now
+        if let vc = navController.visibleViewController as? ViewController {
+            vc.showErrorScreen()
+        }
+        
+    }
+    
 }
