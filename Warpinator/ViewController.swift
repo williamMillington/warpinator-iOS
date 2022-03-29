@@ -128,6 +128,8 @@ final class ViewController: UIViewController {
     
     func showErrorScreen(){
         
+        print(DEBUG_TAG+"showing error screen")
+        
         errorScreen = ErrorView(onTap: {
             self.hideErrorScreen()
             self.coordinator?.restartServers()
@@ -156,6 +158,7 @@ final class ViewController: UIViewController {
             print(DEBUG_TAG+"No error screen"); return
         }
         
+        print(DEBUG_TAG+"removing error screen")
         NSLayoutConstraint.deactivate(screen.constraints)
         
         screen.removeFromSuperview()
@@ -166,10 +169,6 @@ final class ViewController: UIViewController {
     
     
 }
-
-
-
-
 
 
 

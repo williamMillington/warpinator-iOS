@@ -59,7 +59,7 @@ final class Server {
     
     // We have to capture the serverBuilder future here or it will sometimes be
     // deallocated before it can finish
-    var future: EventLoopFuture<GRPC.Server>?
+//    var future: EventLoopFuture<GRPC.Server>?
     var server: GRPC.Server?
     
     
@@ -92,10 +92,9 @@ final class Server {
     
     //
     // MARK: start
-    func start() -> EventLoopFuture<GRPC.Server>?  {
+    func start() throws -> EventLoopFuture<GRPC.Server>  {
         
-        
-        do {
+//        do {
             let credentials = try authenticationManager.getServerCredentials()
             
             let serverCertificate =  credentials.certificate
@@ -103,7 +102,7 @@ final class Server {
         
             //
             // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
-            future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
+            let future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
                                                         certificateChain: [ serverCertificate  ],
                                                         privateKey: serverPrivateKey )
                 .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
@@ -112,23 +111,22 @@ final class Server {
                       port: Int( settingsManager.transferPortNumber ))
             
             
-            future?.whenSuccess { server in
+            future.whenSuccess { server in
                 print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
                 self.server = server
             }
             
-            future?.whenFailure { error in
+            future.whenFailure { error in
                 print(self.DEBUG_TAG+"transfer server failed: \(error))")
             }
             
-        } catch {
-            errorDelegate?.reportError(error, withMessage: "Unexpected error while starting server")
-        }
-        
-        
+            return future
+//        } catch {
+//            errorDelegate?.reportError(error, withMessage: "Unexpected error while starting server")
+//        }
         
 
-        return future
+//        return nil
     }
     
     

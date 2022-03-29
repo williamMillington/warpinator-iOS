@@ -33,6 +33,7 @@ final class MainCoordinator: NSObject, Coordinator {
                                      //authenticationManager: authManager)
     var registrationServer: RegistrationServer?      // = RegistrationServer(settingsManager: settingsManager)
     
+    var errorEventLoop = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1)
     
 //    let queueLabel = "MainCoordinatorCleanupQueue"
 //    lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
@@ -89,51 +90,37 @@ final class MainCoordinator: NSObject, Coordinator {
                                                 settingsManager: settingsManager,
                                                 remoteManager: remoteManager)
         
-        
-        
-//        do {
+        // Try-catch handles errors thrown by me, related to authentication credentials.
+        // Errors from the GRPC server itself are captured in the serverFuture.whenFailure
+        do {
             
-            // TODO: capture future and pop-up any errors if it fails
-        // Note: the optional we care about unwrapping here is the EventLoopFuture<GRPC.Server>? returned
-        // by server, not server itself
-        guard let serverFuture = server?.start() else {
-            print(DEBUG_TAG+"server failed")
-            return
-        }
-        
-        
-        
-        serverFuture.whenFailure { error in
-            self.reportError(error, withMessage: "Server future failed")
-        }
-        
-        serverFuture.whenSuccess { server in
-            print(self.DEBUG_TAG+"server succeeded")
-            // registrationServer is responsible for starting mDNS, so wait until
-            // our server is ready before announcing ourselves
-            self.registrationServer?.start()
-        }
-//        } catch let server_error as Server.ServerError {
+            let serverFuture = try server?.start()
+            
+            
+            // Test server failure
+//            let promise = serverEventLoopGroup?.next().makePromise(of: GRPC.Server.self)
+//            let serverFuture = promise?.futureResult
 //
-//            switch server_error {
-//            case .CREDENTIALS_INVALID, .CREDENTIALS_UNAVAILABLE:
-//                print(DEBUG_TAG+"credentials error (\(server_error.localizedDescription))")
-//                print(DEBUG_TAG+"\t\t regenerating credentials and restarting")
-//
-//                authManager.generateNewCertificate()
-//
-//                /* TODO if problem is not solved by regenerating credentials, this recurses infinitely
-//                */
-////                startServers()
-//
-//            default: print(DEBUG_TAG+"Server error: \(server_error)")
-//
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//                promise?.fail(Server.ServerError.SERVER_FAILURE)
 //            }
-//
-//        } catch  {
-//            print(DEBUG_TAG+"Uknown error starting server: \(error)")
-//            reportError(error, withMessage: "Uknown error starting server")
-//        }
+            
+            serverFuture?.whenFailure { error in
+                self.reportError(error, withMessage: "Server future failed")
+            }
+            
+            serverFuture?.whenSuccess { server in
+                print(self.DEBUG_TAG+"server succeeded")
+                // registrationServer is responsible for starting mDNS, so wait until
+                // our server is ready before announcing ourselves
+                self.registrationServer?.start()
+            }
+            
+        } catch {
+            reportError(error, withMessage: "Server future failed")
+        }
+        
+        
         
         
     }
@@ -141,16 +128,24 @@ final class MainCoordinator: NSObject, Coordinator {
     
     //
     // MARK: stop servers
-    func stopServers(){
+    func stopServers() -> EventLoopFuture<(Void, Void)> {
         print(DEBUG_TAG+"stopping servers... ")
         
         remoteManager.shutdownAllRemotes()
         
-        _ = server?.stop()
-        _ = registrationServer?.stop()
+        guard let server = server,
+              let registrationServer = registrationServer else {
+                  let future_1 = errorEventLoop.next().makeSucceededVoidFuture()
+                  let future_2 = errorEventLoop.next().makeSucceededVoidFuture()
+                  return future_1.and(future_2)
+              }
+        
+        let server_future = server.stop()
+        let registration_future = registrationServer.stop()
+        
+        return server_future.and( registration_future )
         
     }
-    
     
     
     //
@@ -206,7 +201,6 @@ final class MainCoordinator: NSObject, Coordinator {
     // MARK: move to settings
     func showSettings() {
         
-        
         // if the previously exists in the stack, rewind
         if let settingsVC = navController.viewControllers.first(where: { controller in
             return controller is SettingsViewController
@@ -221,7 +215,6 @@ final class MainCoordinator: NSObject, Coordinator {
             
             navController.pushViewController(settingsVC, animated: false)
         }
-        
     }
     
     
@@ -235,7 +228,6 @@ final class MainCoordinator: NSObject, Coordinator {
         }
         
         showMainViewController()
-        
     }
     
     
@@ -257,26 +249,25 @@ final class MainCoordinator: NSObject, Coordinator {
     
     //
     // MARK: shutdown
-    func beginShutdown() -> EventLoopFuture<(Void, Void)>? {
+    func beginShutdown() -> EventLoopFuture<(Void, Void)> {
         
         remoteManager.shutdownAllRemotes()
         
-        guard let s1 = server,
-              let s2 = registrationServer else {
-                  print(DEBUG_TAG+"no servers to shut down")
-                  return nil
+        guard let server = server,
+              let registrationServer = registrationServer else {
+                  let future_1 = errorEventLoop.next().makeSucceededVoidFuture()
+                  let future_2 = errorEventLoop.next().makeSucceededVoidFuture()
+                  return future_1.and(future_2)
               }
         
-        // TODO: make these receive a future, so we
-        // can try to coordinate the eventloopgroup shutdown
         
-        let future_1 = s1.stop()
+        let future_1 = server.stop()
         future_1.whenComplete { result in
             print(self.DEBUG_TAG+"Server has completed shutdown")
             self.server = nil
         }
         
-        let future_2 = s2.stop()
+        let future_2 = registrationServer.stop()
         future_2.whenComplete { result in
             print(self.DEBUG_TAG+"Registration Server has completed shutdown")
             self.registrationServer = nil
@@ -298,6 +289,7 @@ final class MainCoordinator: NSObject, Coordinator {
         
         return future_1.and(future_2)
     }
+    
     
     
     
@@ -345,11 +337,13 @@ extension MainCoordinator: ErrorDelegate {
     
     func reportError(_ error: Error, withMessage message: String) {
         
-        print(DEBUG_TAG+"error reported: \(error) \n\twith message: \(message)")
-        
-        // only the main controller has an error screen, for now
-        if let vc = navController.visibleViewController as? ViewController {
-            vc.showErrorScreen()
+        DispatchQueue.main.async {
+            print(self.DEBUG_TAG+"error reported: \(error) \n\twith message: \(message)")
+            
+            // only the main controller has an error screen, for now
+            if let vc = self.navController.visibleViewController as? ViewController {
+                vc.showErrorScreen()
+            }
         }
         
     }

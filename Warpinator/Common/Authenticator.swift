@@ -41,7 +41,7 @@ final class Authenticator {
     }
     
     
-    // MARK: - unbox cert string
+    // MARK: - unlock cert string
     func unlockCertificate(_ certificateString: String) -> NIOSSLCertificate? {
         guard let decodedCertificateData = Data(base64Encoded: certificateString,
                                                 options: .ignoreUnknownCharacters) else {
@@ -53,7 +53,7 @@ final class Authenticator {
     
     
     
-    // MARK: - unbox cert data
+    // MARK: - unlock cert data
     func unlockCertificate(_ certificateData: Data) -> NIOSSLCertificate? {
         
         
@@ -147,35 +147,14 @@ final class Authenticator {
         
         return messageBytesEncoded
     }
-    
-    
-    
-    // MARK: - server cert
-    func getServerCertificate() throws -> NIOSSLCertificate {
-        
-        let sec_cert = try KeyMaster.readCertificate(forTag: SettingsManager.shared.uuid)
-        
-        let bytes = Array(sec_cert.derEncoded)
-        
-        return try NIOSSLCertificate(bytes: bytes , format: .der)
-    }
 
-    // MARK: - server p_key
-    func getServerPrivateKey() throws -> NIOSSLPrivateKey {
-        
-        let sec_key = try KeyMaster.readPrivateKey(forTag: SettingsManager.shared.uuid)
-        
-        let keyBytes = Array( try sec_key.encode() )
-        
-        return try NIOSSLPrivateKey.init(bytes: keyBytes, format: .der)
-    }
     
     
     
     
+    // MARK: getServer Credentials
     typealias Credentials = (certificate: NIOSSLCertificate, key: NIOSSLPrivateKey)
     var credential_generation_attempts: Int = 0
-    
     
     func getServerCredentials() throws -> Credentials {
         
@@ -209,11 +188,29 @@ final class Authenticator {
         } // If an error of any other type occurs,
         // then something real broken, so propogate back up
         
-        
-        
         return credentials
-        
     }
+    
+    // MARK: cert
+    func getServerCertificate() throws -> NIOSSLCertificate {
+        
+        let sec_cert = try KeyMaster.readCertificate(forTag: SettingsManager.shared.uuid)
+        
+        let bytes = Array(sec_cert.derEncoded)
+        
+        return try NIOSSLCertificate(bytes: bytes , format: .der)
+    }
+
+    // MARK: private key
+    func getServerPrivateKey() throws -> NIOSSLPrivateKey {
+        
+        let sec_key = try KeyMaster.readPrivateKey(forTag: SettingsManager.shared.uuid)
+        
+        let keyBytes = Array( try sec_key.encode() )
+        
+        return try NIOSSLPrivateKey.init(bytes: keyBytes, format: .der)
+    }
+    
     
     
     
