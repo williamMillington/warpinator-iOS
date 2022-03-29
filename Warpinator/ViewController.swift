@@ -118,6 +118,7 @@ final class ViewController: UIViewController {
         for view in remotesStack.arrangedSubviews as! [ListedRemoteView]{
             if view.viewModel!.uuid == uuid {
                 remotesStack.removeArrangedSubview(view)
+                view.removeFromSuperview()
                 return
             }
         }

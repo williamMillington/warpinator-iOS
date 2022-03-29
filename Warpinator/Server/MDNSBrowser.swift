@@ -10,6 +10,7 @@ import Network
 
 protocol MDNSBrowserDelegate {
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result)
+    func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result)
 }
 
 
@@ -116,13 +117,23 @@ final class MDNSBrowser {
             case .added(let result):
                 print(DEBUG_TAG+"result added \(change)")
                 
-                DispatchQueue.main.async { // results in UI update
-                    self.delegate?.mDNSBrowserDidAddResult(result)
+//                DispatchQueue.main.async { // results in UI update
+                    delegate?.mDNSBrowserDidAddResult(result)
+//                }
+            case .changed(old: let old, new: let new, flags: let flags):
+                print(DEBUG_TAG+"\t\(old.endpoint) changed to \(new.endpoint), \(flags)")
+                switch flags {
+                case .identical: print(DEBUG_TAG+"\t\tidentical")
+                case .interfaceRemoved: print(DEBUG_TAG+"\t\tinterfaceRemoved")
+                case .interfaceAdded: print(DEBUG_TAG+"\t\tinterfaceAdded")
+                case .metadataChanged: print(DEBUG_TAG+"\t\tmetadataChanged")
+                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
                 }
-            case .changed(old: _, new: let new, flags: let flags):
-                print(DEBUG_TAG+"\t\t\(new.endpoint), \(flags)")
-            default: break //;print(DEBUG_TAG+"unforeseen result change")
-            
+            case .removed(let result):
+                print(DEBUG_TAG+"result removed \(result)")
+                delegate?.mDNSBrowserDidRemoveResult(result)
+            default: print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
+                
             }
             
         }
