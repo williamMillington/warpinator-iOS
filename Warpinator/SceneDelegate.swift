@@ -50,7 +50,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         print(DEBUG_TAG+"sceneDidBecomeActive")
         coordinator?.startServers()
     }
-
+    
     func sceneWillResignActive(_ scene: UIScene) {
         // Called when the scene will move from an active state to an inactive state.
         // This may occur due to temporary interruptions (ex. an incoming phone call).
@@ -62,27 +62,45 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to undo the changes made on entering the background.
         print(DEBUG_TAG+"sceneWillEnterForeground")
     }
-
+    
     func sceneDidEnterBackground(_ scene: UIScene) {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
         
-        let future = coordinator?.beginShutdown()
+        print(DEBUG_TAG+"sceneDidEnterBackground")
         
-        
-        
-        do {
-            let result = try future?.wait()
-            
-            print(DEBUG_TAG+"resulting of shutdown is \(String(describing: result))")
-            
-        } catch {
-            print(DEBUG_TAG+"Failed to block thread when shutting down")
+        guard let coordinator = coordinator else {
+            print(DEBUG_TAG+"Coordinator is nil")
+            return
         }
         
         
-        print(DEBUG_TAG+"sceneDidEnterBackground")
+        let future = coordinator.stopServers() //  .beginShutdown()
+        
+        future.whenCompleteBlocking(onto: .main ) { response in
+            
+            print(self.DEBUG_TAG+"shutdown future completed")
+            
+            do {
+                let result = try response.get()
+                print(self.DEBUG_TAG+"\t\tresult: \( result )")
+            } catch {
+                print(self.DEBUG_TAG+"\t\terror: \( error )")
+            }
+            
+//            coordinator.shutdownEventLoops()
+        }
+        
+//        do {
+//            try future.wait()
+//
+//            print(DEBUG_TAG+"successfully waited for shutdown)")
+//
+//        } catch {
+//            print(DEBUG_TAG+"Failed to block thread when shutting down")
+//        }
+        
         
     }
 

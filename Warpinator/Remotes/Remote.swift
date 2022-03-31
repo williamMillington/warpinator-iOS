@@ -190,8 +190,14 @@ public class Remote {
     
     //
     // MARK: disconnect
-    func disconnect(_ error: Error? = nil){
-        print(self.DEBUG_TAG+"channel disconnected")
+    func disconnect(_ error: Error? = nil) -> EventLoopFuture<Void>? {
+        
+        print(self.DEBUG_TAG+"disconnecting remote...")
+        
+        guard let channel = channel else {
+                  print(DEBUG_TAG+"\tremote already disconnected"); return nil
+              }
+        
         
         // stop all transfers
         for operation in sendingOperations {
@@ -199,21 +205,38 @@ public class Remote {
                 operation.orderStop(TransferError.ConnectionInterrupted)
             }
         }
+        
         for operation in receivingOperations {
             if [.TRANSFERRING, .INITIALIZING].contains(operation.status) {
                 operation.orderStop( TransferError.ConnectionInterrupted )
             }
         }
         
-        warpClient = nil
-        let _ = channel?.close()
         
         if let error = error {
             print(DEBUG_TAG+"\twith error: \(error)")
         }
         
-        details.status = .Disconnected
+//        warpClient = nil
+        let future = channel.close()
         
+//        future.whenSuccess {
+//            self.warpClient = nil
+//        }
+        future.whenComplete { response in
+            print(self.DEBUG_TAG+"channel finished closing")
+            do {
+                let result = try response.get()
+                print(self.DEBUG_TAG+"\t\tresult: \(result)")
+            } catch  {
+                    print(self.DEBUG_TAG+"\t\terror: \(error)")
+            }
+            self.warpClient = nil
+            self.details.status = .Disconnected
+        }
+        
+//        details.status = .Disconnected
+        return future
     }
     
     
@@ -292,7 +315,7 @@ extension Remote {
             // check number of tries (10)
             guard self.duplexAttempts < 10 else {
                 print(self.DEBUG_TAG+"unable to establish duplex")
-                self.disconnect( DuplexError.DuplexNotEstablished )
+                _ = self.disconnect( DuplexError.DuplexNotEstablished )
                 return
             }
             
@@ -495,7 +518,7 @@ extension Remote {
                 case .success(_):
                     self.details.status = .Connected
                     operation.startReceive(usingClient: client) // if still connected, proceed with sending
-                case .failure(let error): self.disconnect(error)          // if connection is dead, signal disconnect
+                case .failure(let error): _ = self.disconnect(error)          // if connection is dead, signal disconnect
                 }
             }
             return
@@ -572,7 +595,7 @@ extension Remote {
                 case .success(_):
                     self.details.status = .Connected
                     self.sendRequest(toTransfer: operation) // if still connected, proceed with sending
-                case .failure(let error): self.disconnect(error)          // if connection is dead, signal disconnect
+                case .failure(let error): _ = self.disconnect(error)          // if connection is dead, signal disconnect
                 }
             }
             return
@@ -655,11 +678,11 @@ extension Remote: ConnectivityStateDelegate {
             
             print(DEBUG_TAG+"\tTransientFailure #\(transientFailureCount)")
             if transientFailureCount == 10 {
-                disconnect( AuthenticationError.ConnectionError )
+                _ = disconnect( AuthenticationError.ConnectionError )
             }
         case .idle:
             details.status = .Idle
-        case .shutdown: disconnect()
+//        case .shutdown:  _ = disconnect()
         default: break
         }
         
@@ -685,7 +708,7 @@ extension Remote: ClientErrorDelegate {
             print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
             authenticationCertificate = nil
             
-            disconnect()
+            _ = disconnect()
             startConnection()
         } else {
             print(DEBUG_TAG+"Unknown error: \(error)")

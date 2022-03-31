@@ -97,9 +97,9 @@ final class ViewController: UIViewController {
     // MARK: remote added
     func remoteAdded(_ remote: Remote){
         
-        let viewModel = ListedRemoteViewModel(remote)
-        
         print(DEBUG_TAG+"Adding view for connection \(viewModel.displayName)")
+        
+        let viewModel = ListedRemoteViewModel(remote)
         
         let remoteView = ListedRemoteView(withViewModel: viewModel) {
             self.coordinator?.remoteSelected(viewModel.uuid)
@@ -176,7 +176,7 @@ final class ViewController: UIViewController {
 
 
 
-// MARK: Error View
+// MARK: - Error View
 final class ErrorView: UIView {
     
     private let DEBUG_TAG: String = "ErrorView: "

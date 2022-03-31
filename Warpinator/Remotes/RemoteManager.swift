@@ -22,7 +22,8 @@ final class RemoteManager {
     
     var remoteEventloopGroup: EventLoopGroup?
     
-    
+    let queueLabel = "RemoteManagerCleanupQueue"
+    lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
     
     
 //    // TODO remove this feature.
@@ -80,16 +81,27 @@ final class RemoteManager {
         }
         
         
-        remote.disconnect()
+        let future = remote.disconnect()
         
-        remotes.removeValue(forKey: remote.details.uuid)
-        
-        DispatchQueue.main.async {
-            self.remotesViewController?.remoteRemoved(with: uuid)
+        future?.whenComplete { result in
+            
+            self.remotes.removeValue(forKey: remote.details.uuid)
+            
+            DispatchQueue.main.async {
+                self.remotesViewController?.remoteRemoved(with: uuid)
+            }
+            
+            print(self.DEBUG_TAG+"\t remote removed")
         }
-        
-        print(DEBUG_TAG+"\t remote removed")
-        
+//
+//        remotes.removeValue(forKey: remote.details.uuid)
+//
+//        DispatchQueue.main.async {
+//            self.remotesViewController?.remoteRemoved(with: uuid)
+//        }
+//
+//        print(DEBUG_TAG+"\t remote removed")
+//
     }
     
     
@@ -132,12 +144,92 @@ final class RemoteManager {
     
     
     // MARK: shutdown all remotes
-    func shutdownAllRemotes() {
+    func shutdownAllRemotes() -> EventLoopFuture<Void>? {
         
-        remotes.values.forEach { remote in
-            remote.disconnect()
+        print(DEBUG_TAG+"shutting down all remotes")
+        
+        guard let eventloop = remoteEventloopGroup?.next() else {
+            return nil
         }
         
+//        let promise = eventloop.makePromise(of: Void.self)
+        
+//        let firstFuture = eventloop.makeSucceededVoidFuture()
+//        for remote in remotes.values {
+//            let f = remote.disconnect()
+//        }
+        
+        let futures = remotes.values.compactMap { remote in
+            return remote.disconnect()
+        }
+        
+//        let lastFuture =  EventLoopFuture.whenAllComplete(futures, on: eventloop)
+        
+        let future = EventLoopFuture.whenAllComplete(futures, on: eventloop).map { _ -> Void in
+            print(self.DEBUG_TAG+"Remotes have finished shutting down")
+//            return {}()
+//            return eventloop.makeSucceededVoidFuture()
+        }
+        
+        
+        
+        return future //eventloop.makeSucceededVoidFuture() //EventLoopFuture.whenAllComplete(futures, on: eventloop)
+//        let lastFuture = futures.reduce(firstFuture, { (lastFuture, thisFuture) in
+//
+//            let nextFuture = lastFuture.map {
+//
+//            }
+//
+//            return eventloop.makeSucceededVoidFuture()
+//        })
+        
+        
+//        let future = eventloop.submit {
+//
+//            let futures = self.remotes.values.compactMap { $0.disconnect() }
+//
+//            futures.forEach { future in
+//                do {
+//                    try future.wait()
+//                    print(self.DEBUG_TAG+"disconnection successful")
+//                }
+//                catch {
+//                    print(self.DEBUG_TAG+"disconnection unsuccessful: \(error)")
+//                } // if something cancels this 'wait', it doesn't matter
+//            }
+//
+//
+//        }
+        
+        
+        // make a promise that we're waiting for all the remotes to shut down
+        // if a shutdown fails
+//        cleanupQueue.async {
+//            let futures = self.remotes.values.compactMap { $0.disconnect() }
+//
+//            futures.forEach { future in
+//                do {
+//                    try future.wait()
+//                    print(self.DEBUG_TAG+"")
+//                }
+//                catch { } // if something cancels this 'wait', it doesn't matter
+//            }
+//
+//            // succeed promise
+////            promise.su
+//        }
+        
+//        return future
+        
+//        var futures: [EventLoopFuture<Void>] = []
+//
+//        remotes.values.forEach { remote in
+//            if let future = remote.disconnect() {
+//                futures.append( future )
+//            }
+//        }
+        
+//        return futures
     }
     
 }

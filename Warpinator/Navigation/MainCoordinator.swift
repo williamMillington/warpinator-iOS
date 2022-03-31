@@ -122,30 +122,65 @@ final class MainCoordinator: NSObject, Coordinator {
             reportError(error, withMessage: "Server future failed")
         }
         
+    }
+    
+    
+    func shutdownConnections() -> EventLoopFuture<Void> {
         
+//        do {
+            return remoteManager.shutdownAllRemotes() ?? errorEventLoop.next().makeSucceededVoidFuture()
+//        } catch {
+//            print(DEBUG_TAG+"shutdownConnection failed: \(error)")
+//            return errorEventLoop.next().makeSucceededVoidFuture()
+//        }
         
         
     }
     
     
+    
     //
     // MARK: stop servers
-    func stopServers() -> EventLoopFuture<(Void, Void)> {
+//    func stopServers() -> EventLoopFuture<(Void, Void)> {
+    func stopServers() -> EventLoopFuture<Void> {
+        
         print(DEBUG_TAG+"stopping servers... ")
         
-        remoteManager.shutdownAllRemotes()
+//        var futures = remoteManager.shutdownAllRemotes()
+        let remoteFuture = shutdownConnections()
         
         guard let server = server,
               let registrationServer = registrationServer else {
-                  let future_1 = errorEventLoop.next().makeSucceededVoidFuture()
-                  let future_2 = errorEventLoop.next().makeSucceededVoidFuture()
-                  return future_1.and(future_2)
+                  return errorEventLoop.next().makeSucceededVoidFuture()
               }
         
-        let server_future = server.stop()
-        let registration_future = registrationServer.stop()
         
-        return server_future.and( registration_future )
+        
+        // I thiink is how you chain futures together
+        return remoteFuture.flatMap {
+            return server.stop()
+        }.flatMap {
+            return registrationServer.stop()
+        }
+        
+//        let server_future = server.stop()
+//        let registration_future = registrationServer.stop()
+        
+        
+//        let future
+        
+//        return combinedFuture
+//        serverEventLoopGroup.next().submit {
+//
+//            do { try remoteFuture.wait() }
+//            catch { print(self.DEBUG_TAG+"registration server failed to stop: \(error)")  }
+//
+//            do { try registration_future.wait() }
+//            catch { print(self.DEBUG_TAG+"registration server failed to stop: \(error)")  }
+//
+//            do { try server_future.wait() }
+//            catch { print(self.DEBUG_TAG+"server failed to stop: \(error)")  }
+//        }
         
     }
     
@@ -155,6 +190,7 @@ final class MainCoordinator: NSObject, Coordinator {
     func restartServers(){
         
         let stopFuture = stopServers()
+        
         
         
         stopFuture.whenFailure { error in
@@ -261,32 +297,42 @@ final class MainCoordinator: NSObject, Coordinator {
     
     //
     // MARK: shutdown
-    func beginShutdown() -> EventLoopFuture<(Void, Void)> {
+    func beginShutdown() -> EventLoopFuture<Void> {
         
-        remoteManager.shutdownAllRemotes()
+//        remoteManager.shutdownAllRemotes()
+//
+//        guard let server = server,
+//              let registrationServer = registrationServer else {
+//                  let future_1 = errorEventLoop.next().makeSucceededVoidFuture()
+//                  let future_2 = errorEventLoop.next().makeSucceededVoidFuture()
+//                  return future_1.and(future_2)
+//              }
+//
+//
+//        let future_1 = server.stop()
+//        future_1.whenComplete { result in
+//            print(self.DEBUG_TAG+"Server has completed shutdown")
+//            self.server = nil
+//        }
+//
+//        let future_2 = registrationServer.stop()
+//        future_2.whenComplete { result in
+//            print(self.DEBUG_TAG+"Registration Server has completed shutdown")
+//            self.registrationServer = nil
+//        }
         
-        guard let server = server,
-              let registrationServer = registrationServer else {
-                  let future_1 = errorEventLoop.next().makeSucceededVoidFuture()
-                  let future_2 = errorEventLoop.next().makeSucceededVoidFuture()
-                  return future_1.and(future_2)
-              }
-        
-        
-        let future_1 = server.stop()
-        future_1.whenComplete { result in
-            print(self.DEBUG_TAG+"Server has completed shutdown")
-            self.server = nil
-        }
-        
-        let future_2 = registrationServer.stop()
-        future_2.whenComplete { result in
-            print(self.DEBUG_TAG+"Registration Server has completed shutdown")
-            self.registrationServer = nil
-        }
+        let future = stopServers()
         
         
         
+        
+        return future
+    }
+    
+    
+    func shutdownEventLoops(){
+        print(self.DEBUG_TAG+"shutting down eventloop")
+        // TODO: find a way to sync these
         serverEventLoopGroup?.shutdownGracefully (queue:  .main) { error in
             print(self.DEBUG_TAG+"Completed serverEventLoopGroup shutdown")
             self.serverEventLoopGroup = nil
@@ -297,11 +343,7 @@ final class MainCoordinator: NSObject, Coordinator {
             print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
             self.remoteEventLoopGroup = nil
         }
-        
-        
-        return future_1.and(future_2)
     }
-    
     
     
     
