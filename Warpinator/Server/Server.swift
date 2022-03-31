@@ -95,6 +95,12 @@ final class Server {
     func start() throws -> EventLoopFuture<GRPC.Server>  {
         
 //        do {
+        
+        // don't create a new server if we have one going already
+        if let server = server {
+            return server.channel.eventLoop.makeSucceededFuture(server)
+        }
+        
             let credentials = try authenticationManager.getServerCredentials()
             
             let serverCertificate =  credentials.certificate
@@ -136,7 +142,12 @@ final class Server {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
-        return server.initiateGracefulShutdown()
+        let future = server.initiateGracefulShutdown()
+        future.whenComplete { _ in
+            self.server = nil
+        }
+        
+        return future
     }
     
     

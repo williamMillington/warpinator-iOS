@@ -391,7 +391,7 @@ extension MainCoordinator: ErrorDelegate {
     
     func reportError(_ error: Error, withMessage message: String) {
         
-        print(self.DEBUG_TAG+"error reported: \(error) \n\twith message: \(message)")
+        print(self.DEBUG_TAG+"error reported: \(error) \twith message: \(message)")
         
         
         // Error reporting that updates UI --MUST-- be done on Main thread

@@ -97,9 +97,9 @@ final class ViewController: UIViewController {
     // MARK: remote added
     func remoteAdded(_ remote: Remote){
         
-        print(DEBUG_TAG+"Adding view for connection \(viewModel.displayName)")
-        
         let viewModel = ListedRemoteViewModel(remote)
+        
+//        print(DEBUG_TAG+"Adding view for connection \(viewModel.displayName)")
         
         let remoteView = ListedRemoteView(withViewModel: viewModel) {
             self.coordinator?.remoteSelected(viewModel.uuid)
@@ -130,6 +130,11 @@ final class ViewController: UIViewController {
     func showErrorScreen(){
         
         print(DEBUG_TAG+"showing error screen")
+        
+        guard errorScreen == nil else {
+            print(DEBUG_TAG+"screen already up")
+            return
+        }
         
         errorScreen = ErrorView(onTap: {
             self.hideErrorScreen()

@@ -181,15 +181,16 @@ final class Authenticator {
             
             credentials = (cert, key)
             
-        } catch Server.ServerError.CREDENTIALS_INVALID {
+        } catch Server.ServerError.CREDENTIALS_INVALID { //TODO: unnecessary try catch
             
             return try getServerCredentials()
-            
         } // If an error of any other type occurs,
-        // then something real broken, so propogate back up
+        // then something real broken, so let it propogate back up
         
+        credential_generation_attempts = 0 // reset upon success
         return credentials
     }
+    
     
     // MARK: cert
     func getServerCertificate() throws -> NIOSSLCertificate {

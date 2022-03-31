@@ -60,6 +60,8 @@ final class RegistrationServer {
     // MARK: start
     func start(){
         
+        guard server == nil else { return }
+        
         let portNumber = Int( settingsManager.registrationPortNumber )
         
         GRPC.Server.insecure(group: eventLoopGroup)
@@ -70,7 +72,6 @@ final class RegistrationServer {
                 
                 self.server = server
                 self.startMDNSServices()
-                
             }
     }
     
@@ -84,10 +85,14 @@ final class RegistrationServer {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
-        mDNSListener.stop()
-        mDNSBrowser.stop()
+        stopMDNSServices()
         
-        return server.initiateGracefulShutdown()
+        let future = server.initiateGracefulShutdown()
+        future.whenComplete { _ in
+            self.server = nil
+        }
+        
+        return future
     }
     
     
