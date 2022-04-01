@@ -223,16 +223,16 @@ public class Remote {
 //        future.whenSuccess {
 //            self.warpClient = nil
 //        }
-        future.whenComplete { response in
-            print(self.DEBUG_TAG+"channel finished closing")
+        future.whenComplete { [weak self] response in
+            print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "channel finished closing")
             do {
-                let result = try response.get()
-                print(self.DEBUG_TAG+"\t\tresult: \(result)")
+                let _ = try response.get()
+                print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "\t\tsuccessfully waited for")
             } catch  {
-                    print(self.DEBUG_TAG+"\t\terror: \(error)")
+                    print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "\t\terror: \(error)")
             }
-            self.warpClient = nil
-            self.details.status = .Disconnected
+            self?.warpClient = nil
+            self?.details.status = .Disconnected
         }
         
 //        details.status = .Disconnected
@@ -294,7 +294,7 @@ extension Remote {
             do {
                 let haveDuplex = try result.get()
                 
-                print(self.DEBUG_TAG+"haveDuplex result is \(haveDuplex.response)")
+//                print(self.DEBUG_TAG+"haveDuplex result is \(haveDuplex.response)")
                 
                 // if acquired
                 if haveDuplex.response {

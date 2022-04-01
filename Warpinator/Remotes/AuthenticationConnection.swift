@@ -292,20 +292,42 @@ final class GRPCConnection: AuthenticationConnection {
 //        let options = CallOptions(timeLimit: .timeout( .seconds(10)), logger: logger )
 //        let options = CallOptions(logger: logger )
 
-        let registrationRequest = warpClient?.requestCertificate(request)
+        let requestFuture = warpClient?.requestCertificate(request).response
 
-        registrationRequest?.response.whenSuccess { result in
-            if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
-                self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
-            } else {
-                self.registree.failedToObtainCertificate(forRemote: self.details, .CertificateError)
+        
+        requestFuture?.whenComplete { [weak self] response in
+            guard let self = self else { return }
+            
+            do {
+                let result = try response.get()
+                print(self.DEBUG_TAG + "result is \(result)")
+                
+                if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert) {
+                    self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
+                } else {
+                    self.registree.failedToObtainCertificate(forRemote: self.details, .CertificateError)
+                }
+                
+            } catch {
+                print( self.DEBUG_TAG + "request failed because: \(error)")
+                self.registree.failedToObtainCertificate(forRemote: self.details, .ConnectionError)
             }
+            
+            self.finish()
         }
         
-        registrationRequest?.response.whenFailure { error in
-            print(self.DEBUG_TAG+"Certificate request failed: \(error)")
-            self.registree.failedToObtainCertificate(forRemote: self.details, .ConnectionError)
-        }
+//        requestFuture?.whenSuccess { result in
+//            if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
+//                self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
+//            } else {
+//                self.registree.failedToObtainCertificate(forRemote: self.details, .CertificateError)
+//            }
+//        }
+        
+//        requestFuture?.whenFailure { error in
+//            print(self.DEBUG_TAG+"Certificate request failed: \(error)")
+//            self.registree.failedToObtainCertificate(forRemote: self.details, .ConnectionError)
+//        }
     }
     
     
@@ -313,7 +335,23 @@ final class GRPCConnection: AuthenticationConnection {
     // MARK: finish
     func finish(){
         warpClient = nil
-        _ = channel?.close()
+//        _ = channel?.close()
+        let future = channel?.close()
+        
+//        future.whenSuccess {
+//            self.warpClient = nil
+//        }
+        future?.whenComplete { [weak self] response in
+            print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"channel finished closing")
+            do {
+                let _ = try response.get()
+                print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"\t\tresult retrieved")
+            } catch  {
+                    print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"\t\terror: \(error)")
+            }
+            self?.warpClient = nil
+            self?.details.status = .Disconnected
+        }
     }
 }
 

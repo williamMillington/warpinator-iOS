@@ -38,7 +38,9 @@ final class RegistrationServer {
     lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
 
     
-    init(eventloopGroup group: EventLoopGroup, settingsManager manager: SettingsManager, remoteManager: RemoteManager) {
+    init(eventloopGroup group: EventLoopGroup,
+         settingsManager manager: SettingsManager,
+         remoteManager: RemoteManager) {
         
         eventLoopGroup = group
         settingsManager = manager
@@ -66,12 +68,12 @@ final class RegistrationServer {
         
         GRPC.Server.insecure(group: eventLoopGroup)
             .withServiceProviders([warpinatorRegistrationProvider])
-            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber).whenSuccess { server in
+            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber).whenSuccess { [weak self] server in
                 
-                print(self.DEBUG_TAG+"registration server started on: \(String(describing: server.channel.localAddress))")
+                print((self?.DEBUG_TAG ?? "(server is nil): ")+"registration server started on: \(String(describing: server.channel.localAddress))")
                 
-                self.server = server
-                self.startMDNSServices()
+                self?.server = server
+                self?.startMDNSServices()
             }
     }
     
@@ -88,9 +90,9 @@ final class RegistrationServer {
         stopMDNSServices()
         
         let future = server.initiateGracefulShutdown()
-        future.whenComplete { _ in
-            self.server = nil
-        }
+//        future.whenComplete { [weak self] _ in
+//            self?.server = nil
+//        }
         
         return future
     }
@@ -134,9 +136,9 @@ extension RegistrationServer {
     
     func mockStart(){
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            print(self.DEBUG_TAG+"mocking registration")
-            self.mockRegistration()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            print((self?.DEBUG_TAG ?? "(server is nil): ")+"mocking registration")
+            self?.mockRegistration()
         }
     }
     

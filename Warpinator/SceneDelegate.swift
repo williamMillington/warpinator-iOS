@@ -78,13 +78,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let future = coordinator.stopServers() //  .beginShutdown()
         
-        future.whenCompleteBlocking(onto: .main ) { response in
+        future?.whenCompleteBlocking(onto: .main ) { response in
             
             print(self.DEBUG_TAG+"shutdown future completed")
             
             do {
-                let result = try response.get()
-                print(self.DEBUG_TAG+"\t\tresult: \( result )")
+                let _ = try response.get()
+                print(self.DEBUG_TAG+"\t\tsuccessfully waited")
             } catch {
                 print(self.DEBUG_TAG+"\t\terror: \( error )")
             }

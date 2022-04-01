@@ -117,13 +117,13 @@ final class Server {
                       port: Int( settingsManager.transferPortNumber ))
             
             
-            future.whenSuccess { server in
-                print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
-                self.server = server
+            future.whenSuccess { [weak self] server in
+                print((self?.DEBUG_TAG ?? "(server is nil): ")+"transfer server started on: \(String(describing: server.channel.localAddress))")
+                self?.server = server
             }
             
-            future.whenFailure { error in
-                print(self.DEBUG_TAG+"transfer server failed: \(error))")
+            future.whenFailure { [weak self] error in
+                print( (self?.DEBUG_TAG ?? "(server is nil): ") + "transfer server failed: \(error))")
             }
             
             return future
@@ -131,7 +131,6 @@ final class Server {
 //            errorDelegate?.reportError(error, withMessage: "Unexpected error while starting server")
 //        }
         
-
 //        return nil
     }
     
@@ -143,9 +142,9 @@ final class Server {
         }
         
         let future = server.initiateGracefulShutdown()
-        future.whenComplete { _ in
-            self.server = nil
-        }
+//        future.whenComplete { [weak self] _ in
+//            self?.server = nil
+//        }
         
         return future
     }

@@ -73,7 +73,7 @@ final class RemoteManager {
     
     // MARK: remove Remote
     func removeRemote(withUUID uuid: String){
-            print(DEBUG_TAG+"removing remote...")
+        print(DEBUG_TAG+"removing remote...")
         
         guard let remote = remotes[uuid] else {
             print(DEBUG_TAG+"\t remote not found")
@@ -83,15 +83,15 @@ final class RemoteManager {
         
         let future = remote.disconnect()
         
-        future?.whenComplete { result in
+        future?.whenComplete { [weak self] result in
             
-            self.remotes.removeValue(forKey: remote.details.uuid)
+            self?.remotes.removeValue(forKey: remote.details.uuid)
             
             DispatchQueue.main.async {
-                self.remotesViewController?.remoteRemoved(with: uuid)
+                self?.remotesViewController?.remoteRemoved(with: uuid)
             }
             
-            print(self.DEBUG_TAG+"\t remote removed")
+//            print(self.DEBUG_TAG+"\t remote removed")
         }
 //
 //        remotes.removeValue(forKey: remote.details.uuid)
@@ -103,27 +103,6 @@ final class RemoteManager {
 //        print(DEBUG_TAG+"\t remote removed")
 //
     }
-    
-    
-    //
-    // MARK storeIPAddress
-//    func storeIPAddress(_ address: String, forHostname hostname: String){
-//
-//        print(DEBUG_TAG+"storing address (\(address)) for \(hostname)")
-//
-//        // TODO this fails if two remotes share a hostname. Not good. No bueno.
-//        // Can't use uuid because it's not provided in the Registration request
-//        remotes.forEach { (key,remote) in
-//            if remote.details.hostname == hostname {
-//                print(self.DEBUG_TAG+"\tfound remote for hostname\(hostname)")
-//                remote.details.ipAddress = address
-//                remote.startConnection()
-//                return
-//            }
-//        }
-//
-//        ipPlaceHolders[hostname] = address
-//    }
     
     
     //
@@ -149,6 +128,7 @@ final class RemoteManager {
         print(DEBUG_TAG+"shutting down all remotes")
         
         guard let eventloop = remoteEventloopGroup?.next() else {
+            print(DEBUG_TAG+"No eventloop")
             return nil
         }
         
@@ -165,8 +145,9 @@ final class RemoteManager {
         
 //        let lastFuture =  EventLoopFuture.whenAllComplete(futures, on: eventloop)
         
-        let future = EventLoopFuture.whenAllComplete(futures, on: eventloop).map { _ -> Void in
-            print(self.DEBUG_TAG+"Remotes have finished shutting down")
+        let future = EventLoopFuture.whenAllComplete(futures, on: eventloop).map { [weak self] _ -> Void in
+            print("RemoteManager: Remotes have finished shutting down")
+            self?.remotes.removeAll()
 //            return {}()
 //            return eventloop.makeSucceededVoidFuture()
         }
@@ -242,7 +223,7 @@ extension RemoteManager: MDNSBrowserDelegate {
     // MARK: mDNS result added
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
-        print(DEBUG_TAG+"mDNSBrowser added result: \(result.endpoint)")
+//        print(DEBUG_TAG+"mDNSBrowser added result: \(result.endpoint)")
         
         // ignore result:
         // - if result has metadata,

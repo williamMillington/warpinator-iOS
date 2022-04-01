@@ -13,7 +13,7 @@ import CryptoKit
 import Sodium
 
 
-protocol MDNSListenerDelegate {
+protocol MDNSListenerDelegate: AnyObject {
     func mDNSListenerIsReady()
 }
 
@@ -32,7 +32,7 @@ final class MDNSListener {
     
     private var certificateServer = CertificateServer()
     var listener: NWListener?
-    var delegate: MDNSListenerDelegate?
+    weak var delegate: MDNSListenerDelegate?
     var settingsManager: SettingsManager
     
     let queueLabel = "MDNSListenerQueue"
@@ -129,16 +129,16 @@ final class MDNSListener {
         listener = try! NWListener(using: params, on: port )
         
         listener?.newConnectionHandler = { connection in  connection.cancel() }
-        listener?.stateUpdateHandler = { state in
+        listener?.stateUpdateHandler = { [weak self] state in
             print("flushing listener (\(state))")
             
             // wait 2 seconds and stop
             // wait 2 more seconds re-publish for realsies
             if case .ready = state {
-                self.listenerQueue.asyncAfter(deadline: .now() + 2) {
-                    self.stop()
-                    self.listenerQueue.asyncAfter(deadline: .now() + 2) {
-                        self.publishServiceAndListen()
+                self?.listenerQueue.asyncAfter(deadline: .now() + 2) {
+                    self?.stop()
+                    self?.listenerQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
+                        self?.publishServiceAndListen()
                     }
                 }
             }
@@ -184,14 +184,14 @@ final class MDNSListener {
         
         connections[connection.endpoint] = connection
         
-        connection.stateUpdateHandler = { [self] state in
+        connection.stateUpdateHandler = { [weak self] state in
             
-            print(DEBUG_TAG+"\(connection.endpoint) updated state: \(state)")
+            print((self?.DEBUG_TAG ?? "(MDNSListener is nil): ")+"\(connection.endpoint) updated state: \(state)")
             
             // serve certificate as soon as connection is ready
             if case .ready = state {
-                self.certificateServer.serveCertificate(to: connection) {
-                    self.connections.removeValue(forKey: connection.endpoint)
+                self?.certificateServer.serveCertificate(to: connection) { [weak self] in
+                    self?.connections.removeValue(forKey: connection.endpoint)
                     connection.cancel()
                 }
             }

@@ -75,9 +75,9 @@ final class MDNSBrowser {
     // MARK:  restart
     func restart(){
         print(self.DEBUG_TAG+"restarting in 2 seconds...")
-        self.browserQueue.asyncAfter(deadline: .now() + 2) {
-            self.stop()
-            self.start()
+        self.browserQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.stop()
+            self?.start()
         }
     }
     
@@ -115,7 +115,7 @@ final class MDNSBrowser {
             
             switch change {
             case .added(let result):
-                print(DEBUG_TAG+"result added \(change)")
+//                print(DEBUG_TAG+"result added \(change)")
                 
                 delegate?.mDNSBrowserDidAddResult(result)
                 
@@ -129,7 +129,7 @@ final class MDNSBrowser {
 //                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
 //                }
             case .removed(let result):
-                print(DEBUG_TAG+"result removed \(result)")
+//                print(DEBUG_TAG+"result removed \(result)")
                 delegate?.mDNSBrowserDidRemoveResult(result)
             default: break //print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
                 
