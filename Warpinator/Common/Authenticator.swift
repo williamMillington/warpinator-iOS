@@ -181,7 +181,9 @@ final class Authenticator {
             
             credentials = (cert, key)
             
-        } catch Server.ServerError.CREDENTIALS_INVALID { //TODO: unnecessary try catch
+        } catch Server.ServerError.CREDENTIALS_INVALID {
+            
+            //TODO: unnecessary to catch invalid credentials. But need to catch itemnotfound
             
             return try getServerCredentials()
         } // If an error of any other type occurs,
