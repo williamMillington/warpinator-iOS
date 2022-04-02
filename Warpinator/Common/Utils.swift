@@ -17,7 +17,7 @@ public class Utils {
     
     
     static let borderColour: UIColor = #colorLiteral(red: 0.7877369523, green: 0.7877556682, blue: 0.7877456546, alpha: 1)
-    static let backgroundColour: UIColor = #colorLiteral(red: 0.9531012177, green: 0.9531235099, blue: 0.9531114697, alpha: 1)
+    static let backgroundColour: UIColor = #colorLiteral(red: 0.9495073678, green: 0.9495073678, blue: 0.9495073678, alpha: 1)
     static let foregroundColour: UIColor = #colorLiteral(red: 0.9688121676, green: 0.9688346982, blue: 0.9688225389, alpha: 1)
     static let textColour: UIColor = #colorLiteral(red: 0.2464925945, green: 0.2464992404, blue: 0.2464956939, alpha: 1)
     

@@ -46,6 +46,8 @@ final class ViewController: UIViewController {
     var errorScreen: ErrorView?
     
     
+    //
+    // MARK: viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -66,7 +68,7 @@ final class ViewController: UIViewController {
         IPaddressLabel.attributedText = NSAttributedString(string: ipstring,
                                                            attributes: [ .font: UIFont.systemFont(ofSize: 20,
                                                                                                   weight: .light)])
-        
+        view.backgroundColor = Utils.backgroundColour
 //        showErrorScreen()
     }
 
@@ -105,8 +107,6 @@ final class ViewController: UIViewController {
             self.coordinator?.remoteSelected(viewModel.uuid)
         }
         
-        // insert right before expanderviewr
-//        remotesStack.insertArrangedSubview(remoteView, at: (remotesStack.arrangedSubviews.count - 1) )
         remotesStack.insertArrangedSubview(remoteView, at: (remotesStack.arrangedSubviews.count) )
     }
     
@@ -149,7 +149,7 @@ final class ViewController: UIViewController {
             errorScreen!.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             errorScreen!.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             errorScreen!.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
-            errorScreen!.bottomAnchor.constraint(equalTo: IPaddressLabel.topAnchor, constant: 10)
+            errorScreen!.bottomAnchor.constraint(equalTo: displayNameLabel.topAnchor, constant: -5)
         ]
         
         NSLayoutConstraint.activate(constraints)
@@ -189,6 +189,7 @@ final class ErrorView: UIView {
     let errorAnnouncementLabel: UILabel = {
         let label = UILabel()
         label.text = "An error occurred, tap to restart server "
+        label.textColor = Utils.textColour
         label.tintColor = Utils.textColour
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -235,11 +236,12 @@ final class ErrorView: UIView {
         
         NSLayoutConstraint.activate(constraints)
         
-        backgroundColor = UIColor.blue.withAlphaComponent(0.5)//Utils.foregroundColour
+//        backgroundColor = UIColor.blue.withAlphaComponent(0.5)
+        backgroundColor = Utils.backgroundColour
         
-        layer.cornerRadius = 5
+//        layer.cornerRadius = 5
         
-        layer.borderWidth = 1
+//        layer.borderWidth = 1
 //        layer.borderColor = Utils.borderColour.cgColor
         
     }
