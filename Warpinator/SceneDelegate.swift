@@ -11,7 +11,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     private let DEBUG_TAG: String = "SceneDelegate: "
     
-
     var window: UIWindow?
     
     var coordinator: MainCoordinator?
@@ -89,18 +88,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 print(self.DEBUG_TAG+"\t\terror: \( error )")
             }
             
-//            coordinator.shutdownEventLoops()
         }
-        
-//        do {
-//            try future.wait()
-//
-//            print(DEBUG_TAG+"successfully waited for shutdown)")
-//
-//        } catch {
-//            print(DEBUG_TAG+"Failed to block thread when shutting down")
-//        }
-        
         
     }
 

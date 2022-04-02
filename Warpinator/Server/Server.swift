@@ -57,11 +57,7 @@ final class Server {
     
     var errorDelegate: ErrorDelegate?
     
-    // We have to capture the serverBuilder future here or it will sometimes be
-    // deallocated before it can finish
-//    var future: EventLoopFuture<GRPC.Server>?
     var server: GRPC.Server?
-    
     
     let queueLabel = "WarpinatorServerQueue"
     lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
@@ -94,8 +90,6 @@ final class Server {
     // MARK: start
     func start() throws -> EventLoopFuture<GRPC.Server>  {
         
-//        do {
-        
         // don't create a new server if we have one going already
         if let server = server {
             return server.channel.eventLoop.makeSucceededFuture(server)
@@ -127,11 +121,6 @@ final class Server {
             }
             
             return future
-//        } catch {
-//            errorDelegate?.reportError(error, withMessage: "Unexpected error while starting server")
-//        }
-        
-//        return nil
     }
     
     
@@ -141,12 +130,7 @@ final class Server {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
-        let future = server.initiateGracefulShutdown()
-//        future.whenComplete { [weak self] _ in
-//            self?.server = nil
-//        }
-        
-        return future
+        return server.initiateGracefulShutdown()
     }
     
     

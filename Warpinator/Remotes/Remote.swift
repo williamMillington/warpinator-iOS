@@ -217,12 +217,8 @@ public class Remote {
             print(DEBUG_TAG+"\twith error: \(error)")
         }
         
-//        warpClient = nil
         let future = channel.close()
         
-//        future.whenSuccess {
-//            self.warpClient = nil
-//        }
         future.whenComplete { [weak self] response in
             print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "channel finished closing")
             do {
@@ -235,7 +231,6 @@ public class Remote {
             self?.details.status = .Disconnected
         }
         
-//        details.status = .Disconnected
         return future
     }
     
@@ -294,8 +289,6 @@ extension Remote {
             do {
                 let haveDuplex = try result.get()
                 
-//                print(self.DEBUG_TAG+"haveDuplex result is \(haveDuplex.response)")
-                
                 // if acquired
                 if haveDuplex.response {
                     
@@ -337,7 +330,6 @@ extension Remote {
         guard let client = warpClient else {
             print(DEBUG_TAG+"no client connection"); return
         }
-        
         
         print(self.DEBUG_TAG+"pinging")
         
@@ -381,7 +373,7 @@ extension Remote {
         var avatarBytes: Data = Data()
         
         let imageCall = warpClient?.getRemoteMachineAvatar(lookupName) { avatar in
-            print(self.DEBUG_TAG+"avatar chunk is \(avatar.avatarChunk.count) bytes long")
+//            print(self.DEBUG_TAG+"avatar chunk is \(avatar.avatarChunk.count) bytes long")
             avatarBytes.append( avatar.avatarChunk )
         }
         
@@ -518,7 +510,7 @@ extension Remote {
                 case .success(_):
                     self.details.status = .Connected
                     operation.startReceive(usingClient: client) // if still connected, proceed with sending
-                case .failure(let error): _ = self.disconnect(error)          // if connection is dead, signal disconnect
+                case .failure(let error): _ = self.disconnect(error) // if connection is dead, signal disconnect
                 }
             }
             return
@@ -595,7 +587,7 @@ extension Remote {
                 case .success(_):
                     self.details.status = .Connected
                     self.sendRequest(toTransfer: operation) // if still connected, proceed with sending
-                case .failure(let error): _ = self.disconnect(error)          // if connection is dead, signal disconnect
+                case .failure(let error): _ = self.disconnect(error) // if connection is dead, signal disconnect
                 }
             }
             return

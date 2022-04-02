@@ -89,19 +89,13 @@ final class RegistrationServer {
         
         stopMDNSServices()
         
-        let future = server.initiateGracefulShutdown()
-//        future.whenComplete { [weak self] _ in
-//            self?.server = nil
-//        }
-        
-        return future
+        return server.initiateGracefulShutdown()
     }
     
     
     //
     // MARK:  startMDNSServices
     private func startMDNSServices(){
-//        print(DEBUG_TAG+"Starting MDNS services...")
         mDNSListener.start()
     }
     

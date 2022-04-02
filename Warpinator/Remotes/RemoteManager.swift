@@ -22,18 +22,6 @@ final class RemoteManager {
     
     var remoteEventloopGroup: EventLoopGroup?
     
-    let queueLabel = "RemoteManagerCleanupQueue"
-    lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
-    
-    
-//    // TODO remove this feature.
-//    // - Warp registration returns wrong address (I think is a bug in OG Warpinator?)
-//    // - IP is now secured during authentication
-//    /* if WarpRegistration receives a request BEFORE we detect a remote
-//     with that hostname, then store that IP address here so we can update that
-//     remote once it is detected   [hostname:ipaddress] */
-//    var ipPlaceHolders : [String:String] = [:]
-//
     
     //
     // MARK: add Remote
@@ -42,13 +30,6 @@ final class RemoteManager {
         
         remote.eventloopGroup = remoteEventloopGroup 
         remotes[remote.details.uuid] = remote
-        
-//        // if we've stored the ip address of a remote with that hostname
-//        // This is probably not great, for the same reason listed down in
-//        // storeIPAddress()
-//        if let address = ipPlaceHolders[remote.details.hostname] {
-//            remote.details.ipAddress = address
-//        }
         
         DispatchQueue.main.async {
             self.remotesViewController?.remoteAdded(remote)
@@ -66,6 +47,7 @@ final class RemoteManager {
             print(DEBUG_TAG+"\t remote not found")
             return
         }
+        
         remote.startConnection()
     }
     
@@ -90,18 +72,7 @@ final class RemoteManager {
             DispatchQueue.main.async {
                 self?.remotesViewController?.remoteRemoved(with: uuid)
             }
-            
-//            print(self.DEBUG_TAG+"\t remote removed")
         }
-//
-//        remotes.removeValue(forKey: remote.details.uuid)
-//
-//        DispatchQueue.main.async {
-//            self.remotesViewController?.remoteRemoved(with: uuid)
-//        }
-//
-//        print(DEBUG_TAG+"\t remote removed")
-//
     }
     
     
@@ -132,87 +103,20 @@ final class RemoteManager {
             return nil
         }
         
-//        let promise = eventloop.makePromise(of: Void.self)
-        
-//        let firstFuture = eventloop.makeSucceededVoidFuture()
-//        for remote in remotes.values {
-//            let f = remote.disconnect()
-//        }
         
         let futures = remotes.values.compactMap { remote in
             return remote.disconnect()
         }
         
-//        let lastFuture =  EventLoopFuture.whenAllComplete(futures, on: eventloop)
-        
-        let future = EventLoopFuture.whenAllComplete(futures, on: eventloop).map { [weak self] _ -> Void in
+        //
+        // whoops a hack
+        let future = EventLoopFuture.whenAllComplete(futures, on: eventloop).map { _ -> Void in
             print("RemoteManager: Remotes have finished shutting down")
-//            self?.remotes.removeAll()
-//            return {}()
-//            return eventloop.makeSucceededVoidFuture()
         }
         
         
-        
-        return future //eventloop.makeSucceededVoidFuture() //EventLoopFuture.whenAllComplete(futures, on: eventloop)
-//        let lastFuture = futures.reduce(firstFuture, { (lastFuture, thisFuture) in
-//
-//            let nextFuture = lastFuture.map {
-//
-//            }
-//
-//            return eventloop.makeSucceededVoidFuture()
-//        })
-        
-        
-//        let future = eventloop.submit {
-//
-//            let futures = self.remotes.values.compactMap { $0.disconnect() }
-//
-//            futures.forEach { future in
-//                do {
-//                    try future.wait()
-//                    print(self.DEBUG_TAG+"disconnection successful")
-//                }
-//                catch {
-//                    print(self.DEBUG_TAG+"disconnection unsuccessful: \(error)")
-//                } // if something cancels this 'wait', it doesn't matter
-//            }
-//
-//
-//        }
-        
-        
-        // make a promise that we're waiting for all the remotes to shut down
-        // if a shutdown fails
-//        cleanupQueue.async {
-//            let futures = self.remotes.values.compactMap { $0.disconnect() }
-//
-//            futures.forEach { future in
-//                do {
-//                    try future.wait()
-//                    print(self.DEBUG_TAG+"")
-//                }
-//                catch { } // if something cancels this 'wait', it doesn't matter
-//            }
-//
-//            // succeed promise
-////            promise.su
-//        }
-        
-//        return future
-        
-//        var futures: [EventLoopFuture<Void>] = []
-//
-//        remotes.values.forEach { remote in
-//            if let future = remote.disconnect() {
-//                futures.append( future )
-//            }
-//        }
-        
-//        return futures
+        return future
     }
-    
 }
 
 
@@ -222,8 +126,6 @@ extension RemoteManager: MDNSBrowserDelegate {
     
     // MARK: mDNS result added
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
-        
-//        print(DEBUG_TAG+"mDNSBrowser added result: \(result.endpoint)")
         
         // ignore result:
         // - if result has metadata,
@@ -244,7 +146,7 @@ extension RemoteManager: MDNSBrowserDelegate {
             
             serviceName = name
             
-            // Check if we found own MDNS record
+            // Check if we found our own MDNS record
             if name == SettingsManager.shared.uuid {
                 print(DEBUG_TAG+"\t\tFound myself (\(result.endpoint))"); return
             } else {
@@ -255,7 +157,7 @@ extension RemoteManager: MDNSBrowserDelegate {
         }
         
         
-        //
+        // some default values
         var hostname = serviceName
         var api = "1"
         var authPort = 42000
@@ -308,8 +210,6 @@ extension RemoteManager: MDNSBrowserDelegate {
     
     // MARK: mDNS result removed
     func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result) {
-        
-        print(DEBUG_TAG+"mDNSBrowser removed result: \(result.endpoint)")
         
         // check metadata for "type",
         // and if type is 'flush', then ignore
