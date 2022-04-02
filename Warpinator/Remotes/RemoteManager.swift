@@ -147,7 +147,7 @@ final class RemoteManager {
         
         let future = EventLoopFuture.whenAllComplete(futures, on: eventloop).map { [weak self] _ -> Void in
             print("RemoteManager: Remotes have finished shutting down")
-            self?.remotes.removeAll()
+//            self?.remotes.removeAll()
 //            return {}()
 //            return eventloop.makeSucceededVoidFuture()
         }
