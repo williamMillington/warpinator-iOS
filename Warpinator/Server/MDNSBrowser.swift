@@ -35,6 +35,9 @@ final class MDNSBrowser {
     func start(){
         
         guard browser == nil else {
+            if browser!.state != .ready {
+                start()
+            }
             print(DEBUG_TAG+"Browser already running");  return
         }
         
@@ -66,7 +69,7 @@ final class MDNSBrowser {
     func stop(){
         
         browser?.cancel()
-        browser = nil
+//        browser = nil
         
     }
     
@@ -87,15 +90,18 @@ final class MDNSBrowser {
     // MARK:  stateDidUpdate
     private func stateDidUpdate(newState: NWBrowser.State){
         
-//        print(DEBUG_TAG+"statedidupdate")
+        print(DEBUG_TAG+"statedidupdate")
         
         switch newState {
+        case .cancelled: print(DEBUG_TAG+" cancelled")
+            browser = nil
         case .failed(let error):
             print(DEBUG_TAG+"failed")
             // Restart the browser if it loses its connection
             if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
-                print(DEBUG_TAG+"Browser failed with \(error), restarting")
-                restart()
+                print(DEBUG_TAG+"Browser failed with \(error)")
+//                restart()
+                self.stop()
             } else {
                 print(DEBUG_TAG+"Browser failed with \(error), stopping")
                 self.stop()

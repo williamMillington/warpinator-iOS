@@ -76,12 +76,16 @@ final class MainCoordinator: NSObject, Coordinator {
         // servers MUST be stopped before starting
         guard server == nil, registrationServer == nil else {
             print(DEBUG_TAG+"Servers are already running")
+            registrationServer?.startMDNSServices()
             return
         }
         
         // create eventloops
-        serverEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-        remoteEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+        serverEventLoopGroup = serverEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+        remoteEventLoopGroup = remoteEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+        
+//        serverEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+//        remoteEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
         
         // remoteManager is responsible for providing remotes with their eventloop
         remoteManager.remoteEventloopGroup = remoteEventLoopGroup
@@ -114,7 +118,10 @@ final class MainCoordinator: NSObject, Coordinator {
 //            }
             
             serverFuture?.whenFailure { error in
+                self.server = nil
+                self.registrationServer = nil
                 self.reportError(error, withMessage: "Server future failed")
+                
             }
             
             serverFuture?.whenSuccess { server in
@@ -125,6 +132,8 @@ final class MainCoordinator: NSObject, Coordinator {
             }
             
         } catch {
+            self.server = nil
+            self.registrationServer = nil
             reportError(error, withMessage: "Server future failed")
         }
         
@@ -149,6 +158,7 @@ final class MainCoordinator: NSObject, Coordinator {
         remoteFuture?.whenComplete { response in
             
             print(self.DEBUG_TAG+"remotes completed disconnecting: ")
+            
             do {
                 try response.get()
                 print(self.DEBUG_TAG+"remotes finished: ")
@@ -166,17 +176,17 @@ final class MainCoordinator: NSObject, Coordinator {
         
         // I thiink is how you chain futures together
         return remoteFuture?.flatMap {
-            print(self.DEBUG_TAG+"stopping server")
-            return server.stop()
-        }.map {
-            print(self.DEBUG_TAG+"deleting server")
-            self.server = nil
-        }.flatMap {
             print(self.DEBUG_TAG+"stopping registration server")
             return registrationServer.stop()
         }.map {
             print(self.DEBUG_TAG+"deleting registration server")
             self.registrationServer = nil
+        }.flatMap {
+            print(self.DEBUG_TAG+"stopping server")
+            return server.stop()
+        }.map {
+            print(self.DEBUG_TAG+"deleting server")
+            self.server = nil
         }
         
     }
@@ -324,6 +334,33 @@ final class MainCoordinator: NSObject, Coordinator {
 
 
 
+// MARK: ErrorDelegate
+extension MainCoordinator: ErrorDelegate {
+    
+    func reportError(_ error: Error, withMessage message: String) {
+        
+        print(self.DEBUG_TAG+"error reported: \(error) \twith message: \(message)")
+        
+        
+        // Error reporting that updates UI --MUST-- be done on Main thread
+        DispatchQueue.main.async {
+            
+            // only the main controller has an error screen, for now
+            if let vc = self.navController.visibleViewController as? ViewController {
+                vc.showErrorScreen()
+            }
+        }
+        
+    }
+    
+}
+
+
+
+
+
+
+
 
 extension MainCoordinator {
     
@@ -343,28 +380,4 @@ extension MainCoordinator {
             
         }
     }
-}
-
-
-
-
-
-extension MainCoordinator: ErrorDelegate {
-    
-    func reportError(_ error: Error, withMessage message: String) {
-        
-        print(self.DEBUG_TAG+"error reported: \(error) \twith message: \(message)")
-        
-        
-        // Error reporting that updates UI --MUST-- be done on Main thread
-        DispatchQueue.main.async {
-            
-            // only the main controller has an error screen, for now
-            if let vc = self.navController.visibleViewController as? ViewController {
-                vc.showErrorScreen()
-            }
-        }
-        
-    }
-    
 }

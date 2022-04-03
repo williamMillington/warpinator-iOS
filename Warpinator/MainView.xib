@@ -58,7 +58,7 @@
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="DEB-JW-hIB" userLabel="RemoteStack">
                             <rect key="frame" x="0.0" y="0.0" width="337.5" height="67.5"/>
                             <subviews>
-                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rGd-ok-xcM" customClass="ListedRemoteView" customModule="MaybeWarpinator">
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rGd-ok-xcM" customClass="ListedRemoteView" customModule="Warpinator">
                                     <rect key="frame" x="0.0" y="0.0" width="337.5" height="67.5"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 </view>

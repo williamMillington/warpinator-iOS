@@ -287,7 +287,7 @@ final class GRPCConnection: AuthenticationConnection {
             
             do {
                 let result = try response.get()
-                print(self.DEBUG_TAG + "result is \(result)")
+//                print(self.DEBUG_TAG + "result is \(result)")
                 
                 if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert) {
                     self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
@@ -313,10 +313,10 @@ final class GRPCConnection: AuthenticationConnection {
         let future = channel?.close()
         
         future?.whenComplete { [weak self] response in
-            print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"channel finished closing")
+//            print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"channel finished closing")
             do {
                 let _ = try response.get()
-                print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"\t\tresult retrieved")
+//                print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"\t\tresult retrieved")
             } catch  {
                     print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"\t\terror: \(error)")
             }

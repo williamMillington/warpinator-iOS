@@ -18,6 +18,8 @@ import Logging
 
 final class Server {
     
+    //
+    // MARK: ServerError
     enum ServerError: Error {
         case NO_EVENTLOOP
         case CREDENTIALS_INVALID
@@ -130,7 +132,7 @@ final class Server {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
-        return server.initiateGracefulShutdown()
+        return server.close()  // .initiateGracefulShutdown()
     }
     
     

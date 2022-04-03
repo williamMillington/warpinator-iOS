@@ -89,20 +89,20 @@ final class RegistrationServer {
         
         stopMDNSServices()
         
-        return server.initiateGracefulShutdown()
+        return server.close() //  .initiateGracefulShutdown()
     }
     
     
     //
     // MARK:  startMDNSServices
-    private func startMDNSServices(){
+    func startMDNSServices(){
         mDNSListener.start()
     }
     
     
     //
     // MARK: stop mDNS
-    private func stopMDNSServices(){
+    func stopMDNSServices(){
         mDNSBrowser.stop()
         mDNSListener.stop()
     }
