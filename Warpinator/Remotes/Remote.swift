@@ -348,7 +348,7 @@ extension Remote {
     }
     
     
-    // MARK: getRemoteInfo
+    // MARK: remoteInfo
     func retrieveRemoteInfo(){
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
@@ -378,7 +378,7 @@ extension Remote {
         }
         
         imageCall?.status.whenSuccess { status in
-            print(self.DEBUG_TAG+"retrieved avatar, status \(status)")
+            print(self.DEBUG_TAG+"avatar status: \(status)")
             self.details.userImage = UIImage(data:  avatarBytes  )
             self.informObserversInfoDidChange()
         }

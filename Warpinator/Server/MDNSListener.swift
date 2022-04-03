@@ -87,6 +87,9 @@ final class MDNSListener {
         
         listener?.stateUpdateHandler = stateDidUpdate(state:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
+        listener?.serviceRegistrationUpdateHandler = { change in
+            print(self.DEBUG_TAG+"service changed: \(change)")
+        }
         
         
         let hostname = settingsManager.hostname
