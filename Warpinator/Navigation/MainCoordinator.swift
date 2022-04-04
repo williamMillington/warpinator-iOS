@@ -207,8 +207,9 @@ final class MainCoordinator: NSObject, Coordinator {
     // MARK: restart servers
     func restartServers(){
         
-        let stopFuture = stopServers()
+        stopMDNS()
         
+        let stopFuture = stopServers()
         stopFuture?.whenFailure { error in
             print(self.DEBUG_TAG+"servers failed to stop: \(error)")
         }

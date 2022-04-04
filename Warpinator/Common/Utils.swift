@@ -132,7 +132,8 @@ public class Utils {
     
     
     static func extractAddressInfo(fromConnection connection: NWConnection) -> AddressInfo? {
-        print(DEBUG_TAG+"extracting address from connection: \(connection)")
+        
+        print(DEBUG_TAG+"extracting address from connection: \(connection.endpoint)")
         if let ip4_string = connection.currentPath?.remoteEndpoint?.debugDescription {
             print(DEBUG_TAG+"\t address string: \(ip4_string))");
             

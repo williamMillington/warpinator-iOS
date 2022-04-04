@@ -673,7 +673,7 @@ extension Remote: ConnectivityStateDelegate {
                 _ = disconnect( AuthenticationError.ConnectionError )
             }
         case .idle:
-            details.status = .Idle
+//            details.status = .Idle
 //        case .shutdown:  _ = disconnect()
         default: break
         }
