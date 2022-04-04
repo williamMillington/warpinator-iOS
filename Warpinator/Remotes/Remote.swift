@@ -141,6 +141,7 @@ public class Remote {
     // MARK: startConnection
     func startConnection(){
         
+            print(DEBUG_TAG+"Starting connection...")
         duplexAttempts = 0
         transientFailureCount = 0
         
@@ -220,12 +221,12 @@ public class Remote {
         let future = channel.close()
         
         future.whenComplete { [weak self] response in
-            print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "channel finished closing")
+            
             do {
                 let _ = try response.get()
-                print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "\t\tsuccessfully waited for")
+                print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "\t\tchannel closed successfully")
             } catch  {
-                    print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "\t\terror: \(error)")
+                    print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "\t\tchannel closed with error: \(error)")
             }
             self?.warpClient = nil
             self?.details.status = .Disconnected
@@ -672,7 +673,7 @@ extension Remote: ConnectivityStateDelegate {
             if transientFailureCount == 10 {
                 _ = disconnect( AuthenticationError.ConnectionError )
             }
-        case .idle:
+//        case .idle:
 //            details.status = .Idle
 //        case .shutdown:  _ = disconnect()
         default: break

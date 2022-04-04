@@ -117,6 +117,12 @@ final class MDNSBrowser {
     private func resultsDidChange(results: Set<NWBrowser.Result>,
                                   changes: Set<NWBrowser.Result.Change>){
         
+        print(DEBUG_TAG+"RESULTS CHANGED")
+        
+        results.forEach { result in
+            print(self.DEBUG_TAG+"\t\t\(result)")
+        }
+        
         for change in changes {
             
             switch change {
@@ -125,15 +131,15 @@ final class MDNSBrowser {
                 
                 delegate?.mDNSBrowserDidAddResult(result)
                 
-//            case .changed(old: let old, new: let new, flags: let flags):
-//                print(DEBUG_TAG+"\t\(old.endpoint) changed to \(new.endpoint), \(flags)")
-//                switch flags {
-//                case .identical: print(DEBUG_TAG+"\t\tidentical")
-//                case .interfaceRemoved: print(DEBUG_TAG+"\t\tinterfaceRemoved")
-//                case .interfaceAdded: print(DEBUG_TAG+"\t\tinterfaceAdded")
-//                case .metadataChanged: print(DEBUG_TAG+"\t\tmetadataChanged")
-//                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
-//                }
+            case .changed(old: let old, new: let new, flags: let flags):
+                print(DEBUG_TAG+"\t\(old.endpoint) changed to \(new.endpoint), \(flags)")
+                switch flags {
+                case .identical: print(DEBUG_TAG+"\t\tidentical")
+                case .interfaceRemoved: print(DEBUG_TAG+"\t\tinterfaceRemoved")
+                case .interfaceAdded: print(DEBUG_TAG+"\t\tinterfaceAdded")
+                case .metadataChanged: print(DEBUG_TAG+"\t\tmetadataChanged")
+                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
+                }
             case .removed(let result):
 //                print(DEBUG_TAG+"result removed \(result)")
                 delegate?.mDNSBrowserDidRemoveResult(result)

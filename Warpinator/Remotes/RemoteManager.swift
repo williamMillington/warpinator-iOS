@@ -55,7 +55,7 @@ final class RemoteManager {
     
     // MARK: remove Remote
     func removeRemote(withUUID uuid: String){
-        print(DEBUG_TAG+"removing remote...")
+        print(DEBUG_TAG+"removing remote with UUID: \(uuid) ...")
         
         guard let remote = remotes[uuid] else {
             print(DEBUG_TAG+"\t remote not found")
@@ -72,6 +72,8 @@ final class RemoteManager {
             DispatchQueue.main.async {
                 self?.remotesViewController?.remoteRemoved(with: uuid)
             }
+            
+            print((self?.DEBUG_TAG ?? "RemoteManager is nil")+"\tremote removed")
         }
     }
     
@@ -127,6 +129,8 @@ extension RemoteManager: MDNSBrowserDelegate {
     // MARK: mDNS result added
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
+        print(DEBUG_TAG+"ADDED result \(result.endpoint)")
+        
         // ignore result:
         // - if result has metadata,
         // - AND if the metadata has a record "type",
@@ -134,7 +138,7 @@ extension RemoteManager: MDNSBrowserDelegate {
         guard case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
            let type = record.dictionary["type"],
            type != "flush" else {
-            print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
+            print(DEBUG_TAG+"\t\t service is flushing; ignore"); return
         }
         
         
@@ -142,15 +146,13 @@ extension RemoteManager: MDNSBrowserDelegate {
         switch result.endpoint {
         case .service(name: let name, type: _, domain: _, interface: _):
             
-            print(DEBUG_TAG+"Found service \(name) (at endpoint: \(result.endpoint))")
-            
             serviceName = name
             
             // Check if we found our own MDNS record
             if name == SettingsManager.shared.uuid {
-                print(DEBUG_TAG+"\t\tFound myself (\(result.endpoint))"); return
+                print(DEBUG_TAG+"\t\t Found myself"); return
             } else {
-                print(DEBUG_TAG+"service discovered: \(name)")
+                print(DEBUG_TAG+"\t\t New service discovered: \(name)")
             }
             
         default: print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
@@ -181,11 +183,11 @@ extension RemoteManager: MDNSBrowserDelegate {
         // check if we already know this remote
         if let remote = containsRemote(for: serviceName) {
             
-            print(DEBUG_TAG+"Service already added")
+            print(DEBUG_TAG+"\t\t Service already added")
             
             // Are we connected?
             if [ .Disconnected, .Idle, .Error ].contains( remote.details.status ) {
-                print(DEBUG_TAG+"\t\t not connected: reconnecting...")
+                print(DEBUG_TAG+"\t\t\t not connected: reconnecting...")
                 remote.startConnection()
             }
             return
@@ -211,12 +213,14 @@ extension RemoteManager: MDNSBrowserDelegate {
     // MARK: mDNS result removed
     func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result) {
         
+        print(DEBUG_TAG+"REMOVED result \(result.endpoint)")
+        
         // check metadata for "type",
         // and if type is 'flush', then ignore
         if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
            let type = record.dictionary["type"],
            type == "flush" {
-            print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
+            print(DEBUG_TAG+"\t\t service is flushing; ignore"); return
         }
         
         
