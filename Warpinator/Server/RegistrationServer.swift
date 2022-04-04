@@ -21,60 +21,62 @@ final class RegistrationServer {
     
     private let DEBUG_TAG: String = "RegistrationServer: "
     
-    var mDNSBrowser: MDNSBrowser
-    var mDNSListener: MDNSListener
+//    var mDNSBrowser: MDNSBrowser
+//    var mDNSListener: MDNSListener
     
     var eventLoopGroup: EventLoopGroup
 
     private lazy var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
     
-    var remoteManager: RemoteManager
+//    var remoteManager: RemoteManager
     
     var settingsManager: SettingsManager
     
     var server : GRPC.Server?
     
-    let queueLabel = "RegistrationServerQueue"
-    lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
-
-    
     init(eventloopGroup group: EventLoopGroup,
-         settingsManager manager: SettingsManager,
-         remoteManager: RemoteManager) {
+         settingsManager manager: SettingsManager) { //},remoteManager: RemoteManager) {
         
         eventLoopGroup = group
         settingsManager = manager
-        self.remoteManager = remoteManager
+//        self.remoteManager = remoteManager
         
         
-        mDNSBrowser = MDNSBrowser()
-        mDNSBrowser.delegate = remoteManager
+//        mDNSBrowser = MDNSBrowser()
+//        mDNSBrowser.delegate = remoteManager
+//
+//        mDNSListener = MDNSListener(settingsManager: settingsManager)
         
-        mDNSListener = MDNSListener(settingsManager: settingsManager)
-        
-        defer {
-            mDNSListener.delegate = self
-        }
+//        defer {
+//            mDNSListener.delegate = self
+//        }
     }
     
     
     //
     // MARK: start
-    func start(){
+    func start() -> EventLoopFuture<GRPC.Server>  {
         
-        guard server == nil else { return }
+        // don't create a new server if we have one going already
+        if let server = server {
+            return server.channel.eventLoop.makeSucceededFuture(server)
+        }
         
         let portNumber = Int( settingsManager.registrationPortNumber )
         
-        GRPC.Server.insecure(group: eventLoopGroup)
+        let future = GRPC.Server.insecure(group: eventLoopGroup)
             .withServiceProviders([warpinatorRegistrationProvider])
-            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber).whenSuccess { [weak self] server in
-                
-                print((self?.DEBUG_TAG ?? "(server is nil): ")+"registration server started on: \(String(describing: server.channel.localAddress))")
+            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
+        
+        future.whenSuccess { [weak self] server in
+            
+            print((self?.DEBUG_TAG ?? "(server is nil): ")+"registration server started on: \(String(describing: server.channel.localAddress))")
                 
                 self?.server = server
-                self?.startMDNSServices()
+//                self?.startMDNSServices()
             }
+        
+        return future
     }
     
     
@@ -87,25 +89,25 @@ final class RegistrationServer {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
-        stopMDNSServices()
+//        stopMDNSServices()
         
         return server.close() //  .initiateGracefulShutdown()
     }
     
     
-    //
-    // MARK:  startMDNSServices
-    func startMDNSServices(){
-        mDNSListener.start()
-    }
+//    //
+//    // MARK:  startMDNSServices
+//    func startMDNSServices(){
+//        mDNSListener.start()
+//    }
     
     
-    //
-    // MARK: stop mDNS
-    func stopMDNSServices(){
-        mDNSBrowser.stop()
-        mDNSListener.stop()
-    }
+//    //
+//    // MARK: stop mDNS
+//    func stopMDNSServices(){
+//        mDNSBrowser.stop()
+//        mDNSListener.stop()
+//    }
     
     
 }
@@ -113,41 +115,41 @@ final class RegistrationServer {
 
 
 //
-// MARK: - MDNSListenerDelegate
-extension RegistrationServer: MDNSListenerDelegate {
-    func mDNSListenerIsReady() {
-        mDNSBrowser.start()
-    }
-}
+//// MARK: - MDNSListenerDelegate
+//extension RegistrationServer: MDNSListenerDelegate {
+//    func mDNSListenerIsReady() {
+//        mDNSBrowser.start()
+//    }
+//}
 
 
 
 
 
 
-// MARK: - Mock functions
-extension RegistrationServer {
-    
-    func mockStart(){
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            print((self?.DEBUG_TAG ?? "(server is nil): ")+"mocking registration")
-            self?.mockRegistration()
-        }
-    }
-    
-    
-    func mockRegistration(){
-        
-        for i in 0...5 {
-            
-            var mockDetails = RemoteDetails.MOCK_DETAILS
-            mockDetails.uuid = mockDetails.uuid + "__\(i)"
-            
-            let mockRemote = Remote(details: mockDetails)
-            
-            remoteManager.addRemote(mockRemote)
-        }
-        
-    }
-}
+//// MARK: - Mock functions
+//extension RegistrationServer {
+//
+//    func mockStart(){
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+//            print((self?.DEBUG_TAG ?? "(server is nil): ")+"mocking registration")
+//            self?.mockRegistration()
+//        }
+//    }
+//
+//
+//    func mockRegistration(){
+//
+//        for i in 0...5 {
+//
+//            var mockDetails = RemoteDetails.MOCK_DETAILS
+//            mockDetails.uuid = mockDetails.uuid + "__\(i)"
+//
+//            let mockRemote = Remote(details: mockDetails)
+//
+//            remoteManager.addRemote(mockRemote)
+//        }
+//
+//    }
+//}

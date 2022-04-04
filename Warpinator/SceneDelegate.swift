@@ -69,26 +69,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         print(DEBUG_TAG+"sceneDidEnterBackground")
         
-//        guard let coordinator = coordinator else {
-//            print(DEBUG_TAG+"Coordinator is nil")
-//            return
-//        }
-        
-        
-//        let future = coordinator.stopServers() //  .beginShutdown()
-//
-//        future?.whenCompleteBlocking(onto: .main ) { response in
-//
-//            print(self.DEBUG_TAG+"shutdown future completed")
-//
-//            do {
-//                let _ = try response.get()
-//                print(self.DEBUG_TAG+"\t\tsuccessfully waited")
-//            } catch {
-//                print(self.DEBUG_TAG+"\t\terror: \( error )")
-//            }
-//
-//        }
         
     }
 

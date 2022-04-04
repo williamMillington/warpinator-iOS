@@ -90,39 +90,41 @@ final class Server {
     
     //
     // MARK: start
-    func start() throws -> EventLoopFuture<GRPC.Server>  {
+    func start() -> EventLoopFuture<GRPC.Server>  {
         
         // don't create a new server if we have one going already
         if let server = server {
             return server.channel.eventLoop.makeSucceededFuture(server)
         }
         
-            let credentials = try authenticationManager.getServerCredentials()
-            
-            let serverCertificate =  credentials.certificate
-            let serverPrivateKey = credentials.key
+        guard let credentials = try? authenticationManager.getServerCredentials() else {
+            return eventLoopGroup.next().makeFailedFuture( ServerError.CREDENTIALS_GENERATION_ERROR )
+        }
         
-            //
-            // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
-            let future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
+        let serverCertificate =  credentials.certificate
+        let serverPrivateKey = credentials.key
+        
+        //
+        // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
+        let future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
                                                         certificateChain: [ serverCertificate  ],
                                                         privateKey: serverPrivateKey )
-                .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
-                .withServiceProviders( [ warpinatorProvider ] )
-                .bind(host: "\(Utils.getIP_V4_Address())",
-                      port: Int( settingsManager.transferPortNumber ))
-            
-            
-            future.whenSuccess { [weak self] server in
-                print((self?.DEBUG_TAG ?? "(server is nil): ")+"transfer server started on: \(String(describing: server.channel.localAddress))")
-                self?.server = server
-            }
-            
-            future.whenFailure { [weak self] error in
-                print( (self?.DEBUG_TAG ?? "(server is nil): ") + "transfer server failed: \(error))")
-            }
-            
-            return future
+            .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
+            .withServiceProviders( [ warpinatorProvider ] )
+            .bind(host: "\(Utils.getIP_V4_Address())",
+                  port: Int( settingsManager.transferPortNumber ))
+        
+        
+        future.whenSuccess { [weak self] server in
+            print((self?.DEBUG_TAG ?? "(server is nil): ")+"transfer server started on: \(String(describing: server.channel.localAddress))")
+            self?.server = server
+        }
+        
+        future.whenFailure { [weak self] error in
+            print( (self?.DEBUG_TAG ?? "(server is nil): ") + "transfer server failed: \(error))")
+        }
+        
+        return future
     }
     
     

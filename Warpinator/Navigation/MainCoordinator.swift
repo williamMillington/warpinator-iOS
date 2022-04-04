@@ -18,38 +18,38 @@ final class MainCoordinator: NSObject, Coordinator {
     var childCoordinators = [Coordinator]()
     var navController: UINavigationController
     
+    var mDNSBrowser: MDNSBrowser
+    var mDNSListener: MDNSListener
+    
+    
+    var settingsManager: SettingsManager = SettingsManager.shared
+    var authManager: Authenticator = Authenticator.shared
+    var remoteManager: RemoteManager = RemoteManager()
+    
     
     var serverEventLoopGroup: EventLoopGroup?
     var remoteEventLoopGroup: EventLoopGroup?
     
-    
-    var remoteManager: RemoteManager = RemoteManager()
-    
-    var settingsManager: SettingsManager = SettingsManager.shared
-    var authManager: Authenticator = Authenticator.shared
-    
-    
-    var server: Server?      // = Server(settingsManager: settingsManager,
-                                     //authenticationManager: authManager)
-    var registrationServer: RegistrationServer?      // = RegistrationServer(settingsManager: settingsManager)
-    
-    
-    // used when a method needs to return a future, but server/remote eventloops are in shutdown
-//    var errorEventLoop = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1)
-    
-//    let queueLabel = "MainCoordinatorCleanupQueue"
-//    lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
-    
-    
+    var server: Server?
+    var registrationServer: RegistrationServer?
     
     init(withNavigationController controller: UINavigationController){
         navController = controller
         
         navController.setNavigationBarHidden(true, animated: false)
-        
+
         Utils.lockOrientation(.portrait)
         
+        
+        mDNSBrowser = MDNSBrowser()
+        mDNSListener = MDNSListener(settingsManager: settingsManager)
+        
+        
         super.init()
+        
+        mDNSBrowser.delegate = remoteManager
+        mDNSListener.delegate = self
+        
 //        mockRemote()
     }
     
@@ -66,6 +66,16 @@ final class MainCoordinator: NSObject, Coordinator {
     }
     
     
+    //
+    func publishMDNS(){
+        mDNSListener.start()
+    }
+    
+    //
+    func stopMDNS(){
+        mDNSListener.stop()
+        mDNSBrowser.stop()
+    }
     
     //
     // MARK: start servers
@@ -73,19 +83,16 @@ final class MainCoordinator: NSObject, Coordinator {
         
         print(DEBUG_TAG+"starting servers...")
         
-        // servers MUST be stopped before starting
+        // servers need to be stopped before starting
         guard server == nil, registrationServer == nil else {
             print(DEBUG_TAG+"Servers are already running")
-            registrationServer?.startMDNSServices()
+            publishMDNS()
             return
         }
         
-        // create eventloops
+        // reuse existing eventloop ?? create new one
         serverEventLoopGroup = serverEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
         remoteEventLoopGroup = remoteEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-        
-//        serverEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-//        remoteEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
         
         // remoteManager is responsible for providing remotes with their eventloop
         remoteManager.remoteEventloopGroup = remoteEventLoopGroup
@@ -98,44 +105,48 @@ final class MainCoordinator: NSObject, Coordinator {
                         errorDelegate: self)
         
         registrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup!,
-                                                settingsManager: settingsManager,
-                                                remoteManager: remoteManager)
+                                                settingsManager: settingsManager)
         
-        // Try-catch handles errors thrown by me, related to authentication credentials.
-        // Errors from the GRPC server itself are captured in the serverFuture.whenFailure
-        do {
-            
-            let serverFuture = try server?.start()
-            
-            
-            //
-            // Test server failure
-//            let promise = serverEventLoopGroup?.next().makePromise(of: GRPC.Server.self)
-//            let serverFuture = promise?.futureResult
+        //
+        // Test server failure
+//        let promise = serverEventLoopGroup?.next().makePromise(of: GRPC.Server.self)
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            promise?.fail(Server.ServerError.SERVER_FAILURE)
+//        }
 //
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//                promise?.fail(Server.ServerError.SERVER_FAILURE)
-//            }
-            
-            serverFuture?.whenFailure { error in
+//        promise?.futureResult
+        
+        server?.start()
+        // what to do if server fails to start
+            .flatMapError { error in
                 self.server = nil
-                self.registrationServer = nil
-                self.reportError(error, withMessage: "Server future failed")
+                self.stopMDNS()
                 
+                return self.serverEventLoopGroup!.next().makeFailedFuture(error)
             }
-            
-            serverFuture?.whenSuccess { server in
-                print(self.DEBUG_TAG+"server succeeded")
-                // registrationServer is responsible for starting mDNS, so wait until
-                // our server is ready before announcing ourselves
-                self.registrationServer?.start()
+        
+        // return future that completes when registrationServer starts up
+            .flatMap { server in
+                return self.registrationServer!.start()
             }
-            
-        } catch {
-            self.server = nil
-            self.registrationServer = nil
-            reportError(error, withMessage: "Server future failed")
-        }
+        
+        // on registrationServer startup completion
+            .whenComplete { result in
+                
+                do {  _ = try result.get()   }
+                catch {
+                    
+                    // error outcome, something failed
+                    self.registrationServer = nil
+                    self.reportError(error, withMessage: "Server future failed")
+                    return
+                }
+                
+                
+                // success outcome, continue with starting up
+                // TODO: make a way to return a promise that succeeds when the listener/browser are ready
+                self.publishMDNS()
+            }
         
     }
     
@@ -300,22 +311,22 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    // MARK: shutdown
+    // MARK shutdown
     
-    func shutdownEventLoops(){
-        print(self.DEBUG_TAG+"shutting down eventloop")
-        // TODO: find a way to sync these
-        serverEventLoopGroup?.shutdownGracefully (queue:  .main) { error in
-            print(self.DEBUG_TAG+"Completed serverEventLoopGroup shutdown")
-            self.serverEventLoopGroup = nil
-        }
-        
-        
-        remoteEventLoopGroup?.shutdownGracefully(queue: .main) { error in
-            print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
-            self.remoteEventLoopGroup = nil
-        }
-    }
+//    func shutdownEventLoops(){
+//        print(self.DEBUG_TAG+"shutting down eventloop")
+//        // TODO: find a way to sync these
+//        serverEventLoopGroup?.shutdownGracefully (queue:  .main) { error in
+//            print(self.DEBUG_TAG+"Completed serverEventLoopGroup shutdown")
+//            self.serverEventLoopGroup = nil
+//        }
+//
+//
+//        remoteEventLoopGroup?.shutdownGracefully(queue: .main) { error in
+//            print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
+//            self.remoteEventLoopGroup = nil
+//        }
+//    }
     
     
     
@@ -350,34 +361,45 @@ extension MainCoordinator: ErrorDelegate {
                 vc.showErrorScreen()
             }
         }
-        
-    }
-    
-}
-
-
-
-
-
-
-
-
-extension MainCoordinator {
-    
-    func mockRemote(){
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            
-            for i in 0..<2 {
-                
-                var mockDetails = RemoteDetails.MOCK_DETAILS
-                mockDetails.uuid = mockDetails.uuid + "__\(i)\(i+1)"
-                
-                let mockRemote = Remote(details: mockDetails)
-                
-                self.remoteManager.addRemote(mockRemote)
-            }
-            
-        }
     }
 }
+
+
+
+//
+// MARK: - MDNSListenerDelegate
+extension MainCoordinator: MDNSListenerDelegate {
+    func mDNSListenerIsReady() {
+        mDNSBrowser.start()
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+//extension MainCoordinator {
+//
+//    func mockRemote(){
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//
+//            for i in 0..<2 {
+//
+//                var mockDetails = RemoteDetails.MOCK_DETAILS
+//                mockDetails.uuid = mockDetails.uuid + "__\(i)\(i+1)"
+//
+//                let mockRemote = Remote(details: mockDetails)
+//
+//                self.remoteManager.addRemote(mockRemote)
+//            }
+//
+//        }
+//    }
+//}
