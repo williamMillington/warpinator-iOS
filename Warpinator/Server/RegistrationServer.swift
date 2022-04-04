@@ -21,61 +21,43 @@ final class RegistrationServer {
     
     private let DEBUG_TAG: String = "RegistrationServer: "
     
-    var mDNSBrowser: MDNSBrowser
-    var mDNSListener: MDNSListener
-    
     var eventLoopGroup: EventLoopGroup
-
-    private lazy var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
-    
-    var remoteManager: RemoteManager
     
     var settingsManager: SettingsManager
     
     var server : GRPC.Server?
     
-    let queueLabel = "RegistrationServerQueue"
-    lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
-
-    
-    init(eventloopGroup group: EventLoopGroup, settingsManager manager: SettingsManager, remoteManager: RemoteManager) {
+    init(eventloopGroup group: EventLoopGroup,
+         settingsManager manager: SettingsManager) {
         
         eventLoopGroup = group
         settingsManager = manager
-        self.remoteManager = remoteManager
-        
-        
-        mDNSBrowser = MDNSBrowser()
-        mDNSBrowser.delegate = remoteManager
-        
-        mDNSListener = MDNSListener(settingsManager: settingsManager)
-//        mDNSListener.delegate = remoteManager
-        mDNSListener.settingsManager = settingsManager
-        
-        defer {
-            mDNSListener.delegate = self
-        }
     }
     
     
     //
     // MARK: start
-    func start(){
+    func start() -> EventLoopFuture<GRPC.Server>  {
         
-//        guard let registrationServerELG = eventLoopGroup else { return }
+        // don't create a new server if we have one going already
+        if let server = server {
+            return server.channel.eventLoop.makeSucceededFuture(server)
+        }
         
         let portNumber = Int( settingsManager.registrationPortNumber )
         
-        GRPC.Server.insecure(group: eventLoopGroup)
-            .withServiceProviders([warpinatorRegistrationProvider])
-            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber).whenSuccess { server in
+        let future = GRPC.Server.insecure(group: eventLoopGroup)
+            .withServiceProviders([ WarpinatorRegistrationProvider() ])
+            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
+        
+        future.whenSuccess { [weak self] server in
+            
+            print((self?.DEBUG_TAG ?? "(server is nil): ")+"registration server started on: \(String(describing: server.channel.localAddress))")
                 
-                print(self.DEBUG_TAG+"registration server started on: \(String(describing: server.channel.localAddress))")
-                
-                self.server = server
-                self.startMDNSServices()
-                
+                self?.server = server
             }
+        
+        return future
     }
     
     
@@ -88,189 +70,34 @@ final class RegistrationServer {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
-        mDNSListener.stop()
-        mDNSBrowser.stop()
-        
         return server.initiateGracefulShutdown()
     }
-    
-    
-    //
-    // MARK:  startMDNSServices
-    private func startMDNSServices(){
-        print(DEBUG_TAG+"Starting MDNS services...")
-//        mDNSBrowser = MDNSBrowser()
-//        mDNSBrowser.delegate = self
-        
-//        mDNSListener = MDNSListener(settingsManager: settingsManager)
-//        mDNSListener.delegate = self
-//        mDNSListener.settingsManager = settingsManager
-        mDNSListener.start()
-        
-        
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
-//            print(self.DEBUG_TAG+"RESTARTING IN  15...")
-//            self.mDNSBrowser?.restart()
-//        }
-        
-    }
-    
-    
-    //
-    // MARK: stop mDNS
-    private func stopMDNSServices(){
-        mDNSBrowser.stop()
-        mDNSListener.stop()
-    }
-    
-    
-    
-    
-    func mockStart(){
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            print(self.DEBUG_TAG+"mocking registration")
-            self.mockRegistration()
-        }
-    }
-    
-    
-
 }
 
 
-
+//// MARK: - Mock functions
+//extension RegistrationServer {
 //
-// MARK: - MDNSListenerDelegate
-extension RegistrationServer: MDNSListenerDelegate {
-    func mDNSListenerIsReady() {
-        mDNSBrowser.start()
-    }
-}
-
-
-
+//    func mockStart(){
 //
-//// MARK: - MDNSBrowserDelegate
-//extension RegistrationServer: MDNSBrowserDelegate {
-//
-//
-//
-//    // MARK didAddResult
-//    func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
-//
-//
-//        print(DEBUG_TAG+"mDNSBrowser added result:")
-//        print(DEBUG_TAG+"\t\(result.endpoint)")
-//
-//        // if the metadata has a record "type",
-//        // and if type is 'flush', then ignore this service
-//        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
-//           let type = record.dictionary["type"],
-//           type == "flush" {
-//            print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+//            print((self?.DEBUG_TAG ?? "(server is nil): ")+"mocking registration")
+//            self?.mockRegistration()
 //        }
-//        print(DEBUG_TAG+"assuming service is real, continuing...")
-//        print(DEBUG_TAG+"\tmetadata: \(result.metadata)")
-//
-//
-//        var serviceName = "unknown_service"
-//        switch result.endpoint {
-//        case .service(name: let name, type: _, domain: _, interface: _):
-//
-//            print(DEBUG_TAG+"Found service \(name) (at endpoint: \(result.endpoint))")
-//
-//            serviceName = name
-//
-//            // Check if we found own MDNS record
-//            if name == settingsManager.uuid {
-//                print(DEBUG_TAG+"\t\tFound myself (\(result.endpoint))"); return
-//            } else {
-//                print(DEBUG_TAG+"service discovered: \(name)")
-//            }
-//
-//        default: print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
-//        }
-//
-//
-//        //
-//        var hostname = serviceName
-//        var api = "1"
-//        var authPort = 42000
-//
-//        // parse TXT record for metadata
-//        if case let NWBrowser.Result.Metadata.bonjour(txtRecord) = result.metadata {
-//
-//            for (key, value) in txtRecord.dictionary {
-//                switch key {
-//                case "hostname": hostname = value
-//                case "api-version": api = value
-//                case "auth-port": authPort = Int(value) ?? 42000
-//                case "type": break
-//                default: print("unknown TXT record type: \"\(key)\":\"\(value)\"")
-//                }
-//            }
-//        }
-//
-//
-//
-//        // check if we already know this remote
-//        if let remote = remoteManager?.containsRemote(for: serviceName) {
-//
-//            print(DEBUG_TAG+"Service already added")
-//
-//            // Are we connected?
-//            if [ .Disconnected, .Idle, .Error ].contains(remote.details.status ) {
-//                print(DEBUG_TAG+"\t\t not connected: reconnecting...")
-//                remote.startConnection()
-//            }
-//            return
-//        }
-//
-//
-//        var details = RemoteDetails(endpoint: result.endpoint)
-//        details.hostname = hostname
-//        details.uuid = serviceName
-//        details.api = api
-//        details.port = 42000
-//        details.authPort = authPort //"42000"
-//        details.status = .Disconnected
-//
-//
-//        let newRemote = Remote(details: details)
-//
-//        remoteManager?.addRemote(newRemote)
 //    }
 //
 //
+//    func mockRegistration(){
 //
-//    func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result) {
+//        for i in 0...5 {
 //
+//            var mockDetails = RemoteDetails.MOCK_DETAILS
+//            mockDetails.uuid = mockDetails.uuid + "__\(i)"
 //
+//            let mockRemote = Remote(details: mockDetails)
 //
-//
-//
+//            remoteManager.addRemote(mockRemote)
+//        }
 //
 //    }
-//
-//
 //}
-
-
-
-//MARK: - Mock Registration
-extension RegistrationServer {
-    func mockRegistration(){
-        
-        for i in 0...5 {
-            
-            var mockDetails = RemoteDetails.MOCK_DETAILS
-            mockDetails.uuid = mockDetails.uuid + "__\(i)"
-            
-            let mockRemote = Remote(details: mockDetails)
-            
-            remoteManager.addRemote(mockRemote)
-        }
-        
-    }
-}

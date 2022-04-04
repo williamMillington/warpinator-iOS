@@ -9,6 +9,7 @@ import UIKit
 
 import GRPC
 import NIO
+import NIOSSL
 
 import Network
 
@@ -17,17 +18,23 @@ import Logging
 
 final class Server {
     
+    //
+    // MARK: ServerError
     enum ServerError: Error {
         case NO_EVENTLOOP
         case CREDENTIALS_INVALID
-        case CREDENTIALS_NOT_FOUND
+        case CREDENTIALS_UNAVAILABLE
+        case CREDENTIALS_GENERATION_ERROR
+        case SERVER_FAILURE
         case UKNOWN_ERROR
         
         var localizedDescription: String {
             switch self {
             case .NO_EVENTLOOP: return "No available eventloop"
             case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"
-            case .CREDENTIALS_NOT_FOUND: return "Server certificate and/or private key could not be found"
+            case .CREDENTIALS_UNAVAILABLE: return "Server certificate and/or private key could not be found"
+            case .CREDENTIALS_GENERATION_ERROR: return "Server credentials could not be created"
+            case .SERVER_FAILURE: return "Server failed to start"
             case .UKNOWN_ERROR: return "Server has encountered an unknown error"
             }
         }
@@ -50,12 +57,9 @@ final class Server {
     
     var authenticationManager: Authenticator
     
+    var errorDelegate: ErrorDelegate?
     
-    // We have to capture the serverBuilder future here or it will sometimes be
-    // deallocated before it can finish
-    var future: EventLoopFuture<GRPC.Server>?
     var server: GRPC.Server?
-    
     
     let queueLabel = "WarpinatorServerQueue"
     lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
@@ -70,12 +74,14 @@ final class Server {
     init(eventloopGroup group: EventLoopGroup,
          settingsManager settings: SettingsManager,
          authenticationManager authenticator: Authenticator,
-         remoteManager: RemoteManager) {
+         remoteManager: RemoteManager, errorDelegate delegate: ErrorDelegate) {
         
         eventLoopGroup = group
         settingsManager = settings
         authenticationManager = authenticator
         self.remoteManager = remoteManager
+        
+        errorDelegate = delegate
         
         warpinatorProvider.settingsManager = settingsManager
         warpinatorProvider.remoteManager = remoteManager
@@ -84,55 +90,41 @@ final class Server {
     
     //
     // MARK: start
-    func start() throws -> EventLoopFuture<GRPC.Server>  {
+    func start() -> EventLoopFuture<GRPC.Server>  {
         
-//        guard let serverELG = eventLoopGroup else {
-//            throw ServerError.NO_EVENTLOOP
-//        }
+        // don't create a new server if we have one going already
+        if let server = server {
+            return server.channel.eventLoop.makeSucceededFuture(server)
+        }
         
+        guard let credentials = try? authenticationManager.getServerCredentials() else {
+            return eventLoopGroup.next().makeFailedFuture( ServerError.CREDENTIALS_GENERATION_ERROR )
+        }
         
+        let serverCertificate =  credentials.certificate
+        let serverPrivateKey = credentials.key
         
-        do {
-            let serverCertificate = try authenticationManager.getServerCertificate()
-            let serverPrivateKey = try authenticationManager.getServerPrivateKey()
-        
-        
-            let certIsValid = authenticationManager.verify(certificate: serverCertificate)
-            
-            print(DEBUG_TAG+"verifying certificate")
-            print(DEBUG_TAG+"\t certificate is valid: \(certIsValid)")
-            
-            if !certIsValid {
-                throw Server.ServerError.CREDENTIALS_INVALID
-            }
-            
-            
-            //
-            // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
-            future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
+        //
+        // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
+        let future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
                                                         certificateChain: [ serverCertificate  ],
                                                         privateKey: serverPrivateKey )
-                .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
-                .withServiceProviders( [ warpinatorProvider ] )
-                .bind(host: "\(Utils.getIP_V4_Address())",
-                      port: Int( settingsManager.transferPortNumber ))
-            
-            
-            future?.whenSuccess { server in
-                print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
-                self.server = server
-            }
-            
-            future?.whenFailure { error in
-                print(self.DEBUG_TAG+"transfer server failed: \(error))")
-            }
-            
-        } catch {
-            print(DEBUG_TAG+"Error retrieving server credentials: \n\t\t \(error)")
-            throw ServerError.CREDENTIALS_NOT_FOUND
+            .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
+            .withServiceProviders( [ warpinatorProvider ] )
+            .bind(host: "\(Utils.getIP_V4_Address())",
+                  port: Int( settingsManager.transferPortNumber ))
+        
+        
+        future.whenSuccess { [weak self] server in
+            print((self?.DEBUG_TAG ?? "(server is nil): ")+"transfer server started on: \(String(describing: server.channel.localAddress))")
+            self?.server = server
         }
-
-        return future!
+        
+        future.whenFailure { [weak self] error in
+            print( (self?.DEBUG_TAG ?? "(server is nil): ") + "transfer server failed: \(error))")
+        }
+        
+        return future
     }
     
     

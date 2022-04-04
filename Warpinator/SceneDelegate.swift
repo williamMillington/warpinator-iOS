@@ -11,15 +11,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     private let DEBUG_TAG: String = "SceneDelegate: "
     
-
     var window: UIWindow?
     
     var coordinator: MainCoordinator?
     
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        print(DEBUG_TAG+"scene(willConnectTo: ...")
-        print(DEBUG_TAG+"printing nothing")
+        print(DEBUG_TAG+"scene(willConnectTo: )")
+        
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
@@ -51,7 +50,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         print(DEBUG_TAG+"sceneDidBecomeActive")
         coordinator?.startServers()
     }
-
+    
     func sceneWillResignActive(_ scene: UIScene) {
         // Called when the scene will move from an active state to an inactive state.
         // This may occur due to temporary interruptions (ex. an incoming phone call).
@@ -63,27 +62,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to undo the changes made on entering the background.
         print(DEBUG_TAG+"sceneWillEnterForeground")
     }
-
+    
     func sceneDidEnterBackground(_ scene: UIScene) {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
         
-        let future = coordinator?.beginShutdown()
-        
-        
-        
-        do {
-            let result = try future?.wait()
-            
-            print(DEBUG_TAG+"resulting of shutdown is \(String(describing: result))")
-            
-        } catch {
-            print(DEBUG_TAG+"Failed to block thread when shutting down")
-        }
-        
-        
         print(DEBUG_TAG+"sceneDidEnterBackground")
+        
         
     }
 

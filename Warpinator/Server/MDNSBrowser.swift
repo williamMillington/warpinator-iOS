@@ -35,6 +35,9 @@ final class MDNSBrowser {
     func start(){
         
         guard browser == nil else {
+            if browser!.state != .ready {
+                start()
+            }
             print(DEBUG_TAG+"Browser already running");  return
         }
         
@@ -66,7 +69,7 @@ final class MDNSBrowser {
     func stop(){
         
         browser?.cancel()
-        browser = nil
+//        browser = nil
         
     }
     
@@ -75,9 +78,9 @@ final class MDNSBrowser {
     // MARK:  restart
     func restart(){
         print(self.DEBUG_TAG+"restarting in 2 seconds...")
-        self.browserQueue.asyncAfter(deadline: .now() + 2) {
-            self.stop()
-            self.start()
+        self.browserQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.stop()
+            self?.start()
         }
     }
     
@@ -87,15 +90,18 @@ final class MDNSBrowser {
     // MARK:  stateDidUpdate
     private func stateDidUpdate(newState: NWBrowser.State){
         
-//        print(DEBUG_TAG+"statedidupdate")
+        print(DEBUG_TAG+"statedidupdate")
         
         switch newState {
+        case .cancelled: print(DEBUG_TAG+" cancelled")
+            browser = nil
         case .failed(let error):
             print(DEBUG_TAG+"failed")
             // Restart the browser if it loses its connection
             if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
-                print(DEBUG_TAG+"Browser failed with \(error), restarting")
-                restart()
+                print(DEBUG_TAG+"Browser failed with \(error)")
+//                restart()
+                self.stop()
             } else {
                 print(DEBUG_TAG+"Browser failed with \(error), stopping")
                 self.stop()
@@ -115,24 +121,23 @@ final class MDNSBrowser {
             
             switch change {
             case .added(let result):
-                print(DEBUG_TAG+"result added \(change)")
+//                print(DEBUG_TAG+"result added \(change)")
                 
-//                DispatchQueue.main.async { // results in UI update
-                    delegate?.mDNSBrowserDidAddResult(result)
+                delegate?.mDNSBrowserDidAddResult(result)
+                
+//            case .changed(old: let old, new: let new, flags: let flags):
+//                print(DEBUG_TAG+"\t\(old.endpoint) changed to \(new.endpoint), \(flags)")
+//                switch flags {
+//                case .identical: print(DEBUG_TAG+"\t\tidentical")
+//                case .interfaceRemoved: print(DEBUG_TAG+"\t\tinterfaceRemoved")
+//                case .interfaceAdded: print(DEBUG_TAG+"\t\tinterfaceAdded")
+//                case .metadataChanged: print(DEBUG_TAG+"\t\tmetadataChanged")
+//                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
 //                }
-            case .changed(old: let old, new: let new, flags: let flags):
-                print(DEBUG_TAG+"\t\(old.endpoint) changed to \(new.endpoint), \(flags)")
-                switch flags {
-                case .identical: print(DEBUG_TAG+"\t\tidentical")
-                case .interfaceRemoved: print(DEBUG_TAG+"\t\tinterfaceRemoved")
-                case .interfaceAdded: print(DEBUG_TAG+"\t\tinterfaceAdded")
-                case .metadataChanged: print(DEBUG_TAG+"\t\tmetadataChanged")
-                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
-                }
             case .removed(let result):
-                print(DEBUG_TAG+"result removed \(result)")
+//                print(DEBUG_TAG+"result removed \(result)")
                 delegate?.mDNSBrowserDidRemoveResult(result)
-            default: print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
+            default: break //print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
                 
             }
             

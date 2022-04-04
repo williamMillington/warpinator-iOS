@@ -190,8 +190,14 @@ public class Remote {
     
     //
     // MARK: disconnect
-    func disconnect(_ error: Error? = nil){
-        print(self.DEBUG_TAG+"channel disconnected")
+    func disconnect(_ error: Error? = nil) -> EventLoopFuture<Void>? {
+        
+        print(self.DEBUG_TAG+"disconnecting remote...")
+        
+        guard let channel = channel else {
+                  print(DEBUG_TAG+"\tremote already disconnected"); return nil
+              }
+        
         
         // stop all transfers
         for operation in sendingOperations {
@@ -199,21 +205,33 @@ public class Remote {
                 operation.orderStop(TransferError.ConnectionInterrupted)
             }
         }
+        
         for operation in receivingOperations {
             if [.TRANSFERRING, .INITIALIZING].contains(operation.status) {
                 operation.orderStop( TransferError.ConnectionInterrupted )
             }
         }
         
-        warpClient = nil
-        let _ = channel?.close()
         
         if let error = error {
             print(DEBUG_TAG+"\twith error: \(error)")
         }
         
-        details.status = .Disconnected
+        let future = channel.close()
         
+        future.whenComplete { [weak self] response in
+            print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "channel finished closing")
+            do {
+                let _ = try response.get()
+                print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "\t\tsuccessfully waited for")
+            } catch  {
+                    print((self?.DEBUG_TAG ?? "(Remote is nil): ") + "\t\terror: \(error)")
+            }
+            self?.warpClient = nil
+            self?.details.status = .Disconnected
+        }
+        
+        return future
     }
     
     
@@ -271,8 +289,6 @@ extension Remote {
             do {
                 let haveDuplex = try result.get()
                 
-                print(self.DEBUG_TAG+"haveDuplex result is \(haveDuplex.response)")
-                
                 // if acquired
                 if haveDuplex.response {
                     
@@ -292,7 +308,7 @@ extension Remote {
             // check number of tries (10)
             guard self.duplexAttempts < 10 else {
                 print(self.DEBUG_TAG+"unable to establish duplex")
-                self.disconnect( DuplexError.DuplexNotEstablished )
+                _ = self.disconnect( DuplexError.DuplexNotEstablished )
                 return
             }
             
@@ -315,7 +331,6 @@ extension Remote {
             print(DEBUG_TAG+"no client connection"); return
         }
         
-        
         print(self.DEBUG_TAG+"pinging")
         
         let pingResponse = client.ping(self.lookupName) //, callOptions: calloptions)
@@ -333,7 +348,7 @@ extension Remote {
     }
     
     
-    // MARK: getRemoteInfo
+    // MARK: remoteInfo
     func retrieveRemoteInfo(){
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
@@ -358,12 +373,12 @@ extension Remote {
         var avatarBytes: Data = Data()
         
         let imageCall = warpClient?.getRemoteMachineAvatar(lookupName) { avatar in
-            print(self.DEBUG_TAG+"avatar chunk is \(avatar.avatarChunk.count) bytes long")
+//            print(self.DEBUG_TAG+"avatar chunk is \(avatar.avatarChunk.count) bytes long")
             avatarBytes.append( avatar.avatarChunk )
         }
         
         imageCall?.status.whenSuccess { status in
-            print(self.DEBUG_TAG+"retrieved avatar, status \(status)")
+            print(self.DEBUG_TAG+"avatar status: \(status)")
             self.details.userImage = UIImage(data:  avatarBytes  )
             self.informObserversInfoDidChange()
         }
@@ -495,7 +510,7 @@ extension Remote {
                 case .success(_):
                     self.details.status = .Connected
                     operation.startReceive(usingClient: client) // if still connected, proceed with sending
-                case .failure(let error): self.disconnect(error)          // if connection is dead, signal disconnect
+                case .failure(let error): _ = self.disconnect(error) // if connection is dead, signal disconnect
                 }
             }
             return
@@ -572,7 +587,7 @@ extension Remote {
                 case .success(_):
                     self.details.status = .Connected
                     self.sendRequest(toTransfer: operation) // if still connected, proceed with sending
-                case .failure(let error): self.disconnect(error)          // if connection is dead, signal disconnect
+                case .failure(let error): _ = self.disconnect(error) // if connection is dead, signal disconnect
                 }
             }
             return
@@ -655,11 +670,11 @@ extension Remote: ConnectivityStateDelegate {
             
             print(DEBUG_TAG+"\tTransientFailure #\(transientFailureCount)")
             if transientFailureCount == 10 {
-                disconnect( AuthenticationError.ConnectionError )
+                _ = disconnect( AuthenticationError.ConnectionError )
             }
         case .idle:
-            details.status = .Idle
-        case .shutdown: disconnect()
+//            details.status = .Idle
+//        case .shutdown:  _ = disconnect()
         default: break
         }
         
@@ -685,7 +700,7 @@ extension Remote: ClientErrorDelegate {
             print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
             authenticationCertificate = nil
             
-            disconnect()
+            _ = disconnect()
             startConnection()
         } else {
             print(DEBUG_TAG+"Unknown error: \(error)")

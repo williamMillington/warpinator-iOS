@@ -23,17 +23,6 @@ final class RemoteManager {
     var remoteEventloopGroup: EventLoopGroup?
     
     
-    
-    
-//    // TODO remove this feature.
-//    // - Warp registration returns wrong address (I think is a bug in OG Warpinator?)
-//    // - IP is now secured during authentication
-//    /* if WarpRegistration receives a request BEFORE we detect a remote
-//     with that hostname, then store that IP address here so we can update that
-//     remote once it is detected   [hostname:ipaddress] */
-//    var ipPlaceHolders : [String:String] = [:]
-//
-    
     //
     // MARK: add Remote
     func addRemote(_ remote: Remote){
@@ -41,13 +30,6 @@ final class RemoteManager {
         
         remote.eventloopGroup = remoteEventloopGroup 
         remotes[remote.details.uuid] = remote
-        
-//        // if we've stored the ip address of a remote with that hostname
-//        // This is probably not great, for the same reason listed down in
-//        // storeIPAddress()
-//        if let address = ipPlaceHolders[remote.details.hostname] {
-//            remote.details.ipAddress = address
-//        }
         
         DispatchQueue.main.async {
             self.remotesViewController?.remoteAdded(remote)
@@ -65,6 +47,7 @@ final class RemoteManager {
             print(DEBUG_TAG+"\t remote not found")
             return
         }
+        
         remote.startConnection()
     }
     
@@ -72,7 +55,7 @@ final class RemoteManager {
     
     // MARK: remove Remote
     func removeRemote(withUUID uuid: String){
-            print(DEBUG_TAG+"removing remote...")
+        print(DEBUG_TAG+"removing remote...")
         
         guard let remote = remotes[uuid] else {
             print(DEBUG_TAG+"\t remote not found")
@@ -80,38 +63,17 @@ final class RemoteManager {
         }
         
         
-        remote.disconnect()
+        let future = remote.disconnect()
         
-        remotes.removeValue(forKey: remote.details.uuid)
-        
-        DispatchQueue.main.async {
-            self.remotesViewController?.remoteRemoved(with: uuid)
+        future?.whenComplete { [weak self] result in
+            
+            self?.remotes.removeValue(forKey: remote.details.uuid)
+            
+            DispatchQueue.main.async {
+                self?.remotesViewController?.remoteRemoved(with: uuid)
+            }
         }
-        
-        print(DEBUG_TAG+"\t remote removed")
-        
     }
-    
-    
-    //
-    // MARK storeIPAddress
-//    func storeIPAddress(_ address: String, forHostname hostname: String){
-//
-//        print(DEBUG_TAG+"storing address (\(address)) for \(hostname)")
-//
-//        // TODO this fails if two remotes share a hostname. Not good. No bueno.
-//        // Can't use uuid because it's not provided in the Registration request
-//        remotes.forEach { (key,remote) in
-//            if remote.details.hostname == hostname {
-//                print(self.DEBUG_TAG+"\tfound remote for hostname\(hostname)")
-//                remote.details.ipAddress = address
-//                remote.startConnection()
-//                return
-//            }
-//        }
-//
-//        ipPlaceHolders[hostname] = address
-//    }
     
     
     //
@@ -132,41 +94,48 @@ final class RemoteManager {
     
     
     // MARK: shutdown all remotes
-    func shutdownAllRemotes() {
+    func shutdownAllRemotes() -> EventLoopFuture<Void>? {
         
-        remotes.values.forEach { remote in
-            remote.disconnect()
+        print(DEBUG_TAG+"shutting down all remotes")
+        
+        guard let eventloop = remoteEventloopGroup?.next() else {
+            print(DEBUG_TAG+"No eventloop")
+            return nil
         }
         
+        
+        let futures = remotes.values.compactMap { remote in
+            return remote.disconnect()
+        }
+        
+        //
+        // whoops a hack
+        let future = EventLoopFuture.whenAllComplete(futures, on: eventloop).map { _ -> Void in
+            print("RemoteManager: Remotes have finished shutting down")
+        }
+        
+        
+        return future
     }
-    
 }
 
 
 
-
-//extension RemoteManager: MDNSListenerDelegate {
-//    func mDNSListenerIsReady() {
-//
-//    }
-//}
-
 extension RemoteManager: MDNSBrowserDelegate {
     
+    
+    // MARK: mDNS result added
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
-        print(DEBUG_TAG+"mDNSBrowser added result:")
-        print(DEBUG_TAG+"\t\(result.endpoint)")
-        
-        // if the metadata has a record "type",
-        // and if type is 'flush', then ignore this service
-        if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
+        // ignore result:
+        // - if result has metadata,
+        // - AND if the metadata has a record "type",
+        // - AND if "type" is 'flush'
+        guard case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
            let type = record.dictionary["type"],
-           type == "flush" {
+           type != "flush" else {
             print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
         }
-        print(DEBUG_TAG+"assuming service is real, continuing...")
-        print(DEBUG_TAG+"\tmetadata: \(result.metadata)")
         
         
         var serviceName = "unknown_service"
@@ -177,7 +146,7 @@ extension RemoteManager: MDNSBrowserDelegate {
             
             serviceName = name
             
-            // Check if we found own MDNS record
+            // Check if we found our own MDNS record
             if name == SettingsManager.shared.uuid {
                 print(DEBUG_TAG+"\t\tFound myself (\(result.endpoint))"); return
             } else {
@@ -188,7 +157,7 @@ extension RemoteManager: MDNSBrowserDelegate {
         }
         
         
-        //
+        // some default values
         var hostname = serviceName
         var api = "1"
         var authPort = 42000
@@ -215,7 +184,7 @@ extension RemoteManager: MDNSBrowserDelegate {
             print(DEBUG_TAG+"Service already added")
             
             // Are we connected?
-            if [ .Disconnected, .Idle, .Error ].contains(remote.details.status ) {
+            if [ .Disconnected, .Idle, .Error ].contains( remote.details.status ) {
                 print(DEBUG_TAG+"\t\t not connected: reconnecting...")
                 remote.startConnection()
             }
@@ -239,11 +208,8 @@ extension RemoteManager: MDNSBrowserDelegate {
     }
     
     
+    // MARK: mDNS result removed
     func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result) {
-        
-        
-        print(DEBUG_TAG+"mDNSBrowser removed result:")
-        print(DEBUG_TAG+"\t\(result.endpoint)")
         
         // check metadata for "type",
         // and if type is 'flush', then ignore
@@ -252,36 +218,17 @@ extension RemoteManager: MDNSBrowserDelegate {
            type == "flush" {
             print(DEBUG_TAG+"service \(result.endpoint) is flushing; ignore"); return
         }
-        print(DEBUG_TAG+"assuming service is real, continuing...")
-        print(DEBUG_TAG+"\tmetadata: \(result.metadata)")
         
         
-//        var serviceName = "unknown_service"
-        switch result.endpoint {
-        case .service(name: let name, type: _, domain: _, interface: _):
-            
-            print(DEBUG_TAG+"Found service \(name) (at endpoint: \(result.endpoint))")
-            
+        if case let .service(name: name, type: _, domain: _, interface: _) = result.endpoint {
             
             // check if we have a remote registered to the service name
             if let remote = containsRemote(for: name) {
-                
+        
                 // remove it
                 removeRemote(withUUID: remote.details.uuid)
             }
-            
-//            serviceName = name
-//
-//            // Check if we found own MDNS record
-//            if name == SettingsManager.shared.uuid {
-//                print(DEBUG_TAG+"\t\tFound myself (\(result.endpoint))"); return
-//            } else {
-//                print(DEBUG_TAG+"service discovered: \(name)")
-//            }
-            
-        default: print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
         }
-        
         
     }
     

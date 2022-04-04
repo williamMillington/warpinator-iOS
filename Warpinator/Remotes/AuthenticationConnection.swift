@@ -52,13 +52,6 @@ protocol AuthenticationRecipient {
 
 
 
-
-
-
-
-
-
-
 //
 // MARK: - UDPConnection
 final class UDPConnection: AuthenticationConnection {
@@ -128,7 +121,6 @@ final class UDPConnection: AuthenticationConnection {
     //
     // MARK: receiveCertificate
     private func sendCertificateRequest(  ){
-//        print(DEBUG_TAG+"api_v1_fetching certificate")
 
         connection.send(content: "REQUEST".bytes ,
                         completion: .contentProcessed { error in
@@ -138,7 +130,7 @@ final class UDPConnection: AuthenticationConnection {
                 return
             }
             
-            // if our "Request" message was received without errors,
+            // if "Request" was successfully received,
             // proceed with receiving the certificate
             self.receiveCertificate()
             
@@ -221,8 +213,6 @@ final class GRPCConnection: AuthenticationConnection {
     
     let group = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
-    
-    
     init(_ candidate: RemoteDetails, manager: AuthenticationRecipient) {
         self.details = candidate
         registree = manager
@@ -238,13 +228,10 @@ final class GRPCConnection: AuthenticationConnection {
         }
         
         
-//        print(DEBUG_TAG+"attempting to retrieve IPaddress")
         // We need to start by resolving a regular ol' NWConnection in order
         // to secure an IP address
         ipConnection = NWConnection(to: details.endpoint, using: params)
         ipConnection.stateUpdateHandler = { state in
-            
-//            print(self.DEBUG_TAG+"ipconnection state: \(state)")
             
             if case .ready = state {
                 
@@ -319,28 +306,50 @@ final class GRPCConnection: AuthenticationConnection {
 //        let options = CallOptions(timeLimit: .timeout( .seconds(10)), logger: logger )
 //        let options = CallOptions(logger: logger )
 
-        let registrationRequest = warpClient?.requestCertificate(request)
+        let requestFuture = warpClient?.requestCertificate(request).response
 
-        registrationRequest?.response.whenSuccess { result in
-            if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
-                self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
-            } else {
-                self.registree.failedToObtainCertificate(forRemote: self.details, .CertificateError)
+        
+        requestFuture?.whenComplete { [weak self] response in
+            guard let self = self else { return }
+            
+            do {
+                let result = try response.get()
+//                print(self.DEBUG_TAG + "result is \(result)")
+                
+                if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert) {
+                    self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
+                } else {
+                    self.registree.failedToObtainCertificate(forRemote: self.details, .CertificateError)
+                }
+                
+            } catch {
+                print( self.DEBUG_TAG + "request failed because: \(error)")
+                self.registree.failedToObtainCertificate(forRemote: self.details, .ConnectionError)
             }
+            
+            self.finish()
         }
         
-        registrationRequest?.response.whenFailure { error in
-            print(self.DEBUG_TAG+"Certificate request failed: \(error)")
-            self.registree.failedToObtainCertificate(forRemote: self.details, .ConnectionError)
-        }
     }
     
     
     //
     // MARK: finish
     func finish(){
-        warpClient = nil
-        _ = channel?.close()
+        
+        let future = channel?.close()
+        
+        future?.whenComplete { [weak self] response in
+//            print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"channel finished closing")
+            do {
+                let _ = try response.get()
+//                print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"\t\tresult retrieved")
+            } catch  {
+                    print((self?.DEBUG_TAG ?? "(GRPCConnction is nil): ")+"\t\terror: \(error)")
+            }
+            self?.warpClient = nil
+            self?.details.status = .Disconnected
+        }
     }
 }
 

@@ -33,7 +33,6 @@ final class Authenticator {
     
     public lazy var groupCode: String = DEFAULT_GROUP_CODE
     
-    
     static var shared: Authenticator = Authenticator()
     
     
@@ -42,7 +41,7 @@ final class Authenticator {
     }
     
     
-    // MARK: - unbox cert string
+    // MARK: - unlock cert string
     func unlockCertificate(_ certificateString: String) -> NIOSSLCertificate? {
         guard let decodedCertificateData = Data(base64Encoded: certificateString,
                                                 options: .ignoreUnknownCharacters) else {
@@ -54,7 +53,7 @@ final class Authenticator {
     
     
     
-    // MARK: - unbox cert data
+    // MARK: - unlock cert data
     func unlockCertificate(_ certificateData: Data) -> NIOSSLCertificate? {
         
         
@@ -148,10 +147,56 @@ final class Authenticator {
         
         return messageBytesEncoded
     }
+
     
     
     
-    // MARK: - server cert
+    
+    // MARK: getServer Credentials
+    typealias Credentials = (certificate: NIOSSLCertificate, key: NIOSSLPrivateKey)
+    var credential_generation_attempts: Int = 0
+    
+    func getServerCredentials() throws -> Credentials {
+        
+        credential_generation_attempts += 1
+        
+        // if, for some unknown reason, we can't generate credentials,
+        // don't attempt endlessly.
+        guard credential_generation_attempts < 5 else {
+            throw Server.ServerError.CREDENTIALS_GENERATION_ERROR
+        }
+        
+        
+        let credentials: Credentials
+        do {
+            
+            let cert = try getServerCertificate()
+            let key = try getServerPrivateKey()
+            
+            
+            // check cert is still valid  (certs only last 1 month)
+            guard verify(certificate: cert) else {
+                throw Server.ServerError.CREDENTIALS_INVALID
+            }
+            
+            credentials = (cert, key)
+            
+        } catch Server.ServerError.CREDENTIALS_INVALID, KeyMaster.KeyMasterError.itemNotFound {
+            
+            //TODO: unnecessary to catch invalid credentials. But need to catch itemnotfound
+            
+            generateNewCertificate()
+            
+            return try getServerCredentials()
+        } // If an error of any other type occurs,
+        // then something real broken, so let it propogate back up
+        
+        credential_generation_attempts = 0 // reset upon success
+        return credentials
+    }
+    
+    
+    // MARK: cert
     func getServerCertificate() throws -> NIOSSLCertificate {
         
         let sec_cert = try KeyMaster.readCertificate(forTag: SettingsManager.shared.uuid)
@@ -161,7 +206,7 @@ final class Authenticator {
         return try NIOSSLCertificate(bytes: bytes , format: .der)
     }
 
-    // MARK: - server p_key
+    // MARK: private key
     func getServerPrivateKey() throws -> NIOSSLPrivateKey {
         
         let sec_key = try KeyMaster.readPrivateKey(forTag: SettingsManager.shared.uuid)
@@ -170,6 +215,7 @@ final class Authenticator {
         
         return try NIOSSLPrivateKey.init(bytes: keyBytes, format: .der)
     }
+    
     
     
     
