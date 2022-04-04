@@ -8,12 +8,15 @@ import UIKit
 
 import NIO
 import NIOSSL
+import Network
 
 
 public class Utils {
+    static let DEBUG_TAG: String = "Utils (static): "
     
     typealias Credentials = (certificate: NIOSSLCertificate, key: NIOSSLPrivateKey)
     
+    typealias AddressInfo = (address: String, port: Int)
     
     
     static let borderColour: UIColor = #colorLiteral(red: 0.7877369523, green: 0.7877556682, blue: 0.7877456546, alpha: 1)
@@ -125,6 +128,43 @@ public class Utils {
         
         return address
     }
+    
+    
+    
+    static func extractAddressInfo(fromConnection connection: NWConnection) -> AddressInfo? {
+        print(DEBUG_TAG+"extracting address from connection: \(connection)")
+        if let ip4_string = connection.currentPath?.remoteEndpoint?.debugDescription {
+            print(DEBUG_TAG+"\t address string: \(ip4_string))");
+            
+            
+            // IP address is section of ip4_string before the '%'
+            let components = ip4_string.split(separator: Character("%"))
+            let ip4_address: String = String(components[0])
+            let address = ip4_address
+            
+            print(DEBUG_TAG+"\t\t extracted IP Address: \(ip4_address)")
+            
+            
+            // port number is within section of ip4_string after the '%' ("en0:0000")
+            // portSection = ["en0", "0000"]
+            // portString = "0000"
+            let portSection = components[1].split(separator: Character(":"))
+            let portString =  portSection[1]
+            var port: Int = 0
+            if let portNumber = Int(portString) {
+                port = portNumber
+            }
+            print(DEBUG_TAG+"\t\t extracted port: \(port)")
+            
+            return (address, port)
+        }
+        
+        print(DEBUG_TAG+"\t extraction failed")
+        
+        return nil
+    }
+    
+    
     
     
     // MARK: get available disk space

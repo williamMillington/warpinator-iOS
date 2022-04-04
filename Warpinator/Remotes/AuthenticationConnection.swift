@@ -89,12 +89,16 @@ final class UDPConnection: AuthenticationConnection {
             if case .ready = state {
                 print(self.DEBUG_TAG+"connection ready")
                 
-                if let ip4_string = self.connection.currentPath?.remoteEndpoint?.debugDescription {
-                    // ip4_string should be a string formatted as 0.0.0.0%en0:0000. IP address is section of string before the '%'
-                    let components = ip4_string.split(separator: Character("%"))
-                    let ip4_address: String = String(components[0])
-                    print(self.DEBUG_TAG+"extracted IP Address: \(ip4_address)")
-                    self.details.ipAddress = ip4_address //String(components[0])
+//                if let ip4_string = self.connection.currentPath?.remoteEndpoint?.debugDescription {
+//                    // ip4_string should be a string formatted as 0.0.0.0%en0:0000. IP address is section of string before the '%'
+//                    let components = ip4_string.split(separator: Character("%"))
+//                    let ip4_address: String = String(components[0])
+//                    print(self.DEBUG_TAG+"extracted IP Address: \(ip4_address)")
+//                    self.details.ipAddress = ip4_address //String(components[0])
+//                }
+                if let addressInfo = Utils.extractAddressInfo(fromConnection: self.connection) {
+                    self.details.ipAddress = addressInfo.address
+                    self.details.port = addressInfo.port
                 }
                 
                 self.sendCertificateRequest()
@@ -230,15 +234,38 @@ final class GRPCConnection: AuthenticationConnection {
         ipConnection.stateUpdateHandler = { state in
             
             if case .ready = state {
-                print(self.DEBUG_TAG+"ipconnection endpoint \(self.ipConnection.endpoint )")
-                if let ip4_string = self.ipConnection.currentPath?.remoteEndpoint?.debugDescription {
-                    print(self.DEBUG_TAG+"connection to \(self.details.endpoint) ready (ipv4 address: \(ip4_string))");
-                    // ip4_string should be a string formatted as 0.0.0.0%en0:0000. IP address is section of string before the '%'
-                    let components = ip4_string.split(separator: Character("%"))
-                    let ip4_address: String = String(components[0])
-                    print(self.DEBUG_TAG+"extracted IP Address: \(ip4_address)")
-                    self.details.ipAddress = ip4_address //String(components[0])
+                
+                
+                if let addressInfo = Utils.extractAddressInfo(fromConnection: self.ipConnection) {
+                    self.details.ipAddress = addressInfo.address
+                    self.details.port = addressInfo.port
                 }
+                
+//                print(self.DEBUG_TAG+"ipconnection endpoint \(self.ipConnection.endpoint )")
+                
+                // ip4_string should be a string formatted as 0.0.0.0%en0:0000.
+                
+//                if let ip4_string = self.ipConnection.currentPath?.remoteEndpoint?.debugDescription {
+//                    print(self.DEBUG_TAG+"connection to \(self.details.endpoint) ready (ipv4 address: \(ip4_string))");
+//
+//
+//                    // IP address is section of ip4_string before the '%'
+//                    let components = ip4_string.split(separator: Character("%"))
+//                    let ip4_address: String = String(components[0])
+//                    self.details.ipAddress = ip4_address
+//
+//                    print(self.DEBUG_TAG+"extracted IP Address: \(ip4_address)")
+//
+//
+//                    // port number is within section of ip4_string after the '%' ("en0:0000")
+//                    // portSection = ["en0", "0000"]
+//                    // portString = "0000"
+//                    let portSection = components[1].split(separator: Character(":"))
+//                    let portString =  portSection[1]
+//                    if let portNumber = Int(portString) {
+//                        self.details.port = portNumber
+//                    }
+//                }
                 self.ipConnection.cancel()
                 self.sendCertificateRequest()
             }
