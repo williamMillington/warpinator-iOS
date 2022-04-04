@@ -87,7 +87,19 @@ final class MDNSListener {
         
         listener?.stateUpdateHandler = stateDidUpdate(state:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
+        
         listener?.serviceRegistrationUpdateHandler = { change in
+            
+            if case let .add(endpoint) = change {
+                
+                print(self.DEBUG_TAG+"service endpoint added: \(endpoint)")
+                
+                if case let .hostPort(host: host, port: port) = endpoint {
+                    print(self.DEBUG_TAG+"host: \(host)")
+                    print(self.DEBUG_TAG+"port: \(port)")
+                }
+            }
+        
             print(self.DEBUG_TAG+"service changed: \(change)")
         }
         

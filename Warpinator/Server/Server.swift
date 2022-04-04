@@ -134,7 +134,7 @@ final class Server {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
-        return server.close()  // .initiateGracefulShutdown()
+        return server.initiateGracefulShutdown()
     }
     
     

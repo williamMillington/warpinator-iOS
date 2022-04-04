@@ -21,35 +21,17 @@ final class RegistrationServer {
     
     private let DEBUG_TAG: String = "RegistrationServer: "
     
-//    var mDNSBrowser: MDNSBrowser
-//    var mDNSListener: MDNSListener
-    
     var eventLoopGroup: EventLoopGroup
-
-    private lazy var warpinatorRegistrationProvider: WarpinatorRegistrationProvider = WarpinatorRegistrationProvider()
-    
-//    var remoteManager: RemoteManager
     
     var settingsManager: SettingsManager
     
     var server : GRPC.Server?
     
     init(eventloopGroup group: EventLoopGroup,
-         settingsManager manager: SettingsManager) { //},remoteManager: RemoteManager) {
+         settingsManager manager: SettingsManager) {
         
         eventLoopGroup = group
         settingsManager = manager
-//        self.remoteManager = remoteManager
-        
-        
-//        mDNSBrowser = MDNSBrowser()
-//        mDNSBrowser.delegate = remoteManager
-//
-//        mDNSListener = MDNSListener(settingsManager: settingsManager)
-        
-//        defer {
-//            mDNSListener.delegate = self
-//        }
     }
     
     
@@ -65,7 +47,7 @@ final class RegistrationServer {
         let portNumber = Int( settingsManager.registrationPortNumber )
         
         let future = GRPC.Server.insecure(group: eventLoopGroup)
-            .withServiceProviders([warpinatorRegistrationProvider])
+            .withServiceProviders([ WarpinatorRegistrationProvider() ])
             .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
         
         future.whenSuccess { [weak self] server in
@@ -73,7 +55,6 @@ final class RegistrationServer {
             print((self?.DEBUG_TAG ?? "(server is nil): ")+"registration server started on: \(String(describing: server.channel.localAddress))")
                 
                 self?.server = server
-//                self?.startMDNSServices()
             }
         
         return future
@@ -89,42 +70,9 @@ final class RegistrationServer {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
-//        stopMDNSServices()
-        
-        return server.close() //  .initiateGracefulShutdown()
+        return server.initiateGracefulShutdown()
     }
-    
-    
-//    //
-//    // MARK:  startMDNSServices
-//    func startMDNSServices(){
-//        mDNSListener.start()
-//    }
-    
-    
-//    //
-//    // MARK: stop mDNS
-//    func stopMDNSServices(){
-//        mDNSBrowser.stop()
-//        mDNSListener.stop()
-//    }
-    
-    
 }
-
-
-
-//
-//// MARK: - MDNSListenerDelegate
-//extension RegistrationServer: MDNSListenerDelegate {
-//    func mDNSListenerIsReady() {
-//        mDNSBrowser.start()
-//    }
-//}
-
-
-
-
 
 
 //// MARK: - Mock functions
