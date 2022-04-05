@@ -25,10 +25,8 @@ final class MDNSBrowser {
     
     var browser: NWBrowser?
     
-    
     let queueLabel = "MDNSBrowserQueue"
     lazy var browserQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
-    
     
     //
     // MARK: start
@@ -117,34 +115,79 @@ final class MDNSBrowser {
     private func resultsDidChange(results: Set<NWBrowser.Result>,
                                   changes: Set<NWBrowser.Result.Change>){
         
-        print(DEBUG_TAG+"RESULTS CHANGED")
+        print(DEBUG_TAG+"==============================================================")
+        print(DEBUG_TAG+"resultsDidChange: ")
+        print(DEBUG_TAG+"\t\t\t available remotes: ")
         
         results.forEach { result in
-            print(self.DEBUG_TAG+"\t\t\(result)")
+            print(self.DEBUG_TAG+"\t\t\t\t \(result)")
         }
+        
+        
+        print(DEBUG_TAG+"\t\t\t changes: ")
         
         for change in changes {
             
             switch change {
             case .added(let result):
-//                print(DEBUG_TAG+"result added \(change)")
-                
-                delegate?.mDNSBrowserDidAddResult(result)
-                
+                print(DEBUG_TAG+"\t\t\t\t ADDED: \(result.endpoint)")
             case .changed(old: let old, new: let new, flags: let flags):
-                print(DEBUG_TAG+"\t\(old.endpoint) changed to \(new.endpoint), \(flags)")
+                
+                var flagString = ""
                 switch flags {
-                case .identical: print(DEBUG_TAG+"\t\tidentical")
-                case .interfaceRemoved: print(DEBUG_TAG+"\t\tinterfaceRemoved")
-                case .interfaceAdded: print(DEBUG_TAG+"\t\tinterfaceAdded")
-                case .metadataChanged: print(DEBUG_TAG+"\t\tmetadataChanged")
-                default: print(DEBUG_TAG+"\t\tunknown changes: \(flags)")
+                case .identical:  flagString = "identical"
+                case .interfaceRemoved: flagString = "interfaceRemoved"
+                case .interfaceAdded: flagString = "interfaceAdded"
+                case .metadataChanged: flagString = "metadataChanged"
+                default: flagString = "unknown changes: \(flags)"
                 }
+                
+                print(DEBUG_TAG+"\t\t\t\t CHANGED:  \(old.endpoint) \(old.interfaces)   ->   \(new.endpoint) \(new.interfaces) (\(flagString))")
+                
+                
             case .removed(let result):
-//                print(DEBUG_TAG+"result removed \(result)")
+                print(DEBUG_TAG+"\t\t\t\t REMOVED: \(result.endpoint)")
+            default: print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
+
+            }
+            
+        }
+        
+        
+        print(DEBUG_TAG+"==============================================================")
+        
+        
+        
+        
+        for change in changes {
+            
+            switch change {
+            case .added(let result):
+//                print(DEBUG_TAG+"\t\t\t\t ADDED \(result.endpoint)")
+
+                delegate?.mDNSBrowserDidAddResult(result)
+
+            case .changed(old: _, new: let new, flags: let flags):
+
+                if case .metadataChanged = flags {
+                    delegate?.mDNSBrowserDidAddResult(new)
+                }
+//                var flagString = ""
+//                switch flags {
+//                case .identical:  flagString = "identical"
+//                case .interfaceRemoved: flagString = "interfaceRemoved"
+//                case .interfaceAdded: flagString = "interfaceAdded"
+//                case .metadataChanged: flagString = "metadataChanged"
+//                default: flagString = "unknown changes: \(flags)"
+//                }
+//
+//                print(DEBUG_TAG+"\t\t\t\t CHANGED \(old.endpoint) -> \(new.endpoint) (\(flagString))")
+                
+            case .removed(let result):
+//                print(DEBUG_TAG+"REMOVED \(result.endpoint)")
                 delegate?.mDNSBrowserDidRemoveResult(result)
             default: break //print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
-                
+
             }
             
         }

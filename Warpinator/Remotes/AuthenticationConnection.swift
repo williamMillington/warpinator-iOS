@@ -268,6 +268,8 @@ final class GRPCConnection: AuthenticationConnection {
 //                }
                 self.ipConnection.cancel()
                 self.sendCertificateRequest()
+            } else {
+                print(self.DEBUG_TAG+" state is \(state)")
             }
         }
     }

@@ -126,6 +126,7 @@ final class RemoteManager {
 extension RemoteManager: MDNSBrowserDelegate {
     
     
+    
     // MARK: mDNS result added
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
