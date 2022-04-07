@@ -40,9 +40,9 @@ final class RegistrationServer {
     func start() -> EventLoopFuture<GRPC.Server>  {
         
         // don't create a new server if we have one going already
-        if let server = server {
-            return server.channel.eventLoop.makeSucceededFuture(server)
-        }
+//        if let server = server {
+//            return server.channel.eventLoop.makeSucceededFuture(server)
+//        }
         
         let portNumber = Int( SettingsManager.shared.registrationPortNumber )
         

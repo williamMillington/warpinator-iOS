@@ -44,6 +44,7 @@ final class ViewController: UIViewController {
     
     
     var errorScreen: ErrorView?
+    var serverLoadingScreen: ServerLoadingView?
     
     
     //
@@ -126,6 +127,7 @@ final class ViewController: UIViewController {
     }
     
     
+    //
     // MARK: show error screen
     func showErrorScreen(){
         
@@ -137,7 +139,7 @@ final class ViewController: UIViewController {
         }
         
         errorScreen = ErrorView(onTap: {
-            self.hideErrorScreen()
+            self.removeErrorScreen()
             self.coordinator?.restartServers()
         })
         
@@ -158,8 +160,9 @@ final class ViewController: UIViewController {
     }
     
     
-    // MARK: hide error screen
-    func hideErrorScreen(){
+    //
+    // MARK: remove error screen
+    func removeErrorScreen(){
         
         guard let screen = errorScreen else {
             print(DEBUG_TAG+"No error screen"); return
@@ -175,7 +178,141 @@ final class ViewController: UIViewController {
     }
     
     
+    
+    func showLoadingScreen(){
+        
+        print(DEBUG_TAG+"showing loading screen")
+        
+        guard serverLoadingScreen == nil else {
+            print(DEBUG_TAG+"screen already up")
+            return
+        }
+        
+        serverLoadingScreen = ServerLoadingView()
+        serverLoadingScreen?.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(serverLoadingScreen!)
+        
+        let constraints = [
+            serverLoadingScreen!.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            serverLoadingScreen!.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            serverLoadingScreen!.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            serverLoadingScreen!.bottomAnchor.constraint(equalTo: displayNameLabel.topAnchor, constant: -5)
+        ]
+        
+        NSLayoutConstraint.activate(constraints)
+        
+        view.setNeedsLayout()
+    }
+    
+    
+    func removeLoadingScreen(){
+        guard let screen = serverLoadingScreen else {
+            print(DEBUG_TAG+"No loading screen"); return
+        }
+        
+        print(DEBUG_TAG+"removing loading screen")
+        NSLayoutConstraint.deactivate(screen.constraints)
+        
+        screen.removeFromSuperview()
+        
+        serverLoadingScreen = nil
+    }
+    
+    
+    
+    
+    
+    
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// MARK: - Server View
+final class ServerLoadingView: UIView {
+    
+    private let DEBUG_TAG: String = "ServerLoadingView: "
+    
+    let loadingTextLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Server is starting up, please wait... "
+        label.textColor = Utils.textColour
+        label.tintColor = Utils.textColour
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
+        return label
+    }()
+    
+    
+//    var tapRecognizer: TapGestureRecognizerWithClosure?
+    
+    override init(frame: CGRect){
+        super.init(frame: frame)
+        setUpView()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setUpView()
+    }
+    
+    
+//    convenience init(onTap action: @escaping ()->Void = {}){
+    convenience init(){
+        self.init(frame: .zero)
+        
+        // add subviews and constraints
+        setUpView()
+        
+        // add onTap action
+//        tapRecognizer = TapGestureRecognizerWithClosure(action: action)
+//        addGestureRecognizer(tapRecognizer!)
+        
+    }
+    
+    
+    //
+    // MARK: setUpView
+    func setUpView(){
+        
+        addSubview(loadingTextLabel)
+        
+        let constraints = [
+            loadingTextLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            loadingTextLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
+        ]
+        
+        NSLayoutConstraint.activate(constraints)
+        
+//        backgroundColor = UIColor.blue.withAlphaComponent(0.5)
+        backgroundColor = Utils.backgroundColour
+        
+        
+    }
+    
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

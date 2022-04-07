@@ -60,6 +60,7 @@ final class Server {
     var errorDelegate: ErrorDelegate?
     
     var server: GRPC.Server?
+    var attempts = 0
     
     let queueLabel = "WarpinatorServerQueue"
     lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
@@ -93,9 +94,9 @@ final class Server {
     func start() -> EventLoopFuture<GRPC.Server>  {
         
         // don't create a new server if we have one going already
-        if let server = server {
-            return server.channel.eventLoop.makeSucceededFuture(server)
-        }
+//        if let server = server {
+//            return  server.channel.eventLoop.makeSucceededFuture(server)
+//        }
         
         guard let credentials = try? Authenticator.shared.getServerCredentials() else {
             return eventLoopGroup.next().makeFailedFuture( ServerError.CREDENTIALS_GENERATION_ERROR )
@@ -115,15 +116,28 @@ final class Server {
             .bind(host: "\(Utils.getIP_V4_Address())",
                   port: Int( SettingsManager.shared.transferPortNumber ))
         
+        // onError: attempt restart after 2 seconds
+        .flatMapError { error in
+            
+            print( self.DEBUG_TAG + "transfer server failed: \(error))")
+            
+//            let scheduledTask =
+            return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
+                self.start()
+            }.futureResult
+            
+//            return scheduledTask.futureResult
+        }
         
         future.whenSuccess { [weak self] server in
             print((self?.DEBUG_TAG ?? "(server is nil): ")+"transfer server started on: \(String(describing: server.channel.localAddress))")
             self?.server = server
         }
         
-        future.whenFailure { [weak self] error in
-            print( (self?.DEBUG_TAG ?? "(server is nil): ") + "transfer server failed: \(error))")
-        }
+//        future.whenFailure { [weak self] error in
+//
+//            print( (self?.DEBUG_TAG ?? "(server is nil): ") + "transfer server failed: \(error))")
+//        }
         
         return future
     }

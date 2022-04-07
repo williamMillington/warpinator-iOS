@@ -27,11 +27,13 @@ final class MainCoordinator: NSObject, Coordinator {
     var remoteManager: RemoteManager = RemoteManager()
     
     
-    var serverEventLoopGroup: EventLoopGroup?
-    var remoteEventLoopGroup: EventLoopGroup?
+    var serverEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    var remoteEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
-    var server: Server?
-    var registrationServer: RegistrationServer?
+    lazy var server: Server = Server(eventloopGroup: serverEventLoopGroup,
+                                remoteManager: remoteManager,
+                                errorDelegate: self)
+    lazy var registrationServer: RegistrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup)
     
     init(withNavigationController controller: UINavigationController){
         navController = controller
@@ -50,6 +52,7 @@ final class MainCoordinator: NSObject, Coordinator {
         mDNSBrowser.delegate = remoteManager
         mDNSListener.delegate = self
         
+        remoteManager.remoteEventloopGroup = remoteEventLoopGroup
 //        mockRemote()
     }
     
@@ -80,75 +83,84 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: start servers
     func startServers(){
-        
+
         print(DEBUG_TAG+"starting servers...")
         
-        // servers need to be stopped before starting
-        guard server == nil, registrationServer == nil else {
-            print(DEBUG_TAG+"Servers are already running")
-            publishMDNS()
-            return
+        DispatchQueue.main.async {
+            if let vc = self.navController.visibleViewController as? ViewController {
+                vc.showLoadingScreen()
+            }
         }
         
+        // servers need to be stopped before starting
+//        guard server == nil, registrationServer == nil else {
+//            print(DEBUG_TAG+"Servers are already running")
+//            publishMDNS()
+//            return
+//        }
+
 //        publishMDNS()
-        
+
         // reuse existing eventloop ?? create new one
-        serverEventLoopGroup = serverEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-        remoteEventLoopGroup = remoteEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-        
+//        serverEventLoopGroup = serverEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+//        remoteEventLoopGroup = remoteEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+//
         // remoteManager is responsible for providing remotes with their eventloop
-        remoteManager.remoteEventloopGroup = remoteEventLoopGroup
-        
-        
-        server = Server(eventloopGroup: serverEventLoopGroup!,
-//                        settingsManager: settingsManager,
-//                        authenticationManager: authManager,
-                        remoteManager: remoteManager,
-                        errorDelegate: self)
-        
-        registrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup!) //, settingsManager: settingsManager)
-        
+//        remoteManager.remoteEventloopGroup = remoteEventLoopGroup
+
+
+//        server = Server(eventloopGroup: serverEventLoopGroup,
+////                        settingsManager: settingsManager,
+////                        authenticationManager: authManager,
+//                        remoteManager: remoteManager,
+//                        errorDelegate: self)
+//
+//        registrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup) //, settingsManager: settingsManager)
+
         //
         // Test server failure
-//        let promise = serverEventLoopGroup?.next().makePromise(of: GRPC.Server.self)
+//        let promise = serverEventLoopGroup.next().makePromise(of: GRPC.Server.self)
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//            promise?.fail(Server.ServerError.SERVER_FAILURE)
+//            promise.fail(Server.ServerError.SERVER_FAILURE)
 //        }
 //
 //        promise?.futureResult
-        
-        server?.start()
+
+        server.start()
         // what to do if server fails to start
             .flatMapError { error in
-                self.server = nil
+//                self.server = nil
 //                self.stopMDNS()
-                
-                return self.serverEventLoopGroup!.next().makeFailedFuture(error)
+
+                return self.serverEventLoopGroup.next().makeFailedFuture(error)
             }
-        
+
         // return future that completes when registrationServer starts up
             .flatMap { server in
-                return self.registrationServer!.start()
+                return self.registrationServer.start()
             }
-        
+
         // on registrationServer startup completion
             .whenComplete { result in
-                
+
                 do {  _ = try result.get()   }
                 catch {
-                    
+
                     // error outcome, something failed
-                    self.registrationServer = nil
+//                    self.registrationServer = nil
                     self.reportError(error, withMessage: "Server future failed")
                     return
                 }
-                
-                
+
+
                 // success outcome, continue with starting up
                 // TODO: make a way to return a promise that succeeds when the listener/browser are ready
                 self.publishMDNS()
+                DispatchQueue.main.async {
+                    (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
+                }
             }
-        
+
     }
     
     
@@ -166,7 +178,6 @@ final class MainCoordinator: NSObject, Coordinator {
         
         let remoteFuture = shutdownConnections()
         
-        
         remoteFuture?.whenComplete { response in
             
             print(self.DEBUG_TAG+"remotes completed disconnecting: ")
@@ -179,30 +190,32 @@ final class MainCoordinator: NSObject, Coordinator {
             }
         }
         
-        guard let server = server,
-              let registrationServer = registrationServer else {
-                  return remoteFuture
-              }
+//        guard let registrationServer = registrationServer else {
+//                  return remoteFuture
+//              }
         
         
         
         // I thiink is how you chain futures together
         return remoteFuture?.flatMap {
-            print(self.DEBUG_TAG+"stopping registrastion server")
+            print(self.DEBUG_TAG+"stopping registration server")
 //            self.mDNSBrowser.stop()
 //            self.mDNSListener.stop()
             self.stopMDNS()
-            return registrationServer.stop()
-        }.map {
-            print(self.DEBUG_TAG+"deleting registration server")
-            self.registrationServer = nil
-        }.flatMap {
-            print(self.DEBUG_TAG+"stopping server")
-            return server.stop()
-        }.map {
-            print(self.DEBUG_TAG+"deleting server")
-            self.server = nil
+            return self.registrationServer.stop()
         }
+//        .map {
+////            print(self.DEBUG_TAG+"deleting registration server")
+////            self.registrationServer = nil
+//        }
+        .flatMap {
+            print(self.DEBUG_TAG+"stopping server")
+            return self.server.stop()
+        }
+//        .map {
+////            print(self.DEBUG_TAG+"deleting server")
+////            self.server = nil
+//        }
         
     }
     
@@ -220,6 +233,7 @@ final class MainCoordinator: NSObject, Coordinator {
         
         // wait until servers have stopped, then start them
         stopFuture?.whenSuccess {
+            print(self.DEBUG_TAG+"servers stopped.")
             self.startServers()
         }
     }
@@ -303,13 +317,13 @@ final class MainCoordinator: NSObject, Coordinator {
     // MARK: error popup
     func showErrorPop(withTitle title: String, andMessage message: String){
         
-        let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        
-        alertVC.addAction( UIAlertAction(title: "Okay", style: .default) )
-        
-        navController.visibleViewController?.present(alertVC, animated: true) {
-            print(self.DEBUG_TAG+"continuing...")
-        }
+//        let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
+//
+//        alertVC.addAction( UIAlertAction(title: "Okay", style: .default) )
+//
+//        navController.visibleViewController?.present(alertVC, animated: true) {
+//            print(self.DEBUG_TAG+"continuing...")
+//        }
         
     }
     
