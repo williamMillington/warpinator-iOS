@@ -22,8 +22,8 @@ final class MainCoordinator: NSObject, Coordinator {
     var mDNSListener: MDNSListener
     
     
-    var settingsManager: SettingsManager = SettingsManager.shared
-    var authManager: Authenticator = Authenticator.shared
+//    var settingsManager: SettingsManager = SettingsManager.shared
+//    var authManager: Authenticator = Authenticator.shared
     var remoteManager: RemoteManager = RemoteManager()
     
     
@@ -42,7 +42,7 @@ final class MainCoordinator: NSObject, Coordinator {
         
         
         mDNSBrowser = MDNSBrowser()
-        mDNSListener = MDNSListener(settingsManager: settingsManager)
+        mDNSListener = MDNSListener()
         
         
         super.init()
@@ -99,13 +99,12 @@ final class MainCoordinator: NSObject, Coordinator {
         
         
         server = Server(eventloopGroup: serverEventLoopGroup!,
-                        settingsManager: settingsManager,
-                        authenticationManager: authManager,
+//                        settingsManager: settingsManager,
+//                        authenticationManager: authManager,
                         remoteManager: remoteManager,
                         errorDelegate: self)
         
-        registrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup!,
-                                                settingsManager: settingsManager)
+        registrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup!) //, settingsManager: settingsManager)
         
         //
         // Test server failure
@@ -215,7 +214,7 @@ final class MainCoordinator: NSObject, Coordinator {
         }
         
         // wait until servers have stopped, then start them
-        stopFuture?.whenSuccess { _ in
+        stopFuture?.whenSuccess {
             self.startServers()
         }
     }
@@ -235,7 +234,7 @@ final class MainCoordinator: NSObject, Coordinator {
             let mainMenuVC = ViewController(nibName: "MainView", bundle: bundle)
             
             mainMenuVC.coordinator = self
-            mainMenuVC.settingsManager = settingsManager
+            mainMenuVC.settingsManager = SettingsManager.shared
             
             remoteManager.remotesViewController = mainMenuVC
             
@@ -272,10 +271,10 @@ final class MainCoordinator: NSObject, Coordinator {
             navController.popToViewController(settingsVC, animated: false)
         } else {
             
-            let settingsVC = SettingsViewController(settingsManager: settingsManager)
+            let settingsVC = SettingsViewController(settingsManager: SettingsManager.shared)
             
             settingsVC.coordinator = self
-            settingsVC.settingsManager = settingsManager
+//            settingsVC.settingsManager = SettingsManager.shared
             
             navController.pushViewController(settingsVC, animated: false)
         }

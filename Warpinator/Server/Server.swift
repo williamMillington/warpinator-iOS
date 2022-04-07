@@ -53,9 +53,9 @@ final class Server {
     
     var remoteManager: RemoteManager
     
-    var settingsManager: SettingsManager
-    
-    var authenticationManager: Authenticator
+//    var settingsManager: SettingsManager
+//
+//    var authenticationManager: Authenticator
     
     var errorDelegate: ErrorDelegate?
     
@@ -72,18 +72,18 @@ final class Server {
     
     
     init(eventloopGroup group: EventLoopGroup,
-         settingsManager settings: SettingsManager,
-         authenticationManager authenticator: Authenticator,
+//         settingsManager settings: SettingsManager,
+//         authenticationManager authenticator: Authenticator,
          remoteManager: RemoteManager, errorDelegate delegate: ErrorDelegate) {
         
         eventLoopGroup = group
-        settingsManager = settings
-        authenticationManager = authenticator
+//        settingsManager = settings
+//        authenticationManager = authenticator
         self.remoteManager = remoteManager
         
         errorDelegate = delegate
         
-        warpinatorProvider.settingsManager = settingsManager
+//        warpinatorProvider.settingsManager = settingsManager
         warpinatorProvider.remoteManager = remoteManager
     }
     
@@ -97,7 +97,7 @@ final class Server {
             return server.channel.eventLoop.makeSucceededFuture(server)
         }
         
-        guard let credentials = try? authenticationManager.getServerCredentials() else {
+        guard let credentials = try? Authenticator.shared.getServerCredentials() else {
             return eventLoopGroup.next().makeFailedFuture( ServerError.CREDENTIALS_GENERATION_ERROR )
         }
         
@@ -112,7 +112,7 @@ final class Server {
             .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
             .withServiceProviders( [ warpinatorProvider ] )
             .bind(host: "\(Utils.getIP_V4_Address())",
-                  port: Int( settingsManager.transferPortNumber ))
+                  port: Int( SettingsManager.shared.transferPortNumber ))
         
         
         future.whenSuccess { [weak self] server in

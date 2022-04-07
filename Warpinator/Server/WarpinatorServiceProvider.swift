@@ -39,6 +39,15 @@ enum DuplexError: GRPCErrorProtocol {
 
 
 
+
+
+
+
+
+
+
+
+
 //
 // MARK: - WarpinatorServiceProvider
 final public class WarpinatorServiceProvider: WarpProvider {
@@ -48,7 +57,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
     public var interceptors: WarpServerInterceptorFactoryProtocol?
     
     var remoteManager: RemoteManager?
-    var settingsManager: SettingsManager?
+//    var settingsManagSettingsManager.sharetdr: SettingsManager?
     
     let duplexQueueLabel = "Serve_Duplex"
     lazy var duplexQueue = DispatchQueue(label: duplexQueueLabel, qos: .userInitiated)
@@ -148,8 +157,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
         print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
         
         let info: RemoteMachineInfo = .with {
-            $0.displayName = settingsManager!.displayName
-            $0.userName = settingsManager!.userName
+            $0.displayName = SettingsManager.shared.displayName
+            $0.userName = SettingsManager.shared.userName
         }
         
         return context.eventLoop.makeSucceededFuture(info)
@@ -164,7 +173,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
         print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
         
         let systemPhoneImage = UIImage(systemName: "iphone")!.withRenderingMode(.alwaysTemplate)
-        let avatarImg = settingsManager?.avatarImage ?? systemPhoneImage
+        let avatarImg = SettingsManager.shared.avatarImage ?? systemPhoneImage
 
         let avatarImgBytes = avatarImg.pngData()
 
@@ -244,7 +253,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
         remote.addReceivingOperation(operation)
         
         
-        if settingsManager!.automaticAccept {
+        if SettingsManager.shared.automaticAccept {
             print(DEBUG_TAG+"Transfer was automatically accepted")
             remote.callClientStartTransfer(for: operation)
         }

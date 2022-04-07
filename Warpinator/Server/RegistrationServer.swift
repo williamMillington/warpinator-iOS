@@ -23,15 +23,15 @@ final class RegistrationServer {
     
     var eventLoopGroup: EventLoopGroup
     
-    var settingsManager: SettingsManager
+//    var settingsManager: SettingsManager
     
     var server : GRPC.Server?
     
-    init(eventloopGroup group: EventLoopGroup,
-         settingsManager manager: SettingsManager) {
+    init(eventloopGroup group: EventLoopGroup ){
+//         ,settingsManager manager: SettingsManager) {
         
         eventLoopGroup = group
-        settingsManager = manager
+//        settingsManager = manager
     }
     
     
@@ -44,7 +44,7 @@ final class RegistrationServer {
             return server.channel.eventLoop.makeSucceededFuture(server)
         }
         
-        let portNumber = Int( settingsManager.registrationPortNumber )
+        let portNumber = Int( SettingsManager.shared.registrationPortNumber )
         
         let future = GRPC.Server.insecure(group: eventLoopGroup)
             .withServiceProviders([ WarpinatorRegistrationProvider() ])

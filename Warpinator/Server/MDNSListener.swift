@@ -21,27 +21,25 @@ final class MDNSListener {
     
     private let DEBUG_TAG = "MDNSListener: "
     
-    private let SERVICE_TYPE = "_warpinator._tcp"
-    private let SERVICE_DOMAIN = ""
+     let SERVICE_TYPE = "_warpinator._tcp"
+     let SERVICE_DOMAIN = ""
     
-    public lazy var displayName: String = settingsManager.displayName
+    var displayName: String = SettingsManager.shared.displayName
     
     var connections: [NWEndpoint : NWConnection] = [:]
     
-    private var flushing = false
+    var flushing = false
     
-    private var certificateServer = CertificateServer()
+    var certificateServer = CertificateServer()
+    
     var listener: NWListener?
     weak var delegate: MDNSListenerDelegate?
-    var settingsManager: SettingsManager
-    
-    let queueLabel = "MDNSListenerQueue"
-    lazy var listenerQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
+//    let queueLabel = "MDNSListenerQueue"
+//    lazy var listenerQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
     
     
     
-    init(settingsManager manager: SettingsManager) {
-        settingsManager = manager
+    init() {
     }
     
     
@@ -68,11 +66,11 @@ final class MDNSListener {
         
         flushing = false
         
-        let transferPortNum =  UInt16( settingsManager.transferPortNumber)
+        let transferPortNum =  UInt16( SettingsManager.shared.transferPortNumber)
         let port = NWEndpoint.Port(rawValue: transferPortNum)!
         
         let params = NWParameters.udp
-        params.includePeerToPeer = true
+//        params.includePeerToPeer = true
         
         params.allowLocalEndpointReuse = true
         params.requiredInterfaceType = .wifi
@@ -88,25 +86,25 @@ final class MDNSListener {
         listener?.stateUpdateHandler = stateDidUpdate(state:)
         listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
         
-        listener?.serviceRegistrationUpdateHandler = { change in
-            
-            if case let .add(endpoint) = change {
-                
-                print(self.DEBUG_TAG+"service endpoint added: \(endpoint)")
-                
-                if case let .hostPort(host: host, port: port) = endpoint {
-                    print(self.DEBUG_TAG+"host: \(host)")
-                    print(self.DEBUG_TAG+"port: \(port)")
-                }
-            }
+//        listener?.serviceRegistrationUpdateHandler = { change in
+//
+//            if case let .add(endpoint) = change {
+//
+//                print(self.DEBUG_TAG+"service endpoint added: \(endpoint)")
+//
+//                if case let .hostPort(host: host, port: port) = endpoint {
+//                    print(self.DEBUG_TAG+"host: \(host)")
+//                    print(self.DEBUG_TAG+"port: \(port)")
+//                }
+//            }
+//
+//            print(self.DEBUG_TAG+"service changed: \(change)")
+//        }
         
-            print(self.DEBUG_TAG+"service changed: \(change)")
-        }
         
-        
-        let hostname = settingsManager.hostname
-        let authport = settingsManager.registrationPortNumber
-        let uuid = settingsManager.uuid
+        let hostname = SettingsManager.shared.hostname
+        let authport = SettingsManager.shared.registrationPortNumber
+        let uuid = SettingsManager.shared.uuid
         
         let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "auth-port" : "\(authport)",
@@ -118,7 +116,7 @@ final class MDNSListener {
                                                domain: SERVICE_DOMAIN,
                                                txtRecord:  NWTXTRecord(properties) )
         
-        listener?.start(queue: listenerQueue)
+        listener?.start(queue: .main)
     }
     
     
@@ -129,10 +127,10 @@ final class MDNSListener {
 //        print(DEBUG_TAG+"\tFlushing...")
         flushing = true
         
-        let port = NWEndpoint.Port(rawValue: UInt16( settingsManager.transferPortNumber ) )!
+        let port = NWEndpoint.Port(rawValue: UInt16( SettingsManager.shared.transferPortNumber ) )!
         
         let params = NWParameters.udp
-        params.includePeerToPeer = true
+//        params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
         
         
@@ -150,17 +148,17 @@ final class MDNSListener {
             // wait 2 seconds and stop
             // wait 2 more seconds re-publish for realsies
             if case .ready = state {
-                self?.listenerQueue.asyncAfter(deadline: .now() + 2) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     self?.stop()
-                    self?.listenerQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
                         self?.publishServiceAndListen()
                     }
                 }
             }
         }
         
-        let hostname = settingsManager.hostname
-        let uuid = settingsManager.uuid
+        let hostname = SettingsManager.shared.hostname
+        let uuid = SettingsManager.shared.uuid
         
         let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "type" : "flush"]
@@ -169,7 +167,7 @@ final class MDNSListener {
                                                type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN,
                                                txtRecord:  NWTXTRecord(properties) )
-        listener?.start(queue: listenerQueue)
+        listener?.start(queue: .main)
     }
     
     
@@ -212,6 +210,6 @@ final class MDNSListener {
             }
         }
         
-        connection.start(queue: listenerQueue)
+        connection.start(queue: .main)
     }
 }

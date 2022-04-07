@@ -88,8 +88,8 @@ final class ListedRemoteView: UIView {
 //        backgroundColor = UIColor.orange.withAlphaComponent(0.2)
         
         viewModel = model
-        viewModel?.onInfoUpdated = {
-            self.updateDisplay()
+        viewModel?.onInfoUpdated = { [weak self] in
+            self?.updateDisplay()
         }
         
         // add subviews and constraints

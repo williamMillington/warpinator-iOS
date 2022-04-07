@@ -42,7 +42,7 @@ final class MDNSBrowser {
         print(DEBUG_TAG+"Starting MDNSBrowser...")
         
         let params = NWParameters()
-        params.includePeerToPeer = true
+//        params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
         
         
@@ -72,15 +72,15 @@ final class MDNSBrowser {
     }
     
     
-    //
-    // MARK:  restart
-    func restart(){
-        print(self.DEBUG_TAG+"restarting in 2 seconds...")
-        self.browserQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
-            self?.stop()
-            self?.start()
-        }
-    }
+//    //
+//    // MARK  restart
+//    func restart(){
+//        print(self.DEBUG_TAG+"restarting in 2 seconds...")
+//        self.browserQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
+//            self?.stop()
+//            self?.start()
+//        }
+//    }
     
     
     
@@ -93,17 +93,18 @@ final class MDNSBrowser {
         switch newState {
         case .cancelled: print(DEBUG_TAG+" cancelled")
             browser = nil
-        case .failed(let error):
+        case .failed(_):
+            stop()
             print(DEBUG_TAG+"failed")
             // Restart the browser if it loses its connection
-            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
-                print(DEBUG_TAG+"Browser failed with \(error)")
-//                restart()
-                self.stop()
-            } else {
-                print(DEBUG_TAG+"Browser failed with \(error), stopping")
-                self.stop()
-            }
+//            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+//                print(DEBUG_TAG+"Browser failed with \(error)")
+////                restart()
+//                self.stop()
+//            } else {
+//                print(DEBUG_TAG+"Browser failed with \(error), stopping")
+//                self.stop()
+//            }
         default: print(DEBUG_TAG+"\(newState)")
         }
         
@@ -115,63 +116,23 @@ final class MDNSBrowser {
     private func resultsDidChange(results: Set<NWBrowser.Result>,
                                   changes: Set<NWBrowser.Result.Change>){
         
-        print(DEBUG_TAG+"==============================================================")
-        print(DEBUG_TAG+"resultsDidChange: ")
-        print(DEBUG_TAG+"\t\t\t available remotes: ")
-        
-        results.forEach { result in
-            print(self.DEBUG_TAG+"\t\t\t\t \(result)")
-        }
-        
-        
-        print(DEBUG_TAG+"\t\t\t changes: ")
-        
-        for change in changes {
-            
-            switch change {
-            case .added(let result):
-                print(DEBUG_TAG+"\t\t\t\t ADDED: \(result.endpoint)")
-            case .changed(old: let old, new: let new, flags: let flags):
-                
-                var flagString = ""
-                switch flags {
-                case .identical:  flagString = "identical"
-                case .interfaceRemoved: flagString = "interfaceRemoved"
-                case .interfaceAdded: flagString = "interfaceAdded"
-                case .metadataChanged: flagString = "metadataChanged"
-                default: flagString = "unknown changes: \(flags)"
-                }
-                
-                print(DEBUG_TAG+"\t\t\t\t CHANGED:  \(old.endpoint) \(old.interfaces)   ->   \(new.endpoint) \(new.interfaces) (\(flagString))")
-                
-                
-            case .removed(let result):
-                print(DEBUG_TAG+"\t\t\t\t REMOVED: \(result.endpoint)")
-            default: print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
-
-            }
-            
-        }
-        
-        
-        print(DEBUG_TAG+"==============================================================")
-        
-        
-        
-        
-        for change in changes {
-            
-            switch change {
-            case .added(let result):
-//                print(DEBUG_TAG+"\t\t\t\t ADDED \(result.endpoint)")
-
-                delegate?.mDNSBrowserDidAddResult(result)
-
-            case .changed(old: _, new: let new, flags: let flags):
-
-                if case .metadataChanged = flags {
-                    delegate?.mDNSBrowserDidAddResult(new)
-                }
+//        print(DEBUG_TAG+"==============================================================")
+//        print(DEBUG_TAG+"resultsDidChange: ")
+//        print(DEBUG_TAG+"\t\t\t available remotes: ")
+//
+//        results.forEach { result in
+//            print(self.DEBUG_TAG+"\t\t\t\t \(result)")
+//        }
+//
+//        print(DEBUG_TAG+"\t\t\t changes: ")
+//
+//        for change in changes {
+//
+//            switch change {
+//            case .added(let result):
+//                print(DEBUG_TAG+"\t\t\t\t ADDED: \(result.endpoint)")
+//            case .changed(old: let old, new: let new, flags: let flags):
+//
 //                var flagString = ""
 //                switch flags {
 //                case .identical:  flagString = "identical"
@@ -181,11 +142,30 @@ final class MDNSBrowser {
 //                default: flagString = "unknown changes: \(flags)"
 //                }
 //
-//                print(DEBUG_TAG+"\t\t\t\t CHANGED \(old.endpoint) -> \(new.endpoint) (\(flagString))")
-                
-            case .removed(let result):
-//                print(DEBUG_TAG+"REMOVED \(result.endpoint)")
-                delegate?.mDNSBrowserDidRemoveResult(result)
+//                print(DEBUG_TAG+"\t\t\t\t CHANGED:  \(old.endpoint) \(old.interfaces)   ->   \(new.endpoint) \(new.interfaces) (\(flagString))")
+//
+//
+//            case .removed(let result):
+//                print(DEBUG_TAG+"\t\t\t\t REMOVED: \(result.endpoint)")
+//            default: print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
+//
+//            }
+//
+//        }
+//        print(DEBUG_TAG+"==============================================================")
+        
+        
+        
+        
+        for change in changes {
+            
+            switch change {
+            case .added(let result):  delegate?.mDNSBrowserDidAddResult(result)
+            case .changed(old: _, new: let new, flags: let flags):
+                if case .metadataChanged = flags {
+                    delegate?.mDNSBrowserDidAddResult(new)
+                }
+            case .removed(let result):    delegate?.mDNSBrowserDidRemoveResult(result)
             default: break //print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
 
             }

@@ -714,16 +714,18 @@ extension Remote: ClientErrorDelegate {
 
 //
 // MARK: - Authentication
-extension Remote: AuthenticationRecipient {
+extension Remote: AuthenticationConnectionDelegate {
     
     //
     // MARK: fetch cert
     func obtainCertificate(){
         
         if details.api == "1" { // API_V1
-            authenticationConnection = UDPConnection(details, manager: self)
+            authenticationConnection = UDPConnection(delegate: self)
         } else { // API_V2
-            authenticationConnection = GRPCConnection(details, manager: self)
+            guard let eventloopGroup = eventloopGroup else { return }
+            authenticationConnection = GRPCConnection(onRventLoopGroup: eventloopGroup,
+                                                       delegate: self)
         }
         
         authenticationConnection?.requestCertificate()
@@ -731,19 +733,21 @@ extension Remote: AuthenticationRecipient {
     
     //
     // MARK: success
-    func authenticationCertificateObtained(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
+    func certificateObtained(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
         
         print(DEBUG_TAG+"certificate retrieved")
         self.details = details
         authenticationCertificate = certificate
-        
         connect(withCertificate: certificate)
+        
+        authenticationConnection = nil
     }
     
     //
     // MARK: failure
-    func failedToObtainCertificate(forRemote details: RemoteDetails, _ error: AuthenticationError){
+    func certificateRequestFailed(forRemote details: RemoteDetails, _ error: AuthenticationError){
         print(DEBUG_TAG+"failed to retrieve certificate, error: \(error)")
+        authenticationConnection = nil
     }
 }
 

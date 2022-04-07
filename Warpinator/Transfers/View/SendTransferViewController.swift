@@ -93,7 +93,7 @@ final class SendTransferViewController: UIViewController {
         
         let vm = ListedFileSelectionViewModel(file)
         let ltview = ListedFileSelectionView(withViewModel: vm) { [weak self] in
-            print(self!.DEBUG_TAG+"remove file")
+            print("remove file")
             self?.removeFile(file)
         }
         

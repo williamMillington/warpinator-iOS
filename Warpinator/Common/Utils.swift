@@ -130,12 +130,12 @@ public class Utils {
     }
     
     
-    
+    // MARK: extract IP Address
     static func extractAddressInfo(fromConnection connection: NWConnection) -> AddressInfo? {
         
-        print(DEBUG_TAG+"extracting address from connection: \(connection.endpoint)")
+//        print(DEBUG_TAG+"extracting address from connection: \(connection.endpoint)")
         if let ip4_string = connection.currentPath?.remoteEndpoint?.debugDescription {
-            print(DEBUG_TAG+"\t address string: \(ip4_string))");
+//            print(DEBUG_TAG+"\t address string: \(ip4_string))");
             
             
             // IP address is section of ip4_string before the '%'
@@ -143,7 +143,7 @@ public class Utils {
             let ip4_address: String = String(components[0])
             let address = ip4_address
             
-            print(DEBUG_TAG+"\t\t extracted IP Address: \(ip4_address)")
+//            print(DEBUG_TAG+"\t\t extracted IP Address: \(ip4_address)")
             
             
             // port number is within section of ip4_string after the '%' ("en0:0000")
@@ -155,12 +155,12 @@ public class Utils {
             if let portNumber = Int(portString) {
                 port = portNumber
             }
-            print(DEBUG_TAG+"\t\t extracted port: \(port)")
+//            print(DEBUG_TAG+"\t\t extracted port: \(port)")
             
             return (address, port)
         }
         
-        print(DEBUG_TAG+"\t extraction failed")
+        print(DEBUG_TAG+"\t IP address extraction failed")
         
         return nil
     }

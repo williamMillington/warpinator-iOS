@@ -159,7 +159,7 @@ final class RemoteViewModel: NSObject, ObservesRemote {
     private var remote: Remote
     
     var onInfoUpdated: ()->Void = {}
-    var onTransferAdded: (ListedTransferViewModel)->Void = { viewmodel in }
+    var onTransferAdded: (ListedTransferViewModel) -> Void = { viewmodel in }
     
     var avatarImage: UIImage? {
         return remote.details.userImage
