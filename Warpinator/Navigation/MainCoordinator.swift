@@ -73,7 +73,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     //
     func stopMDNS(){
-        mDNSListener.stop()
+//        mDNSListener.stop()
         mDNSBrowser.stop()
     }
     
@@ -89,6 +89,8 @@ final class MainCoordinator: NSObject, Coordinator {
             publishMDNS()
             return
         }
+        
+//        publishMDNS()
         
         // reuse existing eventloop ?? create new one
         serverEventLoopGroup = serverEventLoopGroup ?? GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
@@ -119,7 +121,7 @@ final class MainCoordinator: NSObject, Coordinator {
         // what to do if server fails to start
             .flatMapError { error in
                 self.server = nil
-                self.stopMDNS()
+//                self.stopMDNS()
                 
                 return self.serverEventLoopGroup!.next().makeFailedFuture(error)
             }
@@ -186,7 +188,10 @@ final class MainCoordinator: NSObject, Coordinator {
         
         // I thiink is how you chain futures together
         return remoteFuture?.flatMap {
-            print(self.DEBUG_TAG+"stopping registration server")
+            print(self.DEBUG_TAG+"stopping registrastion server")
+//            self.mDNSBrowser.stop()
+//            self.mDNSListener.stop()
+            self.stopMDNS()
             return registrationServer.stop()
         }.map {
             print(self.DEBUG_TAG+"deleting registration server")

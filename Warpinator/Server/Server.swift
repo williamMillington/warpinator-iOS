@@ -64,11 +64,11 @@ final class Server {
     let queueLabel = "WarpinatorServerQueue"
     lazy var serverQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
     
-//    var logger: Logger = {
-//        var log = Logger(label: "warpinator.Server", factory: StreamLogHandler.standardOutput)
-//        log.logLevel = .debug
-//        return log
-//    }()
+    var logger: Logger = {
+        var log = Logger(label: "warpinator.Server", factory: StreamLogHandler.standardOutput)
+        log.logLevel = .debug
+        return log
+    }()
     
     
     init(eventloopGroup group: EventLoopGroup,
@@ -111,6 +111,7 @@ final class Server {
                                                         privateKey: serverPrivateKey )
             .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
             .withServiceProviders( [ warpinatorProvider ] )
+            .withLogger(logger)
             .bind(host: "\(Utils.getIP_V4_Address())",
                   port: Int( SettingsManager.shared.transferPortNumber ))
         

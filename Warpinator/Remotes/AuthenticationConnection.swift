@@ -145,10 +145,10 @@ final class UDPConnection: AuthenticationConnection {
     private func receiveCertificate(){
         
         // RECEIVING CERTIFICATE
-        connection.receiveMessage  { (data, context, isComplete, error) in
-
-            guard error == nil else {
-                print(self.DEBUG_TAG+"Error: \(String(describing: error))"); return
+        connection.receiveMessage  { [weak self] (data, context, isComplete, error) in
+//            guard let self = self else { return }
+            guard let self = self ,error == nil else {
+                print("AuthenticationError: \(String(describing: error))"); return
             } 
             
             if isComplete {
@@ -224,6 +224,7 @@ final class GRPCConnection: AuthenticationConnection {
         let params = NWParameters.udp
         params.allowLocalEndpointReuse = true
         params.requiredInterfaceType = .wifi
+        
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
 //            print(DEBUG_TAG+"restrict connection to v4")

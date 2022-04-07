@@ -284,26 +284,36 @@ extension Remote {
         }
         
         
-        duplex?.response.whenComplete { result in
+        
+        
+        
+        
+        
+        
+        duplex?.response.whenSuccess { [weak self] result in
+            print((self?.DEBUG_TAG ?? "Remote: ")+"duplex verified after \(String(describing: self?.duplexAttempts)) attempts")
+            
+            self?.details.status = .Connected
+            self?.retrieveRemoteInfo()
+        }
+        
+        
+        duplex?.response.whenFailure { error in
             
             // check for success
-            do {
-                let haveDuplex = try result.get()
+//            do {
+//                if let haveDuplex = try? result.get(){
+//                    print(self.DEBUG_TAG+"duplex verified after \(self.duplexAttempts) attempts")
+//
+//                    self.details.status = .Connected
+//                    self.retrieveRemoteInfo()
+                    
+//                    return
+//                }
                 
-                // if acquired
-                if haveDuplex.response {
-                    
-                    print(self.DEBUG_TAG+"duplex verified after \(self.duplexAttempts) attempts")
-                    
-                    self.details.status = .Connected
-                    self.retrieveRemoteInfo()
-                    
-                    return
-                }
-                
-            } catch  {
-                print(self.DEBUG_TAG+"did not establish duplex -> \(error)")
-            }
+////            } catch  {
+//                print(self.DEBUG_TAG+"did not establish duplex -> \(error)")
+//            }
             
             
             // check number of tries (10)
@@ -315,6 +325,7 @@ extension Remote {
             
             
             // try again in 2 seconds
+            print(self.DEBUG_TAG+"did not establish duplex -> \(error)")
             print(self.DEBUG_TAG+"\ttrying again...")
             self.duplexQueue.asyncAfter(deadline: .now() + 2) {
                 self.aquireDuplex()
