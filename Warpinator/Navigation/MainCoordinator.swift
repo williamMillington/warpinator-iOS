@@ -71,7 +71,8 @@ final class MainCoordinator: NSObject, Coordinator {
     
     //
     func publishMDNS(){
-        mDNSListener.start()
+        mDNSListener.startListening()
+        mDNSListener.flushPublish()
     }
     
     //

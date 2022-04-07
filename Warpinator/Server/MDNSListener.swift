@@ -32,7 +32,7 @@ final class MDNSListener {
     
     var certificateServer = CertificateServer()
     
-    var listener: NWListener?
+    var listener: NWListener
     weak var delegate: MDNSListenerDelegate?
 //    let queueLabel = "MDNSListenerQueue"
 //    lazy var listenerQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
@@ -40,29 +40,6 @@ final class MDNSListener {
     
     
     init() {
-    }
-    
-    
-    //
-    // MARK: start
-    func start(){
-//        print(DEBUG_TAG+"starting...")
-        flushPublish()
-    }
-    
-    
-    //
-    // MARK: stop
-    func stop(){
-        listener?.cancel()
-    }
-    
-    
-    //
-    // MARK: publishServiceAndListen
-    func publishServiceAndListen(){
-        
-//        print(DEBUG_TAG+"\tpublishing for reals...")
         
         flushing = false
         
@@ -80,27 +57,66 @@ final class MDNSListener {
         }
         
         
-        listener = nil
+//        listener = nil
         listener = try! NWListener(using: params, on: port )
         
-        listener?.stateUpdateHandler = stateDidUpdate(state:)
-        listener?.newConnectionHandler = newConnectionEstablished(newConnection:)
+        listener.stateUpdateHandler = stateDidUpdate(state:)
         
-//        listener?.serviceRegistrationUpdateHandler = { change in
-//
-//            if case let .add(endpoint) = change {
-//
-//                print(self.DEBUG_TAG+"service endpoint added: \(endpoint)")
-//
-//                if case let .hostPort(host: host, port: port) = endpoint {
-//                    print(self.DEBUG_TAG+"host: \(host)")
-//                    print(self.DEBUG_TAG+"port: \(port)")
-//                }
-//            }
-//
-//            print(self.DEBUG_TAG+"service changed: \(change)")
-//        }
+        pauseAcceptingConnections()
+//        listener.newConnectionHandler = newConnectionEstablished(newConnection:)
+        startListening()
+    }
+    
+    
+    //
+    // MARK: startListening
+    func startListening(){
         
+        guard listener.state == .setup else {
+            print(DEBUG_TAG+"\tlistener is not in setup state (\(listener.state))")
+            return
+        }
+        listener.start(queue: .global() )
+//        flushPublish()
+    }
+    
+    
+    //
+    // MARK stop
+    func stopListening(){
+        listener.cancel()
+    }
+    
+    
+    func pauseAcceptingConnections() {
+        listener.newConnectionHandler = { connection in connection.cancel() }
+    }
+    
+    func beginAcceptingConnections() {
+        listener.newConnectionHandler = newConnectionEstablished(newConnection:)
+    }
+    
+    func refreshService(){
+        
+        flushPublish()
+        
+    }
+    
+    
+    //
+    // MARK: publishService
+    func publishService(){
+        
+        print(DEBUG_TAG+"\tpublishing for reals...")
+        
+        guard listener.state == .ready else {
+            print(DEBUG_TAG+"\tlistener is not ready (\(listener.state))")
+            return
+        }
+        
+        beginAcceptingConnections()
+        
+        flushing = false
         
         let hostname = SettingsManager.shared.hostname
         let authport = SettingsManager.shared.registrationPortNumber
@@ -111,76 +127,69 @@ final class MDNSListener {
                                            "api-version": "2",
                                            "type" : "real"]
         
-        listener?.service = NWListener.Service(name: uuid,
+        
+        listener.service = NWListener.Service(name: uuid,
                                                type: SERVICE_TYPE,
                                                domain: SERVICE_DOMAIN,
                                                txtRecord:  NWTXTRecord(properties) )
         
-        listener?.start(queue: .main)
+        
+        delegate?.mDNSListenerIsReady()
     }
     
     
     //
     // MARK: flushPublish
     func flushPublish(){
+
         
-//        print(DEBUG_TAG+"\tFlushing...")
+        guard listener.state == .ready  else {
+            print(DEBUG_TAG+"\tlistener is not ready (\(listener.state))")
+            return
+        }
+        
+        
+        pauseAcceptingConnections()
+        
+        print(DEBUG_TAG+"\tFlushing...")
         flushing = true
-        
-        let port = NWEndpoint.Port(rawValue: UInt16( SettingsManager.shared.transferPortNumber ) )!
-        
-        let params = NWParameters.udp
-//        params.includePeerToPeer = true
-        params.allowLocalEndpointReuse = true
-        
-        
-        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-            inetOptions.version = .v4
-        }
-        
-        listener = nil
-        listener = try! NWListener(using: params, on: port )
-        
-        listener?.newConnectionHandler = { connection in  connection.cancel() }
-        listener?.stateUpdateHandler = { [weak self] state in
-            print("flushing listener (\(state))")
-            
-            // wait 2 seconds and stop
-            // wait 2 more seconds re-publish for realsies
-            if case .ready = state {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    self?.stop()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-                        self?.publishServiceAndListen()
-                    }
-                }
-            }
-        }
+
         
         let hostname = SettingsManager.shared.hostname
         let uuid = SettingsManager.shared.uuid
-        
+
         let properties: [String:String] = ["hostname" : "\(hostname)",
                                            "type" : "flush"]
         
-        listener?.service = NWListener.Service(name: uuid,
-                                               type: SERVICE_TYPE,
-                                               domain: SERVICE_DOMAIN,
-                                               txtRecord:  NWTXTRecord(properties) )
-        listener?.start(queue: .main)
+        listener.service = NWListener.Service(name: uuid,
+                                              type: SERVICE_TYPE,
+                                              domain: SERVICE_DOMAIN,
+                                              txtRecord:  NWTXTRecord(properties) )
+        
+        
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.listener.service = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.publishService()
+            }
+        }
     }
     
     
     // MARK: stateDidUpdate
     private func stateDidUpdate(state: NWListener.State ) {
         
-        switch state {
-        case .cancelled: print(DEBUG_TAG+" cancelled")
-            listener = nil
-        case .ready: print(DEBUG_TAG+" ready")
-            delegate?.mDNSListenerIsReady() // break 
-        default: print(DEBUG_TAG+"State updated: \(state)")
-        }
+        print(DEBUG_TAG+" state updated -> \(state)")
+        
+        
+//        switch state {
+//        case .cancelled: print(DEBUG_TAG+" cancelled")
+////            listener = nil
+//        case .ready: print(DEBUG_TAG+" ready")
+//            delegate?.mDNSListenerIsReady() // break
+//        default: print(DEBUG_TAG+"State updated: \(state)")
+//        }
         
     }
     
