@@ -92,9 +92,6 @@ final class RemoteManager {
     }
     
     
-    
-    
-    
     // MARK: shutdown all remotes
     func shutdownAllRemotes() -> EventLoopFuture<Void>? {
         
@@ -104,7 +101,6 @@ final class RemoteManager {
             print(DEBUG_TAG+"No eventloop")
             return nil
         }
-        
         
         let futures = remotes.values.compactMap { remote in
             return remote.disconnect()
@@ -116,6 +112,17 @@ final class RemoteManager {
             print("RemoteManager: Remotes have finished shutting down")
         }
         
+        future.whenComplete { response in
+            
+            print(self.DEBUG_TAG+"remotes completed disconnecting: ")
+            
+            do {
+                try response.get()
+                print(self.DEBUG_TAG+"remotes finished: ")
+            } catch {
+                print(self.DEBUG_TAG+"error: \(error)")
+            }
+        }
         
         return future
     }

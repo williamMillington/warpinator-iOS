@@ -125,7 +125,6 @@ final class Server {
             return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
                 self.start()
             }.futureResult
-            
 //            return scheduledTask.futureResult
         }
         
