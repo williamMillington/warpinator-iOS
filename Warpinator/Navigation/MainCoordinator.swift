@@ -63,17 +63,23 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    func publishMDNS(){
-        mDNSListener.beginAcceptingConnections()
-        mDNSListener.flushPublish()
+    func startMDNS(){
+        mDNSListener.startListening()   //beginAcceptingConnections()
+        mDNSBrowser.startBrowsing()
+//
+//        mDNSBrowser.currentResults.forEach { result in
+//
+//        }
     }
     
     //
     func stopMDNS(){
 //        mDNSListener.stop()
-        mDNSListener.pauseAcceptingConnections()
-        mDNSBrowser.stop()
+//        mDNSListener.pauseAcceptingConnections()
+        mDNSListener.stopListening()
+        mDNSBrowser.stopBrowsing()
     }
+    
     
     //
     // MARK: start servers
@@ -81,11 +87,18 @@ final class MainCoordinator: NSObject, Coordinator {
 
         print(DEBUG_TAG+"starting servers...")
         
+        guard !server.isRunning else {
+            print(DEBUG_TAG+"Server is already running")
+            startMDNS()
+            return
+        }
+        
         DispatchQueue.main.async {
             if let vc = self.navController.visibleViewController as? ViewController {
                 vc.showLoadingScreen()
             }
         }
+        
         
         
         //
@@ -114,7 +127,9 @@ final class MainCoordinator: NSObject, Coordinator {
 
                 do {  _ = try result.get()   }
                 catch {
-                    self.mDNSListener.pauseAcceptingConnections()
+//                    self.mDNSListener.pauseAcceptingConnections()
+//                    self.mDNSListener.stopListening()
+                    self.stopMDNS()
                     // error outcome, something failed
                     self.reportError(error, withMessage: "Server future failed")
                     return
@@ -123,7 +138,9 @@ final class MainCoordinator: NSObject, Coordinator {
 
                 // success outcome, continue with starting up
                 // TODO: make a way to return a promise that succeeds when the listener/browser are ready
-                self.publishMDNS()
+//                self.startMDNS()
+                self.mDNSListener.flushPublish()
+                self.startMDNS()
                 DispatchQueue.main.async {
                     (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
                 }
@@ -294,7 +311,7 @@ extension MainCoordinator: ErrorDelegate {
 // MARK: - MDNSListenerDelegate
 extension MainCoordinator: MDNSListenerDelegate {
     func mDNSListenerIsReady() {
-        mDNSBrowser.start()
+        mDNSBrowser.startBrowsing()
     }
 }
 

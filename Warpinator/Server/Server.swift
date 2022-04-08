@@ -60,6 +60,7 @@ final class Server {
     var errorDelegate: ErrorDelegate?
     
     var server: GRPC.Server?
+    var isRunning: Bool = false
     var attempts = 0
     
     let queueLabel = "WarpinatorServerQueue"
@@ -93,11 +94,6 @@ final class Server {
     // MARK: start
     func start() -> EventLoopFuture<GRPC.Server>  {
         
-        // don't create a new server if we have one going already
-//        if let server = server {
-//            return  server.channel.eventLoop.makeSucceededFuture(server)
-//        }
-        
         guard let credentials = try? Authenticator.shared.getServerCredentials() else {
             return eventLoopGroup.next().makeFailedFuture( ServerError.CREDENTIALS_GENERATION_ERROR )
         }
@@ -129,6 +125,7 @@ final class Server {
         future.whenSuccess { [weak self] server in
             print((self?.DEBUG_TAG ?? "(server is nil): ")+"transfer server started on: \(String(describing: server.channel.localAddress))")
             self?.server = server
+            self?.isRunning = true
         }
         
         return future
@@ -140,7 +137,7 @@ final class Server {
         guard let server = server else {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
-        
+        isRunning = false
         return server.initiateGracefulShutdown()
     }
     

@@ -105,7 +105,6 @@ final class UDPConnection: AuthenticationConnection {
                     self.details.port = addressInfo.port
                 }
                 
-//                self.connection.cancel()
                 self.sendCertificateRequest()
             } else {
                 print(self.DEBUG_TAG+" state is \(state)")

@@ -56,27 +56,28 @@ final class MDNSListener {
             inetOptions.version = .v4
         }
         
-        
-//        listener = nil
         listener = try! NWListener(using: params, on: port )
         
         listener.stateUpdateHandler = stateDidUpdate(state:)
         
-        pauseAcceptingConnections()
-//        listener.newConnectionHandler = newConnectionEstablished(newConnection:)
-        startListening()
+//        pauseAcceptingConnections()
+        stopListening()
+        
+//        startListening()
+        listener.start(queue: .global() )
     }
     
     
     //
     // MARK: startListening
     func startListening(){
+        listener.newConnectionHandler = newConnectionEstablished(newConnection:)
+//        guard listener.state == .setup else {
+//            print(DEBUG_TAG+"\tlistener is not in setup state (\(listener.state))")
+//            return
+//        }
         
-        guard listener.state == .setup else {
-            print(DEBUG_TAG+"\tlistener is not in setup state (\(listener.state))")
-            return
-        }
-        listener.start(queue: .global() )
+//        listener.start(queue: .global() )
 //        flushPublish()
     }
     
@@ -84,17 +85,24 @@ final class MDNSListener {
     //
     // MARK stop
     func stopListening(){
-        listener.cancel()
+        
+        listener.newConnectionHandler = { $0.cancel() }
+//        connections.removeAll()
+//
+//        listener.cancel()
     }
     
     
-    func pauseAcceptingConnections() {
-        listener.newConnectionHandler = { connection in connection.cancel() }
-    }
+//    func pauseAcceptingConnections() {
+//        // immediately cancel incoming connection
+////        listener.newConnectionHandler = { $0.cancel() }
+//    }
+//
+//
+//    func beginAcceptingConnections() {
+//        listener.newConnectionHandler = newConnectionEstablished(newConnection:)
+//    }
     
-    func beginAcceptingConnections() {
-        listener.newConnectionHandler = newConnectionEstablished(newConnection:)
-    }
     
     func refreshService(){
         
@@ -114,7 +122,7 @@ final class MDNSListener {
             return
         }
         
-        beginAcceptingConnections()
+//        beginAcceptingConnections()
         
         flushing = false
         
@@ -134,6 +142,8 @@ final class MDNSListener {
                                                txtRecord:  NWTXTRecord(properties) )
         
         
+        startListening()
+        
         delegate?.mDNSListenerIsReady()
     }
     
@@ -149,7 +159,8 @@ final class MDNSListener {
         }
         
         
-        pauseAcceptingConnections()
+//        pauseAcceptingConnections()
+        stopListening()
         
         print(DEBUG_TAG+"\tFlushing...")
         flushing = true
@@ -210,13 +221,28 @@ final class MDNSListener {
             
             print((self?.DEBUG_TAG ?? "(MDNSListener is nil): ")+"\(connection.endpoint) updated state: \(state)")
             
-            // serve certificate as soon as connection is ready
-            if case .ready = state {
-                self?.certificateServer.serveCertificate(to: connection) { [weak self] in
-                    self?.connections.removeValue(forKey: connection.endpoint)
-                    connection.cancel()
+            switch state {
+            case .ready:
+                
+                // serve certificate as soon as connection is ready
+                self?.certificateServer.serveCertificate(to: connection) {
+                    connection.cancel() // cancel when finished
                 }
+            case .cancelled, .failed(_):
+                
+                // remove connection when cancelled or failed
+                self?.connections.removeValue(forKey: connection.endpoint)
+            default: break
+                
             }
+            
+            // serve certificate as soon as connection is ready
+//            if case .ready = state {
+//                self?.certificateServer.serveCertificate(to: connection) { [weak self] in
+//                    connection.cancel()
+//                    self?.connections.removeValue(forKey: connection.endpoint)
+//                }
+//            }
         }
         
         connection.start(queue: .main)
