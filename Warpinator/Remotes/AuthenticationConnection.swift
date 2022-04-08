@@ -105,7 +105,7 @@ final class UDPConnection: AuthenticationConnection {
                     self.details.port = addressInfo.port
                 }
                 
-                self.connection.cancel()
+//                self.connection.cancel()
                 self.sendCertificateRequest()
             } else {
                 print(self.DEBUG_TAG+" state is \(state)")
@@ -115,7 +115,7 @@ final class UDPConnection: AuthenticationConnection {
         print(DEBUG_TAG+"requesting certificate from \(details.endpoint)")
 //        details.status = .FetchingCredentials
         
-        connection.start(queue: .main)
+        connection.start(queue: .global())
     }
     
     

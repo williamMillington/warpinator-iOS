@@ -731,13 +731,13 @@ extension Remote: AuthenticationConnectionDelegate {
     // MARK: fetch cert
     func obtainCertificate(){
         
-        if details.api == "1" { // API_V1
+//        if details.api == "1" { // API_V1
             authenticationConnection = UDPConnection(delegate: self)
-        } else { // API_V2
-            guard let eventloopGroup = eventloopGroup else { return }
-            authenticationConnection = GRPCConnection(onRventLoopGroup: eventloopGroup,
-                                                       delegate: self)
-        }
+//        } else { // API_V2
+//            guard let eventloopGroup = eventloopGroup else { return }
+//            authenticationConnection = GRPCConnection(onRventLoopGroup: eventloopGroup,
+//                                                       delegate: self)
+//        }
         
         authenticationConnection?.requestCertificate()
     }

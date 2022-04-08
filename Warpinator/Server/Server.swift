@@ -121,22 +121,15 @@ final class Server {
             
             print( self.DEBUG_TAG + "transfer server failed: \(error))")
             
-//            let scheduledTask =
             return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
                 self.start()
             }.futureResult
-//            return scheduledTask.futureResult
         }
         
         future.whenSuccess { [weak self] server in
             print((self?.DEBUG_TAG ?? "(server is nil): ")+"transfer server started on: \(String(describing: server.channel.localAddress))")
             self?.server = server
         }
-        
-//        future.whenFailure { [weak self] error in
-//
-//            print( (self?.DEBUG_TAG ?? "(server is nil): ") + "transfer server failed: \(error))")
-//        }
         
         return future
     }
