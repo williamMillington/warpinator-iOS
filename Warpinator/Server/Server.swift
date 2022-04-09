@@ -74,18 +74,13 @@ final class Server {
     
     
     init(eventloopGroup group: EventLoopGroup,
-//         settingsManager settings: SettingsManager,
-//         authenticationManager authenticator: Authenticator,
          remoteManager: RemoteManager, errorDelegate delegate: ErrorDelegate) {
         
         eventLoopGroup = group
-//        settingsManager = settings
-//        authenticationManager = authenticator
         self.remoteManager = remoteManager
         
         errorDelegate = delegate
         
-//        warpinatorProvider.settingsManager = settingsManager
         warpinatorProvider.remoteManager = remoteManager
     }
     
@@ -108,12 +103,14 @@ final class Server {
                                                         privateKey: serverPrivateKey )
             .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
             .withServiceProviders( [ warpinatorProvider ] )
-            .withLogger(logger)
+//            .withLogger(logger)
             .bind(host: "\(Utils.getIP_V4_Address())",
                   port: Int( SettingsManager.shared.transferPortNumber ))
         
         // onError: attempt restart after 2 seconds
         .flatMapError { error in
+            
+            
             
             print( self.DEBUG_TAG + "transfer server failed: \(error))")
             

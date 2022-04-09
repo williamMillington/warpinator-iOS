@@ -244,7 +244,7 @@ final class GRPCConnection: AuthenticationConnection {
         
         ipConnection.stateUpdateHandler = { [weak self] state in
             
-            guard let self = self else { print("GRPC deallocated?"); return }
+            guard let self = self else { print("GRPCConnection: ipConnection deallocated?"); return }
             
             if case .ready = state {
                 

@@ -32,23 +32,10 @@ final class MDNSListener {
     
     var certificateServer = CertificateServer()
     
-    var listener: NWListener
-    weak var delegate: MDNSListenerDelegate?
-//    let queueLabel = "MDNSListenerQueue"
-//    lazy var listenerQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
     
-    
-    
-    init() {
-        
-        flushing = false
-        
-        let transferPortNum =  UInt16( SettingsManager.shared.transferPortNumber)
-        let port = NWEndpoint.Port(rawValue: transferPortNum)!
+    var parameters: NWParameters {
         
         let params = NWParameters.udp
-//        params.includePeerToPeer = true
-        
         params.allowLocalEndpointReuse = true
         params.requiredInterfaceType = .wifi
         
@@ -56,29 +43,72 @@ final class MDNSListener {
             inetOptions.version = .v4
         }
         
-        listener = try! NWListener(using: params, on: port )
-        
-        listener.stateUpdateHandler = stateDidUpdate(state:)
-        
-//        pauseAcceptingConnections()
-        stopListening()
-        
-//        startListening()
-        listener.start(queue: .global() )
+        return params
     }
+    
+    var port: NWEndpoint.Port {
+        let transferPortNum =  UInt16( SettingsManager.shared.transferPortNumber)
+        return NWEndpoint.Port(rawValue: transferPortNum)!
+    }
+    
+    
+    lazy var listener: NWListener = createListener()
+    
+    
+    weak var delegate: MDNSListenerDelegate?
+    
+    let queueLabel = "MDNSListenerQueue"
+    lazy var listenerQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
+    
+    
+    
+    init() {
+//
+//        let transferPortNum =  UInt16( SettingsManager.shared.transferPortNumber)
+//        let port = NWEndpoint.Port(rawValue: transferPortNum)!
+//
+//        let params = NWParameters.udp
+////        params.includePeerToPeer = true
+//
+//        params.allowLocalEndpointReuse = true
+//        params.requiredInterfaceType = .wifi
+//
+//        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+//            inetOptions.version = .v4
+//        }
+        
+//        listener = createListener() // try! NWListener(using: parameters, on: port )
+        
+//        listener.stateUpdateHandler = stateDidUpdate(state:)
+        
+//        try! NWListener(using: params, on: port )
+//
+//        listener.stateUpdateHandler = stateDidUpdate(state:)
+//
+//        stopListening()
+//
+        listener.stateUpdateHandler = stateDidUpdate(state:)
+        stopListening()
+        listener.start(queue: listenerQueue )
+    }
+    
+    
+    func createListener() -> NWListener {
+        
+        print(DEBUG_TAG+"\t Creating listener")
+        
+        listener = try! NWListener(using: parameters, on: port )
+        
+        return listener
+    }
+    
+    
     
     
     //
     // MARK: startListening
     func startListening(){
         listener.newConnectionHandler = newConnectionEstablished(newConnection:)
-//        guard listener.state == .setup else {
-//            print(DEBUG_TAG+"\tlistener is not in setup state (\(listener.state))")
-//            return
-//        }
-        
-//        listener.start(queue: .global() )
-//        flushPublish()
     }
     
     
@@ -87,27 +117,10 @@ final class MDNSListener {
     func stopListening(){
         
         listener.newConnectionHandler = { $0.cancel() }
-//        connections.removeAll()
-//
-//        listener.cancel()
     }
     
-    
-//    func pauseAcceptingConnections() {
-//        // immediately cancel incoming connection
-////        listener.newConnectionHandler = { $0.cancel() }
-//    }
-//
-//
-//    func beginAcceptingConnections() {
-//        listener.newConnectionHandler = newConnectionEstablished(newConnection:)
-//    }
-    
-    
     func refreshService(){
-        
         flushPublish()
-        
     }
     
     
@@ -122,7 +135,7 @@ final class MDNSListener {
             return
         }
         
-//        beginAcceptingConnections()
+        stopListening()
         
         flushing = false
         
@@ -159,7 +172,6 @@ final class MDNSListener {
         }
         
         
-//        pauseAcceptingConnections()
         stopListening()
         
         print(DEBUG_TAG+"\tFlushing...")
@@ -187,28 +199,94 @@ final class MDNSListener {
         }
     }
     
+    func removeService() {
+        listener.service = nil
+    }
     
+    
+    
+    //
     // MARK: stateDidUpdate
     private func stateDidUpdate(state: NWListener.State ) {
         
         print(DEBUG_TAG+" state updated -> \(state)")
         
+        switch state {
+        case .cancelled:  print(DEBUG_TAG+" cancelled")
         
-//        switch state {
-//        case .cancelled: print(DEBUG_TAG+" cancelled")
-////            listener = nil
-//        case .ready: print(DEBUG_TAG+" ready")
-//            delegate?.mDNSListenerIsReady() // break
-//        default: print(DEBUG_TAG+"State updated: \(state)")
-//        }
-        
+        case .failed(let error):  print(DEBUG_TAG+"listener failed; error: \(error)")
+            
+            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+                restartListener()
+                return
+                
+            } else {    print(DEBUG_TAG+"\t\tstopping")     }
+            
+            listener.cancel()
+            
+        default: break //print(DEBUG_TAG+"State updated: \(state)")
+        }
     }
+    
+    
+    private func restartStateHandler(state: NWListener.State ) {
+        
+        print(DEBUG_TAG+" state changed (\(state))")
+        
+        switch state {
+            
+        case .cancelled:
+            
+            listener = createListener()
+            listener.stateUpdateHandler = restartStateHandler(state:)
+            stopListening()
+            listener.start(queue: listenerQueue)
+        
+        case .ready:
+            listener.stateUpdateHandler = stateDidUpdate(state:)
+            flushPublish()
+            
+        case .failed(let error) :
+            
+            print(DEBUG_TAG+"listener failed; error: \(error)")
+            
+            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+                
+                listenerQueue.asyncAfter(deadline: .now() + 1) {
+                    self.restartListener()
+                }
+                return
+                
+            } else {
+                print(DEBUG_TAG+"\t\tstopping")
+            }
+            
+            listener.cancel()
+            
+        default: print(DEBUG_TAG+" state: \(state)")
+            
+        }
+    }
+    
+    
+    
+    //
+    // MARK: restart
+    func restartListener(){
+        
+        print(DEBUG_TAG+"\t\t restarting")
+        
+        listener.stateUpdateHandler = restartStateHandler(state: )
+        
+        listener.cancel()
+    }
+    
     
     
     // MARK: newConnectionEstablished
     private func newConnectionEstablished(newConnection connection: NWConnection) {
         
-        print(DEBUG_TAG+"new connection: \n\t\(connection)")
+//        print(DEBUG_TAG+"new connection: \n\t\(connection)")
         
         // TODO: I feel like the meat of this function belongs in CertificateServer itself.
         // ie. Receive new connection -> pass it straight along to certificateServer
@@ -219,7 +297,7 @@ final class MDNSListener {
         
         connection.stateUpdateHandler = { [weak self] state in
             
-            print((self?.DEBUG_TAG ?? "(MDNSListener is nil): ")+"\(connection.endpoint) updated state: \(state)")
+//            print((self?.DEBUG_TAG ?? "(MDNSListener is nil): ")+"\(connection.endpoint) updated state: \(state)")
             
             switch state {
             case .ready:
@@ -236,13 +314,6 @@ final class MDNSListener {
                 
             }
             
-            // serve certificate as soon as connection is ready
-//            if case .ready = state {
-//                self?.certificateServer.serveCertificate(to: connection) { [weak self] in
-//                    connection.cancel()
-//                    self?.connections.removeValue(forKey: connection.endpoint)
-//                }
-//            }
         }
         
         connection.start(queue: .main)

@@ -62,20 +62,19 @@ final class MainCoordinator: NSObject, Coordinator {
     }
     
     
-    //
-    func startMDNS(){
-        mDNSListener.startListening()   //beginAcceptingConnections()
-        mDNSBrowser.startBrowsing()
-//
-//        mDNSBrowser.currentResults.forEach { result in
-//
-//        }
-    }
     
     //
+    //
+    func startMDNS(){
+        mDNSListener.startListening()
+        mDNSBrowser.startBrowsing()
+    }
+    
+    
+    //
+    //
     func stopMDNS(){
-//        mDNSListener.stop()
-//        mDNSListener.pauseAcceptingConnections()
+        mDNSListener.removeService()
         mDNSListener.stopListening()
         mDNSBrowser.stopBrowsing()
     }
@@ -89,7 +88,7 @@ final class MainCoordinator: NSObject, Coordinator {
         
         guard !server.isRunning else {
             print(DEBUG_TAG+"Server is already running")
-            startMDNS()
+//            startMDNS()
             return
         }
         
@@ -140,7 +139,7 @@ final class MainCoordinator: NSObject, Coordinator {
                 // TODO: make a way to return a promise that succeeds when the listener/browser are ready
 //                self.startMDNS()
                 self.mDNSListener.flushPublish()
-                self.startMDNS()
+//                self.startMDNS()
                 DispatchQueue.main.async {
                     (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
                 }

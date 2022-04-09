@@ -27,7 +27,7 @@ final class MDNSBrowser {
     var currentResults: [NWBrowser.Result] {
         print(DEBUG_TAG+"current results are: ")
         browser.browseResults.forEach { result in
-            print(DEBUG_TAG+"\t\t \(result) ")
+            print(DEBUG_TAG+"\t\t \(result.endpoint) ")
         }
         return Array( browser.browseResults )
     }
@@ -42,7 +42,6 @@ final class MDNSBrowser {
         
         let params = NWParameters()
         params.allowLocalEndpointReuse = true
-        
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
             inetOptions.version = .v4
@@ -157,7 +156,7 @@ final class MDNSBrowser {
     private func resultsDidChange(results: Set<NWBrowser.Result>,
                                   changes: Set<NWBrowser.Result.Change>){
         
-        print(DEBUG_TAG+"results ")
+//        print(DEBUG_TAG+"results ")
         
         for change in changes {
             
