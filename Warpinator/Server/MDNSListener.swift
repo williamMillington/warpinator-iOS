@@ -63,37 +63,14 @@ final class MDNSListener {
     
     
     init() {
-//
-//        let transferPortNum =  UInt16( SettingsManager.shared.transferPortNumber)
-//        let port = NWEndpoint.Port(rawValue: transferPortNum)!
-//
-//        let params = NWParameters.udp
-////        params.includePeerToPeer = true
-//
-//        params.allowLocalEndpointReuse = true
-//        params.requiredInterfaceType = .wifi
-//
-//        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-//            inetOptions.version = .v4
-//        }
-        
-//        listener = createListener() // try! NWListener(using: parameters, on: port )
-        
-//        listener.stateUpdateHandler = stateDidUpdate(state:)
-        
-//        try! NWListener(using: params, on: port )
-//
-//        listener.stateUpdateHandler = stateDidUpdate(state:)
-//
-//        stopListening()
-//
+
         listener.stateUpdateHandler = stateDidUpdate(state:)
         stopListening()
         listener.start(queue: listenerQueue )
     }
     
     
-    func createListener() -> NWListener {
+    private func createListener() -> NWListener {
         
         print(DEBUG_TAG+"\t Creating listener")
         
@@ -231,7 +208,7 @@ final class MDNSListener {
     
     private func restartStateHandler(state: NWListener.State ) {
         
-        print(DEBUG_TAG+" state changed (\(state))")
+        print(DEBUG_TAG+" restart state changed (\(state))")
         
         switch state {
             

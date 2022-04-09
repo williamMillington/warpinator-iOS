@@ -67,6 +67,7 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     func startMDNS(){
         mDNSListener.startListening()
+        mDNSListener.flushPublish()
         mDNSBrowser.startBrowsing()
     }
     
@@ -138,8 +139,8 @@ final class MainCoordinator: NSObject, Coordinator {
                 // success outcome, continue with starting up
                 // TODO: make a way to return a promise that succeeds when the listener/browser are ready
 //                self.startMDNS()
-                self.mDNSListener.flushPublish()
-//                self.startMDNS()
+//                self.mDNSListener.flushPublish()
+                self.startMDNS()
                 DispatchQueue.main.async {
                     (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
                 }

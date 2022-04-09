@@ -23,12 +23,25 @@ final class MDNSBrowser {
     
     var delegate: MDNSBrowserDelegate?
     
+    
+    var parameters: NWParameters {
+        
+        let params = NWParameters()
+        params.allowLocalEndpointReuse = true
+        
+        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            inetOptions.version = .v4
+        }
+        
+        return params
+    }
+    
     var browser: NWBrowser
     var currentResults: [NWBrowser.Result] {
-        print(DEBUG_TAG+"current results are: ")
-        browser.browseResults.forEach { result in
-            print(DEBUG_TAG+"\t\t \(result.endpoint) ")
-        }
+//        print(DEBUG_TAG+"current results are: ")
+//        browser.browseResults.forEach { result in
+//            print(DEBUG_TAG+"\t\t \(result.endpoint) ")
+//        }
         return Array( browser.browseResults )
     }
     
@@ -47,67 +60,28 @@ final class MDNSBrowser {
             inetOptions.version = .v4
         }
         
-        
         browser = NWBrowser(for: .bonjourWithTXTRecord(type: SERVICE_TYPE,
                                                        domain: SERVICE_DOMAIN),
                                using: params)
         
         browser.stateUpdateHandler = stateDidUpdate(newState:)
-        
         startBrowsing()
         
         browser.start(queue: browserQueue)
         
-//        refreshResults()
     }
     
     
-//    func refreshResults(){
-//
-//        print(DEBUG_TAG+"refreshing results ")
-//
-//        let _ = currentResults
-//
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-//            self.refreshResults()
-//        }
-//
-//    }
+    private func createBrowser() -> NWBrowser {
+        
+        return NWBrowser(for: .bonjourWithTXTRecord(type: SERVICE_TYPE,
+                                                    domain: SERVICE_DOMAIN),
+                            using: parameters)
+    }
+    
     
     //
-    // MARK start
-//    func start(){
-        
-//        guard browser == nil else {
-//            if browser!.state != .ready {
-//                start()
-//            }
-//            print(DEBUG_TAG+"Browser already running");  return
-//        }
-//        
-//        print(DEBUG_TAG+"Starting MDNSBrowser...")
-//        
-//        let params = NWParameters()
-////        params.includePeerToPeer = true
-//        params.allowLocalEndpointReuse = true
-//        
-//        
-//        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-//            inetOptions.version = .v4
-//        }
-//
-//
-//        browser = NWBrowser(for: .bonjourWithTXTRecord(type: SERVICE_TYPE,
-//                                                       domain: SERVICE_DOMAIN),
-//                               using: params)
-//
-//        browser?.stateUpdateHandler = stateDidUpdate(newState:)
-//
-//        browser?.start(queue: browserQueue)
-        
-//    }
-    
-    
+    // MARK: startBrowsing
     func startBrowsing(){
         
         print(DEBUG_TAG+"beginning browsing")
@@ -118,6 +92,9 @@ final class MDNSBrowser {
         }
     }
     
+    
+    //
+    // MARK: stopBrowsing
     func stopBrowsing(){
         
         print(DEBUG_TAG+"stopping browsing")
@@ -126,26 +103,67 @@ final class MDNSBrowser {
     }
     
     
-    //
-    // MARK:  stop
-    func stop(){
-        browser.cancel()
+    private func restartHandler(newState state: NWBrowser.State){
+        
+        print(DEBUG_TAG+"restart state: \(state)")
+        
+        switch state {
+        case .ready: startBrowsing()
+        case .cancelled:
+            browser = createBrowser()
+            browser.stateUpdateHandler = restartHandler(newState:)
+            stopBrowsing()
+            browser.start(queue: browserQueue)
+            
+        case .failed(let error):
+            
+            print(DEBUG_TAG+"failed with error \(error)")
+            
+            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+                
+                browserQueue.asyncAfter(deadline: .now() + 1) {
+                    self.browser.stateUpdateHandler = self.restartHandler(newState:)
+                    self.browser.cancel()
+                }
+                return
+                
+            } else {
+                print(DEBUG_TAG+"\t\tstopping")
+            }
+            browser.cancel()
+            
+        default: break
+        }
+        
     }
     
     //
     // MARK:  stateDidUpdate
-    private func stateDidUpdate(newState: NWBrowser.State){
+    private func stateDidUpdate(newState state: NWBrowser.State){
         
-        print(DEBUG_TAG+"statedidupdate")
+        print(DEBUG_TAG+"state: \(state)")
         
-        switch newState {
-        case .cancelled:
-            print(DEBUG_TAG+" cancelled")
+        switch state {
+//        case .cancelled:
+//            print(DEBUG_TAG+" cancelled")
 //            browser = nil
-        case .failed(_):
-            browser.cancel()
-            print(DEBUG_TAG+"failed")
-        default: print(DEBUG_TAG+"\(newState)")
+        case .failed(let error):
+            
+            print(DEBUG_TAG+"failed with error \(error)")
+            
+            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+                
+                browserQueue.asyncAfter(deadline: .now() + 1) {
+                    self.browser.stateUpdateHandler = self.restartHandler(newState:)
+                    self.browser.cancel()
+                }
+                return
+                
+            } else {
+                print(DEBUG_TAG+"\t\tstopping")
+            }
+            
+        default: print(DEBUG_TAG+"\(state)")
         }
         
     }
