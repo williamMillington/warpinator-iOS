@@ -65,7 +65,7 @@ final class RemoteManager {
         
         let future = remote.disconnect()
         
-        future?.whenComplete { [weak self] result in
+        future.whenComplete { [weak self] result in
             
             self?.remotes.removeValue(forKey: remote.details.uuid)
             
