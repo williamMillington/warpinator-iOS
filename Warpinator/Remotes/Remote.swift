@@ -148,7 +148,31 @@ public class Remote {
         if let certificate = authenticationCertificate {
             connect(withCertificate: certificate)
         } else {
-            obtainCertificate()
+//            obtainCertificate()
+            
+            if details.api == "1" { // API_V1
+                authenticationConnection = UDPConnection(onEventLoopGroup: eventloopGroup!,
+                                     endpoint: details.endpoint)
+            } else { // API_V2
+                authenticationConnection = GRPCConnection(onEventLoopGroup: eventloopGroup!,
+                                      details: details)
+            }
+            
+            authenticationConnection?.requestCertificate()?.whenComplete { result in
+                switch result {
+                case .success(let info):
+                    
+                    self.details.ipAddress = info.address
+                    self.details.port = info.port
+                    
+                    self.connect(withCertificate: info.certificate)
+                    
+                    self.authenticationConnection = nil
+                    
+                case .failure(let error): print(self.DEBUG_TAG+"Failed to connect \(error)")
+                }
+            }
+            
         }
     }
     
@@ -156,6 +180,8 @@ public class Remote {
     //
     // MARK: connect
     func connect(withCertificate certificate: NIOSSLCertificate) {
+        
+        authenticationCertificate = certificate
         
         guard let eventloopGroup = eventloopGroup else {
             print(DEBUG_TAG+"No eventloopGroup")
@@ -185,7 +211,7 @@ public class Remote {
         
         let duplexFuture = aquireDuplex()
         
-        duplexFuture.whenCompleteBlocking(onto: duplexQueue) { result in
+        duplexFuture.whenComplete(){ result in
             
             switch result {
             case .success(let haveDuplex):
@@ -290,7 +316,8 @@ extension Remote {
         
         
         guard let warpClient = warpClient else {
-            return eventloopGroup!.next().makeFailedFuture( NSError() )
+            print(DEBUG_TAG+"NO CLIENT")
+            return eventloopGroup!.next().makeFailedFuture( DuplexError.UnknownRemote )
         }
         
         details.status = .AquiringDuplex
@@ -308,7 +335,14 @@ extension Remote {
         }
         
         
-        return duplex.response.flatMapError { error in
+        return duplex.response.flatMapThrowing { haveDuplex in
+            
+            // throw error if duplex wasn't established, despite a successful call
+            if !haveDuplex.response {
+                throw DuplexError.DuplexNotEstablished
+            }
+            return haveDuplex
+        }.flatMapError { error in
             
             guard self.duplexAttempts < 10 else {
                 return self.eventloopGroup!.next().makeFailedFuture(error)
@@ -717,42 +751,53 @@ extension Remote: ClientErrorDelegate {
 
 
 //
-// MARK: - Authentication
-extension Remote: AuthenticationConnectionDelegate {
+// MARK - Authentication
+extension Remote { //}: AuthenticationConnectionDelegate {
     
     //
-    // MARK: fetch cert
-    func obtainCertificate(){
+    // MARK fetch cert
+//    func obtainCertificate(){
         
+//        if details.api == "1" { // API_V1
+//            authenticationConnection = UDPConnection(delegate: self)
+//        } else { // API_V2
+//            guard let eventloopGroup = eventloopGroup else { return }
+//            authenticationConnection = GRPCConnection(onEventLoopGroup: eventloopGroup,
+//                                                       delegate: self)
+//        }
+//
+//        authenticationConnection?.requestCertificate()
+//    }
+    
+    func getAuthenticationConnection() -> AuthenticationConnection {
         if details.api == "1" { // API_V1
-            authenticationConnection = UDPConnection(delegate: self)
+            return UDPConnection(onEventLoopGroup: eventloopGroup!,
+                                 endpoint: details.endpoint)
         } else { // API_V2
-            guard let eventloopGroup = eventloopGroup else { return }
-            authenticationConnection = GRPCConnection(onRventLoopGroup: eventloopGroup,
-                                                       delegate: self)
+            return GRPCConnection(onEventLoopGroup: eventloopGroup!,
+                                  details: details)
         }
-        
-        authenticationConnection?.requestCertificate()
     }
     
-    //
-    // MARK: success
-    func certificateObtained(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
-        
-        print(DEBUG_TAG+"certificate retrieved")
-        self.details = details
-        authenticationCertificate = certificate
-        connect(withCertificate: certificate)
-        
-        authenticationConnection = nil
-    }
     
-    //
-    // MARK: failure
-    func certificateRequestFailed(forRemote details: RemoteDetails, _ error: AuthenticationError){
-        print(DEBUG_TAG+"failed to retrieve certificate, error: \(error)")
-        authenticationConnection = nil
-    }
+//    //
+//    // MARK success
+//    func certificateObtained(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
+//
+//        print(DEBUG_TAG+"certificate retrieved")
+//        self.details = details
+//        authenticationCertificate = certificate
+//        connect(withCertificate: certificate)
+//
+//        authenticationConnection = nil
+//    }
+//
+//    //
+//    // MARK failure
+//    func certificateRequestFailed(forRemote details: RemoteDetails, _ error: AuthenticationError){
+//        print(DEBUG_TAG+"failed to retrieve certificate, error: \(error)")
+//        authenticationConnection = nil
+//    }
 }
 
 
