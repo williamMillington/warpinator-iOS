@@ -28,40 +28,65 @@ final class RegistrationServer {
     
     
     init(eventloopGroup group: EventLoopGroup ){
-        
         eventLoopGroup = group
     }
     
     
     //
     // MARK: start
-    func start() -> EventLoopFuture<GRPC.Server>  {
+    func start() -> EventLoopFuture<Void>  {
         
         
-        let portNumber = Int( SettingsManager.shared.registrationPortNumber )
+//        let portNumber = Int( SettingsManager.shared.registrationPortNumber )
         
-        let future = GRPC.Server.insecure(group: eventLoopGroup)
+//        let future = GRPC.Server.insecure(group: eventLoopGroup)
+//            .withServiceProviders([ WarpinatorRegistrationProvider() ])
+//            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
+//            .flatMapError { error in
+//
+//                print( self.DEBUG_TAG + "registration server failed: \(error))")
+//
+//                return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
+//                    self.start()
+//                }.futureResult
+//            }
+        
+        
+        return startupServer().map { server in
+            print(self.DEBUG_TAG + "registration server started on: \(String(describing: server.channel.localAddress))")
+
+            self.server = server
+            self.isRunning = true
+        }
+//        future.whenSuccess { [weak self] server in
+//
+//            print((self?.DEBUG_TAG ?? "(server is nil): ")+"registration server started on: \(String(describing: server.channel.localAddress))")
+//
+//            self?.server = server
+//            self?.isRunning = true
+//        }
+//
+//        return future
+    }
+    
+    
+    private func startupServer() -> EventLoopFuture<GRPC.Server> {
+        
+        
+        return GRPC.Server.insecure(group: eventLoopGroup)
             .withServiceProviders([ WarpinatorRegistrationProvider() ])
-            .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
+            .bind(host: "\(Utils.getIP_V4_Address())",
+                  port: Int( SettingsManager.shared.registrationPortNumber ) )
+        
+            // try again on error
             .flatMapError { error in
                 
                 print( self.DEBUG_TAG + "registration server failed: \(error))")
                 
                 return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
-                    self.start()
+                    self.startupServer()
                 }.futureResult
             }
-        
-        
-        future.whenSuccess { [weak self] server in
-            
-            print((self?.DEBUG_TAG ?? "(server is nil): ")+"registration server started on: \(String(describing: server.channel.localAddress))")
-            
-            self?.server = server
-            self?.isRunning = true
-        }
-        
-        return future
     }
     
     

@@ -53,10 +53,6 @@ final class Server {
     
     var remoteManager: RemoteManager
     
-//    var settingsManager: SettingsManager
-//
-//    var authenticationManager: Authenticator
-    
     var errorDelegate: ErrorDelegate?
     
     var server: GRPC.Server?
@@ -87,45 +83,44 @@ final class Server {
     
     //
     // MARK: start
-    func start() -> EventLoopFuture<GRPC.Server>  {
+    func start() -> EventLoopFuture<Void>  {
         
         guard let credentials = try? Authenticator.shared.getServerCredentials() else {
             return eventLoopGroup.next().makeFailedFuture( ServerError.CREDENTIALS_GENERATION_ERROR )
         }
         
+        return startupServer(withCredentials: credentials).map { server in
+            print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
+            self.server = server
+            self.isRunning = true
+        }
+        
+    }
+    
+    
+    private func startupServer(withCredentials credentials: Authenticator.Credentials) -> EventLoopFuture<GRPC.Server>  {
+        
         let serverCertificate =  credentials.certificate
         let serverPrivateKey = credentials.key
         
-        //
-        // if we don't capture 'future' here, it will be deallocated before .whenSuccess can be called
-        let future = GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
+        return GRPC.Server.usingTLSBackedByNIOSSL(on: eventLoopGroup,
                                                         certificateChain: [ serverCertificate  ],
                                                         privateKey: serverPrivateKey )
             .withTLS(trustRoots: .certificates( [serverCertificate ] ) )
             .withServiceProviders( [ warpinatorProvider ] )
-//            .withLogger(logger)
             .bind(host: "\(Utils.getIP_V4_Address())",
                   port: Int( SettingsManager.shared.transferPortNumber ))
         
-        // onError: attempt restart after 2 seconds
-        .flatMapError { error in
-            
-            
-            
-            print( self.DEBUG_TAG + "transfer server failed: \(error))")
-            
-            return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
-                self.start()
-            }.futureResult
-        }
+            // try again on error
+            .flatMapError { error in
+                
+                print( self.DEBUG_TAG + "transfer server failed: \(error))")
+                
+                return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
+                    self.startupServer(withCredentials: credentials)
+                }.futureResult
+            }
         
-        future.whenSuccess { [weak self] server in
-            print((self?.DEBUG_TAG ?? "(server is nil): ")+"transfer server started on: \(String(describing: server.channel.localAddress))")
-            self?.server = server
-            self?.isRunning = true
-        }
-        
-        return future
     }
     
     

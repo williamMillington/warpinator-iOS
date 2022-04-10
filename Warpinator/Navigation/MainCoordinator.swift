@@ -118,7 +118,7 @@ final class MainCoordinator: NSObject, Coordinator {
             }
 
         // return future that completes when registrationServer starts up
-            .flatMap { server in
+            .flatMap { _ in
                 return self.registrationServer.start()
             }
 
