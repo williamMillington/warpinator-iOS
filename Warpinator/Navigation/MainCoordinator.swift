@@ -185,6 +185,8 @@ final class MainCoordinator: NSObject, Coordinator {
         
         stopMDNS()
         
+        mDNSListener.restartListener()
+        
         let stopFuture = stopServers()
         stopFuture?.whenFailure { error in
             print(self.DEBUG_TAG+"servers failed to stop: \(error)")

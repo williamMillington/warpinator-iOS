@@ -23,15 +23,13 @@ final class RegistrationServer {
     
     var eventLoopGroup: EventLoopGroup
     
-//    var settingsManager: SettingsManager
-    
     var server : GRPC.Server?
+    var isRunning: Bool = false
+    
     
     init(eventloopGroup group: EventLoopGroup ){
-//         ,settingsManager manager: SettingsManager) {
         
         eventLoopGroup = group
-//        settingsManager = manager
     }
     
     
@@ -39,23 +37,29 @@ final class RegistrationServer {
     // MARK: start
     func start() -> EventLoopFuture<GRPC.Server>  {
         
-        // don't create a new server if we have one going already
-//        if let server = server {
-//            return server.channel.eventLoop.makeSucceededFuture(server)
-//        }
         
         let portNumber = Int( SettingsManager.shared.registrationPortNumber )
         
         let future = GRPC.Server.insecure(group: eventLoopGroup)
             .withServiceProviders([ WarpinatorRegistrationProvider() ])
             .bind(host: "\(Utils.getIP_V4_Address())", port: portNumber)
+            .flatMapError { error in
+                
+                print( self.DEBUG_TAG + "registration server failed: \(error))")
+                
+                return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
+                    self.start()
+                }.futureResult
+            }
+        
         
         future.whenSuccess { [weak self] server in
             
             print((self?.DEBUG_TAG ?? "(server is nil): ")+"registration server started on: \(String(describing: server.channel.localAddress))")
-                
-                self?.server = server
-            }
+            
+            self?.server = server
+            self?.isRunning = true
+        }
         
         return future
     }
@@ -66,10 +70,11 @@ final class RegistrationServer {
     // MARK: stop
     func stop() -> EventLoopFuture<Void> {
         
-        guard let server = server else {
+        guard let server = server, isRunning else {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
+        isRunning = false
         return server.initiateGracefulShutdown()
     }
 }

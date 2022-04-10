@@ -141,7 +141,8 @@ public class Remote {
     // MARK: startConnection
     func startConnection(){
         
-            print(DEBUG_TAG+"Starting connection...")
+        print(DEBUG_TAG+"Starting connection...")
+        
         duplexAttempts = 0
         transientFailureCount = 0
         
@@ -681,6 +682,7 @@ extension Remote: ConnectivityStateDelegate {
             transientFailureCount += 1
             
             print(DEBUG_TAG+"\tTransientFailure #\(transientFailureCount)")
+            
             if transientFailureCount == 10 {
                 _ = disconnect( AuthenticationError.ConnectionError )
             }

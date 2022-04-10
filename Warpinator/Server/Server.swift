@@ -131,9 +131,10 @@ final class Server {
     
     // MARK: stop
     func stop() -> EventLoopFuture<Void> {
-        guard let server = server else {
+        guard let server = server, isRunning else {
             return eventLoopGroup.next().makeSucceededVoidFuture()
         }
+        
         isRunning = false
         return server.initiateGracefulShutdown()
     }

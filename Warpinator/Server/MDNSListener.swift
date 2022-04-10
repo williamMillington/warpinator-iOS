@@ -80,8 +80,6 @@ final class MDNSListener {
     }
     
     
-    
-    
     //
     // MARK: startListening
     func startListening(){

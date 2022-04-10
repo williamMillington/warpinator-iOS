@@ -145,7 +145,7 @@ final class UDPConnection: AuthenticationConnection {
         
         // RECEIVING CERTIFICATE
         connection.receiveMessage  { [weak self] (data, context, isComplete, error) in
-//            guard let self = self else { return }
+            
             guard let self = self ,error == nil else {
                 print("AuthenticationError: \(String(describing: error))"); return
             } 
@@ -251,6 +251,10 @@ final class GRPCConnection: AuthenticationConnection {
                 if let addressInfo = Utils.extractAddressInfo(fromConnection: self.ipConnection) {
                     self.details.ipAddress = addressInfo.address
                     self.details.port = addressInfo.port
+                    print("GRPCConnection: extracted address -> \(self.details.ipAddress)")
+                    print("GRPCConnection: extracted port -> \(self.details.port)")
+                } else {
+                    print("GRPCConnection: couldn't extract information")
                 }
                 
                 self.ipConnection.cancel()
