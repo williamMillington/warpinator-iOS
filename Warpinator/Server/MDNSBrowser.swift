@@ -44,16 +44,7 @@ final class MDNSBrowser {
         
         return params
     }
-    
-    
-//    var currentResults: [NWBrowser.Result] {
-////        print(DEBUG_TAG+"current results are: ")
-////        browser.browseResults.forEach { result in
-////            print(DEBUG_TAG+"\t\t \(result.endpoint) ")
-////        }
-//
-//        return Array( browser.browseResults )
-//    }
+
     
     let eventloopGroup: EventLoopGroup
     
@@ -92,12 +83,6 @@ final class MDNSBrowser {
         default:
             browser = createBrowser()
         }
-        
-//        guard browser.state != .ready else {
-//            promise.fail( ServiceError.ALREADY_RUNNING )
-//            return promise.futureResult
-//        }
-        
         
         configurePromiseOnReady(promise)
         stopBrowsing()
@@ -180,15 +165,10 @@ final class MDNSBrowser {
     // MARK: startBrowsing
     func startBrowsing(){
         
-        print(DEBUG_TAG+"beginning browsing")
+        print(DEBUG_TAG+" start browsing")
         
         browser.browseResultsChangedHandler = resultsDidChange(results: changes:)
         
-//        print(DEBUG_TAG+"\t\t checking current results")
-//
-//        currentResults.forEach { result in
-//            self.delegate?.mDNSBrowserDidAddResult(result)
-//        }
     }
     
     
@@ -196,45 +176,47 @@ final class MDNSBrowser {
     // MARK: stopBrowsing
     func stopBrowsing(){
         
-        print(DEBUG_TAG+"stopping browsing")
+        print(DEBUG_TAG+" stop browsing")
         
         browser.browseResultsChangedHandler = { _, _ in  }
     }
     
     
-    private func restartHandler(newState state: NWBrowser.State){
-        
-        print(DEBUG_TAG+"restart state: \(state)")
-        
-        switch state {
-        case .ready: startBrowsing()
-        case .cancelled:
-            browser = createBrowser()
-            browser.stateUpdateHandler = restartHandler(newState:)
-            stopBrowsing()
-            browser.start(queue: browserQueue)
-            
-        case .failed(let error):
-            
-            print(DEBUG_TAG+"failed with error \(error)")
-            
-            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
-                
-                browserQueue.asyncAfter(deadline: .now() + 1) {
-                    self.browser.stateUpdateHandler = self.restartHandler(newState:)
-                    self.browser.cancel()
-                }
-                return
-                
-            } else {
-                print(DEBUG_TAG+"\t\tstopping")
-            }
-            browser.cancel()
-            
-        default: break
-        }
-        
-    }
+    
+    
+    
+//    private func restartHandler(newState state: NWBrowser.State){
+//
+//        print(DEBUG_TAG+"restart state: \(state)")
+//
+//        switch state {
+//        case .ready: startBrowsing()
+//        case .cancelled:
+//            browser = createBrowser()
+//            browser.stateUpdateHandler = restartHandler(newState:)
+//            stopBrowsing()
+//            browser.start(queue: browserQueue)
+//
+//        case .failed(let error):
+//
+//            print(DEBUG_TAG+"failed with error \(error)")
+//
+//            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+//
+//                browserQueue.asyncAfter(deadline: .now() + 1) {
+//                    self.browser.stateUpdateHandler = self.restartHandler(newState:)
+//                    self.browser.cancel()
+//                }
+//                return
+//
+//            } else {
+//                print(DEBUG_TAG+"\t\tstopping")
+//            }
+//            browser.cancel()
+//
+//        default: break
+//        }
+//    }
     
     //
     // MARK:  stateDidUpdate

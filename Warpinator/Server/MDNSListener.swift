@@ -98,13 +98,26 @@ final class MDNSListener {
         
         let onReadyPromise = eventloopGroup!.next().makePromise(of: Void.self)
         
-        guard listener.state != .ready else {
+        
+        switch listener.state {
+        case .ready:
             onReadyPromise.fail( ServiceError.ALREADY_RUNNING )
             return onReadyPromise.futureResult
+        case .setup: break
+        default:
+            listener = createListener()
+            
         }
+        
+//        guard listener.state != .ready else {
+//            onReadyPromise.fail( ServiceError.ALREADY_RUNNING )
+//            return onReadyPromise.futureResult
+//        }
         
         configurePromiseOnReady(onReadyPromise)
         stopListening() // listener requires a connection handler, this just sets it (to one that rejects everything)
+        
+        
         
         listener.start(queue: listenerQueue )
         
@@ -282,75 +295,78 @@ final class MDNSListener {
         print(DEBUG_TAG+" state updated -> \(state)")
         
         switch state {
-        case .cancelled:  print(DEBUG_TAG+" cancelled")
-        
+        case .cancelled:
+            print(DEBUG_TAG+" cancelled")
         case .failed(let error):
             print(DEBUG_TAG+"listener failed; error: \(error)")
             
-            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
-                restartListener()
-                return
-                
-            } else {    print(DEBUG_TAG+"\t\tstopping")     }
-            
-            listener.cancel()
+//            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+//                restartListener()
+//                return
+//
+//            } else {    print(DEBUG_TAG+"\t\tstopping")     }
+//
+//            listener.cancel()
             
         default: break //print(DEBUG_TAG+"State updated: \(state)")
         }
     }
     
     
-    private func restartStateHandler(state: NWListener.State ) {
-        
-        print(DEBUG_TAG+" restart state changed (\(state))")
-        
-        switch state {
-            
-        case .cancelled:
-            
-            listener = createListener()
-            listener.stateUpdateHandler = restartStateHandler(state:)
-            stopListening()
-            listener.start(queue: listenerQueue)
-        
-        case .ready:
-            listener.stateUpdateHandler = stateDidUpdate(state:)
-            flushPublish()
-            
-        case .failed(let error) :
-            
-            print(DEBUG_TAG+"listener failed; error: \(error)")
-            
-            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
-                
-                listenerQueue.asyncAfter(deadline: .now() + 1) {
-                    self.restartListener()
-                }
-                return
-                
-            } else {
-                print(DEBUG_TAG+"\t\tstopping")
-            }
-            
-            listener.cancel()
-            
-        default: print(DEBUG_TAG+" state: \(state)")
-            
-        }
-    }
+    
+    
+//    private func restartStateHandler(state: NWListener.State ) {
+//
+//        print(DEBUG_TAG+" restart state changed (\(state))")
+//
+//        switch state {
+//
+//        case .cancelled:
+//
+//            listener = createListener()
+//            listener.stateUpdateHandler = restartStateHandler(state:)
+//            stopListening()
+//            listener.start(queue: listenerQueue)
+//
+//        case .ready:
+//            listener.stateUpdateHandler = stateDidUpdate(state:)
+//            flushPublish()
+//
+//        case .failed(let error) :
+//
+//            print(DEBUG_TAG+"listener failed; error: \(error)")
+//
+////            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+////
+//////                listenerQueue.asyncAfter(deadline: .now() + 1) {
+////////                    self.restartListener()
+//////                }
+//////                return
+////
+////            } else {
+////                print(DEBUG_TAG+"\t\tstopping")
+////            }
+//
+////            listener.cancel()
+//
+//        default: print(DEBUG_TAG+" state: \(state)")
+//
+//        }
+//    }
     
     
     
-    //
-    // MARK: restart
-    func restartListener(){
-        
-        print(DEBUG_TAG+"\t\t restarting")
-        
-        listener.stateUpdateHandler = restartStateHandler(state: )
-        
-        listener.cancel()
-    }
+    
+//    // MARK restart
+//    func restartListener(){
+//
+//        print(DEBUG_TAG+"\t\t restarting")
+//
+//        listener.stateUpdateHandler = restartStateHandler(state: )
+//
+//        listener.cancel()
+//    }
+    
     
     
     

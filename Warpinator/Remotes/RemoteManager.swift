@@ -20,7 +20,11 @@ final class RemoteManager {
     
     weak var remotesViewController: ViewController?
     
-    var remoteEventloopGroup: EventLoopGroup?
+    let remoteEventloopGroup: EventLoopGroup
+    
+    init(withEventloopGroup group: EventLoopGroup){
+        remoteEventloopGroup = group
+    }
     
     
     //
@@ -93,14 +97,14 @@ final class RemoteManager {
     
     
     // MARK: shutdown all remotes
-    func shutdownAllRemotes() -> EventLoopFuture<Void>? {
+    func shutdownAllRemotes() -> EventLoopFuture<Void> {
         
         print(DEBUG_TAG+"shutting down all remotes")
         
-        guard let eventloop = remoteEventloopGroup?.next() else {
-            print(DEBUG_TAG+"No eventloop")
-            return nil
-        }
+//        guard let eventloop = remoteEventloopGroup.next() else {
+//            print(DEBUG_TAG+"No eventloop")
+//            return nil
+//        }
         
         let futures = remotes.values.compactMap { remote in
             return remote.disconnect()
@@ -108,7 +112,7 @@ final class RemoteManager {
         
         //
         // whoops a hack
-        let future = EventLoopFuture.whenAllComplete(futures, on: eventloop).map { _ -> Void in
+        let future = EventLoopFuture.whenAllComplete(futures, on: remoteEventloopGroup.next() ).map { _ -> Void in
             print("RemoteManager: Remotes have finished shutting down")
         }
         
