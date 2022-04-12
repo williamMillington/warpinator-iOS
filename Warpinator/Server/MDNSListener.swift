@@ -86,8 +86,6 @@ final class MDNSListener {
         
         print(DEBUG_TAG+"\t Creating listener")
         return try! NWListener(using: parameters, on: port )
-//        listener = try! NWListener(using: parameters, on: port )
-//        return listener
     }
     
     
@@ -96,6 +94,8 @@ final class MDNSListener {
     // MARK: start
     func start() -> EventLoopFuture<Void> {
         
+        print(DEBUG_TAG+" starting... (current state:  \(listener.state) )")
+        
         let onReadyPromise = eventloopGroup!.next().makePromise(of: Void.self)
         
         guard listener.state != .ready else {
@@ -103,7 +103,7 @@ final class MDNSListener {
             return onReadyPromise.futureResult
         }
         
-        makeOnReadyPromise(onReadyPromise)
+        configurePromiseOnReady(onReadyPromise)
         stopListening() // listener requires a connection handler, this just sets it (to one that rejects everything)
         
         listener.start(queue: listenerQueue )
@@ -122,7 +122,7 @@ final class MDNSListener {
         switch listener.state {
         case .cancelled, .failed(_):  onStopPromise.succeed( {}() )
         default:
-            makeOnStoppedPromise(onStopPromise)
+            configurePromiseOnStopped(onStopPromise)
             listener.cancel()
         }
         
@@ -133,18 +133,19 @@ final class MDNSListener {
     
     //
     //
-    private func makeOnReadyPromise(_ onReadyPromise: EventLoopPromise<Void>) {
+    private func configurePromiseOnReady(_ promise: EventLoopPromise<Void>) {
         
         listener.stateUpdateHandler = { state in
+            print(self.DEBUG_TAG+"\t\tstate is \(state)")
             switch state {
             case .setup: return
             case .ready:
-                onReadyPromise.succeed( {}() )
+                promise.succeed( {}() )
             case .failed(let error): fallthrough
-            case .waiting(let error): onReadyPromise.fail(error)
-            case .cancelled: onReadyPromise.fail( MDNSListener.ServiceError.CANCELLED )
+            case .waiting(let error): promise.fail(error)
+            case .cancelled: promise.fail( MDNSListener.ServiceError.CANCELLED )
             @unknown default:
-                onReadyPromise.fail( MDNSListener.ServiceError.UNKNOWN_SERVICE )
+                promise.fail( MDNSListener.ServiceError.UNKNOWN_SERVICE )
             }
             
             self.listener.stateUpdateHandler = self.stateDidUpdate(state: )
@@ -155,14 +156,16 @@ final class MDNSListener {
     
     //
     //
-    private func makeOnStoppedPromise(_ onStopPromise: EventLoopPromise<Void>) {
+    private func configurePromiseOnStopped(_ onStopPromise: EventLoopPromise<Void>) {
         
         listener.stateUpdateHandler = { state in
+            print(self.DEBUG_TAG+"\t\tstate is \(state)")
             switch state {
-            case .setup, .ready, .waiting(_): return
+//            case .setup, .ready, .waiting(_):
             case .failed(_): fallthrough
             case .cancelled: onStopPromise.succeed( {}() )
-            @unknown default:
+            default:
+                self.stopListening()
                 self.listener.cancel()
                 return
             }
@@ -177,6 +180,7 @@ final class MDNSListener {
     //
     // MARK: start listening
     func startListening(){
+        print(DEBUG_TAG+"start listening")
         listener.newConnectionHandler = newConnectionEstablished(newConnection:)
     }
     
@@ -184,9 +188,9 @@ final class MDNSListener {
     //
     // MARK: stop listening
     func stopListening(){
+        print(DEBUG_TAG+"stop listening")
         listener.newConnectionHandler = { $0.cancel() }
     }
-    
     
     
     //
@@ -264,6 +268,7 @@ final class MDNSListener {
         }
     }
     
+    
     func removeService() {
         listener.service = nil
     }
@@ -279,7 +284,8 @@ final class MDNSListener {
         switch state {
         case .cancelled:  print(DEBUG_TAG+" cancelled")
         
-        case .failed(let error):  print(DEBUG_TAG+"listener failed; error: \(error)")
+        case .failed(let error):
+            print(DEBUG_TAG+"listener failed; error: \(error)")
             
             if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
                 restartListener()

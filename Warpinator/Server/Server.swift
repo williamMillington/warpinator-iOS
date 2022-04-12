@@ -53,7 +53,7 @@ final class Server {
     
 //    var remoteManager: RemoteManager
     
-    var errorDelegate: ErrorDelegate?
+//    var errorDelegate: ErrorDelegate?
     
     var server: GRPC.Server?
     var isRunning: Bool = false
@@ -70,13 +70,13 @@ final class Server {
     
     
     init(eventloopGroup group: EventLoopGroup,
-         provider: WarpinatorServiceProvider,
-         errorDelegate delegate: ErrorDelegate) {
+         provider: WarpinatorServiceProvider) {
+    //, errorDelegate delegate: ErrorDelegate) {
         
         eventLoopGroup = group
         
         warpinatorProvider = provider
-        errorDelegate = delegate
+//        errorDelegate = delegate
         
     }
     
