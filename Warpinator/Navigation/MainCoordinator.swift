@@ -18,18 +18,27 @@ final class MainCoordinator: NSObject, Coordinator {
     var childCoordinators = [Coordinator]()
     var navController: UINavigationController
     
-    var mDNSBrowser: MDNSBrowser
-    var mDNSListener: MDNSListener
-    
     var remoteManager: RemoteManager = RemoteManager()
+    lazy var warpinatorServiceProvider: WarpinatorServiceProvider = {
+        let provider = WarpinatorServiceProvider()
+        provider.remoteManager = remoteManager
+        return provider
+    }()
     
     var serverEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     var remoteEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
     
     lazy var server: Server = Server(eventloopGroup: serverEventLoopGroup,
-                                remoteManager: remoteManager,
+//                                remoteManager: remoteManager,
+                                     provider: warpinatorServiceProvider,
                                 errorDelegate: self)
     lazy var registrationServer: RegistrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup)
+    
+    
+    
+    lazy var mDNSBrowser:   MDNSBrowser  = MDNSBrowser()
+    lazy var mDNSListener:  MDNSListener = MDNSListener(withEventloopGroup: serverEventLoopGroup)
+    
     
     init(withNavigationController controller: UINavigationController){
         navController = controller
@@ -37,10 +46,6 @@ final class MainCoordinator: NSObject, Coordinator {
         navController.setNavigationBarHidden(true, animated: false)
 
         Utils.lockOrientation(.portrait)
-        
-        
-        mDNSBrowser = MDNSBrowser()
-        mDNSListener = MDNSListener()
         
         
         super.init()
@@ -83,14 +88,13 @@ final class MainCoordinator: NSObject, Coordinator {
     
     //
     // MARK: start servers
-    func startServers(){
+    func startServers() -> EventLoopFuture<Void> {
 
         print(DEBUG_TAG+"starting servers...")
         
         guard !server.isRunning else {
             print(DEBUG_TAG+"Server is already running")
-//            startMDNS()
-            return
+            return serverEventLoopGroup.next().makeSucceededVoidFuture()
         }
         
         DispatchQueue.main.async {
@@ -109,43 +113,46 @@ final class MainCoordinator: NSObject, Coordinator {
 //        }
 //
 //        promise?.futureResult
-
-        server.start()
+        
+        return server.start()
         // what to do if server fails to start
             .flatMapError { error in
-//                self.mDNSListener.pauseAcceptingConnections()
                 return self.serverEventLoopGroup.next().makeFailedFuture(error)
             }
-
+        
         // return future that completes when registrationServer starts up
             .flatMap { _ in
                 return self.registrationServer.start()
             }
-
+        
+            .flatMap { _ -> EventLoopFuture<Void> in 
+                return self.mDNSListener.start()
+            }
+        
         // on registrationServer startup completion
-            .whenComplete { result in
-
-                do {  _ = try result.get()   }
-                catch {
-//                    self.mDNSListener.pauseAcceptingConnections()
-//                    self.mDNSListener.stopListening()
-                    self.stopMDNS()
-                    // error outcome, something failed
-                    self.reportError(error, withMessage: "Server future failed")
-                    return
-                }
-
-
-                // success outcome, continue with starting up
-                // TODO: make a way to return a promise that succeeds when the listener/browser are ready
-//                self.startMDNS()
-//                self.mDNSListener.flushPublish()
+            .map {  _  in //   result in
+                
+//                switch result {
+//                case .failure(let error):
+//
+//                    self.stopMDNS()
+//                    self.reportError(error, withMessage: "Server future failed")
+//
+//                    return
+//                case .success(_):
+//                    print(self.DEBUG_TAG+"server startup complete")
+//                    break
+//                }
+                
+                
+                // everything started correctly, announce ourselves
+                self.mDNSListener.flushPublish()
                 self.startMDNS()
+                
                 DispatchQueue.main.async {
                     (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
                 }
             }
-
     }
     
     

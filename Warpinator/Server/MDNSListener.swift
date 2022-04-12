@@ -6,6 +6,9 @@
 //
 
 import Foundation
+
+import NIO
+
 import Network
 
 import NIOSSL
@@ -18,6 +21,12 @@ protocol MDNSListenerDelegate: AnyObject {
 }
 
 final class MDNSListener {
+    
+    enum ServiceError: Error {
+        case CANCELLED
+        case ALREADY_RUNNING
+        case UNKNOWN_SERVICE
+    }
     
     private let DEBUG_TAG = "MDNSListener: "
     
@@ -54,6 +63,7 @@ final class MDNSListener {
     
     lazy var listener: NWListener = createListener()
     
+    var eventloopGroup: EventLoopGroup?
     
     weak var delegate: MDNSListenerDelegate?
     
@@ -62,41 +72,121 @@ final class MDNSListener {
     
     
     
-    init() {
+    init(withEventloopGroup group: EventLoopGroup) {
 
-        listener.stateUpdateHandler = stateDidUpdate(state:)
-        stopListening()
-        listener.start(queue: listenerQueue )
+        eventloopGroup = group
+        
+//        listener.stateUpdateHandler stateDidUpdate(state:)
+//        stopListening()
+//        listener.start(queue: listenerQueue )
     }
     
     
     private func createListener() -> NWListener {
         
         print(DEBUG_TAG+"\t Creating listener")
-        
-        listener = try! NWListener(using: parameters, on: port )
-        
-        return listener
+        return try! NWListener(using: parameters, on: port )
+//        listener = try! NWListener(using: parameters, on: port )
+//        return listener
     }
     
     
+    
     //
-    // MARK: startListening
+    // MARK: start
+    func start() -> EventLoopFuture<Void> {
+        
+        let onReadyPromise = eventloopGroup!.next().makePromise(of: Void.self)
+        
+        guard listener.state != .ready else {
+            onReadyPromise.fail( ServiceError.ALREADY_RUNNING )
+            return onReadyPromise.futureResult
+        }
+        
+        makeOnReadyPromise(onReadyPromise)
+        stopListening() // listener requires a connection handler, this just sets it (to one that rejects everything)
+        
+        listener.start(queue: listenerQueue )
+        
+        return onReadyPromise.futureResult
+    }
+    
+    
+    
+    //
+    // MARK: stop
+    func stop() -> EventLoopFuture<Void> {
+        
+        let onStopPromise = eventloopGroup!.next().makePromise(of: Void.self)
+        
+        switch listener.state {
+        case .cancelled, .failed(_):  onStopPromise.succeed( {}() )
+        default:
+            makeOnStoppedPromise(onStopPromise)
+            listener.cancel()
+        }
+        
+        return onStopPromise.futureResult
+    }
+    
+    
+    
+    //
+    //
+    private func makeOnReadyPromise(_ onReadyPromise: EventLoopPromise<Void>) {
+        
+        listener.stateUpdateHandler = { state in
+            switch state {
+            case .setup: return
+            case .ready:
+                onReadyPromise.succeed( {}() )
+            case .failed(let error): fallthrough
+            case .waiting(let error): onReadyPromise.fail(error)
+            case .cancelled: onReadyPromise.fail( MDNSListener.ServiceError.CANCELLED )
+            @unknown default:
+                onReadyPromise.fail( MDNSListener.ServiceError.UNKNOWN_SERVICE )
+            }
+            
+            self.listener.stateUpdateHandler = self.stateDidUpdate(state: )
+        }
+    }
+    
+    
+    
+    //
+    //
+    private func makeOnStoppedPromise(_ onStopPromise: EventLoopPromise<Void>) {
+        
+        listener.stateUpdateHandler = { state in
+            switch state {
+            case .setup, .ready, .waiting(_): return
+            case .failed(_): fallthrough
+            case .cancelled: onStopPromise.succeed( {}() )
+            @unknown default:
+                self.listener.cancel()
+                return
+            }
+            
+            self.listener.stateUpdateHandler = self.stateDidUpdate(state: )
+        }
+    }
+    
+    
+    
+    
+    //
+    // MARK: start listening
     func startListening(){
         listener.newConnectionHandler = newConnectionEstablished(newConnection:)
     }
     
     
     //
-    // MARK stop
+    // MARK: stop listening
     func stopListening(){
-        
         listener.newConnectionHandler = { $0.cancel() }
     }
     
-    func refreshService(){
-        flushPublish()
-    }
     
     
     //

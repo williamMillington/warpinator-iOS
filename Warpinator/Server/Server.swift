@@ -49,9 +49,9 @@ final class Server {
     
     var eventLoopGroup: EventLoopGroup
     
-    private lazy var warpinatorProvider: WarpinatorServiceProvider = WarpinatorServiceProvider()
+    let warpinatorProvider: WarpinatorServiceProvider // = WarpinatorServiceProvider()
     
-    var remoteManager: RemoteManager
+//    var remoteManager: RemoteManager
     
     var errorDelegate: ErrorDelegate?
     
@@ -70,14 +70,14 @@ final class Server {
     
     
     init(eventloopGroup group: EventLoopGroup,
-         remoteManager: RemoteManager, errorDelegate delegate: ErrorDelegate) {
+         provider: WarpinatorServiceProvider,
+         errorDelegate delegate: ErrorDelegate) {
         
         eventLoopGroup = group
-        self.remoteManager = remoteManager
         
+        warpinatorProvider = provider
         errorDelegate = delegate
         
-        warpinatorProvider.remoteManager = remoteManager
     }
     
     
