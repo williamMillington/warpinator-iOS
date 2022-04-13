@@ -285,7 +285,7 @@ extension ReceiveFileOperation {
     // this side calls stop
     func orderStop(_ error: Error? = nil){
         print(self.DEBUG_TAG+"ordering stop, error: \(String(describing: error))")
-        owningRemote?.callClientStopTransfer(self, error: error)
+        owningRemote?.requestStop(forOperationWithUUID: UUID, error: error)
         stopRequested(error)
     }
     
@@ -321,7 +321,7 @@ extension ReceiveFileOperation {
         
         print(DEBUG_TAG+" declining request...")
         
-        owningRemote?.callClientDeclineTransfer(self, error: error)
+        owningRemote?.informOperationWasDeclined(forUUID: UUID, error: error)
         status = .CANCELLED
         
         currentWriter?.fail()

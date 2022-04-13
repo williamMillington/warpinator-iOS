@@ -73,7 +73,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         SettingsManager.shared.writeAllSettings()
         print(DEBUG_TAG+"applicationWillTerminate")
         
-        
     }
     
 }

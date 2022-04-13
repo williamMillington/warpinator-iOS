@@ -239,7 +239,7 @@ final class SendFileOperation: TransferOperation {
     func orderStop(_ error: Error? = nil){
         
         print(self.DEBUG_TAG+"ordering stop, error: \(String(describing: error))")
-        owningRemote?.callClientStopTransfer(self, error: error)
+        owningRemote?.requestStop(forOperationWithUUID: UUID, error: error)
         stopRequested(error)
         
     }

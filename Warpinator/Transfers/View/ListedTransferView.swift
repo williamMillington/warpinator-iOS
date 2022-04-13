@@ -19,6 +19,7 @@ final class ListedTransferView: UIView {
     let filesLabel: UILabel = {
         let label = UILabel()
         label.text = "-----"
+        label.textColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
@@ -28,6 +29,7 @@ final class ListedTransferView: UIView {
     let transferStatusLabel: UILabel = {
         let label = UILabel()
         label.text = "Status..."
+        label.textColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false

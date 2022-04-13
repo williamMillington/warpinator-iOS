@@ -6,9 +6,10 @@
 //
 
 import UIKit
+import NIOSSL
 
-/* Allows custom type extensions to be grouped under
- the ExtensionManager namespace.
+/* Allows custom type-extensions to be grouped under
+ the ExtensionManager namespace 'extended' .
  
  Ex.  By writing extensions on UIView as:
  
@@ -20,7 +21,7 @@ import UIKit
             func someCustomStringFunction() { ... }
         }
  
- I can access this with:
+ This is accessed with:
  
         myUIView.extended.someCustomStringFunction()
  
@@ -28,8 +29,8 @@ import UIKit
  
         myUIView.someCustomStringFunction()
  
- This is helpful for keeping track of which functions have been custom implemented
- when reading/refactoring/moving code between projects (especially when a custom function really feels like it should have been included by default *cough*substring*coughcough*).
+ This is helpful for keeping track of custom implemented functions
+ when reading/refactoring/moving code between projects (especially when a custom function really feels like it should have been included by default *cough*substrings*coughcough*).
 */
 
 public protocol ExtensionManagerCompatible {
@@ -68,6 +69,7 @@ extension String: ExtensionManagerCompatible {}
 extension Data: ExtensionManagerCompatible {}
 
 
+
 // MARK: - Apple Types
 extension NSAttributedString: ExtensionManagerCompatible {}
 
@@ -76,4 +78,6 @@ extension UIColor: ExtensionManagerCompatible {}
 extension UIViewController: ExtensionManagerCompatible {}
 
 extension FileManager: ExtensionManagerCompatible {}
+
+extension NIOSSLCertificate: ExtensionManagerCompatible {}
 

@@ -33,6 +33,7 @@ final class ListedFileSelectionView: UIView {
     let fileNameLabel: UILabel = {
         let label = UILabel()
         label.text = "--Filename--"
+        label.textColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.font = UIFont.systemFont(ofSize: 15)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -46,6 +47,7 @@ final class ListedFileSelectionView: UIView {
     let fileSizeLabel: UILabel = {
         let label = UILabel()
         label.text = "--.--B"
+        label.textColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.font = UIFont.systemFont(ofSize: 15)
         label.translatesAutoresizingMaskIntoConstraints = false

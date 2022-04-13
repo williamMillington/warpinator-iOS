@@ -6,12 +6,21 @@
 //
 import UIKit
 
+import NIO
+import NIOSSL
+import Network
+
 
 public class Utils {
+    static let DEBUG_TAG: String = "Utils (static): "
+    
+    typealias Credentials = (certificate: NIOSSLCertificate, key: NIOSSLPrivateKey)
+    
+    typealias AddressInfo = (address: String, port: Int)
     
     
     static let borderColour: UIColor = #colorLiteral(red: 0.7877369523, green: 0.7877556682, blue: 0.7877456546, alpha: 1)
-    static let backgroundColour: UIColor = #colorLiteral(red: 0.9531012177, green: 0.9531235099, blue: 0.9531114697, alpha: 1)
+    static let backgroundColour: UIColor = #colorLiteral(red: 0.9495073678, green: 0.9495073678, blue: 0.9495073678, alpha: 1)
     static let foregroundColour: UIColor = #colorLiteral(red: 0.9688121676, green: 0.9688346982, blue: 0.9688225389, alpha: 1)
     static let textColour: UIColor = #colorLiteral(red: 0.2464925945, green: 0.2464992404, blue: 0.2464956939, alpha: 1)
     
@@ -121,6 +130,44 @@ public class Utils {
     }
     
     
+    // MARK: extract IP Address
+    static func extractAddressInfo(fromConnection connection: NWConnection) -> AddressInfo? {
+        
+//        print(DEBUG_TAG+"extracting address from connection: \(connection.endpoint)")
+        if let ip4_string = connection.currentPath?.remoteEndpoint?.debugDescription {
+//            print(DEBUG_TAG+"\t address string: \(ip4_string))");
+            
+            
+            // IP address is section of ip4_string before the '%'
+            let components = ip4_string.split(separator: Character("%"))
+            let ip4_address: String = String(components[0])
+            let address = ip4_address
+            
+//            print(DEBUG_TAG+"\t\t extracted IP Address: \(ip4_address)")
+            
+            
+            // port number is within section of ip4_string after the '%' ("en0:0000")
+            // portSection = ["en0", "0000"]
+            // portString = "0000"
+            let portSection = components[1].split(separator: Character(":"))
+            let portString =  portSection[1]
+            var port: Int = 0
+            if let portNumber = Int(portString) {
+                port = portNumber
+            }
+//            print(DEBUG_TAG+"\t\t extracted port: \(port)")
+            
+            return (address, port)
+        }
+        
+        print(DEBUG_TAG+"\t IP address extraction failed")
+        
+        return nil
+    }
+    
+    
+    
+    
     // MARK: get available disk space
     static func queryAvailableDiskSpace() -> Int64 {
         
@@ -139,8 +186,15 @@ public class Utils {
     }
     
     
-    
-    
-    
-    
 }
+
+
+
+protocol ErrorDelegate {
+
+    func reportError(_ error: Error, withMessage: String)
+
+}
+
+
+
