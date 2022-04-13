@@ -49,11 +49,7 @@ final class Server {
     
     var eventLoopGroup: EventLoopGroup
     
-    let warpinatorProvider: WarpinatorServiceProvider // = WarpinatorServiceProvider()
-    
-//    var remoteManager: RemoteManager
-    
-//    var errorDelegate: ErrorDelegate?
+    let warpinatorProvider: WarpinatorServiceProvider
     
     var server: GRPC.Server?
     var isRunning: Bool = false
@@ -71,13 +67,9 @@ final class Server {
     
     init(eventloopGroup group: EventLoopGroup,
          provider: WarpinatorServiceProvider) {
-    //, errorDelegate delegate: ErrorDelegate) {
         
         eventLoopGroup = group
-        
         warpinatorProvider = provider
-//        errorDelegate = delegate
-        
     }
     
     

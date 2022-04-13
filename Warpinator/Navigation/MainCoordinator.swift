@@ -24,7 +24,9 @@ final class MainCoordinator: NSObject, Coordinator {
     var remoteEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
                                                                                        networkPreference: .best)
     
+    
     lazy var remoteManager: RemoteManager = RemoteManager(withEventloopGroup: remoteEventLoopGroup)
+    
     lazy var warpinatorServiceProvider: WarpinatorServiceProvider = {
         let provider = WarpinatorServiceProvider()
         provider.remoteManager = remoteManager
@@ -201,50 +203,46 @@ final class MainCoordinator: NSObject, Coordinator {
     // MARK: restart servers
     func restartServers(){
         
+        
+        // remove ourselves from mDNS
         removeMdns()
         
-//        mDNSListener.restartListener()
         
-//        let future =
-        shutdownMdns().flatMap { _ in
-            return self.stopServers()
-        }.flatMap { _ in
-            return self.startServers()
-        }.flatMap { _ in
-            return self.startupMdns()
-        }.whenComplete { result in
-            
-            print(self.DEBUG_TAG+"startup result is \(result)")
-            
-            switch result {
-            case .success(_): break
-            case .failure(let error):
-                
-                switch error {
-                case MDNSListener.ServiceError.ALREADY_RUNNING: break
-                case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
-                    
-                default:
-                    print(self.DEBUG_TAG+"Error starting up: \(error)")
-                    return
-                }
+        // shutdown mDNS
+        shutdownMdns()
+        // then -> shutdown servers
+            .flatMap { _ in
+                return self.stopServers()
             }
-            
-            self.publishMdns()
-            
-        }
-        
-        
-//        let stopFuture = stopServers()
-//        stopFuture?.whenFailure { error in
-//            print(self.DEBUG_TAG+"servers failed to stop: \(error)")
-//        }
-//
-//        // wait until servers have stopped, then start them
-//        stopFuture?.whenSuccess {
-//            print(self.DEBUG_TAG+"servers stopped.")
-//            self.startServers()
-//        }
+        // then -> start up  servers
+            .flatMap { _ in
+                return self.startServers()
+            }
+        // then -> start up mDNS again
+            .flatMap { _ in
+                return self.startupMdns()
+            }
+            .whenComplete { result in
+                
+                print(self.DEBUG_TAG+"startup result is \(result)")
+                
+                switch result {
+                case .success(_): break
+                case .failure(let error):
+                    
+                    switch error {
+                    
+                        // Any errors mean we don't publish ourselves
+                        // to mDNS, except these two
+                        // TODO: This scenario is probably better handled by just returning a succeeded future
+                    case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
+                        
+                    default:   print(self.DEBUG_TAG+"Error starting up: \(error)"); return
+                    }
+                }
+                
+                self.publishMdns()
+            }
     }
     
     

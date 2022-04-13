@@ -37,6 +37,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         coordinator?.start()
         
     }
+    
 
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
@@ -51,13 +52,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         print(DEBUG_TAG+"sceneDidBecomeActive")
         
-//        let result =
         coordinator?.startServers().flatMap { _ -> EventLoopFuture<Void> in
             
-            
             print(self.DEBUG_TAG+"server startup completed")
-            
-            
             return self.coordinator!.startupMdns()
             
         }.whenComplete { result in
@@ -78,29 +75,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 }
             }
             
-            
             self.coordinator?.publishMdns()
             
         }
-//        .flatMapError{ error in
-//
-//            if case let MDNSBrowser.S
-//
-//        }.map{ _ in
-//            self.coordinator?.publishMdns()
-//        }
-//        { result in
-//
-//            switch result {
-//            case .failure(let error):
-//                self.coordinator?.reportError(error, withMessage: "Server failed to start")
-//                self.coordinator?.removeMdns()
-//            case .success(_):
-//                return self.coordinator?.publishMdns()
-//            }
-//
-//            return self.coordinator?.publishMdns()
-//        }
         
     }
     
@@ -122,7 +99,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
         print(DEBUG_TAG+"sceneDidEnterBackground")
         coordinator?.removeMdns()
-        
         
     }
 
