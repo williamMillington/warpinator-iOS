@@ -60,6 +60,7 @@ final class MDNSBrowser {
     
     private func createBrowser() -> NWBrowser {
         
+        print(DEBUG_TAG+"\t Creating browser")
         return NWBrowser(for: .bonjourWithTXTRecord(type: SERVICE_TYPE,
                                                     domain: SERVICE_DOMAIN),
                             using: parameters)
@@ -96,10 +97,12 @@ final class MDNSBrowser {
     
     func stop() -> EventLoopFuture<Void> {
         
+        print(DEBUG_TAG+" stopping... (current state:  \(browser.state) )")
+        
         let promise = eventloopGroup.next().makePromise(of: Void.self)
         
         switch browser.state {
-        case .cancelled, .failed(_):  promise.succeed( {}() )
+        case .cancelled, .failed(_), .setup:  promise.succeed( {}() )
         default:
             configurePromiseOnStopped(promise)
             stopBrowsing()
@@ -164,20 +167,15 @@ final class MDNSBrowser {
     //
     // MARK: startBrowsing
     func startBrowsing(){
-        
         print(DEBUG_TAG+" start browsing")
-        
         browser.browseResultsChangedHandler = resultsDidChange(results: changes:)
-        
     }
     
     
     //
     // MARK: stopBrowsing
     func stopBrowsing(){
-        
         print(DEBUG_TAG+" stop browsing")
-        
         browser.browseResultsChangedHandler = { _, _ in  }
     }
     
