@@ -42,6 +42,7 @@ class SettingsManager {
         case groupCode = "groupCode"
         case transferPortNumber = "transferPortNumber"
         case registrationPortNumber = "registrationPortNumber"
+        case refreshCredentials = "refreshCredentials"
     }
     
     // remembered remotes
@@ -70,7 +71,9 @@ class SettingsManager {
         didSet { writeToSettings(automaticAccept, forKey: StorageKey.automaticAccept)}
     }
     
-    
+    var refreshCredentials: Bool = false   {
+        didSet { writeToSettings(refreshCredentials, forKey: StorageKey.refreshCredentials)}
+    }
     
     // MARK: connection settings
     var hostname: String  = "WarpinatoriOS"  {
@@ -131,22 +134,12 @@ class SettingsManager {
         
         overwriteFiles = defaults.bool(forKey: StorageKey.overwriteFiles.rawValue) // default to false
         automaticAccept = defaults.bool(forKey: StorageKey.automaticAccept.rawValue)
+        refreshCredentials = defaults.bool(forKey: StorageKey.refreshCredentials.rawValue)
         
         hostname = defaults.string(forKey: StorageKey.hostname.rawValue) ?? hostname
         
         
-        uuid = defaults.string(forKey: StorageKey.uuid.rawValue)  ?? { // generate random UUID
-            
-            var uuidStr = "WarpinatoriOS"
-            
-            // stick 5 random digits after "WarpinatoriOS"
-            for _ in 0...4 {
-                uuidStr += "\(Int.random(in: 0...9))"
-            }
-            
-            return uuidStr
-        }()
-        
+        uuid = defaults.string(forKey: StorageKey.uuid.rawValue)  ?? uuid
         print(DEBUG_TAG+"uuid is \(uuid)")
         
         groupCode = defaults.string(forKey: StorageKey.groupCode.rawValue)  ?? groupCode
@@ -167,8 +160,7 @@ class SettingsManager {
     // MARK: write setting
     func writeToSettings(_ value: Any?, forKey key: StorageKey) {
         
-        UserDefaults.standard.setValue(value, forKey:
-                                        key.rawValue)
+        UserDefaults.standard.setValue(value, forKey:  key.rawValue   )
     }
     
     
@@ -205,16 +197,6 @@ class SettingsManager {
             // 2^31 = 2147483648
             guard value < 2147483648 else {
                 throw ValidationError.INVALID_VALUE("(\(key)) port value must be less than 2147483648 because computers")
-            }
-            
-           
-            //
-            // All Bool settings
-        case StorageKey.overwriteFiles, StorageKey.automaticAccept:
-            
-            // cast down from Any
-            guard (value as? Bool) != nil else {
-                throw ValidationError.INVALID_VALUE_TYPE("(\(key)) Invalid value type. Expected Bool")
             }
             
             
@@ -259,6 +241,7 @@ class SettingsManager {
         
         defaults.setValue(overwriteFiles, forKey: StorageKey.overwriteFiles.rawValue)
         defaults.setValue(automaticAccept, forKey: StorageKey.automaticAccept.rawValue)
+        defaults.setValue(refreshCredentials, forKey: StorageKey.refreshCredentials.rawValue)
         
         defaults.setValue(hostname, forKey: StorageKey.hostname.rawValue)
         defaults.setValue(uuid, forKey: StorageKey.uuid.rawValue)
@@ -287,7 +270,7 @@ struct SettingsChange {
     
     
     init(restart: Bool,
-         validate v: @escaping () throws ->(),
+         validate v: @escaping () throws ->() = {},
          change c: @escaping ()->()) {
         restartRequired = restart
         change = c

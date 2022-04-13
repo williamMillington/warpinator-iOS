@@ -104,7 +104,7 @@ final class Authenticator {
     
     
     
-    // MARK: box cert
+    // MARK: lock cert
     func getCertificateDataForSending() -> String {
         
         // generate encryption-key from key-code
@@ -215,6 +215,26 @@ final class Authenticator {
         
         return try NIOSSLPrivateKey.init(bytes: keyBytes, format: .der)
     }
+    
+    
+    
+    
+    func deleteCredentials(){
+        
+        do {
+            let uuid = SettingsManager.shared.uuid
+            
+            // delete certificate
+            try KeyMaster.deleteCertificate(forTag: uuid)
+            
+            // delete key
+            try KeyMaster.deletePrivateKey(forTag: uuid)
+            
+        } catch {
+            print(DEBUG_TAG+"Error deleting credentials:\n\t\t \(error)")
+        }
+    }
+    
     
     
     
