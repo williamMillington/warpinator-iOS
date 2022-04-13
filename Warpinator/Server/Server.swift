@@ -23,6 +23,7 @@ final class Server {
     enum ServerError: Error {
 //        case NO_EVENTLOOP
         case NO_INTERNET
+        case ADDRESS_UNAVAILABLE
         case CREDENTIALS_INVALID
         case CREDENTIALS_UNAVAILABLE
         case CREDENTIALS_GENERATION_ERROR
@@ -33,6 +34,7 @@ final class Server {
             switch self {
 //            case .NO_EVENTLOOP: return "No available eventloop"
             case .NO_INTERNET: return "No Internet, could not secure IP address"
+            case .ADDRESS_UNAVAILABLE: return "IP address is unavailable."
             case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"
             case .CREDENTIALS_UNAVAILABLE: return "Server certificate and/or private key could not be found"
             case .CREDENTIALS_GENERATION_ERROR: return "Server credentials could not be created"
@@ -56,6 +58,7 @@ final class Server {
     
     var server: GRPC.Server?
     var isRunning: Bool = false
+    let ATTEMPT_LIMIT = 10
     var attempts = 0
     
     let queueLabel = "WarpinatorServerQueue"
@@ -114,8 +117,19 @@ final class Server {
                     return self.eventLoopGroup.next().makeFailedFuture( ServerError.NO_INTERNET )
                 }
                 
-                print( self.DEBUG_TAG + "transfer server failed: \(error) (\( type(of: error )))")
                 
+                guard self.attempts < self.ATTEMPT_LIMIT else {
+                    
+                    if case let .posix(code) = error as? NWError {
+                        print(self.DEBUG_TAG+" error: \(error), code: \(code)")
+                        return self.eventLoopGroup.next().makeFailedFuture( ServerError.ADDRESS_UNAVAILABLE )
+                    }
+                    
+                    return self.eventLoopGroup.next().makeFailedFuture( ServerError.UKNOWN_ERROR )
+                }
+                
+                print( self.DEBUG_TAG + "transfer server failed: \(error) (\( type(of: error )))")
+                self.attempts += 1
                 return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
                     self.startupServer(withCredentials: credentials)
                 }.futureResult
