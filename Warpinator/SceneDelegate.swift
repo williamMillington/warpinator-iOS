@@ -71,7 +71,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     
                 default:
                     print(self.DEBUG_TAG+"Error starting up: \(error)")
-                    self.coordinator?.reportError(error, withMessage: "Server encountered an error starting up")
+                    self.coordinator?.reportError(error, withMessage: "Server encountered an error starting up:\n\(error.localizedDescription)")
                     return
                 }
             }

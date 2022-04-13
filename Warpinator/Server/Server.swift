@@ -87,6 +87,8 @@ final class Server {
             return eventLoopGroup.next().makeFailedFuture( ServerError.CREDENTIALS_GENERATION_ERROR )
         }
         
+        attempts = 0
+        
         return startupServer(withCredentials: credentials).map { server in
             print(self.DEBUG_TAG+"transfer server started on: \(String(describing: server.channel.localAddress))")
             self.server = server
@@ -120,15 +122,16 @@ final class Server {
                 
                 guard self.attempts < self.ATTEMPT_LIMIT else {
                     
-                    if case let .posix(code) = error as? NWError {
-                        print(self.DEBUG_TAG+" error: \(error), code: \(code)")
+                    if case .posix(_) = error as? NWError {
+//                        print(self.DEBUG_TAG+" error: \(error), code: \(code)")
                         return self.eventLoopGroup.next().makeFailedFuture( ServerError.ADDRESS_UNAVAILABLE )
                     }
                     
                     return self.eventLoopGroup.next().makeFailedFuture( ServerError.UKNOWN_ERROR )
                 }
                 
-                print( self.DEBUG_TAG + "transfer server failed: \(error) (\( type(of: error )))")
+                
+                print( self.DEBUG_TAG + "transfer server failed: \(error)") // (\( type(of: error )))")
                 self.attempts += 1
                 return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)) {
                     self.startupServer(withCredentials: credentials)

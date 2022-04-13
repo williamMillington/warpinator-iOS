@@ -129,7 +129,7 @@ final class ViewController: UIViewController {
     
     //
     // MARK: show error screen
-    func showErrorScreen(){
+    func showErrorScreen(_ error: Error, withMessage message: String){
         
         print(DEBUG_TAG+"showing error screen")
         
@@ -138,7 +138,7 @@ final class ViewController: UIViewController {
             return
         }
         
-        errorScreen = ErrorView(onTap: {
+        errorScreen = ErrorView(error, withMessage: message, onTap: {
             self.removeErrorScreen()
             self.coordinator?.restartServers()
         })
@@ -325,9 +325,37 @@ final class ErrorView: UIView {
     
     let errorAnnouncementLabel: UILabel = {
         let label = UILabel()
-        label.text = "An error occurred, tap to restart server "
+        label.text = "An error occurred, tap to restart server"
         label.textColor = Utils.textColour
         label.tintColor = Utils.textColour
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
+        return label
+    }()
+    
+    
+    let errorDescriptionLabel: UILabel = {
+        let label = UILabel()
+        label.text = ""
+        label.textColor = Utils.textColour
+        label.tintColor = Utils.textColour
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = false
+        return label
+    }()
+    
+    let messageLabel: UILabel = {
+        let label = UILabel()
+        label.text = ""
+        label.textColor = Utils.textColour
+        label.tintColor = Utils.textColour
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
+        label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isUserInteractionEnabled = false
         return label
@@ -347,8 +375,11 @@ final class ErrorView: UIView {
     }
     
     
-    convenience init(onTap action: @escaping ()->Void = {}){
+    convenience init(_ error: Error, withMessage message: String, onTap action: @escaping ()->Void = {}){
         self.init(frame: .zero)
+        
+        errorDescriptionLabel.text = "\(error)"
+        messageLabel.text = message
         
         // add subviews and constraints
         setUpView()
@@ -365,21 +396,28 @@ final class ErrorView: UIView {
     func setUpView(){
         
         addSubview(errorAnnouncementLabel)
+        addSubview(errorDescriptionLabel)
+        addSubview(messageLabel)
         
         let constraints = [
-            errorAnnouncementLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            errorAnnouncementLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
+            errorAnnouncementLabel.bottomAnchor.constraint(equalTo: errorDescriptionLabel.topAnchor, constant: -15 ),
+            errorAnnouncementLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            
+            errorDescriptionLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            errorDescriptionLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            
+            messageLabel.topAnchor.constraint(equalTo: errorDescriptionLabel.bottomAnchor, constant: 10),
+            messageLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            
+            errorAnnouncementLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -10),
+            errorDescriptionLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -10),
+            messageLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -10)
         ]
         
         NSLayoutConstraint.activate(constraints)
         
 //        backgroundColor = UIColor.blue.withAlphaComponent(0.5)
         backgroundColor = Utils.backgroundColour
-        
-//        layer.cornerRadius = 5
-        
-//        layer.borderWidth = 1
-//        layer.borderColor = Utils.borderColour.cgColor
         
     }
     
