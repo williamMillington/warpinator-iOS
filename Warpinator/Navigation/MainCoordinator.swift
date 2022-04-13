@@ -34,9 +34,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     lazy var server: Server = Server(eventloopGroup: serverEventLoopGroup,
-//                                remoteManager: remoteManager,
                                      provider: warpinatorServiceProvider)
-//                                     , errorDelegate: self)
     lazy var registrationServer: RegistrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup)
     
     
@@ -103,6 +101,7 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     //
     func removeMdns(){
+        print(DEBUG_TAG+"removing mDNS...")
         mDNSListener.removeService()
         mDNSListener.stopListening()
         mDNSBrowser.stopBrowsing()
@@ -126,6 +125,13 @@ final class MainCoordinator: NSObject, Coordinator {
             if let vc = self.navController.visibleViewController as? ViewController {
                 vc.showLoadingScreen()
             }
+        }
+        
+        
+        //
+        if SettingsManager.shared.refreshCredentials {
+            print(DEBUG_TAG+" refresh credentials:  deleting...")
+            Authenticator.shared.deleteCredentials()
         }
         
         
@@ -158,22 +164,6 @@ final class MainCoordinator: NSObject, Coordinator {
             .flatMap { _ in
                 return self.registrationServer.start()
             }
-        
-//            .flatMap { _ -> EventLoopFuture<Void> in
-//                return self.mDNSListener.start()
-//            }
-//
-//        // on mDNS startup completion
-//            .map {  result  in //   result in
-//
-//
-//                // everything started correctly, announce ourselves
-//                self.publishMdns()
-//
-//                DispatchQueue.main.async {
-//                    (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
-//                }
-//            }
     }
     
     

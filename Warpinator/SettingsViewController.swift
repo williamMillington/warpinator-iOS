@@ -24,13 +24,17 @@ final class SettingsViewController: UIViewController {
     @IBOutlet var overwriteSwitch: UISwitch!
     @IBOutlet var autoacceptSwitch: UISwitch!
     
+    @IBOutlet var refreshCredentialsSwitch: UISwitch!
     
     var coordinator: MainCoordinator?
     var settingsManager: SettingsManager!
     
     
+    //
+    //
     var restartRequired: Bool  {
-        return changes.values.map { $0.restartRequired }.contains(true)
+        return changes.values.map {   $0.restartRequired   } // returns [Bool]
+        .contains(true) // check if [Bool] contains 'true'
     }
     
     
@@ -60,7 +64,7 @@ final class SettingsViewController: UIViewController {
         
         settingsManager = manager
         
-        super.init(nibName: "SettingsViewController", bundle: Bundle(for: type(of: self)))
+        super.init(nibName: "SettingsViewController", bundle: Bundle(for: type(of: self) ))
     }
     
     
@@ -76,6 +80,10 @@ final class SettingsViewController: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = Utils.backgroundColour
+        
+        
+        refreshCredentialsSwitch.layer.borderColor = Utils.foregroundColour.cgColor
+        refreshCredentialsSwitch.layer.borderWidth = 2
         
         implementCurrentSettings()
     }
@@ -95,6 +103,7 @@ final class SettingsViewController: UIViewController {
         autoacceptSwitch.isOn = settingsManager.automaticAccept
         overwriteSwitch.isOn = settingsManager.overwriteFiles
         
+        refreshCredentialsSwitch.isOn = settingsManager.refreshCredentials
     }
     
     
@@ -288,13 +297,6 @@ final class SettingsViewController: UIViewController {
             return
         }
         
-        
-        // validation action
-        let onValidate = {
-            try SettingsManager.validate(switchCheck,
-                                         forKey: .automaticAccept )
-        }
-        
         // change setting
         let onChange = { [unowned self] in
             self.settingsManager.automaticAccept = switchCheck
@@ -302,12 +304,12 @@ final class SettingsViewController: UIViewController {
         
         
         changes[.automaticAccept] = SettingsChange(restart: false,
-                                                   validate: onValidate,
                                                    change: onChange)
     }
     
     
     
+    //
     // MARK: overwrite changed
     @IBAction func overwriteSettingDidChange(_ sender: UISwitch) {
         
@@ -323,13 +325,6 @@ final class SettingsViewController: UIViewController {
             return
         }
         
-        
-        // validation action
-        let onValidate = {
-            try SettingsManager.validate(switchCheck,
-                                         forKey: .overwriteFiles )
-        }
-        
         // change setting
         let onChange = { [unowned self] in
             self.settingsManager.overwriteFiles = switchCheck
@@ -337,10 +332,32 @@ final class SettingsViewController: UIViewController {
         
         
         changes[.overwriteFiles] = SettingsChange(restart: true,
-                                                  validate: onValidate,
                                                   change: onChange)
     }
     
+    
+    
+    //
+    // MARK: refresh credentials
+    @IBAction func refreshCredentialsDidChange(_ sender: UISwitch){
+        
+        
+        let selected = sender.isOn
+        
+        print(DEBUG_TAG+"Credentials \(selected ? "WILL be" : "WILL NOT be") refreshed (switch is: \(selected ? "ON" : "OFF") )")
+        
+        
+        // if the user hits the button a second time, just remove
+        // the existing change
+        guard selected != settingsManager.refreshCredentials else {
+            changes.removeValue(forKey: .refreshCredentials)
+            return
+        }
+        
+        changes[.refreshCredentials] = SettingsChange(restart: true) {
+            self.settingsManager.refreshCredentials = selected
+        }
+    }
     
     
     // MARK: show error popup
