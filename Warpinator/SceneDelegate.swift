@@ -7,6 +7,8 @@
 
 import UIKit
 
+import NIO
+
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     private let DEBUG_TAG: String = "SceneDelegate: "
@@ -49,8 +51,57 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         print(DEBUG_TAG+"sceneDidBecomeActive")
         
-        coordinator?.startServers()
-        coordinator?.startMDNS()
+//        let result =
+        coordinator?.startServers().flatMap { _ -> EventLoopFuture<Void> in
+            
+            
+            print(self.DEBUG_TAG+"server startup completed")
+            
+            
+            return self.coordinator!.startupMdns()
+            
+        }.whenComplete { result in
+            
+            print(self.DEBUG_TAG+"startup result is \(result)")
+            
+            switch result {
+            case .success(_): break
+            case .failure(let error):
+                
+                switch error {
+                case MDNSListener.ServiceError.ALREADY_RUNNING: break
+                case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
+                    
+                default:
+                    print(self.DEBUG_TAG+"Error starting up: \(error)")
+                    return
+                }
+            }
+            
+            
+            self.coordinator?.publishMdns()
+            
+        }
+//        .flatMapError{ error in
+//
+//            if case let MDNSBrowser.S
+//
+//        }.map{ _ in
+//            self.coordinator?.publishMdns()
+//        }
+//        { result in
+//
+//            switch result {
+//            case .failure(let error):
+//                self.coordinator?.reportError(error, withMessage: "Server failed to start")
+//                self.coordinator?.removeMdns()
+//            case .success(_):
+//                return self.coordinator?.publishMdns()
+//            }
+//
+//            return self.coordinator?.publishMdns()
+//        }
+        
     }
     
     func sceneWillResignActive(_ scene: UIScene) {
@@ -70,7 +121,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
         print(DEBUG_TAG+"sceneDidEnterBackground")
-        coordinator?.stopMDNS()
+        coordinator?.removeMdns()
         
         
     }

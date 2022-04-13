@@ -6,6 +6,7 @@
 //
 
 import UIKit
+
 import GRPC
 import NIO
 import NIOSSL
@@ -18,18 +19,31 @@ final class MainCoordinator: NSObject, Coordinator {
     var childCoordinators = [Coordinator]()
     var navController: UINavigationController
     
-    var mDNSBrowser: MDNSBrowser
-    var mDNSListener: MDNSListener
+    var serverEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
+                                                                                       networkPreference: .best)
+    var remoteEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
+                                                                                       networkPreference: .best)
     
-    var remoteManager: RemoteManager = RemoteManager()
+    lazy var remoteManager: RemoteManager = RemoteManager(withEventloopGroup: remoteEventLoopGroup)
+    lazy var warpinatorServiceProvider: WarpinatorServiceProvider = {
+        let provider = WarpinatorServiceProvider()
+        provider.remoteManager = remoteManager
+        return provider
+    }()
     
-    var serverEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-    var remoteEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    
     
     lazy var server: Server = Server(eventloopGroup: serverEventLoopGroup,
-                                remoteManager: remoteManager,
-                                errorDelegate: self)
+//                                remoteManager: remoteManager,
+                                     provider: warpinatorServiceProvider)
+//                                     , errorDelegate: self)
     lazy var registrationServer: RegistrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup)
+    
+    
+    
+    lazy var mDNSBrowser:   MDNSBrowser  = MDNSBrowser(withEventloopGroup: serverEventLoopGroup)
+    lazy var mDNSListener:  MDNSListener = MDNSListener(withEventloopGroup: serverEventLoopGroup)
+    
     
     init(withNavigationController controller: UINavigationController){
         navController = controller
@@ -39,16 +53,11 @@ final class MainCoordinator: NSObject, Coordinator {
         Utils.lockOrientation(.portrait)
         
         
-        mDNSBrowser = MDNSBrowser()
-        mDNSListener = MDNSListener()
-        
-        
         super.init()
         
         mDNSBrowser.delegate = remoteManager
         mDNSListener.delegate = self
         
-        remoteManager.remoteEventloopGroup = remoteEventLoopGroup
 //        mockRemote()
     }
     
@@ -65,32 +74,52 @@ final class MainCoordinator: NSObject, Coordinator {
     
     //
     //
-    func startMDNS(){
+    func startupMdns() -> EventLoopFuture<Void> {
+        let futures = [ mDNSListener.start(), mDNSBrowser.start() ]
+        return EventLoopFuture.andAllComplete( futures, on: serverEventLoopGroup.next() )
+    }
+    
+    
+    //
+    //
+    func shutdownMdns() -> EventLoopFuture<Void> {
+        let futures = [ mDNSListener.stop(), mDNSBrowser.stop() ]
+        return EventLoopFuture.andAllComplete( futures, on: serverEventLoopGroup.next() )
+    }
+    
+    
+    
+    //
+    //
+    func publishMdns(){
+        print(DEBUG_TAG+"publishing mDNS...")
         mDNSListener.startListening()
         mDNSListener.flushPublish()
         mDNSBrowser.startBrowsing()
     }
     
     
+    
     //
     //
-    func stopMDNS(){
+    func removeMdns(){
         mDNSListener.removeService()
         mDNSListener.stopListening()
         mDNSBrowser.stopBrowsing()
     }
     
     
+    
+    
     //
     // MARK: start servers
-    func startServers(){
+    func startServers() -> EventLoopFuture<Void> {
 
         print(DEBUG_TAG+"starting servers...")
         
         guard !server.isRunning else {
             print(DEBUG_TAG+"Server is already running")
-//            startMDNS()
-            return
+            return serverEventLoopGroup.next().makeSucceededVoidFuture()
         }
         
         DispatchQueue.main.async {
@@ -108,48 +137,47 @@ final class MainCoordinator: NSObject, Coordinator {
 //            promise.fail(Server.ServerError.SERVER_FAILURE)
 //        }
 //
-//        promise?.futureResult
-
-        server.start()
+//        return promise?.futureResult
+        
+        let future = server.start()
+        
+        future.whenComplete { _ in
+            DispatchQueue.main.async {
+                (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
+            }
+        }
+        
+//        return server.start()
+        return future
         // what to do if server fails to start
             .flatMapError { error in
-//                self.mDNSListener.pauseAcceptingConnections()
                 return self.serverEventLoopGroup.next().makeFailedFuture(error)
             }
-
+        
         // return future that completes when registrationServer starts up
             .flatMap { _ in
                 return self.registrationServer.start()
             }
-
-        // on registrationServer startup completion
-            .whenComplete { result in
-
-                do {  _ = try result.get()   }
-                catch {
-//                    self.mDNSListener.pauseAcceptingConnections()
-//                    self.mDNSListener.stopListening()
-                    self.stopMDNS()
-                    // error outcome, something failed
-                    self.reportError(error, withMessage: "Server future failed")
-                    return
-                }
-
-
-                // success outcome, continue with starting up
-                // TODO: make a way to return a promise that succeeds when the listener/browser are ready
-//                self.startMDNS()
-//                self.mDNSListener.flushPublish()
-                self.startMDNS()
-                DispatchQueue.main.async {
-                    (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
-                }
-            }
-
+        
+//            .flatMap { _ -> EventLoopFuture<Void> in
+//                return self.mDNSListener.start()
+//            }
+//
+//        // on mDNS startup completion
+//            .map {  result  in //   result in
+//
+//
+//                // everything started correctly, announce ourselves
+//                self.publishMdns()
+//
+//                DispatchQueue.main.async {
+//                    (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
+//                }
+//            }
     }
     
     
-    func shutdownConnections() -> EventLoopFuture<Void>? {
+    func shutdownConnections() -> EventLoopFuture<Void> {
             return remoteManager.shutdownAllRemotes()
     }
     
@@ -157,17 +185,17 @@ final class MainCoordinator: NSObject, Coordinator {
     
     //
     // MARK: stop servers
-    func stopServers() -> EventLoopFuture<Void>? {
+    func stopServers() -> EventLoopFuture<Void> {
         
         print(DEBUG_TAG+"stopping servers... ")
+        
+        self.removeMdns()
         
         let remoteFuture = shutdownConnections()
         
         // I thiink is how you chain futures together
-        return remoteFuture?.flatMap {
+        return remoteFuture.flatMap { _ -> EventLoopFuture<Void> in
             print(self.DEBUG_TAG+"stopping registration server")
-            
-            self.stopMDNS()
             
             return self.registrationServer.stop()
         }
@@ -183,20 +211,50 @@ final class MainCoordinator: NSObject, Coordinator {
     // MARK: restart servers
     func restartServers(){
         
-        stopMDNS()
+        removeMdns()
         
-        mDNSListener.restartListener()
+//        mDNSListener.restartListener()
         
-        let stopFuture = stopServers()
-        stopFuture?.whenFailure { error in
-            print(self.DEBUG_TAG+"servers failed to stop: \(error)")
+//        let future =
+        shutdownMdns().flatMap { _ in
+            return self.stopServers()
+        }.flatMap { _ in
+            return self.startServers()
+        }.flatMap { _ in
+            return self.startupMdns()
+        }.whenComplete { result in
+            
+            print(self.DEBUG_TAG+"startup result is \(result)")
+            
+            switch result {
+            case .success(_): break
+            case .failure(let error):
+                
+                switch error {
+                case MDNSListener.ServiceError.ALREADY_RUNNING: break
+                case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
+                    
+                default:
+                    print(self.DEBUG_TAG+"Error starting up: \(error)")
+                    return
+                }
+            }
+            
+            self.publishMdns()
+            
         }
         
-        // wait until servers have stopped, then start them
-        stopFuture?.whenSuccess {
-            print(self.DEBUG_TAG+"servers stopped.")
-            self.startServers()
-        }
+        
+//        let stopFuture = stopServers()
+//        stopFuture?.whenFailure { error in
+//            print(self.DEBUG_TAG+"servers failed to stop: \(error)")
+//        }
+//
+//        // wait until servers have stopped, then start them
+//        stopFuture?.whenSuccess {
+//            print(self.DEBUG_TAG+"servers stopped.")
+//            self.startServers()
+//        }
     }
     
     
