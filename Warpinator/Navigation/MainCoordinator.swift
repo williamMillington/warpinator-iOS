@@ -158,9 +158,9 @@ final class MainCoordinator: NSObject, Coordinator {
 //        return server.start()
         return future
         // what to do if server fails to start
-            .flatMapError { error in
-                return self.serverEventLoopGroup.next().makeFailedFuture(error)
-            }
+//            .flatMapError { error in
+//                return self.serverEventLoopGroup.next().makeFailedFuture(error)
+//            }
         
         // return future that completes when registrationServer starts up
             .flatMap { _ in
@@ -237,7 +237,9 @@ final class MainCoordinator: NSObject, Coordinator {
                         // TODO: This scenario is probably better handled by just returning a succeeded future
                     case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
                         
-                    default:   print(self.DEBUG_TAG+"Error starting up: \(error)"); return
+                    default:   print(self.DEBUG_TAG+"Error starting up: \(error)")
+                        self.reportError(error, withMessage: "Server encountered an error starting up")
+                        return
                     }
                 }
                 

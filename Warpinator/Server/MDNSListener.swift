@@ -73,12 +73,7 @@ final class MDNSListener {
     
     
     init(withEventloopGroup group: EventLoopGroup) {
-
         eventloopGroup = group
-        
-//        listener.stateUpdateHandler stateDidUpdate(state:)
-//        stopListening()
-//        listener.start(queue: listenerQueue )
     }
     
     
@@ -130,10 +125,12 @@ final class MDNSListener {
     // MARK: stop
     func stop() -> EventLoopFuture<Void> {
         
+        print(DEBUG_TAG+" stopping... (current state:  \(listener.state) )")
+        
         let onStopPromise = eventloopGroup!.next().makePromise(of: Void.self)
         
         switch listener.state {
-        case .cancelled, .failed(_):  onStopPromise.succeed( {}() )
+        case .cancelled, .failed(_), .setup:  onStopPromise.succeed( {}() )
         default:
             configurePromiseOnStopped(onStopPromise)
             listener.cancel()

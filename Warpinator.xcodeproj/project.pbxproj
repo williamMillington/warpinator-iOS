@@ -253,7 +253,6 @@
 				79D089DE273F0B9400B14FAB /* Extensions */,
 				79C002A8270A92C9002DB22B /* gRPC */,
 				79B8A0F92745620D00369E62 /* Navigation */,
-				79B0022927190924003CEBCC /* Networking */,
 				797C12C6271749A100A2795C /* Resources */,
 				79331AFB274E8FEB00A4022F /* Remotes */,
 				79331AFE274E903800A4022F /* Server */,
@@ -304,13 +303,6 @@
 				79CCFB9E273ED5EF00852EBD /* TransfersCommon.swift */,
 			);
 			path = Transfers;
-			sourceTree = "<group>";
-		};
-		79B0022927190924003CEBCC /* Networking */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Networking;
 			sourceTree = "<group>";
 		};
 		79B8A0F92745620D00369E62 /* Navigation */ = {
