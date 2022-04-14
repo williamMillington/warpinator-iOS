@@ -8,196 +8,225 @@
 import UIKit
 
 
+// MARK: - ValidationError
+enum ValidationError: Error {
+    case VALUE_UNCHANGED
+    case INVALID_VALUE(String)
+    case INVALID_VALUE_TYPE(String)
+    
+    var localizedDescription: String {
+        switch self {
+        case .VALUE_UNCHANGED: return "No difference between entered value and recorded value"
+        case .INVALID_VALUE(let description): return description
+        case .INVALID_VALUE_TYPE(let description): return description
+        }
+    }
+}
 
+
+
+// MARK: - SettingsManager
 class SettingsManager {
     
     private let DEBUG_TAG: String = "SettingsManager: "
     
     
-    enum SettingsType: Equatable {
-        case settingsInt(Int)
-        case settingsUInt32(UInt32)
-        case settingsString(String)
-        case settingsBool(Bool)
-        
-        
-        var dataDictionary: [String: Any] {
-            switch self {
-            case .settingsInt(let int): return ["settingsInt": int]
-            case .settingsUInt32(let uint): return ["settingsUInt32": uint]
-            case .settingsString(let string): return  ["settingsString": string]
-            case .settingsBool(let boolean): return ["settingsBool": boolean]
-            }
-        }
-        
-        
-        init?(fromDictionary dictionary: [String: Any]) {
-            switch dictionary.keys.first! {
-            case "settingsInt": self = .settingsInt(dictionary.values.first as! Int)
-            case "settingsUInt32": self = .settingsUInt32(dictionary.values.first as! UInt32)
-            case "settingsString": self = .settingsString(dictionary.values.first as! String)
-            case "settingsBool": self = .settingsBool(dictionary.values.first as! Bool)
-            default: return nil
-            }
-        }
-        
-        
-        
-        
-        static func ==(lhs: SettingsType, rhs: SettingsType) -> Bool {
-            
-            switch (lhs,rhs){
-            case (.settingsInt(let num1), .settingsInt(let num2)): return num1 == num2
-            case (.settingsUInt32(let num1), .settingsUInt32(let num2)): return num1 == num2
-            case (.settingsString(let str1), .settingsString(let str2)): return str1 == str2
-            case (.settingsBool(let bool1), .settingsBool(let bool2)): return bool1 == bool2
-            case (.settingsInt(_),_),
-                 (.settingsUInt32(_),_),
-                 (.settingsString(_),_),
-                 (.settingsBool(_),_): return false
-            }
-            
-        }
-        
+    enum StorageKey: String {
+        case displayName = "displayName"
+        case userName = "userName"
+        case avatarImage = "avatarImage"
+        case overwriteFiles = "overwriteFiles"
+        case automaticAccept = "automaticAccept"
+        case hostname = "hostname"
+        case uuid = "uuid"
+        case groupCode = "groupCode"
+        case transferPortNumber = "transferPortNumber"
+        case registrationPortNumber = "registrationPortNumber"
+        case refreshCredentials = "refreshCredentials"
     }
     
-    
-    
-    struct StorageKeys {
-        
-        static let displayName = "displayName"
-        static let userName = "userName"
-        
-        static let avatarImage = "avatarImage"
-        
-        static let overwriteFiles = "overwriteFiles"
-        static let automaticAccept = "automaticAccept"
-        
-        static let hostname = "hostname"
-        static let uuid = "uuid"
-        
-        static let groupCode = "groupCode"
-        static let transferPortNumber = "transferPortNumber"
-        static let registrationPortNumber = "registrationPortNumber"
-    }
-     
     // remembered remotes
     var rememberedRemotes : [String : Remote] = [:]
     
     
-    // user settings
-    var displayName: String = "iOS Device"      {
-        didSet { writeToSettings(displayName, forKey: StorageKeys.displayName) } }
-    var userName: String = "iosdevice"           {
-        didSet { writeToSettings(userName, forKey: StorageKeys.userName) } }
-    var avatarImage: UIImage? = nil {
-        didSet { writeToSettings(avatarImage, forKey: StorageKeys.avatarImage) } }
+    // MARK: user settings
+    var displayName: String = "iOS Device"  {
+        didSet { writeToSettings(displayName, forKey: StorageKey.displayName) }
+    }
+    
+    var userName: String = "iosdevice"  {
+        didSet { writeToSettings(userName, forKey: StorageKey.userName) }
+    }
+    
+    var avatarImage: UIImage? = nil     {
+        didSet { writeToSettings(avatarImage, forKey: StorageKey.avatarImage) }
+    }
     
     
-    var overwriteFiles: Bool  = false  {
-        didSet { writeToSettings(overwriteFiles, forKey: StorageKeys.overwriteFiles)} }
-    var automaticAccept: Bool = false  {
-        didSet { writeToSettings(automaticAccept, forKey: StorageKeys.automaticAccept)} }
+    var overwriteFiles: Bool  = false   {
+        didSet { writeToSettings(overwriteFiles, forKey: StorageKey.overwriteFiles)}
+    }
+    
+    var automaticAccept: Bool = false   {
+        didSet { writeToSettings(automaticAccept, forKey: StorageKey.automaticAccept)}
+    }
+    
+    var refreshCredentials: Bool = false   {
+        didSet { writeToSettings(refreshCredentials, forKey: StorageKey.refreshCredentials)}
+    }
+    
+    // MARK: connection settings
+    var hostname: String  = "WarpinatoriOS"  {
+        didSet  {   writeToSettings(hostname,   forKey: StorageKey.hostname) } }
+    var uuid: String { // generated on first start
+        didSet  {   writeToSettings(uuid,       forKey: StorageKey.uuid) } }
     
     
+    var groupCode: String = "Warpinator"  {
+        didSet {    writeToSettings(groupCode,     forKey: StorageKey.groupCode) } }
     
-    // connectionSettings
-    var hostname: String  = "WarpinatoriOS" {
-        didSet  {   writeToSettings(hostname,   forKey: StorageKeys.hostname) } }
-    var uuid: String {
-        didSet  {   writeToSettings(uuid,       forKey: StorageKeys.uuid) } }
-    
-    
-    var groupCode: String = "Warpinator" {
-        didSet {    writeToSettings(groupCode,     forKey: StorageKeys.groupCode) } }
-    
-    var transferPortNumber: UInt32  = 42_000 {
-        didSet {    writeToSettings(transferPortNumber,     forKey: StorageKeys.transferPortNumber) } }
-    var registrationPortNumber: UInt32 = 42_001 {
-        didSet {    writeToSettings(registrationPortNumber, forKey: StorageKeys.registrationPortNumber) } }
+    var transferPortNumber: UInt32  = 42_000  {
+        didSet {    writeToSettings(transferPortNumber,     forKey: StorageKey.transferPortNumber) } }
+    var registrationPortNumber: UInt32 = 42_001  {
+        didSet {    writeToSettings(registrationPortNumber, forKey: StorageKey.registrationPortNumber) } }
     
     
-    // MARK: singleton
+    //
+    // MARK: singleton init
     static var shared: SettingsManager = {
         let manager = SettingsManager()
         manager.loadSettings()
         return manager }()
     
+    
     private init(){
-        print(DEBUG_TAG+"creating settings manager...")
-        uuid = UserDefaults.standard.string(forKey: StorageKeys.uuid) ?? "WarpinatoriOS\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))\(Int.random(in: 0...9))"
-        writeToSettings(uuid, forKey: StorageKeys.uuid)
+        
+        
+        // generate random UUID
+        func randomUUID() -> String {
+            
+            var uuidStr = "WarpinatoriOS"
+            
+            // stick 5 random digits after "WarpinatoriOS"
+            for _ in 0...4 {
+                uuidStr += "\(Int.random(in: 0...9))"
+            }
+            
+            return uuidStr
+        }
+        
+        uuid = UserDefaults.standard.string(forKey: StorageKey.uuid.rawValue) ?? randomUUID()
+        
+        writeToSettings(uuid, forKey: StorageKey.uuid)
     }
+    
     
     
     //
-    // copy of current settings values
-    // MARK: getSettingsCopy
-    func getSettingsCopy() -> [String : SettingsType] {
-//        print("getting copy")
-        return [ StorageKeys.displayName :  .settingsString(displayName),
-                 StorageKeys.userName :     .settingsString(userName),
-                 
-                 StorageKeys.overwriteFiles :  .settingsBool(overwriteFiles),
-                 StorageKeys.automaticAccept : .settingsBool(automaticAccept),
-                 
-                 StorageKeys.hostname : .settingsString(hostname),
-                 StorageKeys.uuid :     .settingsString(uuid),
-                 
-                 StorageKeys.groupCode : .settingsString(groupCode),
-                 StorageKeys.transferPortNumber :       .settingsUInt32(transferPortNumber),
-                 StorageKeys.registrationPortNumber :   .settingsUInt32(registrationPortNumber)
-        ]
-    }
-    
-    
-    
+    // MARK: loadSettings
     func loadSettings(){
         
         let defaults = UserDefaults.standard
         
-        if let value = defaults.string(forKey: StorageKeys.displayName) {
-            displayName = value }
-        
-        if let value = defaults.string(forKey: StorageKeys.userName) {
-            userName = value }
+        displayName = defaults.string(forKey: StorageKey.displayName.rawValue) ?? displayName
+        userName = defaults.string(forKey: StorageKey.userName.rawValue) ?? userName
         
         
-        overwriteFiles = defaults.bool(forKey: StorageKeys.overwriteFiles) // default to false
-        automaticAccept = defaults.bool(forKey: StorageKeys.automaticAccept)
+        overwriteFiles = defaults.bool(forKey: StorageKey.overwriteFiles.rawValue) // default to false
+        automaticAccept = defaults.bool(forKey: StorageKey.automaticAccept.rawValue)
+        refreshCredentials = defaults.bool(forKey: StorageKey.refreshCredentials.rawValue)
         
-
-        if let value = defaults.string(forKey: StorageKeys.hostname) {
-            hostname = value }
-        
-        if let value = defaults.string(forKey: StorageKeys.uuid) {
-            uuid = value }
+        hostname = defaults.string(forKey: StorageKey.hostname.rawValue) ?? hostname
         
         
-        if let value = defaults.string(forKey: StorageKeys.groupCode) {
-            groupCode = value }
+        uuid = defaults.string(forKey: StorageKey.uuid.rawValue)  ?? uuid
+        print(DEBUG_TAG+"uuid is \(uuid)")
         
-        var num = defaults.integer(forKey: StorageKeys.transferPortNumber)
-        if num != 0 {
-            transferPortNumber = UInt32(num)  }
+        groupCode = defaults.string(forKey: StorageKey.groupCode.rawValue)  ?? groupCode
         
-        num = defaults.integer(forKey: StorageKeys.registrationPortNumber)
-        if num != 0 {
-            registrationPortNumber = UInt32(num)  }
+        
+        // defaults.integer returns 0 instead of nil when there's no entry
+        let tport = defaults.integer(forKey: StorageKey.transferPortNumber.rawValue)
+        transferPortNumber = tport == 0 ? transferPortNumber : UInt32(tport)
+        
+        let rport = defaults.integer(forKey: StorageKey.registrationPortNumber.rawValue)
+        registrationPortNumber = rport == 0 ? registrationPortNumber : UInt32(rport)
         
     }
     
     
     
-//    func applySettings(){
-//
-//    }
-    
-    
-    // MARK: write settings
-    func writeToSettings(_ value: Any?, forKey key: String) {
-        UserDefaults.standard.setValue(value, forKey: key)
+    //
+    // MARK: write setting
+    func writeToSettings(_ value: Any?, forKey key: StorageKey) {
+        
+        UserDefaults.standard.setValue(value, forKey:  key.rawValue   )
     }
+    
+    
+    //
+    /* MARK: validate change
+     - verifies that the proposed change to setting is acceptable
+     (  i.e. port numbers must be non-negative, strings must be non-empty, etc ) */
+    static func validate(_ value: Any?, forKey key: StorageKey) throws {
+        
+        
+        // - switch: checks what we're trying to store
+        // - guard let: verifies that the value is of the correct type
+        // - misc, settings-specific checks
+        switch key {
+            
+            //
+            // All UInt32 settings
+        case StorageKey.registrationPortNumber, StorageKey.transferPortNumber:
+            
+            // cast down (up?) from Any
+            guard let value = value as? UInt32 else {
+                throw ValidationError.INVALID_VALUE_TYPE("(\(key))Invalid value type. Expected UInt32")
+            }
+            
+            /* This will never be triggered, as the previous 'guard' statement
+             will catch any non-negative numbers as it attempts to stuff them into a UInt32.
+             Including it for clarity. */
+            guard value > 0 else {
+                throw ValidationError.INVALID_VALUE("(\(key)) Port value must be positive")
+            }
+            
+            
+            // Must fit in UInt32
+            // 2^31 = 2147483648
+            guard value < 2147483648 else {
+                throw ValidationError.INVALID_VALUE("(\(key)) port value must be less than 2147483648 because computers")
+            }
+            
+            
+             //
+             // All String settings
+        case StorageKey.displayName, StorageKey.groupCode:
+            
+            // cast down from Any
+            guard let value = value as? String else {
+                throw ValidationError.INVALID_VALUE_TYPE("(\(key)) Invalid value type. Expected String")
+            }
+            
+            
+            guard value.count > 0 else {
+                throw ValidationError.INVALID_VALUE("(\(key)) \(key) required")
+            }
+            
+            
+            guard value.count < 100 else {
+                throw ValidationError.INVALID_VALUE("(\(key)) Must be under 100 characters")
+            }
+                    
+                    
+            
+        default: throw ValidationError.INVALID_VALUE_TYPE("(\(key)/\(String(describing: value))) Unexpected Key or Value Type")
+        }
+        
+        
+    }
+    
     
     
     func writeAllSettings(){
@@ -205,21 +234,47 @@ class SettingsManager {
         let defaults = UserDefaults.standard
         
         print(DEBUG_TAG+" writing settings...")
+        
         // write to defaults
-        defaults.setValue(displayName, forKey: StorageKeys.displayName)
-        defaults.setValue(userName, forKey: StorageKeys.userName)
+        defaults.setValue(displayName, forKey: StorageKey.displayName.rawValue)
+        defaults.setValue(userName, forKey: StorageKey.userName.rawValue)
         
-        defaults.setValue(overwriteFiles, forKey: StorageKeys.overwriteFiles)
-        defaults.setValue(automaticAccept, forKey: StorageKeys.automaticAccept)
+        defaults.setValue(overwriteFiles, forKey: StorageKey.overwriteFiles.rawValue)
+        defaults.setValue(automaticAccept, forKey: StorageKey.automaticAccept.rawValue)
+        defaults.setValue(refreshCredentials, forKey: StorageKey.refreshCredentials.rawValue)
         
-        defaults.setValue(hostname, forKey: StorageKeys.hostname)
-        defaults.setValue(uuid, forKey: StorageKeys.uuid)
+        defaults.setValue(hostname, forKey: StorageKey.hostname.rawValue)
+        defaults.setValue(uuid, forKey: StorageKey.uuid.rawValue)
         
-        defaults.setValue(groupCode, forKey: StorageKeys.groupCode)
-        defaults.setValue(transferPortNumber, forKey: StorageKeys.transferPortNumber)
-        defaults.setValue(registrationPortNumber, forKey: StorageKeys.registrationPortNumber)
+        defaults.setValue(groupCode, forKey: StorageKey.groupCode.rawValue)
+        defaults.setValue(transferPortNumber, forKey: StorageKey.transferPortNumber.rawValue)
+        defaults.setValue(registrationPortNumber, forKey: StorageKey.registrationPortNumber.rawValue)
         
     }
     
+    
+}
+
+
+
+
+
+
+
+// MARK: SettingsChange
+struct SettingsChange {
+    
+    var restartRequired: Bool
+    var validate: () throws -> ()
+    var change: ()->()
+    
+    
+    init(restart: Bool,
+         validate v: @escaping () throws ->() = {},
+         change c: @escaping ()->()) {
+        restartRequired = restart
+        change = c
+        validate = v
+    }
     
 }

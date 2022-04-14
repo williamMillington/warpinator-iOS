@@ -9,9 +9,6 @@ import UIKit
 import Sodium
 
 
-//TODO: this class
-
-
 final class SettingsViewController: UIViewController {
 
     private let DEBUG_TAG: String = "SettingsViewController: "
@@ -27,47 +24,47 @@ final class SettingsViewController: UIViewController {
     @IBOutlet var overwriteSwitch: UISwitch!
     @IBOutlet var autoacceptSwitch: UISwitch!
     
+    @IBOutlet var refreshCredentialsSwitch: UISwitch!
     
     var coordinator: MainCoordinator?
     var settingsManager: SettingsManager!
     
-    var currentSettings: [String: SettingsManager.SettingsType]! {
+    
+    //
+    //
+    var restartRequired: Bool  {
+        return changes.values.map {   $0.restartRequired   } // returns [Bool]
+        .contains(true) // check if [Bool] contains 'true'
+    }
+    
+    
+    // MARK: changes
+    var changes: [SettingsManager.StorageKey: SettingsChange] = [:] {
         didSet {
-            if settingsChanged {
-                
-                let text = restartRequired ? "Restart" : "Apply"
-                
-                backButton.setTitle(text, for: .normal)
-                resetButton.alpha = 1.0
-                resetButton.isUserInteractionEnabled = true
-                
+            
+            let title: String
+            if changes.count == 0 {
+               title = "< Back"
             } else {
-                backButton.setTitle("<Back", for: .normal)
-                resetButton.alpha = 0
-                resetButton.isUserInteractionEnabled = false
+                title = restartRequired ? "Restart" : "Apply"
             }
+            
+            backButton.setTitle(title, for: .normal)
+            resetButton.alpha = changes.count == 0 ? 0 : 1
+            resetButton.isUserInteractionEnabled = changes.count == 0 ? false : true
+            
         }
     }
     
-    var settingsChanged: Bool {
-        let OGSettings = settingsManager.getSettingsCopy()
-        return currentSettings.map {
-            print("OG: (\($0.key))\(OGSettings[$0.key]!) vs \($0.value)")
-            return OGSettings[$0.key] != $0.value  } // report if they're NOT the same
-            .reduce(false) { result, next in
-                return result || next // returns true if any are true
-            }
-    }
-    var restartRequired: Bool = false
     
     
-    
+    //
+    // MARK: init
     init(settingsManager manager: SettingsManager) {
         
         settingsManager = manager
-        currentSettings = settingsManager.getSettingsCopy()
         
-        super.init(nibName: "SettingsViewController", bundle: Bundle(for: type(of: self)))
+        super.init(nibName: "SettingsViewController", bundle: Bundle(for: type(of: self) ))
     }
     
     
@@ -77,123 +74,120 @@ final class SettingsViewController: UIViewController {
     }
     
     
-    
+    //
+    //  MARK: viewDidload
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = Utils.backgroundColour
-        setOriginalSettings()
+        
+        
+        refreshCredentialsSwitch.layer.borderColor = Utils.foregroundColour.cgColor
+        refreshCredentialsSwitch.layer.borderWidth = 2
+        
+        implementCurrentSettings()
     }
     
     
-    func setOriginalSettings(){
+    //
+    // MARK: implementCurrentSettings
+    func implementCurrentSettings(){
         
-        if case let .settingsBool(boolval) =  currentSettings[SettingsManager.StorageKeys.automaticAccept] {
-            autoacceptSwitch.isOn = boolval  }
         
-        if case let .settingsBool(boolval) =  currentSettings[SettingsManager.StorageKeys.overwriteFiles] {
-            overwriteSwitch.isOn = boolval  }
+        displayNameLabel.text = settingsManager.displayName
+        groupCodeLabel.text = settingsManager.groupCode
         
-        if case let .settingsString(stringVal) =  currentSettings[SettingsManager.StorageKeys.overwriteFiles] {
-            displayNameLabel.text = stringVal  }
+        registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
+        transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
         
-        if case let .settingsString(stringVal) =  currentSettings[SettingsManager.StorageKeys.groupCode] {
-            groupCodeLabel.text = stringVal  }
+        autoacceptSwitch.isOn = settingsManager.automaticAccept
+        overwriteSwitch.isOn = settingsManager.overwriteFiles
         
-        if case let .settingsUInt32(uintval) =  currentSettings[SettingsManager.StorageKeys.transferPortNumber] {
-            transferPortNumberLabel.text = "\(uintval)"  }
-        
-        if case let .settingsUInt32(uintval) =  currentSettings[SettingsManager.StorageKeys.registrationPortNumber] {
-            registrationPortNumberLabel.text = "\(uintval)"  }
-        
+        refreshCredentialsSwitch.isOn = settingsManager.refreshCredentials
     }
     
     
+    //
     // MARK: display name changed
     @IBAction func displayNameDidChange(_ sender: UITextField){
         
         // get text
-        if let input = sender.text {
-            print(DEBUG_TAG+"new DisplayName value is \(input)")
-            
-            // trim whitespace
-            let trimmedInput = input.trimmingCharacters(in: [" "])
-            
-            print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
-            
-            // if no groupcode value, don't update
-            if(trimmedInput.count == 0) {
-                
-                //restore previous value
-                displayNameLabel.text = settingsManager.displayName
-                
-                showPopupError(withTitle: "Error", andMessage: "Display Name Required")
-                return
-            } else if trimmedInput.count > 15 {
-                
-                //restore previous value
-                groupCodeLabel.text = settingsManager.groupCode
-                
-                showPopupError(withTitle: "Error", andMessage: "Group Code needs to be under 15 characters")
-                return
-            }
-            
-            
-            // TODO: sanitize?
-            
-            
-            // write to settings
-            restartRequired = true
-            currentSettings[ SettingsManager.StorageKeys.displayName ] =  .settingsString(trimmedInput)
+        let input = sender.text ?? ""
+        print(DEBUG_TAG+"new DisplayName value is \(input)")
+        
+        // trim whitespace
+        let trimmedInput = input.trimmingCharacters(in: [" "])
+        
+        print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
+        
+        
+        // if the user re-enters the value already being used, no need
+        // for a change/restart
+        guard trimmedInput != settingsManager.displayName else {
+            changes.removeValue(forKey: .displayName)
+            return
         }
         
+        
+        // validation action
+        let onValidate = {
+            try SettingsManager.validate(trimmedInput,
+                                         forKey: .displayName )
+        }
+        
+        // change setting
+        let onChange = { [unowned self] in
+            self.settingsManager.displayName = trimmedInput
+        }
+        
+        changes[.displayName] = SettingsChange(restart: true,
+                                               validate: onValidate,
+                                               change: onChange)
         
     }
     
     
     
     
-    
+    //
     // MARK: group code changed
     @IBAction func groupCodeDidChange(_ sender: UITextField){
         
         // get text
-        if let input = sender.text {
-            print(DEBUG_TAG+"new groupcode value is \(input)")
-            
-            
-            // trim whitespace
-            let trimmedInput = input.trimmingCharacters(in: [" "])
-            
-            print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
-            
-            // if no groupcode value, don't update
-            if(trimmedInput.count == 0) {
-                
-                //restore previous value
-                groupCodeLabel.text = settingsManager.groupCode
-                
-                showPopupError(withTitle: "Error", andMessage: "Group Code Required")
-                return
-            } else if trimmedInput.count > 25 {
-                
-                //restore previous value
-                groupCodeLabel.text = settingsManager.groupCode
-                
-                showPopupError(withTitle: "Error", andMessage: "Group Code needs to be under 25 characters")
-                return
-            }
-            
-            
-            // TODO: sanitize?
-            
-            
-            // write to settings
-//            settingsManager.groupCode = trimmedInput
-            restartRequired = true
-            currentSettings[SettingsManager.StorageKeys.groupCode ] = .settingsString(trimmedInput)
+        let input = sender.text ?? ""
+        
+        print(DEBUG_TAG+"new groupcode value is \(input)")
+        
+        
+        // trim whitespace
+        let trimmedInput = input.trimmingCharacters(in: [" "])
+        
+        print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
+        
+        // if the user re-enters the value already being used, no need
+        // for a change/restart
+        guard trimmedInput != settingsManager.groupCode else {
+            changes.removeValue(forKey: .groupCode)
+            return
         }
         
+        
+        
+        // validation action
+        let onValidate = {
+            try SettingsManager.validate(trimmedInput,
+                                         forKey:.groupCode )
+        }
+        
+        // change setting
+        let onChange = { [unowned self] in
+            self.settingsManager.groupCode = trimmedInput
+        }
+        
+        
+        changes[.groupCode] = SettingsChange(restart: true,
+                                            validate: onValidate,
+                                            change: onChange)
     }
     
     
@@ -204,108 +198,86 @@ final class SettingsViewController: UIViewController {
     @IBAction func transferPortDidChange(_ sender: UITextField){
         
         // get text
-        if let input = sender.text {
-            print(DEBUG_TAG+"new transfer port value is \(input)")
-            
-            // trim whitespace
-            let trimmedInput = input.trimmingCharacters(in: [" "])
-            
-            print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
-            
-            // if no groupcode value, don't update
-            if(trimmedInput.count == 0) {
-                
-                //restore previous value
-                transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
-                
-                showPopupError(withTitle: "Error", andMessage: "Port Number Required")
-                return
-            }
-            
-            
-            // check if number
-            if let newPortNum = Int(trimmedInput) {
-                
-                print(DEBUG_TAG+"new transfer port num is \(newPortNum)")
-                
-                
-                
-                // TODO: sanitize?
-                // possibly prevent taking over system ports or something...? If that's a thing
-                // oooo make sure it fits in a UInt32
-                
-                
-                // write to settings
-//                settingsManager.transferPortNumber = UInt32(newPortNum)
-                restartRequired = true
-                currentSettings[SettingsManager.StorageKeys.transferPortNumber] = .settingsUInt32( UInt32(newPortNum) )
-                
-                
-            } else {
-                
-                //restore previous value
-                transferPortNumberLabel.text = "\(settingsManager.transferPortNumber)"
-                
-                showPopupError(withTitle: "Error", andMessage: "Must be a number")
-                return
-            }
-            
+        let input = sender.text ?? ""
+        
+        print(DEBUG_TAG+"new transfer port value is \(input)")
+        
+        // trim whitespace
+        let trimmedInput = input.trimmingCharacters(in: [" "])
+        print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
+        
+        
+        let newPortNum = UInt32(trimmedInput)
+        print(DEBUG_TAG+"new registration port num is \(String(describing: newPortNum))")
+        
+        // if the user re-enters the value already being used, no need
+        // for a change/restart
+        if let num = newPortNum, num == settingsManager.transferPortNumber {
+            changes.removeValue(forKey: .transferPortNumber)
+            return
         }
+        
+        
+        // validation action
+        let onValidate = {
+            try SettingsManager.validate(newPortNum,
+                                         forKey: .transferPortNumber )
+        }
+        
+        // change setting
+        let onChange = { [unowned self] in
+            self.settingsManager.transferPortNumber = newPortNum!
+        }
+        
+        
+        changes[.transferPortNumber] = SettingsChange(restart: true,
+                                                      validate: onValidate,
+                                                      change: onChange)
     }
     
     
     
-    
+    //
     // MARK: registration port
-    @IBAction func registrationPortDidChange(_ sender: UITextField){
+    @IBAction func registrationPortDidChange(_ sender: UITextField) {
         
         // get text
-        if let input = sender.text {
-            print(DEBUG_TAG+"new registration port value is \(input)")
-            
-            // trim whitespace
-            let trimmedInput = input.trimmingCharacters(in: [" "])
-            
-            print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
-            
-            // if no groupcode value, don't update
-            if(trimmedInput.count == 0) {
-                
-                //restore previous value
-                registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
-                
-                showPopupError(withTitle: "Error", andMessage: "Port Number Required")
-                return
-            }
-            
-            // check if number
-            if let newPortNum = Int(trimmedInput) {
-                
-                print(DEBUG_TAG+"new registration port num is \(newPortNum)")
-                
-                
-                
-                // TODO: sanitize?
-                //  make sure it fits in a UInt32
-                
-                
-                // write to settings
-//                settingsManager.registrationPortNumber = UInt32(newPortNum)
-                restartRequired = true
-                currentSettings[SettingsManager.StorageKeys.registrationPortNumber] = .settingsUInt32( UInt32(newPortNum) )
-                
-                
-            } else {
-                
-                //restore previous value
-                registrationPortNumberLabel.text = "\(settingsManager.registrationPortNumber)"
-                
-                showPopupError(withTitle: "Error", andMessage: "Must be a number")
-                return
-            }
-            
+        let input = sender.text ?? ""
+        print(DEBUG_TAG+"new registration port value is \(input)")
+        
+        
+        // trim whitespace
+        let trimmedInput = input.trimmingCharacters(in: [" "])
+        
+        print(DEBUG_TAG+"\t trimmed value is \'\(trimmedInput)\' ")
+        
+        
+        let newPortNum = UInt32(trimmedInput)
+        print(DEBUG_TAG+"new registration port num is \(String(describing: newPortNum))")
+        
+        
+        // if the user re-enters the value already being used, no need
+        // for a change/restart
+        if let num = newPortNum, num == settingsManager.registrationPortNumber {
+            changes.removeValue(forKey: .registrationPortNumber)
+            return
         }
         
+        
+        // validation action
+        let onValidate = {
+            try SettingsManager.validate(newPortNum,
+                                         forKey: .registrationPortNumber )
+        }
+        
+        // change setting
+        let onChange = { [unowned self] in
+            self.settingsManager.registrationPortNumber = newPortNum!
+        }
+        
+        changes[.registrationPortNumber] = SettingsChange(restart: true,
+                                                          validate: onValidate,
+                                                          change: onChange)
     }
     
     
@@ -315,43 +287,88 @@ final class SettingsViewController: UIViewController {
         
         
         // get state
-        let newValue = sender.isOn
-        print(DEBUG_TAG+" autoaccept switch is on: \(newValue)")
+        let switchCheck = sender.isOn
+        print(DEBUG_TAG+"incoming transfers \(switchCheck ? "will" : "will NOT") begin automatically (switch is: \(switchCheck ? "ON" : "OFF") )")
         
-        // write to settings
-//        settingsManager.automaticAccept = newValue
-        currentSettings[SettingsManager.StorageKeys.automaticAccept] = .settingsBool(newValue)
+        // if the user re-enters the value already being used, no need
+        // for a change/restart
+        guard switchCheck != settingsManager.automaticAccept else {
+            changes.removeValue(forKey: .automaticAccept)
+            return
+        }
         
+        // change setting
+        let onChange = { [unowned self] in
+            self.settingsManager.automaticAccept = switchCheck
+        }
+        
+        
+        changes[.automaticAccept] = SettingsChange(restart: false,
+                                                   change: onChange)
     }
     
     
     
+    //
     // MARK: overwrite changed
     @IBAction func overwriteSettingDidChange(_ sender: UISwitch) {
         
         // get state
-        let newValue = sender.isOn
-        print(DEBUG_TAG+"overwrite switch is on: \(newValue)")
+        let switchCheck = sender.isOn
+        print(DEBUG_TAG+"files will \(switchCheck ? "be" : "NOT be") overwritten (switch is: \(switchCheck ? "ON" : "OFF") )")
         
-        // write to settings
-//        settingsManager.overwriteFiles = newValue
-        restartRequired = true
-        currentSettings[SettingsManager.StorageKeys.overwriteFiles] = .settingsBool(newValue)
         
+        // if the user re-enters the value already being used, no need
+        // for a change/restart
+        guard switchCheck != settingsManager.overwriteFiles else {
+            changes.removeValue(forKey: .overwriteFiles)
+            return
+        }
+        
+        // change setting
+        let onChange = { [unowned self] in
+            self.settingsManager.overwriteFiles = switchCheck
+        }
+        
+        
+        changes[.overwriteFiles] = SettingsChange(restart: true,
+                                                  change: onChange)
     }
     
     
     
-    // MARK: show popup
+    //
+    // MARK: refresh credentials
+    @IBAction func refreshCredentialsDidChange(_ sender: UISwitch){
+        
+        
+        let selected = sender.isOn
+        
+        print(DEBUG_TAG+"Credentials \(selected ? "WILL be" : "WILL NOT be") refreshed (switch is: \(selected ? "ON" : "OFF") )")
+        
+        
+        // if the user hits the button a second time, just remove
+        // the existing change
+        guard selected != settingsManager.refreshCredentials else {
+            changes.removeValue(forKey: .refreshCredentials)
+            return
+        }
+        
+        changes[.refreshCredentials] = SettingsChange(restart: true) {
+            self.settingsManager.refreshCredentials = selected
+        }
+    }
+    
+    
+    // MARK: show error popup
     @objc func showPopupError(withTitle title: String, andMessage message: String){
         
         
         let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
-        alertVC.addAction(UIAlertAction(title: "Continue", style: .default, handler: { uiAction in
-            print(self.DEBUG_TAG+"action selected \(uiAction)")
+        alertVC.addAction(UIAlertAction(title: "Okay", style: .default, handler: { uiAction in
+            self.reset()
         }))
-        
         
         present(alertVC, animated: true) {
             print(self.DEBUG_TAG+"continuing...")
@@ -359,18 +376,43 @@ final class SettingsViewController: UIViewController {
     }
     
     
+    
+    
     // MARK: reset
     @IBAction func reset(){
-        currentSettings = settingsManager.getSettingsCopy()
-        setOriginalSettings()
+        
+        print(self.DEBUG_TAG+"reset settings")
+        changes.removeAll()
+        
+        implementCurrentSettings()
     }
     
     
     // MARK: back
     @IBAction func back(){
         
-        coordinator?.returnFromSettings(restartRequired: restartRequired)
+        do {
+            
+            // validate changes
+            try changes.values.forEach {
+                try $0.validate()
+            }
+            
+            // apply changes
+            changes.values.forEach {
+                $0.change()
+            }
+            
+            // exit settings
+            coordinator?.returnFromSettings(restartRequired: restartRequired)
+            
+        } catch let error as ValidationError {
+            showPopupError(withTitle: "Validation Error", andMessage: error.localizedDescription )
+        } catch {
+            showPopupError(withTitle: "System Error", andMessage: error.localizedDescription )
+        }
+        
     }
     
-
 }
+

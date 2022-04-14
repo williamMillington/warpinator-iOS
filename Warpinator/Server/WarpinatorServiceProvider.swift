@@ -39,6 +39,15 @@ enum DuplexError: GRPCErrorProtocol {
 
 
 
+
+
+
+
+
+
+
+
+
 //
 // MARK: - WarpinatorServiceProvider
 final public class WarpinatorServiceProvider: WarpProvider {
@@ -48,7 +57,6 @@ final public class WarpinatorServiceProvider: WarpProvider {
     public var interceptors: WarpServerInterceptorFactoryProtocol?
     
     var remoteManager: RemoteManager?
-    var settingsManager: SettingsManager?
     
     let duplexQueueLabel = "Serve_Duplex"
     lazy var duplexQueue = DispatchQueue(label: duplexQueueLabel, qos: .userInitiated)
@@ -93,13 +101,16 @@ final public class WarpinatorServiceProvider: WarpProvider {
     private func checkDuplex(forUUID uuid: String, _ context: StatusOnlyCallContext) -> EventLoopPromise<HaveDuplex> {
 
         func checkDuplex() -> Bool {
-            print(DEBUG_TAG+"checking duplex for uuid: \(uuid)")
+            print(DEBUG_TAG+"\t\tchecking duplex for uuid: \(uuid)")
+//            print(DEBUG_TAG+"\t\tmanager: \(self.remoteManager)")
+//            print(DEBUG_TAG+"\t\tremote: \(self.remoteManager?.containsRemote(for: uuid))")
             if let remote = self.remoteManager?.containsRemote(for: uuid) {
-                print(DEBUG_TAG+"\t\tremote found (status: \(remote.details.status))")
-                if remote.details.status == .AquiringDuplex || remote.details.status == .Connected {
-                    return true
-                }
-            }; return false
+                // TODO: if our MdnsBrowser hasn't told us that a remote we know about is available, having our duplex checked is an indication that it's nevertheless online, and should trigger us to connect
+                print(DEBUG_TAG+"\t\t\t remote found (status: \(remote.details.status))")
+                
+                return [.AquiringDuplex, .Connected].contains( remote.details.status )
+            }
+            return false
         }
         
         
@@ -146,8 +157,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
         print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
         
         let info: RemoteMachineInfo = .with {
-            $0.displayName = settingsManager!.displayName
-            $0.userName = settingsManager!.userName
+            $0.displayName = SettingsManager.shared.displayName
+            $0.userName = SettingsManager.shared.userName
         }
         
         return context.eventLoop.makeSucceededFuture(info)
@@ -162,7 +173,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
         print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
         
         let systemPhoneImage = UIImage(systemName: "iphone")!.withRenderingMode(.alwaysTemplate)
-        let avatarImg = settingsManager?.avatarImage ?? systemPhoneImage
+        let avatarImg = SettingsManager.shared.avatarImage ?? systemPhoneImage
 
         let avatarImgBytes = avatarImg.pngData()
 
@@ -178,18 +189,12 @@ final public class WarpinatorServiceProvider: WarpProvider {
                         $0.avatarChunk = chunk
                     })
                     
-                    do {     try result.wait()      }
+                    
+                    // wait for confirmation of this chunk before sending the next one
+                    do {     try result.wait() }
                     catch {
                         print(self.DEBUG_TAG+"avatar chunk \(i) prevented from waiting. Reason: \(error)")
                     }
-                    
-                    result.whenSuccess { result in
-//                        print(self.DEBUG_TAG+"avatar chunk succeeded (\(result))")
-                    }
-                    result.whenFailure{ error in
-                        print(self.DEBUG_TAG+"avatar chunk failed (\(error))")
-                    }
-                    
                 }
                 
                 promise.succeed(.ok)
@@ -242,7 +247,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
         remote.addReceivingOperation(operation)
         
         
-        if settingsManager!.automaticAccept {
+        if SettingsManager.shared.automaticAccept {
             print(DEBUG_TAG+"Transfer was automatically accepted")
             remote.callClientStartTransfer(for: operation)
         }

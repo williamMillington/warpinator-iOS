@@ -24,8 +24,6 @@ final class SendTransferViewController: UIViewController {
     @IBOutlet var addFilesButton: UIButton!
     @IBOutlet var sendButton: UIButton!
     
-    
-    // MARK: files stack
     @IBOutlet var filesStack: UIStackView!
     
     var viewmodel: RemoteViewModel?
@@ -75,7 +73,7 @@ final class SendTransferViewController: UIViewController {
         // Clean up from interface builder
         for view in filesStack.arrangedSubviews {   view.removeFromSuperview()  }
         
-        view.backgroundColor = Utils.backgroundColour
+//        view.backgroundColor = Utils.backgroundColour
     }
     
     
@@ -95,7 +93,7 @@ final class SendTransferViewController: UIViewController {
         
         let vm = ListedFileSelectionViewModel(file)
         let ltview = ListedFileSelectionView(withViewModel: vm) { [weak self] in
-            print(self!.DEBUG_TAG+"remove file")
+            print("remove file")
             self?.removeFile(file)
         }
         
@@ -159,8 +157,6 @@ final class SendTransferViewController: UIViewController {
         present(documentPickerVC, animated: true)
         
     }
-    
-    
     
     
     

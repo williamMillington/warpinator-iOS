@@ -41,16 +41,16 @@ final class TransferViewController: UIViewController {
         remoteViewModel = r_viewModel
         
         
-        transferViewModel?.onInfoUpdated = {
-            self.updateDisplay()
+        transferViewModel?.onInfoUpdated = { [weak self] in
+            self?.updateDisplay()
         }
         
         transferViewModel?.onFileAdded = {
             
         }
         
-        remoteViewModel?.onInfoUpdated = {
-            self.updateDisplay()
+        remoteViewModel?.onInfoUpdated = { [weak self] in
+            self?.updateDisplay()
         }
         
     }

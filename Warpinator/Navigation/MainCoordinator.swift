@@ -6,8 +6,10 @@
 //
 
 import UIKit
-import GRPC
 
+import GRPC
+import NIO
+import NIOSSL
 
 
 final class MainCoordinator: NSObject, Coordinator {
@@ -17,92 +19,236 @@ final class MainCoordinator: NSObject, Coordinator {
     var childCoordinators = [Coordinator]()
     var navController: UINavigationController
     
+    var serverEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
+                                                                                       networkPreference: .best)
+    var remoteEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
+                                                                                       networkPreference: .best)
     
-    var serverEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-    var remoteEventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
+    
+    lazy var remoteManager: RemoteManager = RemoteManager(withEventloopGroup: remoteEventLoopGroup)
+    
+    lazy var warpinatorServiceProvider: WarpinatorServiceProvider = {
+        let provider = WarpinatorServiceProvider()
+        provider.remoteManager = remoteManager
+        return provider
+    }()
     
     
-    var remoteManager: RemoteManager = RemoteManager()
     
-    var settingsManager: SettingsManager = SettingsManager.shared
+    lazy var server: Server = Server(eventloopGroup: serverEventLoopGroup,
+                                     provider: warpinatorServiceProvider)
+    lazy var registrationServer: RegistrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup)
     
-    var authManager: Authenticator = Authenticator.shared
     
-    lazy var server: Server = Server(settingsManager: settingsManager)
-    lazy var registrationServer = RegistrationServer(settingsManager: settingsManager)
     
-    let queueLabel = "MainCoordinatorCleanupQueue"
-    lazy var cleanupQueue = DispatchQueue(label: queueLabel, qos: .userInteractive)
-
-    
+    lazy var mDNSBrowser:   MDNSBrowser  = MDNSBrowser(withEventloopGroup: serverEventLoopGroup)
+    lazy var mDNSListener:  MDNSListener = MDNSListener(withEventloopGroup: serverEventLoopGroup)
     
     
     init(withNavigationController controller: UINavigationController){
         navController = controller
         
         navController.setNavigationBarHidden(true, animated: false)
-        
+
         Utils.lockOrientation(.portrait)
         
+        
         super.init()
+        
+        mDNSBrowser.delegate = remoteManager
+        mDNSListener.delegate = self
+        
 //        mockRemote()
-        
-        remoteManager.remoteEventloopGroup = remoteEventLoopGroup
-        
-        
-        server.settingsManager = settingsManager
-        server.eventLoopGroup = serverEventLoopGroup
-        server.remoteManager = remoteManager
-        server.authenticationManager = authManager
-
-        
-        registrationServer.settingsManager = settingsManager
-        registrationServer.eventLoopGroup = serverEventLoopGroup
-        registrationServer.remoteManager = remoteManager
-        
     }
+    
+    
     
     
     //
     // MARK: start
     func start() {
-        
         showMainViewController()
-//        startServers()
-//        mockRemote()
     }
+    
+    
+    
+    //
+    //
+    func startupMdns() -> EventLoopFuture<Void> {
+        let futures = [ mDNSListener.start(), mDNSBrowser.start() ]
+        return EventLoopFuture.andAllComplete( futures, on: serverEventLoopGroup.next() )
+    }
+    
+    
+    //
+    //
+    func shutdownMdns() -> EventLoopFuture<Void> {
+        let futures = [ mDNSListener.stop(), mDNSBrowser.stop() ]
+        return EventLoopFuture.andAllComplete( futures, on: serverEventLoopGroup.next() )
+    }
+    
+    
+    
+    //
+    //
+    func publishMdns(){
+        print(DEBUG_TAG+"publishing mDNS...")
+        mDNSListener.startListening()
+        mDNSListener.flushPublish()
+        mDNSBrowser.startBrowsing()
+    }
+    
+    
+    
+    //
+    //
+    func removeMdns(){
+        print(DEBUG_TAG+"removing mDNS...")
+        mDNSListener.removeService()
+        mDNSListener.stopListening()
+        mDNSBrowser.stopBrowsing()
+    }
+    
+    
     
     
     //
     // MARK: start servers
-    func startServers(){
-        print(DEBUG_TAG+"starting servers: ")
-        server.start()
-        registrationServer.start()
+    func startServers() -> EventLoopFuture<Void> {
+
+        print(DEBUG_TAG+"starting servers...")
+        
+        guard !server.isRunning else {
+            print(DEBUG_TAG+"Server is already running")
+            return serverEventLoopGroup.next().makeSucceededVoidFuture()
+        }
+        
+        DispatchQueue.main.async {
+            if let vc = self.navController.visibleViewController as? ViewController {
+                vc.showLoadingScreen()
+            }
+        }
         
         
+        //
+        if SettingsManager.shared.refreshCredentials {
+            print(DEBUG_TAG+" refresh credentials:  deleting...")
+            Authenticator.shared.deleteCredentials()
+        }
+        
+        
+        
+        //
+        // Test server failure
+//        let promise = serverEventLoopGroup.next().makePromise(of: GRPC.Server.self)
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            promise.fail(Server.ServerError.SERVER_FAILURE)
+//        }
+//
+//        return promise?.futureResult
+        
+        let future = server.start()
+        
+        future.whenComplete { _ in
+            DispatchQueue.main.async {
+                (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
+            }
+        }
+        
+//        return server.start()
+        return future
+        // what to do if server fails to start
+//            .flatMapError { error in
+//                return self.serverEventLoopGroup.next().makeFailedFuture(error)
+//            }
+        
+        // return future that completes when registrationServer starts up
+            .flatMap { _ in
+                return self.registrationServer.start()
+            }
     }
+    
+    
+    func shutdownConnections() -> EventLoopFuture<Void> {
+            return remoteManager.shutdownAllRemotes()
+    }
+    
     
     
     //
     // MARK: stop servers
-    func stopServers(){
-        print(DEBUG_TAG+"stopping servers: ")
+    func stopServers() -> EventLoopFuture<Void> {
         
-        remoteManager.shutdownAllRemotes()
+        print(DEBUG_TAG+"stopping servers... ")
         
-        _ = server.stop()
-        _ = registrationServer.stop()
+        self.removeMdns()
+        
+        let remoteFuture = shutdownConnections()
+        
+        // I thiink is how you chain futures together
+        return remoteFuture.flatMap { _ -> EventLoopFuture<Void> in
+            print(self.DEBUG_TAG+"stopping registration server")
+            
+            return self.registrationServer.stop()
+        }
+        .flatMap {
+            print(self.DEBUG_TAG+"stopping server")
+            return self.server.stop()
+        }
         
     }
-    
     
     
     //
     // MARK: restart servers
     func restartServers(){
-        stopServers()
-        startServers()
+        
+        
+        // remove ourselves from mDNS
+        removeMdns()
+        
+        
+        // shutdown mDNS
+        shutdownMdns()
+        // then -> shutdown servers
+            .flatMap { _ in
+                return self.stopServers()
+            }
+        // then -> start up  servers
+            .flatMap { _ in
+                return self.startServers()
+            }
+        // then -> start up mDNS again
+            .flatMap { _ in
+                return self.startupMdns()
+            }
+        
+        // TODO: flatmap expected errors here so they don't get wrapped, which destroys the localDescription
+        // ex.              "No Internet, could not secure IP address"   (actual description)
+        //      becomes:    "The operation couldn’t be completed. (Warpinator.Server.ServerError error 0.)"
+            .whenComplete { result in
+                
+                print(self.DEBUG_TAG+"startup result is \(result)")
+                
+                switch result {
+                case .success(_): break
+                case .failure(let error):
+                    
+                    switch error {
+                    
+                        // Any errors mean we don't publish ourselves
+                        // to mDNS, except these two
+                        // TODO: This scenario is probably better handled by just returning a succeeded future
+                    case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
+                        
+                    default:   print(self.DEBUG_TAG+"Error starting up: \(error)")
+                        self.reportError(error, withMessage: "Server encountered an error starting up:\n\(error.localizedDescription)")
+                        return
+                    }
+                }
+                
+                self.publishMdns()
+            }
     }
     
     
@@ -120,7 +266,7 @@ final class MainCoordinator: NSObject, Coordinator {
             let mainMenuVC = ViewController(nibName: "MainView", bundle: bundle)
             
             mainMenuVC.coordinator = self
-            mainMenuVC.settingsManager = settingsManager
+            mainMenuVC.settingsManager = SettingsManager.shared
             
             remoteManager.remotesViewController = mainMenuVC
             
@@ -147,9 +293,8 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     
-    // MARK: show settings
+    // MARK: move to settings
     func showSettings() {
-        
         
         // if the previously exists in the stack, rewind
         if let settingsVC = navController.viewControllers.first(where: { controller in
@@ -158,20 +303,18 @@ final class MainCoordinator: NSObject, Coordinator {
             navController.popToViewController(settingsVC, animated: false)
         } else {
             
-            let settingsVC = SettingsViewController(settingsManager: settingsManager)
+            let settingsVC = SettingsViewController(settingsManager: SettingsManager.shared)
             
             settingsVC.coordinator = self
-            settingsVC.settingsManager = settingsManager
             
             navController.pushViewController(settingsVC, animated: false)
         }
-        
     }
     
     
     
     //
-    // MARK: returnFromSettings
+    // MARK: return from settings
     func  returnFromSettings(restartRequired restart: Bool) {
         
         if restart {
@@ -179,32 +322,6 @@ final class MainCoordinator: NSObject, Coordinator {
         }
         
         showMainViewController()
-        
-    }
-    
-    
-    
-    
-    
-    //
-    // MARK: shutdown
-    func beginShutdown(){
-        
-        remoteManager.shutdownAllRemotes()
-        
-        // TODO: make these receive a future, so we
-        // can try to coordinate the eventloopgroup shutdown
-        
-        _ = server.stop()
-        _ = registrationServer.stop() 
-        
-        _ = serverEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
-            print(self.DEBUG_TAG+"Completed serverEventLoopGroup shutdown")
-        }
-        _ = remoteEventLoopGroup.shutdownGracefully(queue: cleanupQueue) { error in
-            print(self.DEBUG_TAG+"Completed remoteEventLoopGroup shutdown")
-        }
-        
     }
     
     
@@ -222,25 +339,62 @@ final class MainCoordinator: NSObject, Coordinator {
 
 
 
-extension MainCoordinator {
+
+// MARK: ErrorDelegate
+extension MainCoordinator: ErrorDelegate {
     
-    func mockRemote(){
+    func reportError(_ error: Error, withMessage message: String) {
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        print(self.DEBUG_TAG+"error reported: \(error) \twith message: \(message)")
+        
+        
+        // Error reporting that updates UI --MUST-- be done on Main thread
+        DispatchQueue.main.async {
             
-            for i in 0..<2 {
-                
-                var mockDetails = RemoteDetails.MOCK_DETAILS
-                mockDetails.uuid = mockDetails.uuid + "__\(i)\(i+1)"
-                
-                let mockRemote = Remote(details: mockDetails)
-                
-                self.remoteManager.addRemote(mockRemote)
+            // only the main controller has an error screen, for now
+            if let vc = self.navController.visibleViewController as? ViewController {
+                vc.showErrorScreen(error, withMessage: message)
             }
-            
         }
-        
-        
     }
-    
 }
+
+
+
+//
+// MARK: - MDNSListenerDelegate
+extension MainCoordinator: MDNSListenerDelegate {
+    func mDNSListenerIsReady() {
+        mDNSBrowser.startBrowsing()
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+//extension MainCoordinator {
+//
+//    func mockRemote(){
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//
+//            for i in 0..<2 {
+//
+//                var mockDetails = RemoteDetails.MOCK_DETAILS
+//                mockDetails.uuid = mockDetails.uuid + "__\(i)\(i+1)"
+//
+//                let mockRemote = Remote(details: mockDetails)
+//
+//                self.remoteManager.addRemote(mockRemote)
+//            }
+//
+//        }
+//    }
+//}

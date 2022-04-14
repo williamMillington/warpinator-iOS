@@ -17,41 +17,24 @@ import Logging
 
 
 
+//
+//
+protocol AuthenticationConnection {
+    func requestCertificate() -> EventLoopFuture<AuthenticationInfo>?
+}
 
 //
-// MARK: AuthenticationError
+//
+typealias AuthenticationInfo = (certificate: NIOSSLCertificate, address: String, port: Int)
+
+
+//
+//
 enum AuthenticationError: Error {
     case TimeOut
     case ConnectionError
     case CertificateError
 }
-
-
-//
-// MARK: protocol: Connection
-protocol AuthenticationConnection {
-    
-    var details: RemoteDetails { get }
-    var registree: AuthenticationRecipient { get }
-    
-    func requestCertificate()
-}
-
-
-//
-// MARK:  protocol: Recipient
-protocol AuthenticationRecipient {
-    func authenticationCertificateObtained(forRemote details: RemoteDetails,
-                                           certificate: NIOSSLCertificate)
-    func failedToObtainCertificate(forRemote details: RemoteDetails,
-                                   _ error: AuthenticationError)
-}
-
-
-
-
-
-
 
 
 
@@ -65,21 +48,17 @@ final class UDPConnection: AuthenticationConnection {
     
     private let DEBUG_TAG: String = "UDPConnection: "
     
-    var details: RemoteDetails
-    var registree: AuthenticationRecipient
-    
-    var attempts: Int = 0
-    
-    var endpoint: NWEndpoint
+    let endpoint: NWEndpoint
     var connection: NWConnection
     
+    weak var eventloopGroup: EventLoopGroup?
     
-    init(_ candidate: RemoteDetails, manager: AuthenticationRecipient) {
-        self.details = candidate
-        registree = manager
+    init(onEventLoopGroup group: EventLoopGroup, endpoint: NWEndpoint) {
         
-        endpoint = candidate.endpoint
+        eventloopGroup = group
         
+        self.endpoint = endpoint
+
         let params = NWParameters.udp
         params.allowLocalEndpointReuse = true
         params.requiredInterfaceType = .wifi
@@ -89,101 +68,144 @@ final class UDPConnection: AuthenticationConnection {
         }
         
         connection = NWConnection(to: endpoint, using: params)
-        connection.stateUpdateHandler = { state in
-            
-            print(self.DEBUG_TAG+"\(self.endpoint) connection state updated: \(state)")
-            
-            if case .ready = state {
-                print(self.DEBUG_TAG+"connection ready")
-                
-                if let ip4_string = self.connection.currentPath?.remoteEndpoint?.debugDescription {
-                    // ip4_string should be a string formatted as 0.0.0.0%en0:0000. IP address is section of string before the '%'
-                    let components = ip4_string.split(separator: Character("%"))
-                    let ip4_address: String = String(components[0])
-                    print(self.DEBUG_TAG+"extracted IP Address: \(ip4_address)")
-                    self.details.ipAddress = ip4_address //String(components[0])
-                }
-                
-                self.sendCertificateRequest()
-            }
-        }
+        
     }
     
     
     //
     // MARK: requestCertificate
-    func requestCertificate(){
+    func requestCertificate() -> EventLoopFuture<AuthenticationInfo>? {
         
-        print(DEBUG_TAG+"requesting certificate from \(details.endpoint)")
-        details.status = .FetchingCredentials
+        let promise = eventloopGroup!.next().makePromise(of: AuthenticationInfo.self)
         
-        connection.start(queue: .main)
+        connection.stateUpdateHandler = { [weak self] state in
+            
+            guard let self = self else { return }
+            
+            if case .ready = state {
+                
+                var address = "No Address"
+                var port = -1
+                if let addressInfo = Utils.extractAddressInfo(fromConnection: self.connection) {
+                    address = addressInfo.address
+                    port = addressInfo.port
+                }
+                
+                self.sendCertificateRequest().whenComplete { result in
+                    switch result {
+                    case .success(let certificate):
+                        let info = AuthenticationInfo(certificate: certificate,
+                                                  address: address,
+                                                  port: port)
+                        promise.succeed(info)
+                    case .failure(let error): promise.fail(error)
+                    }
+                }
+                
+            } else {
+                print(self.DEBUG_TAG+" state is \(state)")
+            }
+        }
+        
+        print(DEBUG_TAG+"requesting certificate from \(endpoint)")
+        
+        connection.start(queue: .global())
+        
+        return promise.futureResult
     }
     
     
     //
-    // MARK: receiveCertificate
-    private func sendCertificateRequest(  ){
-//        print(DEBUG_TAG+"api_v1_fetching certificate")
-
+    // MARK: sendRequest
+    private func sendCertificateRequest() -> EventLoopFuture<NIOSSLCertificate> {
+        
+        let promise = eventloopGroup!.next().makePromise(of: NIOSSLCertificate.self)
+        
         connection.send(content: "REQUEST".bytes ,
                         completion: .contentProcessed { error in
             
             guard error == nil else {
                 print(self.DEBUG_TAG+"request failed: \(String(describing: error))")
+                promise.fail( AuthenticationError.ConnectionError )
                 return
             }
             
-            // if our "Request" message was received without errors,
+            // if "Request" was successfully received,
             // proceed with receiving the certificate
-            self.receiveCertificate()
-            
+            self.receiveCertificate().whenComplete { result in
+                switch result {
+                case .success(let certificate): promise.succeed(certificate)
+                case .failure(let error):       promise.fail(error)
+                }
+            }
         })
+        
+        return promise.futureResult
     }
     
     
     //
     // MARK: receiveCertificate
-    private func receiveCertificate(){
+    private func receiveCertificate() -> EventLoopFuture<NIOSSLCertificate> {
+        
+        let promise = eventloopGroup!.next().makePromise(of: NIOSSLCertificate.self)
         
         // RECEIVING CERTIFICATE
-        connection.receiveMessage  { (data, context, isComplete, error) in
-
-            guard error == nil else {
-                print(self.DEBUG_TAG+"Error: \(String(describing: error))"); return
+        connection.receiveMessage  { [weak self] (data, context, isComplete, error) in
+            
+            guard let self = self ,error == nil else {
+                print("AuthenticationError: \(String(describing: error))");
+                promise.fail( AuthenticationError.ConnectionError )
+                return
             } 
             
             if isComplete {
 
-                guard let concrete_data = data else {
-                    print(self.DEBUG_TAG+"Error: data is nil")
-                    return
-                }
-                guard let decodedCertificateData = Data(base64Encoded: concrete_data, options: .ignoreUnknownCharacters  ) else {
-                    print("Failed to decode certificate")
-                    return
-                }
-                
-                guard let certificate = Authenticator.shared.unlockCertificate(decodedCertificateData) else {
-                    print(self.DEBUG_TAG+"failed to unlock certificate"); return
+                if let concrete_data = data,
+                   let decodedCertificateData = Data(base64Encoded: concrete_data,
+                                                           options: .ignoreUnknownCharacters ),
+                   let certificate = Authenticator.shared.unlockCertificate(decodedCertificateData) {
+                    
+                    promise.succeed(certificate)
+                    
+                } else {
+                    promise.fail( AuthenticationError.CertificateError )
                 }
                 
-                self.registree.authenticationCertificateObtained(forRemote: self.details,
-                                                                 certificate: certificate)
-
-                self.finish()
+                
+                self.connection.cancel()
+                
+                
+                
+//                guard let concrete_data = data else {
+//                    print(self.DEBUG_TAG+"Error: data is nil")
+//                    promise.fail( AuthenticationError.CertificateError )
+//                    return
+//                }
+//                guard let decodedCertificateData = Data(base64Encoded: concrete_data,
+//                                                        options: .ignoreUnknownCharacters  ) else {
+//                    print("Failed to decode certificate")
+//                    promise.fail( AuthenticationError.CertificateError )
+//                    return
+//                }
+//
+//                guard let certificate = Authenticator.shared.unlockCertificate(decodedCertificateData) else {
+//                    print(self.DEBUG_TAG+"failed to unlock certificate");
+//                    promise.fail( AuthenticationError.CertificateError )
+//                    return
+//                }
+//
+//                promise.succeed(certificate)
+//
+//                self.connection.cancel()
                 
             } else {
                 print("No data received")
+                promise.fail( AuthenticationError.CertificateError )
             }
         }
-    }
-    
-    
-    //
-    // MARK: finish
-    func finish(){
-        connection.cancel()
+        
+        return promise.futureResult
     }
     
 }
@@ -197,36 +219,30 @@ final class UDPConnection: AuthenticationConnection {
 // MARK: - GRPCConnection
 final class GRPCConnection: AuthenticationConnection {
     
-    private let DEBUG_TAG: String = "GRPCConnection: "
+    private lazy var DEBUG_TAG: String = "GRPCConnection (\(details.endpoint)): "
     
     var details: RemoteDetails
-    var registree: AuthenticationRecipient
     
     let ipConnection: NWConnection
-    
-    
-    var attempts: Int = 0
     
     let request: RegRequest = .with {
         $0.hostname = SettingsManager.shared.hostname
         $0.ip = Utils.getIP_V4_Address()
     }
     
-    var channel: ClientConnection?
     var warpClient: WarpRegistrationClient?
     
-    let group = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1, networkPreference: .best)
-    
-    
-    
-    init(_ candidate: RemoteDetails, manager: AuthenticationRecipient) {
-        self.details = candidate
-        registree = manager
+    weak var eventloopGroup: EventLoopGroup?
+    init(onEventLoopGroup group: EventLoopGroup, details: RemoteDetails) {
         
+        eventloopGroup = group
+        self.details = details
         
         let params = NWParameters.udp
+        params.allowFastOpen = true
         params.allowLocalEndpointReuse = true
         params.requiredInterfaceType = .wifi
+        
         
         if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
 //            print(DEBUG_TAG+"restrict connection to v4")
@@ -234,86 +250,84 @@ final class GRPCConnection: AuthenticationConnection {
         }
         
         
-//        print(DEBUG_TAG+"attempting to retrieve IPaddress")
         // We need to start by resolving a regular ol' NWConnection in order
         // to secure an IP address
         ipConnection = NWConnection(to: details.endpoint, using: params)
-        ipConnection.stateUpdateHandler = { state in
-            
-//            print(self.DEBUG_TAG+"ipconnection state: \(state)")
-            
-            if case .ready = state {
-                print(self.DEBUG_TAG+"ipconnection endpoint \(self.ipConnection.endpoint )")
-                if let ip4_string = self.ipConnection.currentPath?.remoteEndpoint?.debugDescription {
-                    print(self.DEBUG_TAG+"connection to \(self.details.endpoint) ready (ipv4 address: \(ip4_string))");
-                    // ip4_string should be a string formatted as 0.0.0.0%en0:0000. IP address is section of string before the '%'
-                    let components = ip4_string.split(separator: Character("%"))
-                    let ip4_address: String = String(components[0])
-                    print(self.DEBUG_TAG+"extracted IP Address: \(ip4_address)")
-                    self.details.ipAddress = ip4_address //String(components[0])
-                }
-                self.ipConnection.cancel()
-                self.sendCertificateRequest()
-            }
-        }
+        
     }
     
     
     //
     // MARK: start request
-    func requestCertificate(){
-        ipConnection.start(queue: .main)
+    func requestCertificate() -> EventLoopFuture<AuthenticationInfo>? {
+        
+        let promise = eventloopGroup!.next().makePromise(of: AuthenticationInfo.self )
+        
+        ipConnection.stateUpdateHandler = { [weak self] state in
+            
+            guard let self = self else { print("GRPCConnection: ipConnection deallocated?"); return }
+            
+            if case .ready = state {
+                
+                if let addressInfo = Utils.extractAddressInfo(fromConnection: self.ipConnection) {
+                    self.details.ipAddress = addressInfo.address
+                    self.details.port = addressInfo.port
+                    print("GRPCConnection: extracted address -> \(self.details.ipAddress)")
+                    print("GRPCConnection: extracted port -> \(self.details.port)")
+                } else {
+                    print("GRPCConnection: couldn't extract information")
+                }
+                
+                self.ipConnection.cancel()
+                 
+                self.sendCertificateRequest().whenComplete { result in
+                    switch result {
+                    case .success(let conn_info): 
+                        promise.succeed(conn_info)
+                    case .failure(let error):
+                        promise.fail(error)
+                    }
+                    _ = self.warpClient?.channel.close()
+                }
+                
+            } else {
+                print(self.DEBUG_TAG+" state is \(state)")
+            }
+        }
+        
+        ipConnection.start(queue: .global())
+        
+        return promise.futureResult
     }
     
     
     //
     // MARK: send request
-    func sendCertificateRequest() {
+    func sendCertificateRequest() -> EventLoopFuture<AuthenticationInfo> {
         
-        channel = ClientConnection.insecure(group: group)
-            .connect(host: details.ipAddress, port: details.authPort)
+//        guard let group = eventloopGroup else { return }
         
-        guard let channel = channel else {
-            print(DEBUG_TAG+"failed to start client connection channel"); return
-            
-        }
+        let channel = ClientConnection.insecure(group: eventloopGroup!).connect(host: details.ipAddress,
+                                                                                port: details.authPort)
+        
         warpClient = WarpRegistrationClient(channel: channel)
         
-        
         print(DEBUG_TAG+"requesting certificate from \(details.hostname) (\(details.ipAddress):\(details.authPort))")
-        details.status = .FetchingCredentials
         
-        
-//        let logger: Logger = {
-//            var logger = Logger(label: "warpinator.GRPCConnection", factory: StreamLogHandler.standardOutput)
-//            logger.logLevel = .debug
-//            return logger }()
-        
-//        let options = CallOptions(timeLimit: .timeout( .seconds(10)), logger: logger )
-//        let options = CallOptions(logger: logger )
+        let requestFuture = warpClient!.requestCertificate(request).response
 
-        let registrationRequest = warpClient?.requestCertificate(request)
+        return requestFuture.flatMap { result in
 
-        registrationRequest?.response.whenSuccess { result in
-            if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert){
-                self.registree.authenticationCertificateObtained(forRemote: self.details, certificate: certificate)
+            if let certificate = Authenticator.shared.unlockCertificate(result.lockedCert) {
+                let info = AuthenticationInfo(certificate: certificate,
+                                          address: self.details.ipAddress,
+                                          port:self.details.port)
+                return channel.eventLoop.makeSucceededFuture(info)
             } else {
-                self.registree.failedToObtainCertificate(forRemote: self.details, .CertificateError)
+                return channel.eventLoop.makeFailedFuture( AuthenticationError.CertificateError  )
             }
         }
         
-        registrationRequest?.response.whenFailure { error in
-            print(self.DEBUG_TAG+"Certificate request failed: \(error)")
-            self.registree.failedToObtainCertificate(forRemote: self.details, .ConnectionError)
-        }
-    }
-    
-    
-    //
-    // MARK: finish
-    func finish(){
-        warpClient = nil
-        _ = channel?.close()
     }
 }
 

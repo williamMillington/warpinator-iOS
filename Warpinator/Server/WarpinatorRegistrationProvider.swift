@@ -9,18 +9,11 @@ import Foundation
 import GRPC
 import NIO
 
-//import Sodium
-//import CryptoKit
-
 final class WarpinatorRegistrationProvider: WarpRegistrationProvider {
     
     private let DEBUG_TAG: String = "WarpinatorRegistrationProvider: "
     
     var interceptors: WarpRegistrationServerInterceptorFactoryProtocol?
-    
-//    var remoteManager: RemoteManager?
-//    var settingsManager:SettingsManager?
-    
     
     public func requestCertificate(request: RegRequest, context: StatusOnlyCallContext) -> EventLoopFuture<RegResponse> {
         
