@@ -25,6 +25,9 @@ final class MainCoordinator: NSObject, Coordinator {
                                                                                        networkPreference: .best)
     
     
+    let networkMonitor: NetworkMonitor = NetworkMonitor()
+    
+    
     lazy var remoteManager: RemoteManager = RemoteManager(withEventloopGroup: remoteEventLoopGroup)
     
     lazy var warpinatorServiceProvider: WarpinatorServiceProvider = {
@@ -147,25 +150,38 @@ final class MainCoordinator: NSObject, Coordinator {
 //
 //        return promise?.futureResult
         
-        let future = server.start()
         
-        future.whenComplete { _ in
-            DispatchQueue.main.async {
-                (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
-            }
+        guard networkMonitor.wifiIsAvailable else {
+            return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
         }
+        
+        
+//        let promise = serverEventLoopGroup.next().makePromise(of: Void.self)
+//        let future = networkMonitor.waitForWifiAvailable(withPromise: promise)
+        
+        
+        // start server
+        let future = server.start()
+            .flatMap {  // then -> start registrationServer
+                return self.registrationServer.start()
+            }
+        
+        
+        future
+            .whenComplete { _ in    // when complete -> remove loading screen
+                DispatchQueue.main.async {
+                    (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
+                }
+            }
         
 //        return server.start()
         return future
-        // what to do if server fails to start
-//            .flatMapError { error in
-//                return self.serverEventLoopGroup.next().makeFailedFuture(error)
+//            .flatMap {
+//                print(self.DEBUG_TAG+"starting main server")
+//                return self.server.start()
 //            }
-        
-        // return future that completes when registrationServer starts up
-            .flatMap { _ in
-                return self.registrationServer.start()
-            }
+            // return future that completes when registrationServer starts up
+            
     }
     
     
@@ -222,13 +238,16 @@ final class MainCoordinator: NSObject, Coordinator {
             .flatMap { _ in
                 return self.startupMdns()
             }
+//            .flatMapError { error in
+//
+//            }
         
         // TODO: flatmap expected errors here so they don't get wrapped, which destroys the localDescription
         // ex.              "No Internet, could not secure IP address"   (actual description)
         //      becomes:    "The operation couldn’t be completed. (Warpinator.Server.ServerError error 0.)"
             .whenComplete { result in
                 
-                print(self.DEBUG_TAG+"startup result is \(result)")
+                print(self.DEBUG_TAG+" restart result is \(result)")
                 
                 switch result {
                 case .success(_): break
@@ -242,7 +261,7 @@ final class MainCoordinator: NSObject, Coordinator {
                     case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
                         
                     default:   print(self.DEBUG_TAG+"Error starting up: \(error)")
-                        self.reportError(error, withMessage: "Server encountered an error starting up:\n\(error.localizedDescription)")
+                        self.reportError(error, withMessage: "Server encountered an error starting up:\n\(error)")
                         return
                     }
                 }

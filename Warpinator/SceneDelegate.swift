@@ -69,9 +69,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 case MDNSListener.ServiceError.ALREADY_RUNNING: break
                 case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
                     
+                case Server.ServerError.NO_INTERNET:
+                    self.coordinator?.reportError(error, withMessage: "Please make sure wifi is turned on before restarting")
+                    
                 default:
                     print(self.DEBUG_TAG+"Error starting up: \(error)")
-                    self.coordinator?.reportError(error, withMessage: "Server encountered an error starting up:\n\(error.localizedDescription)")
+                    self.coordinator?.reportError(error, withMessage: "Server encountered an error starting up:\n\(error)")
                     return
                 }
             }
