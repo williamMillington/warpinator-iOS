@@ -25,7 +25,7 @@ final class MainCoordinator: NSObject, Coordinator {
                                                                                        networkPreference: .best)
     
     
-    let networkMonitor: NetworkMonitor = NetworkMonitor()
+    lazy var networkMonitor: NetworkMonitor = NetworkMonitor(delegate: self)
     
     
     lazy var remoteManager: RemoteManager = RemoteManager(withEventloopGroup: remoteEventLoopGroup)
@@ -185,9 +185,9 @@ final class MainCoordinator: NSObject, Coordinator {
     }
     
     
-    func shutdownConnections() -> EventLoopFuture<Void> {
-            return remoteManager.shutdownAllRemotes()
-    }
+//    func shutdownConnections() -> EventLoopFuture<Void> {
+//            return remoteManager.shutdownAllRemotes()
+//    }
     
     
     
@@ -199,7 +199,7 @@ final class MainCoordinator: NSObject, Coordinator {
         
         self.removeMdns()
         
-        let remoteFuture = shutdownConnections()
+        let remoteFuture = remoteManager.shutdownAllRemotes() //shutdownConnections()
         
         // I thiink is how you chain futures together
         return remoteFuture.flatMap { _ -> EventLoopFuture<Void> in
@@ -218,7 +218,6 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: restart servers
     func restartServers(){
-        
         
         // remove ourselves from mDNS
         removeMdns()
@@ -417,3 +416,21 @@ extension MainCoordinator: MDNSListenerDelegate {
 //        }
 //    }
 //}
+
+
+
+
+extension MainCoordinator: NetworkDelegate {
+    
+    func didLoseLocalNetworkConnectivity() {
+        print(self.DEBUG_TAG+" lost local network connectivity")
+    }
+    
+    
+    func didGainLocalNetworkConnectivity() {
+        print(self.DEBUG_TAG+" gained local network connectivity")
+        
+        
+    }
+    
+}

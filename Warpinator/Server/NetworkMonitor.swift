@@ -10,26 +10,39 @@ import Network
 import NIOCore
 
 
+protocol NetworkDelegate {
+    func didGainLocalNetworkConnectivity()
+    func didLoseLocalNetworkConnectivity()
+}
+
+
+
 class NetworkMonitor {
     
     static let DEBUG_TAG : String = "NetworkMonitor (statics): "
     
     let DEBUG_TAG : String = "NetworkMonitor: "
     
-    let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
+    let delegate: NetworkDelegate
     
+    let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
     let queue: DispatchQueue = DispatchQueue(label: "NetworkMonitor")
     
 //    static var shared: NetworkMonitor = NetworkMonitor()
     
-    init(){
+    init(delegate: NetworkDelegate){
         
-        monitor.pathUpdateHandler = { path in
-            print(self.DEBUG_TAG+"wifi status is \(path.status)")
-        }
+        self.delegate = delegate
+        
+        monitor.pathUpdateHandler = updateHandler(path:)
+//        { path in
+//            print(self.DEBUG_TAG+"wifi status is \(path.status)")
+//        }
         
         monitor.start(queue: queue)
         
+        // actually triggers the network to check. Do not delete.
+        let _ = wifiIsAvailable
     }
     
     
@@ -110,7 +123,17 @@ class NetworkMonitor {
     }
     
     
-    
+    func updateHandler(path: NWPath) {
+        
+        print(self.DEBUG_TAG+"path \(path) status is \(path.status)")
+        
+        switch path.status {
+        case .satisfied: delegate.didGainLocalNetworkConnectivity()
+        case .unsatisfied: delegate.didLoseLocalNetworkConnectivity()
+        default: break
+        }
+        
+    }
     
     
     
