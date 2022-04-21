@@ -55,6 +55,7 @@ final class MDNSListener {
         return params
     }
     
+    
     var port: NWEndpoint.Port {
         let transferPortNum =  UInt16( SettingsManager.shared.transferPortNumber)
         return NWEndpoint.Port(rawValue: transferPortNum)!
@@ -80,7 +81,11 @@ final class MDNSListener {
     private func createListener() -> NWListener {
         
         print(DEBUG_TAG+"\t Creating listener")
-        return try! NWListener(using: parameters, on: port )
+        let listener =  try! NWListener(using: parameters, on: port )
+        listener.serviceRegistrationUpdateHandler = { change in
+            print(self.DEBUG_TAG+"\t\t CHANGE REGISTERED: \(change)")
+        }
+        return listener
     }
     
     
@@ -93,25 +98,17 @@ final class MDNSListener {
         
         let onReadyPromise = eventloopGroup!.next().makePromise(of: Void.self)
         
-        
         switch listener.state {
         case .ready:
-            onReadyPromise.fail( ServiceError.ALREADY_RUNNING )
+            onReadyPromise.succeed( Void() )  //.fail( ServiceError.ALREADY_RUNNING )
             return onReadyPromise.futureResult
-        case .setup: break
+        case .setup: break // creating the listener if the one we have is still good
         default:
             listener = createListener()
-            
         }
-        
-//        guard listener.state != .ready else {
-//            onReadyPromise.fail( ServiceError.ALREADY_RUNNING )
-//            return onReadyPromise.futureResult
-//        }
         
         configurePromiseOnReady(onReadyPromise)
         stopListening() // listener requires a connection handler, this just sets it (to one that rejects everything)
-        
         
         
         listener.start(queue: listenerQueue )
@@ -176,7 +173,7 @@ final class MDNSListener {
             case .cancelled: onStopPromise.succeed( {}() )
             default:
                 self.stopListening()
-                self.listener.cancel()
+                self.listener.cancel() // TODO: undisclosed side effect?
                 return
             }
             
@@ -184,6 +181,80 @@ final class MDNSListener {
         }
     }
     
+    
+    //
+    // allows a promise to be configured to fire for a number of different states,
+    // however. failure() will always fail the promise
+    // MARK: configurePromise
+    private func configure(_ promise: EventLoopPromise<NWListener.State>,
+                           forStates states: [NWListener.State]) -> EventLoopFuture<NWListener.State> {
+        
+        
+        listener.stateUpdateHandler = { state in
+            
+            // we have to be careful not to let a promise go unfullfilled
+            switch state {
+            case .failed(let error):
+                promise.fail(error)
+                return
+            case .cancelled:
+                
+                // check for .failed in this way to capture the error
+                states.forEach {
+                    if case .failed = $0 {
+                        promise.fail( ServiceError.CANCELLED )
+                        return
+                    }
+                }
+                
+                // if caller didn't want it cancelled
+                if !states.contains(.cancelled) {
+                    promise.fail(  ServiceError.CANCELLED  )
+                    return
+                }
+                
+//            case .waiting(let error):
+                
+                // check for .failed this way to capture the error
+//                states.forEach { state in
+//                    if case let .failed(error) = state {
+//                        promise.fail(error)
+//                        return
+//                    }
+//                }
+                
+            default:
+                
+                if states.contains(state) {
+                    promise.succeed( state )
+                }
+                
+            }
+            
+            
+            
+            
+            
+            print(self.DEBUG_TAG+"\t\tstate is \(state)")
+            switch state {
+//            case .setup, .ready, .waiting(_):
+            case .failed(_): fallthrough
+            case .cancelled: promise.succeed( state )
+            default:
+                self.stopListening()
+                self.listener.cancel()
+                return
+            }
+            
+            self.listener.stateUpdateHandler = self.stateDidUpdate(state: )
+        }
+        
+        
+        
+        
+        
+        return promise.futureResult
+    }
     
     
     
@@ -215,6 +286,7 @@ final class MDNSListener {
         }
         
         stopListening()
+        listener.stateUpdateHandler = stateDidUpdate(state:)
         
         flushing = false
         
@@ -252,6 +324,7 @@ final class MDNSListener {
         
         
         stopListening()
+        listener.stateUpdateHandler = stateDidUpdate(state:)
         
         print(DEBUG_TAG+"\tFlushing...")
         flushing = true
@@ -293,9 +366,9 @@ final class MDNSListener {
         
         switch state {
         case .cancelled:
-            print(DEBUG_TAG+" cancelled")
+            print(DEBUG_TAG+"\t\t cancelled")
         case .failed(let error):
-            print(DEBUG_TAG+"listener failed; error: \(error)")
+            print(DEBUG_TAG+"\t\t listener failed; error: \(error)")
             
 //            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
 //                restartListener()

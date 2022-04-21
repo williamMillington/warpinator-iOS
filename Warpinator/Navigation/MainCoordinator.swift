@@ -70,7 +70,26 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: start
     func start() {
+        
         showMainViewController()
+        
+//        let promise = serverEventLoopGroup.next().makePromise(of: Bool.self)
+//
+//        networkMonitor.waitForMDNSPermission(withPromise: promise).whenComplete { result in
+//
+//            print(self.DEBUG_TAG+"WE WAITED FOR PERSMISSION AND ITS \(result)")
+//
+//
+//        }
+        
+    }
+    
+    var promise: EventLoopPromise<Bool>?
+    func checkmdns() -> EventLoopFuture<Bool> {
+        
+        promise = serverEventLoopGroup.next().makePromise(of: Bool.self)
+        
+        return networkMonitor.waitForMDNSPermission(withPromise: promise!)
     }
     
     
@@ -423,12 +442,12 @@ extension MainCoordinator: MDNSListenerDelegate {
 extension MainCoordinator: NetworkDelegate {
     
     func didLoseLocalNetworkConnectivity() {
-        print(self.DEBUG_TAG+" lost local network connectivity")
+        print(self.DEBUG_TAG+" lost wifi connectivity")
     }
     
     
     func didGainLocalNetworkConnectivity() {
-        print(self.DEBUG_TAG+" gained local network connectivity")
+        print(self.DEBUG_TAG+" gained wifi connectivity")
         
         
     }

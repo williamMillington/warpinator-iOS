@@ -32,7 +32,6 @@ final class MDNSBrowser {
     var delegate: MDNSBrowserDelegate?
     
     
-    lazy var browser: NWBrowser = createBrowser()
     var parameters: NWParameters {
         
         let params = NWParameters()
@@ -44,6 +43,7 @@ final class MDNSBrowser {
         
         return params
     }
+    lazy var browser: NWBrowser = createBrowser()
 
     
     let eventloopGroup: EventLoopGroup
@@ -53,7 +53,6 @@ final class MDNSBrowser {
     
     
     init(withEventloopGroup group: EventLoopGroup) {
-        
         eventloopGroup = group
     }
     
@@ -121,7 +120,7 @@ final class MDNSBrowser {
     private func configurePromiseOnReady(_ promise: EventLoopPromise<Void>) {
         
         browser.stateUpdateHandler = { state in
-            print(self.DEBUG_TAG+"\t\tstate is \(state)")
+            print(self.DEBUG_TAG+"\t\t state is \(state)")
             switch state {
             case .setup: return
             case .ready:
@@ -145,7 +144,7 @@ final class MDNSBrowser {
     private func configurePromiseOnStopped(_ promise: EventLoopPromise<Void>) {
         
         browser.stateUpdateHandler = { state in
-            print(self.DEBUG_TAG+"\t\tstate is \(state)")
+            print(self.DEBUG_TAG+"\t\t state is \(state)")
             switch state {
 //            case .setup, .ready, .waiting(_):
             case .failed(_): fallthrough
@@ -220,7 +219,7 @@ final class MDNSBrowser {
     // MARK:  stateDidUpdate
     private func stateDidUpdate(state: NWBrowser.State){
         
-        print(DEBUG_TAG+"state: \(state)")
+        print(DEBUG_TAG+" state is \(state)")
         
         switch state {
         case .cancelled:

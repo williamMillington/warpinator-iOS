@@ -8,6 +8,7 @@
 import UIKit
 
 import NIO
+import Network
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
@@ -52,36 +53,56 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         print(DEBUG_TAG+"sceneDidBecomeActive")
         
-        coordinator?.startServers().flatMap { _ -> EventLoopFuture<Void> in
+        coordinator?.checkmdns().whenComplete { result in
             
-            print(self.DEBUG_TAG+"server startup completed")
-            return self.coordinator!.startupMdns()
-            
-        }.whenComplete { result in
-            
-            print(self.DEBUG_TAG+"startup result is \(result)")
+            print(self.DEBUG_TAG+"WE WAITED FOR PERSMISSION AND ITS \(result)")
             
             switch result {
-            case .success(_): break
-            case .failure(let error):
+            case .success(let permissionGranted):
                 
-                switch error {
-                case MDNSListener.ServiceError.ALREADY_RUNNING: break
-                case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
-                    
-                case Server.ServerError.NO_INTERNET:
-                    self.coordinator?.reportError(error, withMessage: "Please make sure wifi is turned on before restarting")
-                    
-                default:
-                    print(self.DEBUG_TAG+"Error starting up: \(error)")
-                    self.coordinator?.reportError(error, withMessage: "Server encountered an error starting up:\n\(error)")
-                    return
+                if permissionGranted {
+                    print(self.DEBUG_TAG+"We HAVE access to the local network!")
+                } else {
+                    print(self.DEBUG_TAG+"We DO NOT HAVE access to the local network!")
                 }
+                
+                
+            case .failure(let error):
+                print(self.DEBUG_TAG+"unknown error occurred obtaining mDNS permission \(error)")
             }
             
-            self.coordinator?.publishMdns()
-            
         }
+        
+//        coordinator?.startServers().flatMap { _ -> EventLoopFuture<Void> in
+//
+//            print(self.DEBUG_TAG+"server startup completed")
+//            return self.coordinator!.startupMdns()
+//
+//        }.whenComplete { result in
+//
+//            print(self.DEBUG_TAG+"startup result is \(result)")
+//
+//            switch result {
+//            case .success(_): break
+//            case .failure(let error):
+//
+//                switch error {
+//                case MDNSListener.ServiceError.ALREADY_RUNNING: break
+//                case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
+//
+//                case Server.ServerError.NO_INTERNET:
+//                    self.coordinator?.reportError(error, withMessage: "Please make sure wifi is turned on before restarting")
+//
+//                default:
+//                    print(self.DEBUG_TAG+"Error starting up: \(error)")
+//                    self.coordinator?.reportError(error, withMessage: "Server encountered an error starting up:\n\(error)")
+//                    return
+//                }
+//            }
+//
+//            self.coordinator?.publishMdns()
+//
+//        }
         
     }
     
