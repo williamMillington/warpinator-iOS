@@ -73,23 +73,14 @@ final class MainCoordinator: NSObject, Coordinator {
         
         showMainViewController()
         
-//        let promise = serverEventLoopGroup.next().makePromise(of: Bool.self)
-//
-//        networkMonitor.waitForMDNSPermission(withPromise: promise).whenComplete { result in
-//
-//            print(self.DEBUG_TAG+"WE WAITED FOR PERSMISSION AND ITS \(result)")
-//
-//
-//        }
-        
     }
     
-    var promise: EventLoopPromise<Bool>?
+//    var promise: EventLoopPromise<Bool>?
     func checkmdns() -> EventLoopFuture<Bool> {
         
-        promise = serverEventLoopGroup.next().makePromise(of: Bool.self)
+        let promise = serverEventLoopGroup.next().makePromise(of: Bool.self)
         
-        return networkMonitor.waitForMDNSPermission(withPromise: promise!)
+        return networkMonitor.waitForMDNSPermission(withPromise: promise)
     }
     
     
@@ -140,6 +131,12 @@ final class MainCoordinator: NSObject, Coordinator {
 
         print(DEBUG_TAG+"starting servers...")
         
+        DispatchQueue.main.async {
+            if let vc = self.navController.visibleViewController as? ViewController {
+                vc.removeErrorScreen()
+            }
+        }
+        
         guard !server.isRunning else {
             print(DEBUG_TAG+"Server is already running")
             return serverEventLoopGroup.next().makeSucceededVoidFuture()
@@ -154,7 +151,7 @@ final class MainCoordinator: NSObject, Coordinator {
         
         //
         if SettingsManager.shared.refreshCredentials {
-            print(DEBUG_TAG+" refresh credentials:  deleting...")
+            print(DEBUG_TAG+"\t\t refreshing credentials...")
             Authenticator.shared.deleteCredentials()
         }
         
@@ -174,40 +171,17 @@ final class MainCoordinator: NSObject, Coordinator {
             return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
         }
         
-        
-//        let promise = serverEventLoopGroup.next().makePromise(of: Void.self)
-//        let future = networkMonitor.waitForWifiAvailable(withPromise: promise)
-        
-        
         // start server
-        let future = server.start()
+        return server.start()
             .flatMap {  // then -> start registrationServer
                 return self.registrationServer.start()
             }
-        
-        
-        future
-            .whenComplete { _ in    // when complete -> remove loading screen
+            .map { _ in // when complete -> remove loading screen
                 DispatchQueue.main.async {
                     (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
                 }
             }
-        
-//        return server.start()
-        return future
-//            .flatMap {
-//                print(self.DEBUG_TAG+"starting main server")
-//                return self.server.start()
-//            }
-            // return future that completes when registrationServer starts up
-            
     }
-    
-    
-//    func shutdownConnections() -> EventLoopFuture<Void> {
-//            return remoteManager.shutdownAllRemotes()
-//    }
-    
     
     
     //
@@ -216,19 +190,16 @@ final class MainCoordinator: NSObject, Coordinator {
         
         print(DEBUG_TAG+"stopping servers... ")
         
-        self.removeMdns()
+        removeMdns()
         
-        let remoteFuture = remoteManager.shutdownAllRemotes() //shutdownConnections()
-        
-        // I thiink is how you chain futures together
-        return remoteFuture.flatMap { _ -> EventLoopFuture<Void> in
+        return remoteManager.shutdownAllRemotes()
+            .flatMap { _ -> EventLoopFuture<Void> in // when remotes have finished shutting down -> shutdown servers
             print(self.DEBUG_TAG+"stopping registration server")
-            
-            return self.registrationServer.stop()
+            return self.registrationServer.stop() // registrationServer first, to stop accepting new connections
         }
         .flatMap {
             print(self.DEBUG_TAG+"stopping server")
-            return self.server.stop()
+            return self.server.stop() // main server second
         }
         
     }
@@ -241,12 +212,15 @@ final class MainCoordinator: NSObject, Coordinator {
         // remove ourselves from mDNS
         removeMdns()
         
-        
         // shutdown mDNS
         shutdownMdns()
         // then -> shutdown servers
             .flatMap { _ in
                 return self.stopServers()
+            }
+        // then -> check mDNS
+            .flatMap{ Void in
+                return self.checkmdns()
             }
         // then -> start up  servers
             .flatMap { _ in
@@ -256,13 +230,6 @@ final class MainCoordinator: NSObject, Coordinator {
             .flatMap { _ in
                 return self.startupMdns()
             }
-//            .flatMapError { error in
-//
-//            }
-        
-        // TODO: flatmap expected errors here so they don't get wrapped, which destroys the localDescription
-        // ex.              "No Internet, could not secure IP address"   (actual description)
-        //      becomes:    "The operation couldn’t be completed. (Warpinator.Server.ServerError error 0.)"
             .whenComplete { result in
                 
                 print(self.DEBUG_TAG+" restart result is \(result)")
@@ -278,8 +245,18 @@ final class MainCoordinator: NSObject, Coordinator {
                         // TODO: This scenario is probably better handled by just returning a succeeded future
                     case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
                         
-                    default:   print(self.DEBUG_TAG+"Error starting up: \(error)")
-                        self.reportError(error, withMessage: "Server encountered an error starting up:\n\(error)")
+                    case NetworkMonitor.ServiceError.LOCAL_NETWORK_PERMISSION_DENIED:
+                        print(self.DEBUG_TAG+"We DO NOT HAVE access to the local network!")
+                        self.reportError(error,
+                                         withMessage: "Please enable local network access in your system settings (Settings App -> Privacy -> Local Network)")
+                    case Server.ServerError.NO_INTERNET:
+                        self.reportError(error,
+                                         withMessage: "Please make sure wifi is turned on before restarting")
+                        
+                    default:
+                        print(self.DEBUG_TAG+"Warpinator encountered an error starting up: \(error)")
+                        self.reportError(error,
+                                         withMessage: "Warpinator encountered an error starting up:\n\(error)")
                         return
                     }
                 }

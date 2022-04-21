@@ -53,57 +53,47 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         print(DEBUG_TAG+"sceneDidBecomeActive")
         
-        coordinator?.checkmdns().whenComplete { result in
-            
-            print(self.DEBUG_TAG+"WE WAITED FOR PERSMISSION AND ITS \(result)")
-            
-            switch result {
-            case .success(let permissionGranted):
-                
-                if permissionGranted {
-                    print(self.DEBUG_TAG+"We HAVE access to the local network!")
-                } else {
-                    print(self.DEBUG_TAG+"We DO NOT HAVE access to the local network!")
-                }
-                
-                
-            case .failure(let error):
-                print(self.DEBUG_TAG+"unknown error occurred obtaining mDNS permission \(error)")
-            }
-            
+        coordinator?.checkmdns()
+        .flatMap { _ -> EventLoopFuture<Void> in
+            print(self.DEBUG_TAG+"We HAVE access to the local network! Starting servers.")
+            return self.coordinator!.startServers()
         }
-        
-//        coordinator?.startServers().flatMap { _ -> EventLoopFuture<Void> in
-//
-//            print(self.DEBUG_TAG+"server startup completed")
-//            return self.coordinator!.startupMdns()
-//
-//        }.whenComplete { result in
-//
-//            print(self.DEBUG_TAG+"startup result is \(result)")
-//
-//            switch result {
-//            case .success(_): break
-//            case .failure(let error):
-//
-//                switch error {
-//                case MDNSListener.ServiceError.ALREADY_RUNNING: break
-//                case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
-//
-//                case Server.ServerError.NO_INTERNET:
-//                    self.coordinator?.reportError(error, withMessage: "Please make sure wifi is turned on before restarting")
-//
-//                default:
-//                    print(self.DEBUG_TAG+"Error starting up: \(error)")
-//                    self.coordinator?.reportError(error, withMessage: "Server encountered an error starting up:\n\(error)")
-//                    return
-//                }
-//            }
-//
-//            self.coordinator?.publishMdns()
-//
-//        }
-        
+        .flatMap { _ -> EventLoopFuture<Void> in
+
+            print(self.DEBUG_TAG+"warpinator startup completed")
+            return self.coordinator!.startupMdns()
+
+        }
+        .whenComplete { result in
+
+            print(self.DEBUG_TAG+"startup result is \(result)")
+
+            switch result {
+            case .success(_): break
+            case .failure(let error):
+
+                switch error {
+                    
+                    // TODO: refactor these
+                case MDNSListener.ServiceError.ALREADY_RUNNING: break
+                case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
+                    
+                case NetworkMonitor.ServiceError.LOCAL_NETWORK_PERMISSION_DENIED:
+                    print(self.DEBUG_TAG+"We DO NOT HAVE access to the local network!")
+                    self.coordinator?.reportError(error,
+                                                  withMessage: "Please enable local network access in your system settings (Settings App -> Privacy -> Local Network)")
+                case Server.ServerError.NO_INTERNET:
+                    self.coordinator?.reportError(error,
+                                                  withMessage: "Please make sure wifi is turned on before restarting")
+                default:
+                    print(self.DEBUG_TAG+"Error starting up: \(error)")
+                    self.coordinator?.reportError(error, withMessage: "Warpinator encountered an error starting up:\n\(error)")
+                    return
+                }
+            }
+
+            self.coordinator?.publishMdns()
+        }
     }
     
     func sceneWillResignActive(_ scene: UIScene) {

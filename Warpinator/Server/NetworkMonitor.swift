@@ -19,6 +19,11 @@ protocol NetworkDelegate {
 
 class NetworkMonitor {
     
+    
+    enum ServiceError: Error {
+        case LOCAL_NETWORK_PERMISSION_DENIED
+    }
+    
     static let DEBUG_TAG : String = "NetworkMonitor (statics): "
     
     let DEBUG_TAG : String = "NetworkMonitor: "
@@ -119,29 +124,24 @@ class NetworkMonitor {
         let parameters = NWParameters.udp
         listener = try! NWListener(using: parameters)
         
-        // if we've published successfully then we know we've got permission
         listener.serviceRegistrationUpdateHandler = { change in
-//            print(self.DEBUG_TAG+"\t\t CHANGE REGISTERED: \(change)")
-            promise.succeed( true )
-            self.listener.cancel()
-            self.browser.cancel()
+            
+            // if we've published successfully then we know we've got permission
+            if case .add(_) = change {
+                promise.succeed( true )
+                self.listener.cancel()
+                self.browser.cancel()
+            }
         }
-        listener.stateUpdateHandler = { state in
-//            print(self.DEBUG_TAG+"MDNSCHECKER LISTENER STATE \(state)")
+        listener.stateUpdateHandler = { _ in
         }
-        listener.newConnectionHandler = { connection in
-//            print(self.DEBUG_TAG+"NEW CONNECTION")
+        listener.newConnectionHandler = { _ in
         }
         
         
         let SERVICE_TYPE = "_warpinator._tcp."
         let SERVICE_DOMAIN = ""
         
-//        let hostname = SettingsManager.shared.hostname
-//        let uuid =
-
-//        let properties: [String:String] = ["hostname" : "\(hostname)",
-//                                           "type" : "flush"]
         listener.service = NWListener.Service(name: SettingsManager.shared.uuid,
                                               type: SERVICE_TYPE,
                                               domain: SERVICE_DOMAIN,
@@ -160,7 +160,8 @@ class NetworkMonitor {
             
             if case .waiting(_) = state {
                 
-                promise.succeed(false)
+//                promise.succeed(false)
+                promise.fail( ServiceError.LOCAL_NETWORK_PERMISSION_DENIED )
                 self.browser.cancel()
                 self.listener.cancel()
             }
