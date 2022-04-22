@@ -19,6 +19,8 @@ final class MainCoordinator: NSObject, Coordinator {
     var childCoordinators = [Coordinator]()
     var navController: UINavigationController
     
+    
+    
     var serverEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
                                                                                        networkPreference: .best)
     var remoteEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
@@ -26,7 +28,6 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     lazy var networkMonitor: NetworkMonitor = NetworkMonitor(delegate: self)
-    
     
     lazy var remoteManager: RemoteManager = RemoteManager(withEventloopGroup: remoteEventLoopGroup)
     
@@ -240,11 +241,6 @@ final class MainCoordinator: NSObject, Coordinator {
                     
                     switch error {
                     
-                        // Any errors mean we don't publish ourselves
-                        // to mDNS, except these two
-                        // TODO: This scenario is probably better handled by just returning a succeeded future
-                    case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
-                        
                     case NetworkMonitor.ServiceError.LOCAL_NETWORK_PERMISSION_DENIED:
                         print(self.DEBUG_TAG+"We DO NOT HAVE access to the local network!")
                         self.reportError(error,

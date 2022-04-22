@@ -17,10 +17,19 @@ protocol NetworkDelegate {
 
 
 
+
+enum MdnsState {
+    case ready
+    case setup
+    case waiting( NWError )
+    case cancelled
+    case failure( NWError )
+}
+
+
 class NetworkMonitor {
     
-    
-    enum ServiceError: Error {
+    enum ServiceError: Swift.Error {
         case LOCAL_NETWORK_PERMISSION_DENIED
     }
     

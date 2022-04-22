@@ -27,24 +27,12 @@ final class MDNSBrowser {
     private let DEBUG_TAG = "MDNSBrowser: "
     
     private let SERVICE_TYPE = "_warpinator._tcp."
-    private let SERVICE_DOMAIN = "" // Don't specify "local" because Daddy Apple says not to
+    private let SERVICE_DOMAIN = ""
     
     var delegate: MDNSBrowserDelegate?
     
     
-    var parameters: NWParameters {
-        
-        let params = NWParameters()
-        params.allowLocalEndpointReuse = true
-        
-        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-            inetOptions.version = .v4
-        }
-        
-        return params
-    }
     lazy var browser: NWBrowser = createBrowser()
-
     
     let eventloopGroup: EventLoopGroup
     
@@ -60,79 +48,64 @@ final class MDNSBrowser {
     private func createBrowser() -> NWBrowser {
         
         print(DEBUG_TAG+"\t Creating browser")
+        
+        let params = NWParameters()
+        params.allowLocalEndpointReuse = true
+        
+        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            inetOptions.version = .v4
+        }
+        
         return NWBrowser(for: .bonjourWithTXTRecord(type: SERVICE_TYPE,
                                                     domain: SERVICE_DOMAIN),
-                            using: parameters)
+                            using: params)
     }
     
     
     
     func start() -> EventLoopFuture<Void> {
         
-        
-        print(DEBUG_TAG+" starting... (current state:  \(browser.state) )")
-        
         let promise = eventloopGroup.next().makePromise(of: Void.self)
-        
         
         switch browser.state {
         case .ready:
-            promise.fail( ServiceError.ALREADY_RUNNING )
+            promise.succeed( Void() )
             return promise.futureResult
         case .setup: break // we want to startup, but don't create a new browser
         default:
             browser = createBrowser()
         }
         
-        configurePromiseOnReady(promise)
+        configure(promise, toSucceedForState: .ready )
         stopBrowsing()
         
         browser.start(queue: browserQueue)
         
-        return  promise.futureResult
+        return promise.futureResult.map { _ in
+        }
     }
     
     
     
     func stop() -> EventLoopFuture<Void> {
         
-        print(DEBUG_TAG+" stopping... (current state:  \(browser.state) )")
+//        print(DEBUG_TAG+"\t\tstopping... (current state:  \(browser.state) )")
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
         
         switch browser.state {
-        case .cancelled, .failed(_), .setup:  promise.succeed( {}() )
+        case .cancelled, .failed(_), .setup:
+            promise.succeed( Void() )
+            
         default:
-            configurePromiseOnStopped(promise)
+            configure(promise, toSucceedForState: .cancelled)
             stopBrowsing()
             browser.cancel()
         }
         
-        return promise.futureResult
-    }
-    
-    
-    
-    
-    
-    //
-    //
-    private func configurePromiseOnReady(_ promise: EventLoopPromise<Void>) {
-        
-        browser.stateUpdateHandler = { state in
-            print(self.DEBUG_TAG+"\t\t state is \(state)")
-            switch state {
-            case .setup: return
-            case .ready:
-                promise.succeed( {}() )
-            case .failed(let error): fallthrough
-            case .waiting(let error): promise.fail(error)
-            case .cancelled: promise.fail( MDNSBrowser.ServiceError.CANCELLED )
-            @unknown default:
-                promise.fail( MDNSBrowser.ServiceError.UNKNOWN_SERVICE )
-            }
-            
-            self.browser.stateUpdateHandler = self.stateDidUpdate(state: )
+        return promise.futureResult.flatMapError { result in
+            // catch the failed case –which, in this circumstance, is a success– and return it as such
+            return self.eventloopGroup.next().makeSucceededVoidFuture()
         }
     }
     
@@ -140,28 +113,46 @@ final class MDNSBrowser {
     
     
     //
-    //
-    private func configurePromiseOnStopped(_ promise: EventLoopPromise<Void>) {
+    // Allows a promise to be configured to fire for a number of different states
+    //      - NOTE: .failure() will ALWAYS fail the promise
+    // MARK: configurePromise
+    private func configure(_ promise: EventLoopPromise<Void>,
+                           toSucceedForState state: NWBrowser.State) {
         
-        browser.stateUpdateHandler = { state in
-            print(self.DEBUG_TAG+"\t\t state is \(state)")
-            switch state {
-//            case .setup, .ready, .waiting(_):
-            case .failed(_): fallthrough
-            case .cancelled: promise.succeed( {}() )
-            default:
-                self.stopBrowsing()
-                self.browser.cancel()
+        
+        browser.stateUpdateHandler = { updatedState in
+            
+//            print(self.DEBUG_TAG+"\t\t\t browser updated to \(updatedState) while waiting for \(state)")
+            
+            // we have to be careful not to let a promise go unfullfilled
+            switch updatedState {
+            case .failed(let error):
+                promise.fail(error)
                 return
+            case .cancelled:
+                
+                // Fail if caller was waiting for a different state, because –once cancelled–
+                // those states (ex. .ready, .watiting )  can never be reached again and we just
+                // create a new listener (which will leave the promise hanging)
+                if state != .cancelled {
+                    promise.fail(  ServiceError.CANCELLED  )
+                    return
+                }
+                
+                // proceed to default case
+                fallthrough
+                
+            default:
+                
+                // succeed if states match
+                if updatedState == state {
+                    promise.succeed( Void() )
+                    self.browser.stateUpdateHandler = self.stateDidUpdate(state: )
+                }
+                
             }
-            
-            self.browser.stateUpdateHandler = self.stateDidUpdate(state: )
         }
     }
-    
-    
-    
-    
     
     //
     // MARK: startBrowsing
@@ -179,70 +170,22 @@ final class MDNSBrowser {
     }
     
     
-    
-    
-    
-//    private func restartHandler(newState state: NWBrowser.State){
-//
-//        print(DEBUG_TAG+"restart state: \(state)")
-//
-//        switch state {
-//        case .ready: startBrowsing()
-//        case .cancelled:
-//            browser = createBrowser()
-//            browser.stateUpdateHandler = restartHandler(newState:)
-//            stopBrowsing()
-//            browser.start(queue: browserQueue)
-//
-//        case .failed(let error):
-//
-//            print(DEBUG_TAG+"failed with error \(error)")
-//
-//            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
-//
-//                browserQueue.asyncAfter(deadline: .now() + 1) {
-//                    self.browser.stateUpdateHandler = self.restartHandler(newState:)
-//                    self.browser.cancel()
-//                }
-//                return
-//
-//            } else {
-//                print(DEBUG_TAG+"\t\tstopping")
-//            }
-//            browser.cancel()
-//
-//        default: break
-//        }
-//    }
-    
     //
     // MARK:  stateDidUpdate
     private func stateDidUpdate(state: NWBrowser.State){
         
         print(DEBUG_TAG+" state is \(state)")
         
-        switch state {
-        case .cancelled:
-            print(DEBUG_TAG+" cancelled")
-//            browser = nil
-        case .failed(let error):
-            
-            print(DEBUG_TAG+"failed with error \(error)")
+//        switch state {
+//        case .cancelled:
+//            print(DEBUG_TAG+" cancelled")
+////            browser = nil
+//        case .failed(let error):
 //
-//            if error == NWError.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection)) {
+//            print(DEBUG_TAG+"failed with error \(error)")
 //
-//                browserQueue.asyncAfter(deadline: .now() + 1) {
-//                    self.browser.stateUpdateHandler = self.restartHandler(newState:)
-//                    self.browser.cancel()
-//                }
-//                return
-//
-//            } else {
-//                print(DEBUG_TAG+"\t\tstopping")
-//            }
-            
-        default: print(DEBUG_TAG+"\(state)")
-        }
+//        default: print(DEBUG_TAG+"\(state)")
+//        }
         
     }
     
@@ -262,13 +205,13 @@ final class MDNSBrowser {
                 if case .metadataChanged = flags {
                     delegate?.mDNSBrowserDidAddResult(new)
                 }
-            case .removed(let result):    delegate?.mDNSBrowserDidRemoveResult(result)
+            case .removed(let result):
+                delegate?.mDNSBrowserDidRemoveResult(result)
             default: break //print(DEBUG_TAG+"unforeseen result change: \n\t\t\(change)")
 
             }
-            
         }
-        
     }
+    
     
 }
