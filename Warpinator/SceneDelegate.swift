@@ -55,7 +55,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         coordinator?.checkmdns()
         .flatMap { _ -> EventLoopFuture<Void> in
-            print(self.DEBUG_TAG+"We HAVE access to the local network! Starting servers.")
+            print(self.DEBUG_TAG+"We have permission to access to the local network! Starting servers.")
             return self.coordinator!.startServers()
         }
         .flatMap { _ -> EventLoopFuture<Void> in

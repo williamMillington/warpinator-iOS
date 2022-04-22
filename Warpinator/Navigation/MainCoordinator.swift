@@ -138,6 +138,12 @@ final class MainCoordinator: NSObject, Coordinator {
             }
         }
         
+        // check for wifi
+        guard networkMonitor.wifiIsAvailable else {
+            return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
+        }
+        
+        
         guard !server.isRunning else {
             print(DEBUG_TAG+"Server is already running")
             return serverEventLoopGroup.next().makeSucceededVoidFuture()
@@ -168,9 +174,9 @@ final class MainCoordinator: NSObject, Coordinator {
 //        return promise?.futureResult
         
         
-        guard networkMonitor.wifiIsAvailable else {
-            return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
-        }
+//        guard networkMonitor.wifiIsAvailable else {
+//            return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
+//        }
         
         // start server
         return server.start()
