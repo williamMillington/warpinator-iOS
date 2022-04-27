@@ -138,7 +138,7 @@ final class MainCoordinator: NSObject, Coordinator {
         print(DEBUG_TAG+"starting servers...")
         
         DispatchQueue.main.async {
-            if let vc = self.navController.visibleViewController as? ViewController {
+            if let vc = self.navController.visibleViewController as? MainViewController {
                 vc.removeErrorScreen()
             }
         }
@@ -151,7 +151,7 @@ final class MainCoordinator: NSObject, Coordinator {
         
         
         DispatchQueue.main.async {
-            if let vc = self.navController.visibleViewController as? ViewController {
+            if let vc = self.navController.visibleViewController as? MainViewController {
                 vc.showLoadingScreen()
             }
         }
@@ -181,7 +181,7 @@ final class MainCoordinator: NSObject, Coordinator {
             }
             .map { _ in // when complete -> remove loading screen
                 DispatchQueue.main.async {
-                    (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
+                    (self.navController.visibleViewController as? MainViewController)?.removeLoadingScreen()
                 }
             }
     }
@@ -268,13 +268,13 @@ final class MainCoordinator: NSObject, Coordinator {
         
         // if the previously exists in the stack, rewind
         if let mainMenuVC = navController.viewControllers.first(where: { controller in
-            return controller is ViewController
+            return controller is MainViewController
         }) {
             navController.popToViewController(mainMenuVC, animated: false)
         } else {
             
             let bundle = Bundle(for: type(of: self))
-            let mainMenuVC = ViewController(nibName: "MainView", bundle: bundle)
+            let mainMenuVC = MainViewController(nibName: "MainViewController", bundle: bundle)
             
             mainMenuVC.coordinator = self
             mainMenuVC.settingsManager = SettingsManager.shared
@@ -363,7 +363,7 @@ extension MainCoordinator: ErrorDelegate {
         DispatchQueue.main.async {
             
             // only the main controller has an error screen, for now
-            if let vc = self.navController.visibleViewController as? ViewController {
+            if let vc = self.navController.visibleViewController as? MainViewController {
                 vc.showErrorScreen(error, withMessage: message)
             }
         }

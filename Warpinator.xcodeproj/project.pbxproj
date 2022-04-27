@@ -7,19 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7914DDF22819C81A00A9BB51 /* LoadingMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7914DDF12819C81A00A9BB51 /* LoadingMessageView.swift */; };
+		7914DDF42819C99200A9BB51 /* ErrorMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7914DDF32819C99200A9BB51 /* ErrorMessageView.swift */; };
 		791D77E72767B244008140CC /* SendTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77E62767B244008140CC /* SendTransferViewController.swift */; };
 		791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */; };
 		791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F52769910A008140CC /* ListedFileSelectionView.swift */; };
 		791D77FA276A5F4B008140CC /* FileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F9276A5F4B008140CC /* FileReader.swift */; };
 		791D781527717575008140CC /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D781427717575008140CC /* Observable.swift */; };
 		791D7826277378F0008140CC /* Array+Index_nillable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D7825277378F0008140CC /* Array+Index_nillable.swift */; };
-		791D782A27779261008140CC /* MainView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 791D782927779261008140CC /* MainView.xib */; };
+		791D782A27779261008140CC /* MainViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 791D782927779261008140CC /* MainViewController.xib */; };
 		792ECD56280A5D5E003F39F5 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 792ECD55280A5D5E003F39F5 /* NetworkMonitor.swift */; };
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
 		79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79343EB22743502B008E0890 /* SendFileOperation.swift */; };
 		79360EB427069897008349D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB327069897008349D2 /* AppDelegate.swift */; };
 		79360EB627069897008349D2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB527069897008349D2 /* SceneDelegate.swift */; };
-		79360EB827069897008349D2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB727069897008349D2 /* ViewController.swift */; };
+		79360EB827069897008349D2 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360EB727069897008349D2 /* MainViewController.swift */; };
 		79360EBB27069897008349D2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79360EB927069897008349D2 /* Main.storyboard */; };
 		79360EBD27069899008349D2 /* Contents.json in Resources */ = {isa = PBXBuildFile; fileRef = 79360EBC27069899008349D2 /* Contents.json */; };
 		79360EC027069899008349D2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79360EBE27069899008349D2 /* LaunchScreen.storyboard */; };
@@ -77,20 +79,22 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		7914DDF12819C81A00A9BB51 /* LoadingMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingMessageView.swift; sourceTree = "<group>"; };
+		7914DDF32819C99200A9BB51 /* ErrorMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessageView.swift; sourceTree = "<group>"; };
 		791D77E62767B244008140CC /* SendTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendTransferViewController.swift; sourceTree = "<group>"; };
 		791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTransferCoordinator.swift; sourceTree = "<group>"; };
 		791D77F52769910A008140CC /* ListedFileSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileSelectionView.swift; sourceTree = "<group>"; };
 		791D77F9276A5F4B008140CC /* FileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileReader.swift; sourceTree = "<group>"; };
 		791D781427717575008140CC /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		791D7825277378F0008140CC /* Array+Index_nillable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Index_nillable.swift"; sourceTree = "<group>"; };
-		791D782927779261008140CC /* MainView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainView.xib; sourceTree = "<group>"; };
+		791D782927779261008140CC /* MainViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainViewController.xib; sourceTree = "<group>"; };
 		792ECD55280A5D5E003F39F5 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		79331AF8274E8F3500A4022F /* TransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewController.swift; sourceTree = "<group>"; };
 		79343EB22743502B008E0890 /* SendFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFileOperation.swift; sourceTree = "<group>"; };
 		79360EB027069897008349D2 /* Warpinator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warpinator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79360EB327069897008349D2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		79360EB527069897008349D2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		79360EB727069897008349D2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		79360EB727069897008349D2 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		79360EBA27069897008349D2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		79360EBC27069899008349D2 /* Contents.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = Contents.json; path = Assets.xcassets/Contents.json; sourceTree = "<group>"; };
 		79360EBF27069899008349D2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -159,6 +163,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7914DDF02819C70E00A9BB51 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				79360EB727069897008349D2 /* MainViewController.swift */,
+				791D782927779261008140CC /* MainViewController.xib */,
+				7914DDF12819C81A00A9BB51 /* LoadingMessageView.swift */,
+				7914DDF32819C99200A9BB51 /* ErrorMessageView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		79331AFB274E8FEB00A4022F /* Remotes */ = {
 			isa = PBXGroup;
 			children = (
@@ -267,8 +282,6 @@
 				79360EBE27069899008349D2 /* LaunchScreen.storyboard */,
 				79360EB927069897008349D2 /* Main.storyboard */,
 				79360EB527069897008349D2 /* SceneDelegate.swift */,
-				79360EB727069897008349D2 /* ViewController.swift */,
-				791D782927779261008140CC /* MainView.xib */,
 				79A063062797B9E200A5A99E /* SettingsViewController.xib */,
 				79A063092797BA0D00A5A99E /* SettingsViewController.swift */,
 				796B1D8027B4658B00D00099 /* Images.xcassets */,
@@ -311,6 +324,7 @@
 		79B8A0F92745620D00369E62 /* Navigation */ = {
 			isa = PBXGroup;
 			children = (
+				7914DDF02819C70E00A9BB51 /* View */,
 				79B8A0F6274561C600369E62 /* Coordinator.swift */,
 				791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */,
 				79B8A0FA2745623900369E62 /* MainCoordinator.swift */,
@@ -430,7 +444,7 @@
 				79F5FBE3277E592600323DC4 /* SendTransferViewController.xib in Resources */,
 				79360EBB27069897008349D2 /* Main.storyboard in Resources */,
 				796B1D8127B4658B00D00099 /* Images.xcassets in Resources */,
-				791D782A27779261008140CC /* MainView.xib in Resources */,
+				791D782A27779261008140CC /* MainViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,7 +458,7 @@
 				791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */,
 				79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */,
 				7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */,
-				79360EB827069897008349D2 /* ViewController.swift in Sources */,
+				79360EB827069897008349D2 /* MainViewController.swift in Sources */,
 				7963282727599F030056F76B /* FileWriter.swift in Sources */,
 				7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */,
 				79B8A0EA27449EB600369E62 /* String+substring.swift in Sources */,
@@ -452,6 +466,7 @@
 				799E39F127469CD800E60FFC /* TapGestureRecognizerWithClosure.swift in Sources */,
 				799E39F027469CD800E60FFC /* OnTouchGestureRecognizer.swift in Sources */,
 				79C002BE270E696F002DB22B /* WarpinatorServiceProvider.swift in Sources */,
+				7914DDF42819C99200A9BB51 /* ErrorMessageView.swift in Sources */,
 				799E39F42746A0E500E60FFC /* RemoteViewController.swift in Sources */,
 				79B8A0ED27449EE300369E62 /* ExtensionManagement.swift in Sources */,
 				799E39EB2746989000E60FFC /* AutoLayoutDebugView.swift in Sources */,
@@ -471,6 +486,7 @@
 				79B0022B27190F18003CEBCC /* MDNSBrowser.swift in Sources */,
 				79B8A0FB2745623900369E62 /* MainCoordinator.swift in Sources */,
 				7954F92F2795F98900F255AE /* SettingsManager.swift in Sources */,
+				7914DDF22819C81A00A9BB51 /* LoadingMessageView.swift in Sources */,
 				796B5A84278BB2DF009CEF73 /* ChunkIterator.swift in Sources */,
 				79B8A0F42745587C00369E62 /* ListedRemoteView.swift in Sources */,
 				791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */,

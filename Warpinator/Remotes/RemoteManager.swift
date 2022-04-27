@@ -18,7 +18,7 @@ final class RemoteManager {
     
     var remotes: [String: Remote] = [:] // [hostname:remote]
     
-    weak var remotesViewController: ViewController?
+    weak var remotesViewController: MainViewController?
     
     let remoteEventloopGroup: EventLoopGroup
     

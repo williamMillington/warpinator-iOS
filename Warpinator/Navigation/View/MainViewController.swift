@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MainViewController.swift
 //  Warpinator
 //
 //  Created by William Millington on 2021-09-30.
@@ -10,9 +10,9 @@ import GRPC
 import NIO
 
 
-final class ViewController: UIViewController {
+final class MainViewController: UIViewController {
     
-    private let DEBUG_TAG: String = "ViewController: "
+    private let DEBUG_TAG: String = "MainViewController: "
     
     var coordinator: MainCoordinator?
     
@@ -32,8 +32,9 @@ final class ViewController: UIViewController {
     weak var settingsManager: SettingsManager?
     
     
-    var errorScreen: ErrorView?
-    var serverLoadingScreen: ServerLoadingView?
+    var errorScreen: ErrorMessageView?
+    var serverLoadingScreen: LoadingMessageView?
+    
     
     
     //
@@ -112,7 +113,7 @@ final class ViewController: UIViewController {
             return
         }
         
-        errorScreen = ErrorView(error, withMessage: message, onTap: {
+        errorScreen = ErrorMessageView(error, withMessage: message, onTap: {
             self.removeErrorScreen()
             self.coordinator?.restartServers()
         })
@@ -153,6 +154,8 @@ final class ViewController: UIViewController {
     
     
     
+    //
+    // MARK: show loading screen
     func showLoadingScreen(){
         
         print(DEBUG_TAG+"showing loading screen")
@@ -162,7 +165,7 @@ final class ViewController: UIViewController {
             return
         }
         
-        serverLoadingScreen = ServerLoadingView()
+        serverLoadingScreen = LoadingMessageView()
         serverLoadingScreen?.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(serverLoadingScreen!)
@@ -180,6 +183,9 @@ final class ViewController: UIViewController {
     }
     
     
+    
+    //
+    // MARK: remove loading screen
     func removeLoadingScreen(){
         guard let screen = serverLoadingScreen else {
             print(DEBUG_TAG+"No loading screen"); return
@@ -193,11 +199,6 @@ final class ViewController: UIViewController {
         serverLoadingScreen = nil
     }
     
-    
-    
-    
-    
-    
 }
 
 
@@ -208,75 +209,62 @@ final class ViewController: UIViewController {
 
 
 
-
-
-
-
-
-
-// MARK: - Server View
-final class ServerLoadingView: UIView {
-    
-    private let DEBUG_TAG: String = "ServerLoadingView: "
-    
-    let loadingTextLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Server is starting up, please wait... "
-        label.textColor = Utils.textColour
-        label.tintColor = Utils.textColour
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.isUserInteractionEnabled = false
-        return label
-    }()
-    
-    
-//    var tapRecognizer: TapGestureRecognizerWithClosure?
-    
-    override init(frame: CGRect){
-        super.init(frame: frame)
-        setUpView()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setUpView()
-    }
-    
-    
-//    convenience init(onTap action: @escaping ()->Void = {}){
-    convenience init(){
-        self.init(frame: .zero)
-        
-        // add subviews and constraints
-        setUpView()
-        
-        // add onTap action
-//        tapRecognizer = TapGestureRecognizerWithClosure(action: action)
-//        addGestureRecognizer(tapRecognizer!)
-        
-    }
-    
-    
-    //
-    // MARK: setUpView
-    func setUpView(){
-        
-        addSubview(loadingTextLabel)
-        
-        let constraints = [
-            loadingTextLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            loadingTextLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
-        ]
-        
-        NSLayoutConstraint.activate(constraints)
-        
-//        backgroundColor = UIColor.blue.withAlphaComponent(0.5)
-        backgroundColor = Utils.backgroundColour
-        
-        
-    }
-    
-}
+//// MARK: - Loading View
+//final class ServerLoadingView: UIView {
+//
+//    private let DEBUG_TAG: String = "ServerLoadingView: "
+//
+//    let loadingTextLabel: UILabel = {
+//        let label = UILabel()
+//        label.text = "Server is starting up, please wait... "
+//        label.textColor = Utils.textColour
+//        label.tintColor = Utils.textColour
+//        label.translatesAutoresizingMaskIntoConstraints = false
+//        label.isUserInteractionEnabled = false
+//        return label
+//    }()
+//
+//
+//    override init(frame: CGRect){
+//        super.init(frame: frame)
+//        setUpView()
+//    }
+//
+//    required init?(coder: NSCoder) {
+//        super.init(coder: coder)
+//        setUpView()
+//    }
+//
+//
+//    convenience init(){
+//        self.init(frame: .zero)
+//
+//        // add subviews and constraints
+//        setUpView()
+//
+//    }
+//
+//
+//    //
+//    // MARK: setUpView
+//    func setUpView(){
+//
+//        addSubview(loadingTextLabel)
+//
+//        let constraints = [
+//            loadingTextLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+//            loadingTextLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
+//        ]
+//
+//        NSLayoutConstraint.activate(constraints)
+//
+////        backgroundColor = UIColor.blue.withAlphaComponent(0.5)
+//        backgroundColor = Utils.backgroundColour
+//
+//
+//    }
+//
+//}
 
 
 
@@ -292,107 +280,4 @@ final class ServerLoadingView: UIView {
 
 
 
-// MARK: - Error View
-final class ErrorView: UIView {
-    
-    private let DEBUG_TAG: String = "ErrorView: "
-    
-    let errorAnnouncementLabel: UILabel = {
-        let label = UILabel()
-        label.text = "An error occurred, tap to restart server"
-        label.textColor = Utils.textColour
-        label.tintColor = Utils.textColour
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.isUserInteractionEnabled = false
-        return label
-    }()
-    
-    
-    let errorDescriptionLabel: UILabel = {
-        let label = UILabel()
-        label.text = ""
-        label.textColor = Utils.textColour
-        label.tintColor = Utils.textColour
-        label.numberOfLines = 0
-        label.lineBreakMode = .byWordWrapping
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.isUserInteractionEnabled = false
-        return label
-    }()
-    
-    let messageLabel: UILabel = {
-        let label = UILabel()
-        label.text = ""
-        label.textColor = Utils.textColour
-        label.tintColor = Utils.textColour
-        label.numberOfLines = 0
-        label.lineBreakMode = .byWordWrapping
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.isUserInteractionEnabled = false
-        return label
-    }()
-    
-    
-    var tapRecognizer: TapGestureRecognizerWithClosure?
-    
-    override init(frame: CGRect){
-        super.init(frame: frame)
-        setUpView()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setUpView()
-    }
-    
-    
-    convenience init(_ error: Error, withMessage message: String, onTap action: @escaping ()->Void = {}){
-        self.init(frame: .zero)
-        
-        errorDescriptionLabel.text = "\(error)"
-        messageLabel.text = message
-        
-        // add subviews and constraints
-        setUpView()
-        
-        // add onTap action
-        tapRecognizer = TapGestureRecognizerWithClosure(action: action)
-        addGestureRecognizer(tapRecognizer!)
-        
-    }
-    
-    
-    //
-    // MARK: setUpView
-    func setUpView(){
-        
-        addSubview(errorAnnouncementLabel)
-        addSubview(errorDescriptionLabel)
-        addSubview(messageLabel)
-        
-        let constraints = [
-            errorAnnouncementLabel.bottomAnchor.constraint(equalTo: errorDescriptionLabel.topAnchor, constant: -15 ),
-            errorAnnouncementLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            
-            errorDescriptionLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            errorDescriptionLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            
-            messageLabel.topAnchor.constraint(equalTo: errorDescriptionLabel.bottomAnchor, constant: 10),
-            messageLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            
-            errorAnnouncementLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -10),
-            errorDescriptionLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -10),
-            messageLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -10)
-        ]
-        
-        NSLayoutConstraint.activate(constraints)
-        
-//        backgroundColor = UIColor.blue.withAlphaComponent(0.5)
-        backgroundColor = Utils.backgroundColour
-        
-    }
-    
-}
+
