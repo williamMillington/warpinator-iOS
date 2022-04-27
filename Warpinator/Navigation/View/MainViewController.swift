@@ -47,6 +47,35 @@ final class MainViewController: UIViewController {
         // remove placeholder from xib
         for view in remotesStack.arrangedSubviews {   view.removeFromSuperview()  }
         
+//        let displayNameString = "\(settingsManager!.displayName)"
+//        displayNameLabel.attributedText = NSAttributedString(string: displayNameString,
+//                                                             attributes: [ .font: UIFont.boldSystemFont(ofSize: 22)])
+//
+//        let deviceString = "\(settingsManager!.userName)@\(settingsManager!.hostname)"
+//        deviceLabel.attributedText = NSAttributedString(string: deviceString,
+//                                                             attributes: [ .font: UIFont.boldSystemFont(ofSize: 20)])
+//
+//        let ipstring = "\(Utils.getIP_V4_Address())"
+//        IPaddressLabel.attributedText = NSAttributedString(string: ipstring,
+//                                                           attributes: [ .font: UIFont.systemFont(ofSize: 20,
+//                                                                                                  weight: .light)])
+        
+//        updateInfo()
+        view.backgroundColor = Utils.backgroundColour
+//        showErrorScreen()
+    }
+    
+    
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        updateInfo()
+    }
+    
+    
+    func updateInfo(){
+        
         let displayNameString = "\(settingsManager!.displayName)"
         displayNameLabel.attributedText = NSAttributedString(string: displayNameString,
                                                              attributes: [ .font: UIFont.boldSystemFont(ofSize: 22)])
@@ -59,9 +88,9 @@ final class MainViewController: UIViewController {
         IPaddressLabel.attributedText = NSAttributedString(string: ipstring,
                                                            attributes: [ .font: UIFont.systemFont(ofSize: 20,
                                                                                                   weight: .light)])
-        view.backgroundColor = Utils.backgroundColour
-//        showErrorScreen()
     }
+    
+    
     
     //
     // MARK: go to settings
@@ -246,7 +275,7 @@ final class MainViewController: UIViewController {
 //
 //
 //    //
-//    // MARK: setUpView
+//    // MARK setUpView
 //    func setUpView(){
 //
 //        addSubview(loadingTextLabel)

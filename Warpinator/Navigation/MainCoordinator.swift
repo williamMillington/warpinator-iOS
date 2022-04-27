@@ -138,9 +138,9 @@ final class MainCoordinator: NSObject, Coordinator {
         print(DEBUG_TAG+"starting servers...")
         
         DispatchQueue.main.async {
-            if let vc = self.navController.visibleViewController as? MainViewController {
-                vc.removeErrorScreen()
-            }
+//            if let vc = self.navController.visibleViewController as? MainViewController {
+            (self.navController.visibleViewController as? MainViewController)?.removeErrorScreen()
+//            }
         }
         
         
@@ -151,9 +151,9 @@ final class MainCoordinator: NSObject, Coordinator {
         
         
         DispatchQueue.main.async {
-            if let vc = self.navController.visibleViewController as? MainViewController {
-                vc.showLoadingScreen()
-            }
+//            if let vc = self.navController.visibleViewController as? MainViewController {
+                (self.navController.visibleViewController as? MainViewController)?.showLoadingScreen()
+//            }
         }
         
         
@@ -210,6 +210,14 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: restart servers
     func restartServers(){
+        
+        DispatchQueue.main.async {
+            (self.navController.visibleViewController as? MainViewController)?.showLoadingScreen()
+            
+//            if let vc = self.navController.visibleViewController as? MainViewController {
+//                vc.showLoadingScreen()
+//            }
+        }
         
         // unregister ourselves from mDNS
         removeMdns()
@@ -283,6 +291,8 @@ final class MainCoordinator: NSObject, Coordinator {
             
             navController.pushViewController(mainMenuVC, animated: false)
         }
+        
+        
     }
     
     
@@ -417,13 +427,22 @@ extension MainCoordinator: NetworkDelegate {
     
     func didLoseLocalNetworkConnectivity() {
         print(self.DEBUG_TAG+" lost wifi connectivity")
+        DispatchQueue.main.async {
+//            if let vc = self.navController.visibleViewController as? MainViewController {
+            (self.navController.visibleViewController as? MainViewController)?.updateInfo()
+//            }
+        }
     }
     
     
     func didGainLocalNetworkConnectivity() {
         print(self.DEBUG_TAG+" gained wifi connectivity")
         
-        
+        DispatchQueue.main.async {
+//            if let vc = self.navController.visibleViewController as? MainViewController {
+            (self.navController.visibleViewController as? MainViewController)?.updateInfo()
+//            }
+        }
     }
     
 }
