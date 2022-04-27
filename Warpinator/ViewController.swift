@@ -16,17 +16,6 @@ final class ViewController: UIViewController {
     
     var coordinator: MainCoordinator?
     
-//    let refreshButton: UIButton = {
-//        let button = UIButton()
-//        button.translatesAutoresizingMaskIntoConstraints = false
-//        button.setTitle("Refresh", for: .normal)
-//        button.backgroundColor = .blue
-//        button.alpha = 0.5 // 'grayed' out while disabled
-//        button.isUserInteractionEnabled = false // disabled for inital setup
-//        return button
-//    }()
-    
-    
     @IBOutlet var titleLabel: UILabel!
     
     @IBOutlet var settingsButton: UIButton!
@@ -72,26 +61,11 @@ final class ViewController: UIViewController {
         view.backgroundColor = Utils.backgroundColour
 //        showErrorScreen()
     }
-
-    
-    func setRefreshButtonEnabled(_ enabled: Bool){
-        
-//        if enabled {
-//            refreshButton.alpha = 1
-//            refreshButton.isUserInteractionEnabled = true
-//        } else {
-//            refreshButton.alpha = 0.5
-//            refreshButton.isUserInteractionEnabled = false
-//        }
-    }
-    
     
     //
     // MARK: go to settings
     @IBAction func userDidPushSettingsButton(){
-        
         coordinator?.showSettings()
-        
     }
     
     
