@@ -53,9 +53,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         print(DEBUG_TAG+"sceneDidBecomeActive")
         
-        coordinator?.checkmdns()
+        coordinator?.checkNetwork()
         .flatMap { _ -> EventLoopFuture<Void> in
-            print(self.DEBUG_TAG+"We have permission to access to the local network! Starting servers.")
+            print(self.DEBUG_TAG+"We have network access")
             return self.coordinator!.startServers()
         }
         .flatMap { _ -> EventLoopFuture<Void> in
@@ -73,10 +73,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             case .failure(let error):
 
                 switch error {
-                    
-                    // TODO: refactor these
-                case MDNSListener.ServiceError.ALREADY_RUNNING: break
-                case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
                     
                 case NetworkMonitor.ServiceError.LOCAL_NETWORK_PERMISSION_DENIED:
                     print(self.DEBUG_TAG+"We DO NOT HAVE access to the local network!")

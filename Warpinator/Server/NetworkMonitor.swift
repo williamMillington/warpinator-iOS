@@ -43,14 +43,20 @@ class NetworkMonitor {
     let queue: DispatchQueue = DispatchQueue(label: "NetworkMonitor")
     
     
-    init(delegate: NetworkDelegate){
+    let eventloopGroup: EventLoopGroup
+    
+    init(withEventloopGroup group: EventLoopGroup, delegate: NetworkDelegate){
+        
+        eventloopGroup = group
         
         self.delegate = delegate
         
         monitor.pathUpdateHandler = updateHandler(path:)
         monitor.start(queue: queue)
         
-        // actually triggers the network to check. Do not delete.
+        // triggers nwpathmonitor to start.
+        // If we wait until the first REAL check, it will return false
+        // while nwpathmonitor starts up
         let _ = wifiIsAvailable
     }
     
@@ -69,44 +75,47 @@ class NetworkMonitor {
     
     
     
-    // TODO: this function -and other functions like it in the MDNSListener and Browser classes, should be modified to not update the pathUpdateHandler, but instead modify a set, which is mapped by a consistent pathUpdateHandler, declared in a different location. This avoids dropping preexisting promises without completing them every time a new call is made
-    func waitForWifiAvailable(withPromise promise: EventLoopPromise<Void>) -> EventLoopFuture<Void> {
-        
-        // if status is .satisfied, then we are connected
-        guard monitor.currentPath.status != .satisfied else {
-            promise.succeed( Void() )
-            return promise.futureResult
-        }
-        
-        // otherwise, wait for connectivity
-        
-        // every time the path is updated, check for connectivity
-        monitor.pathUpdateHandler = { path in
-
-            print(NetworkMonitor.DEBUG_TAG+" (waitForWifiAvailable) updated path: \(path) (\(path.status))")
-            
-            switch path.status {
-                
-            case .satisfied: // .satisfied means we're connected
-                
-                promise.succeed( Void() ) // fulfill promise
-                
-                // set monitor back to updating the delegate
-                self.monitor.pathUpdateHandler = self.updateHandler(path:)
-                
-            case .unsatisfied: // if we're not connected
-                print(NetworkMonitor.DEBUG_TAG+" (waitForWifiAvailable) No wifi")
-                promise.fail( Server.ServerError.NO_INTERNET     ) // fail promise (placeholder error)
-                
-            default:
-                print(self.DEBUG_TAG+"u (waitForWifiAvailable) nknown status in path: \(path.status)")
-            }
-            
-        }
-        
-        
-        return promise.futureResult
-    }
+    // TODO this function -and other functions like it in the MDNSListener and Browser classes, should be modified to not update the pathUpdateHandler, but instead modify a set, which is mapped by a consistent pathUpdateHandler, declared in a different location. This avoids dropping preexisting promises without completing them every time a new call is made
+//    func waitForWifiAvailable()  -> EventLoopFuture<Void> {
+////        withPromise promise: EventLoopPromise<Void>) -> EventLoopFuture<Void> {
+//
+//        let promise = eventloopGroup.next().makePromise(of: Void.self)
+//
+//        // if status is .satisfied, then we are connected
+//        guard monitor.currentPath.status != .satisfied else {
+//            promise.succeed( Void() )
+//            return promise.futureResult
+//        }
+//
+//        // otherwise, wait for connectivity
+//
+//        // every time the path is updated, check for connectivity
+//        monitor.pathUpdateHandler = { path in
+//
+//            print(NetworkMonitor.DEBUG_TAG+" (waitForWifiAvailable) updated path: \(path) (\(path.status))")
+//
+//            switch path.status {
+//
+//            case .satisfied: // .satisfied means we're connected
+//
+//                promise.succeed( Void() ) // fulfill promise
+//
+//                // set monitor back to updating the delegate
+//                self.monitor.pathUpdateHandler = self.updateHandler(path:)
+//
+//            case .unsatisfied: // if we're not connected
+//                print(NetworkMonitor.DEBUG_TAG+" (waitForWifiAvailable) No wifi")
+//                promise.fail( Server.ServerError.NO_INTERNET     ) // fail promise (placeholder error)
+//
+//            default:
+//                print(self.DEBUG_TAG+"u (waitForWifiAvailable) nknown status in path: \(path.status)")
+//            }
+//
+//        }
+//
+//
+//        return promise.futureResult
+//    }
     
     
     
@@ -128,7 +137,10 @@ class NetworkMonitor {
     var browser: NWBrowser!
     var listener: NWListener!
     
-    func waitForMDNSPermission(withPromise promise: EventLoopPromise<Bool> ) -> EventLoopFuture<Bool> {
+    func waitForMDNSPermission() -> EventLoopFuture<Void> {
+        //withPromise promise: EventLoopPromise<Bool> ) -> EventLoopFuture<Bool> {
+        
+        let promise = eventloopGroup.next().makePromise(of: Void.self)
         
         let parameters = NWParameters.udp
         listener = try! NWListener(using: parameters)
@@ -137,7 +149,7 @@ class NetworkMonitor {
             
             // if we've published successfully then we know we've got permission
             if case .add(_) = change {
-                promise.succeed( true )
+                promise.succeed( Void() )
                 self.listener.cancel()
                 self.browser.cancel()
             }
@@ -165,7 +177,7 @@ class NetworkMonitor {
         // NOTE: browser state will update with .ready BEFORE it updates to .waiting(error)
         // because fuck you for trying to use the API
         browser.stateUpdateHandler = { state in
-            print(self.DEBUG_TAG+"MDNSCHECKER BROWSER STATE \(state)")
+//            print(self.DEBUG_TAG+"MDNSCHECKER BROWSER STATE \(state)")
             
             if case .waiting(_) = state {
                 

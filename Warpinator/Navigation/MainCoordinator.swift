@@ -27,7 +27,8 @@ final class MainCoordinator: NSObject, Coordinator {
                                                                                        networkPreference: .best)
     
     
-    lazy var networkMonitor: NetworkMonitor = NetworkMonitor(delegate: self)
+    lazy var networkMonitor: NetworkMonitor = NetworkMonitor(withEventloopGroup: serverEventLoopGroup,
+                                                             delegate: self)
     
     lazy var remoteManager: RemoteManager = RemoteManager(withEventloopGroup: remoteEventLoopGroup)
     
@@ -76,18 +77,22 @@ final class MainCoordinator: NSObject, Coordinator {
         
     }
     
-//    var promise: EventLoopPromise<Bool>?
-    func checkmdns() -> EventLoopFuture<Bool> {
+    
+    //
+    // MARK: checkNetwork
+    func checkNetwork() -> EventLoopFuture<Void> {
         
-        let promise = serverEventLoopGroup.next().makePromise(of: Bool.self)
+        guard networkMonitor.wifiIsAvailable else {
+            return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
+        }
         
-        return networkMonitor.waitForMDNSPermission(withPromise: promise)
+        return networkMonitor.waitForMDNSPermission()
     }
     
     
     
     //
-    //
+    // MARK: startupMdns
     func startupMdns() -> EventLoopFuture<Void> {
         let futures = [ mDNSListener.start(), mDNSBrowser.start() ]
         return EventLoopFuture.andAllComplete( futures, on: serverEventLoopGroup.next() )
@@ -95,7 +100,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    //
+    // MARK: shutdownMdns
     func shutdownMdns() -> EventLoopFuture<Void> {
         let futures = [ mDNSListener.stop(), mDNSBrowser.stop() ]
         return EventLoopFuture.andAllComplete( futures, on: serverEventLoopGroup.next() )
@@ -104,7 +109,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    //
+    // MARK: publishMdns
     func publishMdns(){
         print(DEBUG_TAG+"publishing mDNS...")
         mDNSListener.startListening()
@@ -115,7 +120,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    //
+    // MARK: removeMdns
     func removeMdns(){
         print(DEBUG_TAG+"removing mDNS...")
         mDNSListener.removeService()
@@ -138,16 +143,12 @@ final class MainCoordinator: NSObject, Coordinator {
             }
         }
         
-        // check for wifi
-        guard networkMonitor.wifiIsAvailable else {
-            return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
-        }
-        
         
         guard !server.isRunning else {
             print(DEBUG_TAG+"Server is already running")
             return serverEventLoopGroup.next().makeSucceededVoidFuture()
         }
+        
         
         DispatchQueue.main.async {
             if let vc = self.navController.visibleViewController as? ViewController {
@@ -172,11 +173,6 @@ final class MainCoordinator: NSObject, Coordinator {
 //        }
 //
 //        return promise?.futureResult
-        
-        
-//        guard networkMonitor.wifiIsAvailable else {
-//            return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
-//        }
         
         // start server
         return server.start()
@@ -208,7 +204,6 @@ final class MainCoordinator: NSObject, Coordinator {
             print(self.DEBUG_TAG+"stopping server")
             return self.server.stop() // main server second
         }
-        
     }
     
     
@@ -216,7 +211,7 @@ final class MainCoordinator: NSObject, Coordinator {
     // MARK: restart servers
     func restartServers(){
         
-        // remove ourselves from mDNS
+        // unregister ourselves from mDNS
         removeMdns()
         
         // shutdown mDNS
@@ -225,9 +220,9 @@ final class MainCoordinator: NSObject, Coordinator {
             .flatMap { _ in
                 return self.stopServers()
             }
-        // then -> check mDNS
+        // then -> check network connection
             .flatMap{ Void in
-                return self.checkmdns()
+                return self.checkNetwork()
             }
         // then -> start up  servers
             .flatMap { _ in
@@ -248,7 +243,7 @@ final class MainCoordinator: NSObject, Coordinator {
                     switch error {
                     
                     case NetworkMonitor.ServiceError.LOCAL_NETWORK_PERMISSION_DENIED:
-                        print(self.DEBUG_TAG+"We DO NOT HAVE access to the local network!")
+                        print(self.DEBUG_TAG+"We DO NOT have access to the local network!")
                         self.reportError(error,
                                          withMessage: "Please enable local network access in your system settings (Settings App -> Privacy -> Local Network)")
                     case Server.ServerError.NO_INTERNET:
