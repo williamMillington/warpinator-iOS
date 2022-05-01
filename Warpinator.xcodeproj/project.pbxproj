@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		7914DDF22819C81A00A9BB51 /* LoadingMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7914DDF12819C81A00A9BB51 /* LoadingMessageView.swift */; };
 		7914DDF42819C99200A9BB51 /* ErrorMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7914DDF32819C99200A9BB51 /* ErrorMessageView.swift */; };
+		7914DDF6281CCE7D00A9BB51 /* String+NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7914DDF5281CCE7C00A9BB51 /* String+NSAttributedString.swift */; };
 		791D77E72767B244008140CC /* SendTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77E62767B244008140CC /* SendTransferViewController.swift */; };
 		791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */; };
 		791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F52769910A008140CC /* ListedFileSelectionView.swift */; };
@@ -81,6 +82,7 @@
 /* Begin PBXFileReference section */
 		7914DDF12819C81A00A9BB51 /* LoadingMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingMessageView.swift; sourceTree = "<group>"; };
 		7914DDF32819C99200A9BB51 /* ErrorMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessageView.swift; sourceTree = "<group>"; };
+		7914DDF5281CCE7C00A9BB51 /* String+NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+NSAttributedString.swift"; sourceTree = "<group>"; };
 		791D77E62767B244008140CC /* SendTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendTransferViewController.swift; sourceTree = "<group>"; };
 		791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTransferCoordinator.swift; sourceTree = "<group>"; };
 		791D77F52769910A008140CC /* ListedFileSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileSelectionView.swift; sourceTree = "<group>"; };
@@ -360,6 +362,7 @@
 				79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */,
 				79DCBB4427EA1A8500E1B847 /* NIOSSLCertificate+PEM.swift */,
 				79B8A0E927449EB500369E62 /* String+substring.swift */,
+				7914DDF5281CCE7C00A9BB51 /* String+NSAttributedString.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -501,6 +504,7 @@
 				79395589279F468F00D5EC8B /* FolderWriter.swift in Sources */,
 				79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */,
 				796B5A89278BB3CB009CEF73 /* FolderReader.swift in Sources */,
+				7914DDF6281CCE7D00A9BB51 /* String+NSAttributedString.swift in Sources */,
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
 				79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */,

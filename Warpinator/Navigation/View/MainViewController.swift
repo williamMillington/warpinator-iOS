@@ -47,22 +47,7 @@ final class MainViewController: UIViewController {
         // remove placeholder from xib
         for view in remotesStack.arrangedSubviews {   view.removeFromSuperview()  }
         
-//        let displayNameString = "\(settingsManager!.displayName)"
-//        displayNameLabel.attributedText = NSAttributedString(string: displayNameString,
-//                                                             attributes: [ .font: UIFont.boldSystemFont(ofSize: 22)])
-//
-//        let deviceString = "\(settingsManager!.userName)@\(settingsManager!.hostname)"
-//        deviceLabel.attributedText = NSAttributedString(string: deviceString,
-//                                                             attributes: [ .font: UIFont.boldSystemFont(ofSize: 20)])
-//
-//        let ipstring = "\(Utils.getIP_V4_Address())"
-//        IPaddressLabel.attributedText = NSAttributedString(string: ipstring,
-//                                                           attributes: [ .font: UIFont.systemFont(ofSize: 20,
-//                                                                                                  weight: .light)])
-        
-//        updateInfo()
         view.backgroundColor = Utils.backgroundColour
-//        showErrorScreen()
     }
     
     
@@ -76,18 +61,14 @@ final class MainViewController: UIViewController {
     
     func updateInfo(){
         
-        let displayNameString = "\(settingsManager!.displayName)"
-        displayNameLabel.attributedText = NSAttributedString(string: displayNameString,
-                                                             attributes: [ .font: UIFont.boldSystemFont(ofSize: 22)])
+        displayNameLabel.attributedText = "\(settingsManager!.displayName)".extended
+            .attributed( [ .font: UIFont.boldSystemFont(ofSize: 22)] )
         
-        let deviceString = "\(settingsManager!.userName)@\(settingsManager!.hostname)"
-        deviceLabel.attributedText = NSAttributedString(string: deviceString,
-                                                             attributes: [ .font: UIFont.boldSystemFont(ofSize: 20)])
+        deviceLabel.attributedText = "\(settingsManager!.userName)@\(settingsManager!.hostname)".extended
+            .attributed( [ .font: UIFont.boldSystemFont(ofSize: 20)] )
         
-        let ipstring = "\(Utils.getIP_V4_Address())"
-        IPaddressLabel.attributedText = NSAttributedString(string: ipstring,
-                                                           attributes: [ .font: UIFont.systemFont(ofSize: 20,
-                                                                                                  weight: .light)])
+        IPaddressLabel.attributedText = "\(Utils.getIP_V4_Address())".extended
+            .attributed( [ .font: UIFont.systemFont(ofSize: 20, weight: .light)])
     }
     
     
@@ -105,8 +86,6 @@ final class MainViewController: UIViewController {
     func remoteAdded(_ remote: Remote){
         
         let viewModel = ListedRemoteViewModel(remote)
-        
-//        print(DEBUG_TAG+"Adding view for connection \(viewModel.displayName)")
         
         let remoteView = ListedRemoteView(withViewModel: viewModel) {
             self.coordinator?.remoteSelected(viewModel.uuid)
@@ -229,84 +208,4 @@ final class MainViewController: UIViewController {
     }
     
 }
-
-
-
-
-
-
-
-
-
-//// MARK: - Loading View
-//final class ServerLoadingView: UIView {
-//
-//    private let DEBUG_TAG: String = "ServerLoadingView: "
-//
-//    let loadingTextLabel: UILabel = {
-//        let label = UILabel()
-//        label.text = "Server is starting up, please wait... "
-//        label.textColor = Utils.textColour
-//        label.tintColor = Utils.textColour
-//        label.translatesAutoresizingMaskIntoConstraints = false
-//        label.isUserInteractionEnabled = false
-//        return label
-//    }()
-//
-//
-//    override init(frame: CGRect){
-//        super.init(frame: frame)
-//        setUpView()
-//    }
-//
-//    required init?(coder: NSCoder) {
-//        super.init(coder: coder)
-//        setUpView()
-//    }
-//
-//
-//    convenience init(){
-//        self.init(frame: .zero)
-//
-//        // add subviews and constraints
-//        setUpView()
-//
-//    }
-//
-//
-//    //
-//    // MARK setUpView
-//    func setUpView(){
-//
-//        addSubview(loadingTextLabel)
-//
-//        let constraints = [
-//            loadingTextLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-//            loadingTextLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
-//        ]
-//
-//        NSLayoutConstraint.activate(constraints)
-//
-////        backgroundColor = UIColor.blue.withAlphaComponent(0.5)
-//        backgroundColor = Utils.backgroundColour
-//
-//
-//    }
-//
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

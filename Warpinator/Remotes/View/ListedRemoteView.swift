@@ -166,19 +166,21 @@ final class ListedRemoteView: UIView {
         
         guard let viewModel = viewModel else { return }
         
-        let displayString = NSAttributedString(string: viewModel.displayName,
-                                               attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
-                                                             .foregroundColor : Utils.textColour  ])
-        let deviceNameString = NSAttributedString(string: viewModel.deviceName,
-                                                  attributes: [ .font : UIFont.systemFont(ofSize:  self.frame.size.height / 4),
-                                                                .foregroundColor : Utils.textColour  ])
-        let statusString = NSAttributedString(string:  viewModel.status,
-                                              attributes: [ .font : UIFont.systemFont(ofSize:  self.frame.size.height / 4),
-                                                            .foregroundColor : Utils.textColour  ])
+        let bold = UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)
+        let standard = UIFont.systemFont(ofSize:  self.frame.size.height / 4)
         
-        self.displayNameLabel.attributedText = displayString
-        self.deviceNameLabel.attributedText = deviceNameString
-        self.deviceStatusLabel.attributedText = statusString
+        displayNameLabel.attributedText = viewModel.displayName.extended
+            .attributed( [ .font : bold,
+                           .foregroundColor : Utils.textColour] )
+        
+        deviceNameLabel.attributedText = viewModel.deviceName.extended
+            .attributed( [ .font : standard,
+                           .foregroundColor : Utils.textColour] )
+        
+        deviceStatusLabel.attributedText = viewModel.status.extended
+            .attributed( [ .font : standard,
+                           .foregroundColor : Utils.textColour] )
+        
         
         if let image = viewModel.avatarImage {
             self.userImageView.image = image
@@ -225,6 +227,7 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
         case .FetchingCredentials,
              .AquiringDuplex, 
              .OpeningConnection : return "Connecting"
+        case .Error: return "Error"
         default: return remote.details.status.rawValue
         }
     }
@@ -260,21 +263,22 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
 extension ListedRemoteView {
     override func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
+        
         setUpView()
         
-        let displayString = NSAttributedString(string: "Display Name",
-                                               attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
-                                                             .foregroundColor : Utils.textColour  ])
-        let deviceNameString = NSAttributedString(string: "Device Name",
-                                                  attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
-                                                                .foregroundColor : Utils.textColour  ])
-        let statusString = NSAttributedString(string:  "Connecting",
-                                              attributes: [ .font : UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3),
-                                                            .foregroundColor : Utils.textColour  ])
+        let font = UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)
         
-        self.displayNameLabel.attributedText = displayString
-        self.deviceNameLabel.attributedText = deviceNameString
-        self.deviceStatusLabel.attributedText = statusString
+        self.displayNameLabel.attributedText = "Display Name".extended
+            .attributed([ .font : font,
+                            .foregroundColor : Utils.textColour  ])
+        
+        self.deviceNameLabel.attributedText = "Device Name".extended
+            .attributed([ .font : font,
+                            .foregroundColor : Utils.textColour  ])
+        
+        self.deviceStatusLabel.attributedText = "Connecting".extended
+            .attributed([ .font : font,
+                            .foregroundColor : Utils.textColour  ])
         
     }
 }
