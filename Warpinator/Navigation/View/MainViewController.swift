@@ -195,6 +195,7 @@ final class MainViewController: UIViewController {
     //
     // MARK: remove loading screen
     func removeLoadingScreen(){
+        
         guard let screen = serverLoadingScreen else {
             print(DEBUG_TAG+"No loading screen"); return
         }

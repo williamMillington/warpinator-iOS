@@ -81,8 +81,7 @@ final class MDNSBrowser {
         
         browser.start(queue: browserQueue)
         
-        return promise.futureResult.map { _ in
-        }
+        return promise.futureResult
     }
     
     
@@ -158,6 +157,15 @@ final class MDNSBrowser {
     // MARK: startBrowsing
     func startBrowsing(){
         print(DEBUG_TAG+" start browsing")
+        
+        /* any mDNS services that existed BEFORE we started browsing
+         aren't guaranteed to trigger resultsDidChange, but will still be listed
+         in browser.browseResults. No harm in adding them twice,
+         as mDNSBrowserDidAddResult() can handle duplicates */
+        browser.browseResults.forEach { result in
+            self.delegate?.mDNSBrowserDidAddResult(result)
+        }
+        
         browser.browseResultsChangedHandler = resultsDidChange(results: changes:)
     }
     
@@ -173,20 +181,7 @@ final class MDNSBrowser {
     //
     // MARK:  stateDidUpdate
     private func stateDidUpdate(state: NWBrowser.State){
-        
         print(DEBUG_TAG+" state is \(state)")
-        
-//        switch state {
-//        case .cancelled:
-//            print(DEBUG_TAG+" cancelled")
-////            browser = nil
-//        case .failed(let error):
-//
-//            print(DEBUG_TAG+"failed with error \(error)")
-//
-//        default: print(DEBUG_TAG+"\(state)")
-//        }
-        
     }
     
     

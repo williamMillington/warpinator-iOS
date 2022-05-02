@@ -138,9 +138,7 @@ final class MainCoordinator: NSObject, Coordinator {
         print(DEBUG_TAG+"starting servers...")
         
         DispatchQueue.main.async {
-//            if let vc = self.navController.visibleViewController as? MainViewController {
             (self.navController.visibleViewController as? MainViewController)?.removeErrorScreen()
-//            }
         }
         
         
@@ -151,9 +149,7 @@ final class MainCoordinator: NSObject, Coordinator {
         
         
         DispatchQueue.main.async {
-//            if let vc = self.navController.visibleViewController as? MainViewController {
-                (self.navController.visibleViewController as? MainViewController)?.showLoadingScreen()
-//            }
+            (self.navController.visibleViewController as? MainViewController)?.showLoadingScreen()
         }
         
         
