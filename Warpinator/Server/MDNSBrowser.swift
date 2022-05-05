@@ -158,6 +158,8 @@ final class MDNSBrowser {
     func startBrowsing(){
         print(DEBUG_TAG+" start browsing")
         
+        
+//        let results = browser.browseResults
         /* any mDNS services that existed BEFORE we started browsing
          aren't guaranteed to trigger resultsDidChange, but will still be listed
          in browser.browseResults. No harm in adding them twice,
@@ -165,8 +167,8 @@ final class MDNSBrowser {
         browser.browseResults.forEach { result in
             self.delegate?.mDNSBrowserDidAddResult(result)
         }
-        
         browser.browseResultsChangedHandler = resultsDidChange(results: changes:)
+        
     }
     
     

@@ -227,7 +227,7 @@ extension SendTransferViewController: UIDocumentPickerDelegate {
             
             do {
                 
-                var fileKeys: Set<URLResourceKey> = [.nameKey, .fileSizeKey, .isDirectoryKey]
+                var fileKeys: Set<URLResourceKey> = [.nameKey, .fileSizeKey, .isDirectoryKey, .totalFileSizeKey]
                 
                 
                 if #available(iOS 14.0, *) {  fileKeys.insert(.contentTypeKey)  }
@@ -266,13 +266,32 @@ extension SendTransferViewController: UIDocumentPickerDelegate {
                 
                 addFile(selection)
                 
-//                print(DEBUG_TAG+"\tfile name is \(String(describing: values.name))")
-//                print(DEBUG_TAG+"\tfile size is \(String(describing: values.fileSize))")
-//                print(DEBUG_TAG+"\tfile is a directory: \(String(describing: values.isDirectory))")
-//
-//                if #available(iOS 14.0, *) {
-//                    print(DEBUG_TAG+"\tfile is type: \(String(describing: values.contentType))")
-//                }
+                print(DEBUG_TAG+"\t file name is \(String(describing: values.name))")
+                print(DEBUG_TAG+"\t file size is \(String(describing: values.fileSize))")
+                print(DEBUG_TAG+"\t total file size \(String(describing: values.totalFileSize))")
+                print(DEBUG_TAG+"\t file is a directory: \(String(describing: values.isDirectory))")
+
+                
+                
+                
+//                guard let filePath = url?.path else {
+//                        return 0.0
+//                    }
+                    do {
+                        let attribute = try FileManager.default.attributesOfItem(atPath: url.path)
+                        if let size = attribute[FileAttributeKey.size] as? NSNumber {
+                            print(DEBUG_TAG+"\t\t size is \( size.doubleValue )" )
+                        }
+                    } catch {
+                        print("Error: \(error)")
+                    }
+                
+                
+                
+                
+                if #available(iOS 14.0, *) {
+                    print(DEBUG_TAG+"\tfile is type: \(String(describing: values.contentType))")
+                }
                 
             } catch is LoadingError {
                 print(DEBUG_TAG+"Error accessing url metadata for \(filename)")

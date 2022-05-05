@@ -344,7 +344,6 @@ final class ListedFolderWriterViewModel: NSObject, ListedFileViewModel, Observes
     }
     
     var name: String {
-        
         return operation.downloadName
     }
     

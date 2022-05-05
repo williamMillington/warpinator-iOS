@@ -28,7 +28,6 @@ final class MainViewController: UIViewController {
     @IBOutlet var deviceLabel: UILabel!
     
     
-    
     weak var settingsManager: SettingsManager?
     
     
@@ -59,6 +58,8 @@ final class MainViewController: UIViewController {
     }
     
     
+    //
+    //
     func updateInfo(){
         
         displayNameLabel.attributedText = "\(settingsManager!.displayName)".extended
@@ -96,7 +97,8 @@ final class MainViewController: UIViewController {
     
     
     
-    
+    //
+    // 
     func remoteRemoved(with uuid: String){
         
         for view in remotesStack.arrangedSubviews as! [ListedRemoteView]{
