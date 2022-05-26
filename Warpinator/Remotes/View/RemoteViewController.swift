@@ -67,7 +67,8 @@ final class RemoteViewController: UIViewController {
         view.backgroundColor = Utils.backgroundColour
         
         // removing intial IB view
-        for view in transfersStack.arrangedSubviews {   view.removeFromSuperview()  }
+        for view in transfersStack.arrangedSubviews {   view.removeFromSuperview()
+        }
         
         
         // load intial info

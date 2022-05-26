@@ -132,9 +132,10 @@ final class ListedFileOperationView: UIView {
             
             bytesLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             bytesLabel.topAnchor.constraint(equalTo: centerYAnchor, constant: 2),
-            bytesLabel.bottomAnchor.constraint(equalTo: selectionImageView.bottomAnchor, constant: -1),
-            
-            heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.15)
+            bytesLabel.bottomAnchor.constraint(equalTo: selectionImageView.bottomAnchor, constant: -1)
+//            ,
+//            
+//            heightAnchor.constraint(greaterThanOrEqualTo: widthAnchor, multiplier: 0.15)
             
         ]
         
@@ -157,11 +158,27 @@ final class ListedFileOperationView: UIView {
         
         fileNameLabel.text = "\(viewModel.name)"
         bytesLabel.text = "\(viewModel.size)"
-        
+        fileTypeLabel.text = "\(viewModel.type)"
     }
     
 
 }
+
+
+
+
+
+
+//MARK: prepareForInterfaceBiulder
+extension ListedFileOperationView {
+    override func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        
+        setUpView()
+    }
+}
+
+
 
 
 
