@@ -37,13 +37,13 @@
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                 </label>
-                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" text="192.168.02.43" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gCR-It-COT" userLabel="IPAddressLabel">
-                    <rect key="frame" x="233.5" y="623" width="123" height="24"/>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="192.168.02.43" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gCR-It-COT" userLabel="IPAddressLabel">
+                    <rect key="frame" x="221" y="623" width="135.5" height="24"/>
                     <fontDescription key="fontDescription" type="system" weight="light" pointSize="20"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                 </label>
-                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" text="username@hostname" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Loc-6H-5j4" userLabel="usernameHostnameLabel">
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" text="username@hostname" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Loc-6H-5j4" userLabel="usernameHostnameLabel">
                     <rect key="frame" x="19" y="619" width="197" height="32"/>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
@@ -96,6 +96,7 @@
                 <constraint firstItem="Loc-6H-5j4" firstAttribute="top" secondItem="upx-qV-62a" secondAttribute="bottom" id="IJ3-0k-f8u"/>
                 <constraint firstItem="Loc-6H-5j4" firstAttribute="leading" secondItem="upx-qV-62a" secondAttribute="leading" id="LMG-Sk-VtS"/>
                 <constraint firstItem="l59-80-9il" firstAttribute="centerX" secondItem="fgf-sX-B9E" secondAttribute="centerX" id="NOI-ED-bhP"/>
+                <constraint firstItem="gCR-It-COT" firstAttribute="leading" relation="lessThanOrEqual" secondItem="Loc-6H-5j4" secondAttribute="trailing" constant="5" id="dSZ-Nb-n0r"/>
                 <constraint firstItem="fgf-sX-B9E" firstAttribute="bottom" secondItem="gCR-It-COT" secondAttribute="bottom" constant="20" id="ed8-Lh-cne"/>
                 <constraint firstItem="l59-80-9il" firstAttribute="top" secondItem="fgf-sX-B9E" secondAttribute="top" constant="15" id="kop-v3-dIM"/>
                 <constraint firstItem="qYx-cs-dIA" firstAttribute="centerY" secondItem="fgf-sX-B9E" secondAttribute="centerY" id="qx4-yg-kr5"/>

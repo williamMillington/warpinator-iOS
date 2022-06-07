@@ -254,7 +254,7 @@ extension ReceiveFileOperation {
         
         
         
-        
+        updateObserversInfo()
         
         
         

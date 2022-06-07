@@ -111,8 +111,9 @@
                     <constraints>
                         <constraint firstItem="ts9-vt-Mdb" firstAttribute="centerY" secondItem="9Lq-tr-hlC" secondAttribute="centerY" id="My5-Wl-cdI"/>
                         <constraint firstItem="cpp-05-4KC" firstAttribute="leading" secondItem="9Lq-tr-hlC" secondAttribute="leading" id="SYD-FS-CEL"/>
-                        <constraint firstItem="cpp-05-4KC" firstAttribute="trailing" secondItem="9Lq-tr-hlC" secondAttribute="trailing" id="Swh-R6-fvc"/>
+                        <constraint firstItem="cpp-05-4KC" firstAttribute="trailing" secondItem="Xtv-Fx-oZM" secondAttribute="trailing" id="Swh-R6-fvc"/>
                         <constraint firstItem="cpp-05-4KC" firstAttribute="top" secondItem="9Lq-tr-hlC" secondAttribute="top" id="dng-71-BOe"/>
+                        <constraint firstItem="9Lq-tr-hlC" firstAttribute="width" secondItem="ts9-vt-Mdb" secondAttribute="width" id="hCy-NM-lEv"/>
                     </constraints>
                     <viewLayoutGuide key="contentLayoutGuide" id="9Lq-tr-hlC"/>
                     <viewLayoutGuide key="frameLayoutGuide" id="Xtv-Fx-oZM"/>

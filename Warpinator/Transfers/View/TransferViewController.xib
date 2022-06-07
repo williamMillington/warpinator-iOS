@@ -75,13 +75,13 @@
                     <nil key="highlightedColor"/>
                 </label>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0KB / 0KB " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EzL-vu-mYE" userLabel="ProgressLabel">
-                    <rect key="frame" x="16" y="87.5" width="81.5" height="20.5"/>
+                    <rect key="frame" x="19" y="87.5" width="81.5" height="20.5"/>
                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                     <nil key="highlightedColor"/>
                 </label>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Initializing" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1rq-sh-kih" userLabel="StatusLabel">
-                    <rect key="frame" x="283.5" y="87.5" width="75.5" height="20.5"/>
+                    <rect key="frame" x="280.5" y="87.5" width="75.5" height="20.5"/>
                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                     <nil key="highlightedColor"/>
@@ -125,15 +125,16 @@
                 <constraint firstItem="EzL-vu-mYE" firstAttribute="top" secondItem="uI6-ji-m5W" secondAttribute="bottom" constant="10" id="8rh-ia-LSe"/>
                 <constraint firstItem="ELl-yr-ABZ" firstAttribute="centerX" secondItem="vUN-kp-3ea" secondAttribute="centerX" id="DI8-3F-NLD"/>
                 <constraint firstItem="uI6-ji-m5W" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="56" id="Hw8-gd-rop"/>
+                <constraint firstItem="uI6-ji-m5W" firstAttribute="leading" relation="lessThanOrEqual" secondItem="Kf9-cO-9ix" secondAttribute="leading" id="JPD-eu-8iC"/>
                 <constraint firstItem="ELl-yr-ABZ" firstAttribute="top" secondItem="Kf9-cO-9ix" secondAttribute="bottom" constant="7.5" id="KWv-qa-JSn"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="Kf9-cO-9ix" secondAttribute="trailing" constant="19" id="LZN-qt-rce"/>
                 <constraint firstItem="THD-0L-rLg" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="16" id="Lgn-ir-Lk7"/>
                 <constraint firstItem="Kf9-cO-9ix" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="19" id="NuF-Ao-CRr"/>
-                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="1rq-sh-kih" secondAttribute="trailing" constant="16" id="X8w-XE-MSf"/>
+                <constraint firstItem="1rq-sh-kih" firstAttribute="trailing" secondItem="Kf9-cO-9ix" secondAttribute="trailing" id="X8w-XE-MSf"/>
                 <constraint firstItem="Wp0-nD-LWt" firstAttribute="bottom" secondItem="ELl-yr-ABZ" secondAttribute="bottom" id="cKO-PH-NeR"/>
                 <constraint firstItem="ELl-yr-ABZ" firstAttribute="height" secondItem="iN0-l3-epB" secondAttribute="height" multiplier="0.1" id="id7-xZ-5U6"/>
                 <constraint firstItem="Wp0-nD-LWt" firstAttribute="centerX" secondItem="ELl-yr-ABZ" secondAttribute="centerX" id="pCf-sD-97Z"/>
-                <constraint firstItem="EzL-vu-mYE" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="16" id="pov-2P-uhk"/>
+                <constraint firstItem="EzL-vu-mYE" firstAttribute="leading" secondItem="Kf9-cO-9ix" secondAttribute="leading" id="pov-2P-uhk"/>
                 <constraint firstItem="uI6-ji-m5W" firstAttribute="width" secondItem="iN0-l3-epB" secondAttribute="width" multiplier="0.9" id="qt5-C6-B56"/>
                 <constraint firstItem="Kf9-cO-9ix" firstAttribute="top" secondItem="EzL-vu-mYE" secondAttribute="bottom" constant="5" id="ro0-bg-YjQ"/>
                 <constraint firstItem="vUN-kp-3ea" firstAttribute="bottom" secondItem="ELl-yr-ABZ" secondAttribute="bottom" constant="20" id="vM7-PS-omO"/>

@@ -48,6 +48,7 @@ final class ListedFileOperationView: UIView {
         label.textColor = Utils.textColour
 //        label.backgroundColor = UIColor.green.withAlphaComponent(0.2)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.lineBreakMode = .byTruncatingMiddle
         label.isUserInteractionEnabled = false
         return label
     }()

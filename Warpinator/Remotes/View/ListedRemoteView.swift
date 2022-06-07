@@ -70,6 +70,9 @@ final class ListedRemoteView: UIView {
     var tapRecognizer: TapGestureRecognizerWithClosure?
     
     
+    //
+    //
+    // MARK: - init
     override init(frame: CGRect){
         super.init(frame: frame)
         setUpView()
@@ -127,18 +130,13 @@ final class ListedRemoteView: UIView {
             userImageView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -5),
             
             userImageView.widthAnchor.constraint(equalTo: userImageView.heightAnchor),
-//            userImageView.widthAnchor.constraint(lessThanOrEqualTo: userImageView.heightAnchor),
-            
             
             displayNameLabel.leadingAnchor.constraint(equalTo: userImageView.trailingAnchor, constant: 5),
-//            displayNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: -10),
             displayNameLabel.bottomAnchor.constraint(equalTo: centerYAnchor),
-            
             
             deviceNameLabel.leadingAnchor.constraint(equalTo: displayNameLabel.leadingAnchor),
             deviceNameLabel.topAnchor.constraint(equalTo: centerYAnchor),
             deviceNameLabel.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, multiplier: 0.5),
-//            deviceNameLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 12),
             
             
             deviceStatusLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
@@ -192,6 +190,9 @@ final class ListedRemoteView: UIView {
 
 
 
+
+
+
 //
 // MARK: - ViewModel
 final class ListedRemoteViewModel: NSObject, ObservesRemote {
@@ -199,7 +200,7 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
     private var remote: Remote
     
     var onInfoUpdated: ()->Void = {}
-    var onTransferAdded: (TransferOperationViewModel)->Void = { viewmodel in }
+    var onTransferAdded: (TransferOperationViewModel) -> Void = { viewmodel in }
 
     
     var avatarImage: UIImage? {
@@ -259,25 +260,27 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
 
 
 
-//MARK: Interface Builder
+
+//MARK: - Interface Builder
 extension ListedRemoteView {
     override func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
         
         setUpView()
         
-        let font = UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)
+        let bold = UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)
+        let standard = UIFont.systemFont(ofSize:  self.frame.size.height / 4)
         
         self.displayNameLabel.attributedText = "Display Name".extended
-            .attributed([ .font : font,
+            .attributed([ .font : bold,
                             .foregroundColor : Utils.textColour  ])
         
         self.deviceNameLabel.attributedText = "Device Name".extended
-            .attributed([ .font : font,
+            .attributed([ .font : standard,
                             .foregroundColor : Utils.textColour  ])
         
         self.deviceStatusLabel.attributedText = "Connecting".extended
-            .attributed([ .font : font,
+            .attributed([ .font : standard,
                             .foregroundColor : Utils.textColour  ])
         
     }
