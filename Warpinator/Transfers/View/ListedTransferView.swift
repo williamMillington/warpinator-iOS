@@ -55,6 +55,9 @@ final class ListedTransferView: UIView {
     var viewModel: ListedTransferViewModel?
     
     
+    
+    //
+    // MARK: - init
     override init(frame: CGRect){
         super.init(frame: frame)
     }
@@ -138,6 +141,13 @@ final class ListedTransferView: UIView {
         transferStatusLabel.text = "\(viewModel.status)"
         
         transferDirectionImageView.image = viewModel.directionImage
+        
+        
+        let waitingColour: UIColor = UIColor.init(red: 111/255.0, green: 179/255.0, blue: 71.0/255.0, alpha: 1)
+        backgroundColor =  viewModel.status == "WAITING" ? waitingColour : Utils.foregroundColour
+        
+        
+        
         setNeedsLayout()
         
     }

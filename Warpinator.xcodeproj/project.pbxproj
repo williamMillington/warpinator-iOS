@@ -17,6 +17,7 @@
 		791D781527717575008140CC /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D781427717575008140CC /* Observable.swift */; };
 		791D7826277378F0008140CC /* Array+Index_nillable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D7825277378F0008140CC /* Array+Index_nillable.swift */; };
 		791D782A27779261008140CC /* MainViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 791D782927779261008140CC /* MainViewController.xib */; };
+		7922BF80285A1C2F00B0B6CF /* UIColor+hexstring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7922BF7F285A1C2F00B0B6CF /* UIColor+hexstring.swift */; };
 		792ECD56280A5D5E003F39F5 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 792ECD55280A5D5E003F39F5 /* NetworkMonitor.swift */; };
 		79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79331AF8274E8F3500A4022F /* TransferViewController.swift */; };
 		79343EB32743502B008E0890 /* SendFileOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79343EB22743502B008E0890 /* SendFileOperation.swift */; };
@@ -90,6 +91,7 @@
 		791D781427717575008140CC /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		791D7825277378F0008140CC /* Array+Index_nillable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Index_nillable.swift"; sourceTree = "<group>"; };
 		791D782927779261008140CC /* MainViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainViewController.xib; sourceTree = "<group>"; };
+		7922BF7F285A1C2F00B0B6CF /* UIColor+hexstring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+hexstring.swift"; sourceTree = "<group>"; };
 		792ECD55280A5D5E003F39F5 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		79331AF8274E8F3500A4022F /* TransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewController.swift; sourceTree = "<group>"; };
 		79343EB22743502B008E0890 /* SendFileOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFileOperation.swift; sourceTree = "<group>"; };
@@ -363,6 +365,7 @@
 				79DCBB4427EA1A8500E1B847 /* NIOSSLCertificate+PEM.swift */,
 				79B8A0E927449EB500369E62 /* String+substring.swift */,
 				7914DDF5281CCE7C00A9BB51 /* String+NSAttributedString.swift */,
+				7922BF7F285A1C2F00B0B6CF /* UIColor+hexstring.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -458,6 +461,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7922BF80285A1C2F00B0B6CF /* UIColor+hexstring.swift in Sources */,
 				791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */,
 				79331AF9274E8F3500A4022F /* TransferViewController.swift in Sources */,
 				7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */,

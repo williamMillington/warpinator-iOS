@@ -397,8 +397,7 @@ extension Remote {
                 print(self.DEBUG_TAG+"Remote display name: \(self.details.displayName)")
                 print(self.DEBUG_TAG+"Remote username: \(self.details.username)")
             case .failure(let error):
-                print(self.DEBUG_TAG+"failed to retrieve machine info")
-                print(self.DEBUG_TAG+"\t\t error: \(error)")
+                print(self.DEBUG_TAG+"failed to retrieve machine info \n\t\t error: \(error)")
             }
             
         }
@@ -729,7 +728,7 @@ extension Remote: ConnectivityStateDelegate {
 extension Remote: ClientErrorDelegate {
     
     //
-    // MARK: didCatchError
+    // MARK: caught error
     public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
         
         print(DEBUG_TAG+"ERROR (\(file):\(line)): \(error)")
@@ -751,24 +750,8 @@ extension Remote: ClientErrorDelegate {
 
 
 //
-// MARK - Authentication
-extension Remote { //}: AuthenticationConnectionDelegate {
-    
-    //
-    // MARK fetch cert
-//    func obtainCertificate(){
-        
-//        if details.api == "1" { // API_V1
-//            authenticationConnection = UDPConnection(delegate: self)
-//        } else { // API_V2
-//            guard let eventloopGroup = eventloopGroup else { return }
-//            authenticationConnection = GRPCConnection(onEventLoopGroup: eventloopGroup,
-//                                                       delegate: self)
-//        }
-//
-//        authenticationConnection?.requestCertificate()
-//    }
-    
+// MARK: - Authentication
+extension Remote {
     func getAuthenticationConnection() -> AuthenticationConnection {
         if details.api == "1" { // API_V1
             return UDPConnection(onEventLoopGroup: eventloopGroup!,
@@ -779,25 +762,6 @@ extension Remote { //}: AuthenticationConnectionDelegate {
         }
     }
     
-    
-//    //
-//    // MARK success
-//    func certificateObtained(forRemote details: RemoteDetails, certificate: NIOSSLCertificate){
-//
-//        print(DEBUG_TAG+"certificate retrieved")
-//        self.details = details
-//        authenticationCertificate = certificate
-//        connect(withCertificate: certificate)
-//
-//        authenticationConnection = nil
-//    }
-//
-//    //
-//    // MARK failure
-//    func certificateRequestFailed(forRemote details: RemoteDetails, _ error: AuthenticationError){
-//        print(DEBUG_TAG+"failed to retrieve certificate, error: \(error)")
-//        authenticationConnection = nil
-//    }
 }
 
 
