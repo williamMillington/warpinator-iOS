@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
-    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <device id="retina6_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
@@ -25,7 +25,7 @@
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
         <view contentMode="scaleToFill" id="iN0-l3-epB">
-            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bPG-wy-zSh">
@@ -39,7 +39,7 @@
                     </connections>
                 </button>
                 <button opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nOl-G7-Bt2" userLabel="Revert">
-                    <rect key="frame" x="338" y="55.5" width="60" height="36"/>
+                    <rect key="frame" x="352" y="55.666666666666657" width="60" height="36"/>
                     <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="20"/>
                     <state key="normal" title="Revert">
                         <color key="titleColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
@@ -49,25 +49,25 @@
                     </connections>
                 </button>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Warpinator" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fHN-QP-SQS">
-                    <rect key="frame" x="117.5" y="98" width="179.5" height="43"/>
+                    <rect key="frame" x="124.33333333333333" y="98" width="179.33333333333337" height="43"/>
                     <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="36"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                 </label>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="settings" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="naa-5a-6tc">
-                    <rect key="frame" x="248" y="133" width="78" height="25.5"/>
+                    <rect key="frame" x="254.99999999999997" y="133" width="77.666666666666657" height="25.333333333333343"/>
                     <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="21"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                 </label>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Display Name" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uYp-NB-LHD" userLabel="displayNameLabel">
-                    <rect key="frame" x="124.5" y="156" width="165.5" height="32.5"/>
+                    <rect key="frame" x="131.33333333333331" y="156" width="165.33333333333331" height="32.333333333333343"/>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="27"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                     <nil key="highlightedColor"/>
                 </label>
                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="DisplayName" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="iz4-ic-y8i" userLabel="displayNameField">
-                    <rect key="frame" x="135" y="185.5" width="144" height="30"/>
+                    <rect key="frame" x="142" y="185.33333333333334" width="144" height="30"/>
                     <color key="backgroundColor" red="0.96078431369999995" green="0.96078431369999995" blue="0.96078431369999995" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                     <fontDescription key="fontDescription" type="system" pointSize="25"/>
@@ -77,13 +77,13 @@
                     </connections>
                 </textField>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Group Code" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iqh-zk-cvz" userLabel="GroupCodeLabel">
-                    <rect key="frame" x="135" y="217" width="144.5" height="32.5"/>
+                    <rect key="frame" x="141.66666666666669" y="217" width="144.66666666666669" height="32.333333333333343"/>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="27"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                     <nil key="highlightedColor"/>
                 </label>
                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="Warpinator" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="HjQ-hN-XAL" userLabel="GroupCodeField">
-                    <rect key="frame" x="148" y="246.5" width="118" height="30"/>
+                    <rect key="frame" x="155" y="246.33333333333337" width="118" height="30"/>
                     <color key="backgroundColor" red="0.96078431369999995" green="0.96078431369999995" blue="0.96078431369999995" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                     <fontDescription key="fontDescription" type="system" pointSize="25"/>
@@ -93,16 +93,16 @@
                     </connections>
                 </textField>
                 <stackView opaque="NO" contentMode="scaleToFill" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="OFD-WF-DQX" userLabel="TransferPort">
-                    <rect key="frame" x="112" y="298.5" width="190.5" height="24"/>
+                    <rect key="frame" x="118.66666666666667" y="298" width="190.66666666666663" height="24"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Transfer Port:" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wao-hU-RlX" userLabel="TPortLabel">
-                            <rect key="frame" x="0.0" y="0.0" width="114.5" height="24"/>
+                            <rect key="frame" x="0.0" y="0.0" width="114.66666666666667" height="24"/>
                             <fontDescription key="fontDescription" type="system" pointSize="19"/>
                             <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                             <nil key="highlightedColor"/>
                         </label>
                         <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="42000" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="JmF-LS-fhK" userLabel="TPortField">
-                            <rect key="frame" x="130.5" y="0.0" width="60" height="24"/>
+                            <rect key="frame" x="130.66666666666669" y="0.0" width="60" height="24"/>
                             <color key="backgroundColor" red="0.96078431369999995" green="0.96078431369999995" blue="0.96078431369999995" alpha="1" colorSpace="calibratedRGB"/>
                             <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                             <fontDescription key="fontDescription" type="system" pointSize="20"/>
@@ -114,16 +114,16 @@
                     </subviews>
                 </stackView>
                 <stackView opaque="NO" contentMode="scaleToFill" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="oyI-Lk-cnK" userLabel="RegistrationPort">
-                    <rect key="frame" x="97.5" y="326.5" width="219.5" height="24"/>
+                    <rect key="frame" x="104.33333333333333" y="326" width="219.33333333333337" height="24"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Registration Port:" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bdj-mo-ufN" userLabel="TPortLabel">
-                            <rect key="frame" x="0.0" y="0.0" width="146.5" height="24"/>
+                            <rect key="frame" x="0.0" y="0.0" width="146.33333333333334" height="24"/>
                             <fontDescription key="fontDescription" type="system" pointSize="19"/>
                             <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                             <nil key="highlightedColor"/>
                         </label>
                         <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="42001" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PHW-aD-2rQ" userLabel="RPortField">
-                            <rect key="frame" x="162.5" y="0.0" width="57" height="24"/>
+                            <rect key="frame" x="162.33333333333337" y="0.0" width="57" height="24"/>
                             <color key="backgroundColor" red="0.96078431369999995" green="0.96078431369999995" blue="0.96078431369999995" alpha="1" colorSpace="calibratedRGB"/>
                             <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                             <fontDescription key="fontDescription" type="system" pointSize="20"/>
@@ -135,19 +135,19 @@
                     </subviews>
                 </stackView>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="lD6-Vt-Zr6" userLabel="AutoAccept">
-                    <rect key="frame" x="20.5" y="371.5" width="373" height="72"/>
+                    <rect key="frame" x="21.333333333333343" y="371" width="385.33333333333326" height="72"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="acb-cR-ASM">
-                            <rect key="frame" x="0.0" y="0.0" width="373" height="31"/>
+                            <rect key="frame" x="0.0" y="0.0" width="385.33333333333331" height="31"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Auto-accept" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iR4-NB-7jd" userLabel="Auto-acceptLabel">
-                                    <rect key="frame" x="0.0" y="0.0" width="324" height="31"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="336.33333333333331" height="31"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="27"/>
                                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="q9j-A7-qia" userLabel="AutoAcceptSwitch">
-                                    <rect key="frame" x="324" y="0.0" width="51" height="31"/>
+                                    <rect key="frame" x="336.33333333333337" y="0.0" width="51" height="31"/>
                                     <connections>
                                         <action selector="autoAcceptSettingDidChange:" destination="-1" eventType="valueChanged" id="sM3-jS-QcM"/>
                                     </connections>
@@ -155,7 +155,7 @@
                             </subviews>
                         </stackView>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Any transfers sent by a connected remote do not require individual authorization" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8UN-NM-y12" userLabel="AutoAcceptDescription">
-                            <rect key="frame" x="0.0" y="36" width="373" height="36"/>
+                            <rect key="frame" x="0.0" y="36" width="385.33333333333331" height="36"/>
                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                             <color key="textColor" red="0.38184886499999998" green="0.38548552089999999" blue="0.38548552089999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <nil key="highlightedColor"/>
@@ -163,19 +163,19 @@
                     </subviews>
                 </stackView>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="CwC-gN-mfJ" userLabel="Overwrite">
-                    <rect key="frame" x="20.5" y="455.5" width="373" height="72"/>
+                    <rect key="frame" x="21.333333333333343" y="455" width="385.33333333333326" height="72"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0kE-Sy-woN">
-                            <rect key="frame" x="0.0" y="0.0" width="373" height="31"/>
+                            <rect key="frame" x="0.0" y="0.0" width="385.33333333333331" height="31"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Overwrite" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lqu-dv-qM7" userLabel="OverwriteLabel">
-                                    <rect key="frame" x="0.0" y="0.0" width="324" height="31"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="336.33333333333331" height="31"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="27"/>
                                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="zR4-wk-40g" userLabel="OverwriteSwitch">
-                                    <rect key="frame" x="324" y="0.0" width="51" height="31"/>
+                                    <rect key="frame" x="336.33333333333337" y="0.0" width="51" height="31"/>
                                     <connections>
                                         <action selector="overwriteSettingDidChange:" destination="-1" eventType="valueChanged" id="8Np-Sj-NcJ"/>
                                     </connections>
@@ -183,7 +183,7 @@
                             </subviews>
                         </stackView>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Files being downloaded will overwrite existing files of the same name." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yJf-hl-Zf7" userLabel="OverwriteDescription">
-                            <rect key="frame" x="0.0" y="36" width="373" height="36"/>
+                            <rect key="frame" x="0.0" y="36" width="385.33333333333331" height="36"/>
                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                             <color key="textColor" red="0.38184886499999998" green="0.38548552089999999" blue="0.38548552089999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <nil key="highlightedColor"/>
@@ -191,19 +191,19 @@
                     </subviews>
                 </stackView>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="Zoq-rw-Ss4" userLabel="RefreshCredentials">
-                    <rect key="frame" x="20.5" y="539.5" width="373" height="54"/>
+                    <rect key="frame" x="21.333333333333343" y="539" width="385.33333333333326" height="54"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="rqP-Ld-WLb">
-                            <rect key="frame" x="0.0" y="0.0" width="373" height="31"/>
+                            <rect key="frame" x="0.0" y="0.0" width="385.33333333333331" height="31"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Refresh Credentials" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="28a-YW-fKG" userLabel="RefreshCredentialsLabel">
-                                    <rect key="frame" x="0.0" y="0.0" width="319" height="31"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="331.33333333333331" height="31"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="27"/>
                                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="yz2-Kb-TMO" userLabel="RefreshCredentialsSwitch">
-                                    <rect key="frame" x="324" y="0.0" width="51" height="31"/>
+                                    <rect key="frame" x="336.33333333333337" y="0.0" width="51" height="31"/>
                                     <connections>
                                         <action selector="refreshCredentialsDidChange:" destination="-1" eventType="valueChanged" id="118-lX-eZb"/>
                                     </connections>
@@ -214,7 +214,7 @@
                             </constraints>
                         </stackView>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Generate a new certificate every startup" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Uax-b4-I0q" userLabel="RefreshCredentialsDescription">
-                            <rect key="frame" x="0.0" y="36" width="373" height="18"/>
+                            <rect key="frame" x="0.0" y="36" width="385.33333333333331" height="18"/>
                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                             <color key="textColor" red="0.38184886499999998" green="0.38548552089999999" blue="0.38548552089999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <nil key="highlightedColor"/>

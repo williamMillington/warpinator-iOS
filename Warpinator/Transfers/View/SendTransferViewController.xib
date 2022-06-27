@@ -37,7 +37,7 @@
                             <subviews>
                                 <view contentMode="scaleToFill" placeholderIntrinsicWidth="337.5" placeholderIntrinsicHeight="50" translatesAutoresizingMaskIntoConstraints="NO" id="vSo-bH-TGL">
                                     <rect key="frame" x="0.0" y="0.0" width="337.5" height="50"/>
-                                    <color key="backgroundColor" systemColor="linkColor"/>
+                                    <color key="backgroundColor" white="1" alpha="0.6522367295" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <constraints>
                                         <constraint firstAttribute="height" constant="50" id="Ezx-Or-PsP"/>
                                     </constraints>
@@ -144,9 +144,6 @@
         </view>
     </objects>
     <resources>
-        <systemColor name="linkColor">
-            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
