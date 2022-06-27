@@ -85,12 +85,7 @@ final class SettingsViewController: UIViewController {
         
         view.backgroundColor = Utils.backgroundColour
         
-        
-        refreshCredentialsSwitch.layer.borderColor = Utils.foregroundColour.cgColor
-        refreshCredentialsSwitch.layer.borderWidth = 2
-        
         implementCurrentSettings()
-        
         
         displayNameLabel.delegate = self
         groupCodeLabel.delegate = self
