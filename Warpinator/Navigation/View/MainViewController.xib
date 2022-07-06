@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
-    <device id="retina5_9" orientation="portrait" appearance="light"/>
+    <device id="retina3_5" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
@@ -22,17 +22,17 @@
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
         <view contentMode="scaleToFill" id="iN0-l3-epB">
-            <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+            <rect key="frame" x="0.0" y="0.0" width="320" height="480"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Warpinator" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="l59-80-9il">
-                    <rect key="frame" x="98.000000000000014" y="59" width="179.33333333333337" height="60"/>
+                    <rect key="frame" x="70.5" y="15" width="179.5" height="60"/>
                     <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="36"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="highlightedColor" red="0.18823529411764706" green="0.18823529411764706" blue="0.18823529411764706" alpha="1" colorSpace="calibratedRGB"/>
                 </label>
-                <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" toolTip="Settings" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KZ2-Ij-3pn" userLabel="Settings">
-                    <rect key="frame" x="299" y="59" width="60" height="60"/>
+                <button toolTip="Settings" opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KZ2-Ij-3pn" userLabel="Settings">
+                    <rect key="frame" x="244" y="15" width="60" height="60"/>
                     <constraints>
                         <constraint firstAttribute="width" secondItem="KZ2-Ij-3pn" secondAttribute="height" id="zrM-Fz-xmS"/>
                     </constraints>
@@ -46,13 +46,13 @@
                     </connections>
                 </button>
                 <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" horizontalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="qYx-cs-dIA" userLabel="RemoteScoller" customClass="ButtonScrollView" customModule="Warpinator" customModuleProvider="target">
-                    <rect key="frame" x="18.666666666666657" y="124" width="337.66666666666674" height="574"/>
+                    <rect key="frame" x="16" y="80" width="288" height="320"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="DEB-JW-hIB" userLabel="RemoteStack">
-                            <rect key="frame" x="0.0" y="0.0" width="337.66666666666669" height="67.666666666666671"/>
+                            <rect key="frame" x="0.0" y="0.0" width="288" height="57.5"/>
                             <subviews>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rGd-ok-xcM" customClass="ListedRemoteView" customModule="Warpinator">
-                                    <rect key="frame" x="0.0" y="0.0" width="337.66666666666669" height="67.666666666666671"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="288" height="57.5"/>
                                     <viewLayoutGuide key="safeArea" id="mGH-KU-OJn"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 </view>
@@ -70,19 +70,19 @@
                     <viewLayoutGuide key="frameLayoutGuide" id="1UC-qd-Yhu"/>
                 </scrollView>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="749" verticalCompressionResistancePriority="1000" text="Display Name" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="upx-qV-62a" userLabel="DisplayNameLabel">
-                    <rect key="frame" x="18.666666666666671" y="703.66666666666663" width="135" height="26.333333333333371"/>
+                    <rect key="frame" x="16" y="405.5" width="135" height="26.5"/>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="22"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                 </label>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="192.168.02.43" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gCR-It-COT" userLabel="IPAddressLabel">
-                    <rect key="frame" x="225.66666666666669" y="734" width="130.66666666666669" height="24"/>
+                    <rect key="frame" x="181" y="436" width="123" height="24"/>
                     <fontDescription key="fontDescription" type="system" weight="light" pointSize="20"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                 </label>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" text="username@hostname" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Loc-6H-5j4" userLabel="usernameHostnameLabel">
-                    <rect key="frame" x="18.666666666666671" y="730" width="197" height="32"/>
+                    <rect key="frame" x="16" y="432" width="155" height="32"/>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
                     <color key="textColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
                     <color key="highlightedColor" red="0.18823529410000001" green="0.18823529410000001" blue="0.18823529410000001" alpha="1" colorSpace="calibratedRGB"/>
