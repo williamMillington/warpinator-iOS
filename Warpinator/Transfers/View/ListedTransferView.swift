@@ -143,13 +143,11 @@ final class ListedTransferView: UIView {
         transferDirectionImageView.image = viewModel.directionImage
         
         
-        let waitingColour: UIColor = UIColor.init(red: 111/255.0, green: 179/255.0, blue: 71.0/255.0, alpha: 1)
-        backgroundColor =  viewModel.status == "WAITING" ? waitingColour : Utils.foregroundColour
-        
-        
+//        let waitingColour: UIColor = UIColor.init(red: 111/255.0, green: 179/255.0, blue: 71.0/255.0, alpha: 1)
+//        backgroundColor =  viewModel.status == "WAITING" ? waitingColour : Utils.foregroundColour
+        backgroundColor = Utils.foregroundColour
         
         setNeedsLayout()
-        
     }
 
 }
@@ -173,12 +171,10 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
     
     
     var directionImage: UIImage {
-        
         switch operation.direction {
         case .RECEIVING: return UIImage(systemName: "arrow.down.square.fill")!
         case .SENDING: return UIImage(systemName: "arrow.up.square.fill")!
         }
-        
     }
     
     
@@ -231,8 +227,8 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
 
 
 
-
-// MARK: Interface Builder
+// --  DEBUGGING  --
+// MARK: - Interface Builder
 extension ListedTransferView {
     override func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
