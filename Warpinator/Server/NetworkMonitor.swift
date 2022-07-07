@@ -132,8 +132,6 @@ class NetworkMonitor {
     }
     
     
-    
-    
     var browser: NWBrowser!
     var listener: NWListener!
     
@@ -148,10 +146,14 @@ class NetworkMonitor {
         listener.serviceRegistrationUpdateHandler = { change in
             
             // if we've published successfully then we know we've got permission
-            if case .add(_) = change {
-                promise.succeed( Void() )
-                self.listener.cancel()
-                self.browser.cancel()
+            if case .add(let endpoint) = change {
+                
+                if case  .service(name: let n, type:_, domain:_, interface:_) = endpoint,
+                   n == SettingsManager.shared.uuid {
+                    promise.succeed( Void() )
+                    self.listener.cancel()
+                    self.browser.cancel()
+                }
             }
         }
         listener.stateUpdateHandler = { _ in
@@ -175,13 +177,12 @@ class NetworkMonitor {
         
         // if our browser is stuck waiting then we know we don't have permission
         // NOTE: browser state will update with .ready BEFORE it updates to .waiting(error)
-        // because fuck you for trying to use the API
+        // Therefore we can't simply wait for 'ready', and instead are waiting on the
+        // above NWListener to update when our info has successully published.
         browser.stateUpdateHandler = { state in
 //            print(self.DEBUG_TAG+"MDNSCHECKER BROWSER STATE \(state)")
             
             if case .waiting(_) = state {
-                
-//                promise.succeed(false)
                 promise.fail( ServiceError.LOCAL_NETWORK_PERMISSION_DENIED )
                 self.browser.cancel()
                 self.listener.cancel()
