@@ -53,7 +53,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         print(DEBUG_TAG+"sceneDidBecomeActive")
         
-        coordinator?.checkNetwork()
+        coordinator?.waitForNetwork()
         .flatMap { _ -> EventLoopFuture<Void> in
             print(self.DEBUG_TAG+"We have network access")
             return self.coordinator!.startServers()

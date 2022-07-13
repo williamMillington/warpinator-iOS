@@ -67,18 +67,20 @@ final class RemoteManager {
         }
         
         
-        let future = remote.disconnect()
+        print(DEBUG_TAG+" trying out just like not removing them?")
         
-        future.whenComplete { [weak self] result in
-            
-            self?.remotes.removeValue(forKey: remote.details.uuid)
-            
-            DispatchQueue.main.async {
-                self?.remotesViewController?.remoteRemoved(with: uuid)
-            }
-            
-            print((self?.DEBUG_TAG ?? "RemoteManager is nil")+"\tremote removed")
-        }
+//        let future = remote.disconnect()
+//
+//        future.whenComplete { [weak self] result in
+//
+//            self?.remotes.removeValue(forKey: remote.details.uuid)
+//
+//            DispatchQueue.main.async {
+//                self?.remotesViewController?.remoteRemoved(with: uuid)
+//            }
+//
+//            print((self?.DEBUG_TAG ?? "RemoteManager is nil")+"\tremote removed")
+//        }
     }
     
     

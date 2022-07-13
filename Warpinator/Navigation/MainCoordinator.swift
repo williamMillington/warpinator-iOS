@@ -79,14 +79,13 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    // MARK: checkNetwork
-    func checkNetwork() -> EventLoopFuture<Void> {
+    // MARK: waitForNetwork
+    func waitForNetwork() -> EventLoopFuture<Void> {
         
-        guard networkMonitor.wifiIsAvailable else {
-            return serverEventLoopGroup.next().makeFailedFuture( Server.ServerError.NO_INTERNET )
-        }
-        
-        return networkMonitor.waitForMDNSPermission()
+        return networkMonitor.waitForWifiAvailable()
+            .flatMap {
+                self.networkMonitor.waitForMDNSPermission()
+            }
     }
     
     
@@ -209,10 +208,6 @@ final class MainCoordinator: NSObject, Coordinator {
         
         DispatchQueue.main.async {
             (self.navController.visibleViewController as? MainViewController)?.showLoadingScreen()
-            
-//            if let vc = self.navController.visibleViewController as? MainViewController {
-//                vc.showLoadingScreen()
-//            }
         }
         
         // unregister ourselves from mDNS
@@ -226,7 +221,7 @@ final class MainCoordinator: NSObject, Coordinator {
             }
         // then -> check network connection
             .flatMap{ Void in
-                return self.checkNetwork()
+                return self.waitForNetwork()
             }
         // then -> start up  servers
             .flatMap { _ in
@@ -421,24 +416,28 @@ extension MainCoordinator: MDNSListenerDelegate {
 
 extension MainCoordinator: NetworkDelegate {
     
+    
+    //
+    //
     func didLoseLocalNetworkConnectivity() {
         print(self.DEBUG_TAG+" lost wifi connectivity")
+        
+        
         DispatchQueue.main.async {
-//            if let vc = self.navController.visibleViewController as? MainViewController {
+            // cast .visibleVC as? MainVC, anything else and .updateInfo() fizzles
             (self.navController.visibleViewController as? MainViewController)?.updateInfo()
-//            }
         }
     }
     
     
+    //
+    //
     func didGainLocalNetworkConnectivity() {
         print(self.DEBUG_TAG+" gained wifi connectivity")
         
         DispatchQueue.main.async {
-//            if let vc = self.navController.visibleViewController as? MainViewController {
+            // cast .visibleVC as? MainVC, anything else and .updateInfo() fizzles
             (self.navController.visibleViewController as? MainViewController)?.updateInfo()
-//            }
         }
     }
-    
 }

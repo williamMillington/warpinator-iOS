@@ -28,20 +28,19 @@ enum MdnsState {
 
 
 class NetworkMonitor {
-    
+
     enum ServiceError: Swift.Error {
         case LOCAL_NETWORK_PERMISSION_DENIED
+        case NO_CONNECTIVITY
     }
     
     static let DEBUG_TAG : String = "NetworkMonitor (statics): "
-    
     let DEBUG_TAG : String = "NetworkMonitor: "
     
     let delegate: NetworkDelegate
     
     let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
     let queue: DispatchQueue = DispatchQueue(label: "NetworkMonitor")
-    
     
     let eventloopGroup: EventLoopGroup
     
@@ -57,7 +56,7 @@ class NetworkMonitor {
         // triggers nwpathmonitor to start.
         // If we wait until the first REAL check, it will return false
         // while nwpathmonitor starts up
-        let _ = wifiIsAvailable
+//        let _ = wifiIsAvailable
     }
     
     
@@ -65,6 +64,7 @@ class NetworkMonitor {
     //
     //
     var wifiIsAvailable: Bool {
+        print(DEBUG_TAG+"checking availability of (\(monitor.currentPath))")
         print(DEBUG_TAG+"checking wifi availablility (\(monitor.currentPath.status))")
         switch monitor.currentPath.status {
         case .satisfied: return true
@@ -75,47 +75,45 @@ class NetworkMonitor {
     
     
     
-    // TODO this function -and other functions like it in the MDNSListener and Browser classes, should be modified to not update the pathUpdateHandler, but instead modify a set, which is mapped by a consistent pathUpdateHandler, declared in a different location. This avoids dropping preexisting promises without completing them every time a new call is made
-//    func waitForWifiAvailable()  -> EventLoopFuture<Void> {
-////        withPromise promise: EventLoopPromise<Void>) -> EventLoopFuture<Void> {
-//
-//        let promise = eventloopGroup.next().makePromise(of: Void.self)
-//
-//        // if status is .satisfied, then we are connected
-//        guard monitor.currentPath.status != .satisfied else {
-//            promise.succeed( Void() )
-//            return promise.futureResult
-//        }
-//
-//        // otherwise, wait for connectivity
-//
-//        // every time the path is updated, check for connectivity
-//        monitor.pathUpdateHandler = { path in
-//
-//            print(NetworkMonitor.DEBUG_TAG+" (waitForWifiAvailable) updated path: \(path) (\(path.status))")
-//
-//            switch path.status {
-//
-//            case .satisfied: // .satisfied means we're connected
-//
-//                promise.succeed( Void() ) // fulfill promise
-//
-//                // set monitor back to updating the delegate
-//                self.monitor.pathUpdateHandler = self.updateHandler(path:)
-//
-//            case .unsatisfied: // if we're not connected
-//                print(NetworkMonitor.DEBUG_TAG+" (waitForWifiAvailable) No wifi")
-//                promise.fail( Server.ServerError.NO_INTERNET     ) // fail promise (placeholder error)
-//
-//            default:
-//                print(self.DEBUG_TAG+"u (waitForWifiAvailable) nknown status in path: \(path.status)")
-//            }
-//
-//        }
-//
-//
-//        return promise.futureResult
-//    }
+    // Similar to the start methods in Server and RegistrationServer,
+    // this eventloop promise will restart itself upon a failure to confirm wifi connectivity
+    // until a set number of attempts have been made
+    var attempts: Int = 0
+    let ATTEMPT_LIMIT: Int = 10 // 10 attempts, 1 second apart
+    
+    func waitForWifiAvailable()  -> EventLoopFuture<Void> {
+        
+        let promise = eventloopGroup.next().makePromise(of: Void.self)
+        
+        // fulfill promise.futureResult AFTER we've returned it
+        defer {
+            if wifiIsAvailable {
+                promise.succeed( Void() )
+            } else {
+                promise.fail( NetworkMonitor.ServiceError.NO_CONNECTIVITY )
+            }
+        }
+        
+        return promise.futureResult
+        
+            // try again on error
+            .flatMapError { error in
+                
+                print(self.DEBUG_TAG+" error checking wifi: \(error)")
+                
+                // Check if we've passed our attempt limit
+                guard self.attempts < self.ATTEMPT_LIMIT else {
+                    return self.eventloopGroup.next().makeFailedFuture( ServiceError.NO_CONNECTIVITY )
+                }
+                
+                // try again in 2 seconds
+                self.attempts += 1
+                return self.eventloopGroup.next().flatScheduleTask(in: .seconds(1)) {
+                    self.waitForWifiAvailable()
+                }.futureResult
+                
+            }
+    }
     
     
     
@@ -126,17 +124,23 @@ class NetworkMonitor {
         switch path.status {
         case .satisfied: delegate.didGainLocalNetworkConnectivity()
         case .unsatisfied: delegate.didLoseLocalNetworkConnectivity()
+//            print(DEBUG_TAG+"monitor.updateHandler \(monitor) -> ")
         default: break
         }
         
     }
     
     
-    var browser: NWBrowser!
+    
+    // MARK: waitForMDNSPermission
+    // Apple has decided I don't deserve to know if I have permission to connect to mDNS,
+    // and that is makes more sense for me to waste time and system resources attempting
+    // to connect regardless of where or not I can.  So, here we are.
+    
+    var browser: NWBrowser! //declare here so we don't lose them
     var listener: NWListener!
     
     func waitForMDNSPermission() -> EventLoopFuture<Void> {
-        //withPromise promise: EventLoopPromise<Bool> ) -> EventLoopFuture<Bool> {
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
         
@@ -148,18 +152,17 @@ class NetworkMonitor {
             // if we've published successfully then we know we've got permission
             if case .add(let endpoint) = change {
                 
-                if case  .service(name: let n, type:_, domain:_, interface:_) = endpoint,
-                   n == SettingsManager.shared.uuid {
+                // make sure it's ourselves we've discovered
+                if case  .service(name: let endpointName, type:_, domain:_, interface:_) = endpoint,
+                   endpointName == SettingsManager.shared.uuid {
                     promise.succeed( Void() )
                     self.listener.cancel()
                     self.browser.cancel()
                 }
             }
         }
-        listener.stateUpdateHandler = { _ in
-        }
-        listener.newConnectionHandler = { _ in
-        }
+        listener.stateUpdateHandler = { _ in } // these have to be assigned, but don't do anything in this scenario
+        listener.newConnectionHandler = { _ in }
         
         
         let SERVICE_TYPE = "_warpinator._tcp."
@@ -198,15 +201,10 @@ class NetworkMonitor {
 //            print(self.DEBUG_TAG+"MDNSCHECKER BROWSER RESULTS CHANGED")
         }
         
-        
         browser.start(queue: queue)
         listener.start(queue: queue)
         
         return promise.futureResult
     }
-    
-    
-    
-    
     
 }
