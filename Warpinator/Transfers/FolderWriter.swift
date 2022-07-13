@@ -40,14 +40,26 @@ final class FolderWriter: NSObject, WritesFile {
     var currentWriter: WritesFile? = nil
     
     var bytesWritten: Int {
-        let currWriterBytes = currentWriter?.bytesWritten ?? 0
+//
+//        do {
+//            let attributes = try FileManager.default.attributesOfItem(atPath: itemURL.path )
+//            if let size = attributes[FileAttributeKey.size] as? NSNumber {
+//                print(DEBUG_TAG+"\t\t FileAttributeKey.size is \( size.doubleValue )" )
+//            }
+//        } catch {
+//            print("Error: \(error)")
+//        }
+        
+        
+        let currWriterBytes = (currentWriter?.bytesWritten ?? 0) + 4096
         return currWriterBytes + completedFiles.map { return $0.bytesWritten  }.reduce(0, +)
     }
     
     var observers: [ObservesFileOperation] = []
     
     
-    
+    //
+    //
     init(withRelativePath path: String, fileSystemParentPath moddedParentPath: String? = nil, overwrite: Bool) {
         
         downloadRelativePath = path
@@ -85,6 +97,7 @@ final class FolderWriter: NSObject, WritesFile {
         
         // create new directory
         // TODO: rewrite to unambiguously deal with the inability to write
+        // Ex. user denies access to storage in the middle of a transfer
         do {  try fileManager.createDirectory(atPath: itemURL.path,
                                     withIntermediateDirectories: true,
                                     attributes: nil)
@@ -132,6 +145,7 @@ final class FolderWriter: NSObject, WritesFile {
         
         defer { updateObserversInfo() }
         
+        //
         // if we have a writer, try it
         if let writer = currentWriter {
             do {
@@ -214,6 +228,7 @@ final class FolderWriter: NSObject, WritesFile {
         currentWriter = nil
     }
 }
+
 
 
 

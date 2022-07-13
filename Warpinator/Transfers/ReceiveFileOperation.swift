@@ -38,7 +38,7 @@ final class ReceiveFileOperation: TransferOperation {
     }
     
     
-    private let chunk_size: Int = 1024 * 512  // 512 kB
+    private let chunk_size: Int = 1024 * 512  // 512 KB
     
     var request: TransferOpRequest
     
@@ -59,8 +59,11 @@ final class ReceiveFileOperation: TransferOperation {
     
     var totalSize: Int
     var bytesTransferred: Int {
-        let currWriterBytes = currentWriter?.bytesWritten ?? 0
-        return currWriterBytes + fileWriters.map{ return $0.bytesWritten }.reduce(0, +)
+        
+//        let currWriterBytes = currentWriter?.bytesWritten ?? 0
+//        return currWriterBytes +
+        //
+        return fileWriters.map { return $0.bytesWritten }.reduce(0, +)
     }
     var bytesPerSecond: Double = 0
     var progress: Double {
@@ -200,65 +203,115 @@ extension ReceiveFileOperation {
     func processChunk(_ chunk: FileChunk){
         
         print(DEBUG_TAG+" reading chunk:")
-        print(DEBUG_TAG+"\trelativePath: \(chunk.relativePath)")
-        print(DEBUG_TAG+"\tfile/folder: \( TransferItemType(rawValue: chunk.fileType)!) ")
+        print(DEBUG_TAG+"\t size: \(chunk.chunk.count )")
+        print(DEBUG_TAG+"\t relativePath: \(chunk.relativePath)")
+        print(DEBUG_TAG+"\t file/folder: \( TransferItemType(rawValue: chunk.fileType)!) ")
+        
+        // make sure we always update our observers
+        defer {  updateObserversInfo()  }
         
         
-        //  IF WE HAVE A WRITER CURRENTLY GOING
+        //
+        // if we've got a writer going
         if let writer = currentWriter {
             
-            // TODO: I don't like this nested-do. MEH.
             do {
-                do {
-                    // TRY TO WRITE TO CURRENT WRITER
-                    try writer.processChunk(chunk)
-                    
-                    return // successfully processed (no errors)
-                    
-                } catch WritingError.FILENAME_MISMATCH { // WRITING FAILS
-                    print(DEBUG_TAG+"New file!")
-                    
-                    // close old writer
-                    writer.close()
-                    
-                    
-                    // If folder
-                    if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
-                        currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
-                    } else {
-                        currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
-                        try currentWriter?.processChunk(chunk)
-                    }
-                    
-                } catch { throw error }
-            } catch {
-                print(DEBUG_TAG+" Unexpected Error: \(error)")
-            }
-            
-        }
-        
-        // CREATE WRITER TO HANDLE CHUNK
-        
-        do {
-            
-            // If folder
-            if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
-                currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
-                fileWriters.append(currentWriter!)
-            } else {
-                currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
-                fileWriters.append(currentWriter!)
+                // Try to process the chunk
+                try writer.processChunk(chunk)
                 
-                try currentWriter?.processChunk(chunk)
-            }
-            
-        } catch {
-            print(DEBUG_TAG+"Unexpected error: \(error)")
+                return // successfully processed (no errors)
+                
+            } catch WritingError.FILENAME_MISMATCH { // Names don't match, new file!,
+                print(DEBUG_TAG+"New file!")
+                
+                // close old writer before proceeding on to create a new one
+                writer.close()
+                
+            } catch {  print(DEBUG_TAG+"Unexpected error: \(error)")   }
             
         }
+        
+        // Create writer to handle chunk
+        
+        
+        // If folder
+        if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+            
+            currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+            fileWriters.append(currentWriter!)
+            
+        } else { // If file
+            
+            currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+            fileWriters.append(currentWriter!)
+            
+            do {
+                try currentWriter?.processChunk(chunk)
+            } catch {
+                print(DEBUG_TAG+"Unexpected error: \(error)")
+            }
+        }
+        
         
         
         updateObserversInfo()
+        
+        
+        
+        //  IF WE HAVE A WRITER CURRENTLY GOING
+//        if let writer = currentWriter {
+//
+//            // TODO I don't like this nested-do. MEH.
+//            do {
+//                do {
+//                    // TRY TO WRITE TO CURRENT WRITER
+//                    try writer.processChunk(chunk)
+//
+//                    return // successfully processed (no errors)
+//
+//                } catch WritingError.FILENAME_MISMATCH { // WRITING FAILS
+//                    print(DEBUG_TAG+"New file!")
+//
+//                    // close old writer
+//                    writer.close()
+//
+//
+//                    // If folder
+//                    if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+//                        currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+//                    } else {
+//                        currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+//                        try currentWriter?.processChunk(chunk)
+//                    }
+//
+//                } catch { throw error }
+//            } catch {
+//                print(DEBUG_TAG+" Unexpected Error: \(error)")
+//            }
+//
+//        }
+        
+        // Create writer to handle chunk
+//        do {
+//
+//            // If folder
+//            if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+//                currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+//                fileWriters.append(currentWriter!)
+//            } else {
+//                currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+//                fileWriters.append(currentWriter!)
+//
+//                try currentWriter?.processChunk(chunk)
+//            }
+//
+//        } catch {
+//            print(DEBUG_TAG+"Unexpected error: \(error)")
+//
+//        }
+        
+//
+//        updateObserversInfo()
     }
     
     

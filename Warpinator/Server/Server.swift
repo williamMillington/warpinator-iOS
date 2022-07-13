@@ -21,7 +21,6 @@ final class Server {
     //
     // MARK: ServerError
     enum ServerError: Error {
-//        case NO_EVENTLOOP
         case NO_INTERNET
         case ADDRESS_UNAVAILABLE
         case CREDENTIALS_INVALID
@@ -32,7 +31,6 @@ final class Server {
         
         var localizedDescription: String {
             switch self {
-//            case .NO_EVENTLOOP: return "No available eventloop"
             case .NO_INTERNET: return "No Internet, could not secure IP address"
             case .ADDRESS_UNAVAILABLE: return "IP address is unavailable."
             case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"

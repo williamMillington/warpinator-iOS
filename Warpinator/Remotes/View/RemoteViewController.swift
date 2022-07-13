@@ -67,7 +67,8 @@ final class RemoteViewController: UIViewController {
         view.backgroundColor = Utils.backgroundColour
         
         // removing intial IB view
-        for view in transfersStack.arrangedSubviews {   view.removeFromSuperview()  }
+        for view in transfersStack.arrangedSubviews {   view.removeFromSuperview()
+        }
         
         
         // load intial info
@@ -89,28 +90,24 @@ final class RemoteViewController: UIViewController {
         
         guard let viewModel = viewModel else { return }
         
+        // grab existing attributes of each label to pass on to the next attributed string
         var attrs = displayNameLabel.attributedText?.attributes(at: 0, effectiveRange: nil)
-        let displayNameString = NSAttributedString(string: viewModel.displayName,
-                                                   attributes: attrs)
+        displayNameLabel.attributedText = viewModel.displayName.extended.attributed(attrs)
         
         attrs = deviceNameLabel.attributedText?.attributes(at: 0, effectiveRange: nil)
-        let usernameString = NSAttributedString(string: viewModel.deviceName,
-                                                   attributes: attrs)
+        deviceNameLabel.attributedText = viewModel.deviceName.extended.attributed(attrs)
         
         attrs = ipaddressLabel.attributedText?.attributes(at: 0, effectiveRange: nil)
-        let ipString = NSAttributedString(string: viewModel.iNetAddress,
-                                                   attributes: attrs)
-        
+        ipaddressLabel.attributedText = viewModel.iNetAddress.extended.attributed(attrs)
         
         attrs = statusLabel.attributedText?.attributes(at: 0, effectiveRange: nil)
-        let statusString = NSAttributedString(string: viewModel.status,
-                                                   attributes: attrs)
+        statusLabel.attributedText = viewModel.status.extended.attributed( attrs )
         
-        displayNameLabel.attributedText = displayNameString
-        deviceNameLabel.attributedText = usernameString
-        ipaddressLabel.attributedText = ipString
+//        displayNameLabel.attributedText = displayNameString
+//        deviceNameLabel.attributedText = usernameString
+//        ipaddressLabel.attributedText = ipString
         
-        statusLabel.attributedText = statusString
+//        statusLabel.attributedText = statusString
         
         
         if let image = viewModel.avatarImage {
