@@ -21,6 +21,10 @@ final class SettingsViewController: UIViewController {
     @IBOutlet var transferPortNumberLabel: UITextField!
     @IBOutlet var registrationPortNumberLabel: UITextField!
     
+    
+    var dismissKeyboardRecognizer: UIGestureRecognizer?
+    
+    
     @IBOutlet var overwriteSwitch: UISwitch!
     @IBOutlet var autoacceptSwitch: UISwitch!
     
@@ -81,11 +85,13 @@ final class SettingsViewController: UIViewController {
         
         view.backgroundColor = Utils.backgroundColour
         
-        
-        refreshCredentialsSwitch.layer.borderColor = Utils.foregroundColour.cgColor
-        refreshCredentialsSwitch.layer.borderWidth = 2
-        
         implementCurrentSettings()
+        
+        displayNameLabel.delegate = self
+        groupCodeLabel.delegate = self
+        transferPortNumberLabel.delegate = self
+        registrationPortNumberLabel.delegate = self
+        
     }
     
     
@@ -105,6 +111,7 @@ final class SettingsViewController: UIViewController {
         
         refreshCredentialsSwitch.isOn = settingsManager.refreshCredentials
     }
+    
     
     
     //
@@ -347,7 +354,7 @@ final class SettingsViewController: UIViewController {
         print(DEBUG_TAG+"Credentials \(selected ? "WILL be" : "WILL NOT be") refreshed (switch is: \(selected ? "ON" : "OFF") )")
         
         
-        // if the user hits the button a second time, just remove
+        // if the user hits the button a second time, remove
         // the existing change
         guard selected != settingsManager.refreshCredentials else {
             changes.removeValue(forKey: .refreshCredentials)
@@ -374,8 +381,6 @@ final class SettingsViewController: UIViewController {
             print(self.DEBUG_TAG+"continuing...")
         }
     }
-    
-    
     
     
     // MARK: reset
@@ -416,3 +421,37 @@ final class SettingsViewController: UIViewController {
     
 }
 
+
+
+
+
+
+
+
+extension SettingsViewController: UITextFieldDelegate {
+    
+    //
+    // MARK:
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        
+        // remove old recognizer
+        if let recognizer = dismissKeyboardRecognizer {
+            view.removeGestureRecognizer(recognizer)
+        }
+        
+        // add a gesture recognizer that references the correct textfield
+        dismissKeyboardRecognizer = TapGestureRecognizerWithClosure() {
+            textField.resignFirstResponder()
+        }
+        view.addGestureRecognizer(dismissKeyboardRecognizer!)
+    }
+    
+    
+    //
+    // MARK:
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return false
+    }
+    
+}

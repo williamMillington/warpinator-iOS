@@ -31,14 +31,15 @@ class FileWriter: WritesFile {
     lazy var DEBUG_TAG: String = "FileWriter \(downloadName): "
     
     
-    // Names of files, as provided by the client.
-    // Used in determining the file in which a given chunk belongs, which may change,
-    // depending if we have to rename due to name conflicts
+    /* Name of file, as provided by init.
+     We may need to rename the file, so we need to store the original,
+     downloaded name, in order to remember which file chunks are ours.  */
     var downloadName: String
     var downloadRelativePath: String
     
     
     // The values that will be written to the filesystem (renaming feature)
+    // Starts off as the original, downloaded name
     lazy var fileSystemName = downloadName
     var fileSystemParentPath: String
     
@@ -60,6 +61,7 @@ class FileWriter: WritesFile {
     var observers: [ObservesFileOperation] = []
     
     
+    //
     // MARK: - init
     init(withRelativePath path: String, modifiedRelativeParentPath moddedParentPath: String? = nil, overwrite: Bool){
         
@@ -73,7 +75,7 @@ class FileWriter: WritesFile {
         let parentPath = parentPathParts.isEmpty  ?  ""  :  parentPathParts.joined(separator: "/") + "/"
         fileSystemParentPath = moddedParentPath ?? parentPath
         
-        print(DEBUG_TAG+"fileSystemParentPath is \(fileSystemParentPath)")
+//        print(DEBUG_TAG+"fileSystemParentPath is \(fileSystemParentPath)")
         fileExtension = itemURL.pathExtension
         
         
@@ -116,6 +118,7 @@ class FileWriter: WritesFile {
         var newName = "File_Renaming_Failed"
         
         //
+        //
         while renameCount <= 1000 {
             renameCount += 1
             
@@ -137,7 +140,7 @@ class FileWriter: WritesFile {
     // MARK: processChunk
     func processChunk(_ chunk: FileChunk) throws {
         
-        // CHECK IF CHUNK BELONGS
+        // Check if chunk belongs with current file
         guard chunk.relativePath == downloadRelativePath else {
             throw WritingError.FILENAME_MISMATCH
         }
@@ -171,7 +174,7 @@ class FileWriter: WritesFile {
     
     // MARK: fail
     func fail(){
-        print(DEBUG_TAG+"\tfailing filewrite:")
+        print(DEBUG_TAG+"\tfailing filewrite")
         guard fileHandle != nil else { return  }
         
         close()

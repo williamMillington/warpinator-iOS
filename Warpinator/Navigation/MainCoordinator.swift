@@ -19,11 +19,16 @@ final class MainCoordinator: NSObject, Coordinator {
     var childCoordinators = [Coordinator]()
     var navController: UINavigationController
     
+    
+    
     var serverEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
                                                                                        networkPreference: .best)
     var remoteEventLoopGroup: EventLoopGroup = GRPC.PlatformSupport.makeEventLoopGroup(loopCount: 1,
                                                                                        networkPreference: .best)
     
+    
+    lazy var networkMonitor: NetworkMonitor = NetworkMonitor(withEventloopGroup: serverEventLoopGroup,
+                                                             delegate: self)
     
     lazy var remoteManager: RemoteManager = RemoteManager(withEventloopGroup: remoteEventLoopGroup)
     
@@ -67,13 +72,26 @@ final class MainCoordinator: NSObject, Coordinator {
     //
     // MARK: start
     func start() {
+        
         showMainViewController()
+        
+    }
+    
+    
+    //
+    // MARK: waitForNetwork
+    func waitForNetwork() -> EventLoopFuture<Void> {
+        
+        return networkMonitor.waitForWifiAvailable()
+            .flatMap {
+                self.networkMonitor.waitForMDNSPermission()
+            }
     }
     
     
     
     //
-    //
+    // MARK: startupMdns
     func startupMdns() -> EventLoopFuture<Void> {
         let futures = [ mDNSListener.start(), mDNSBrowser.start() ]
         return EventLoopFuture.andAllComplete( futures, on: serverEventLoopGroup.next() )
@@ -81,7 +99,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    //
+    // MARK: shutdownMdns
     func shutdownMdns() -> EventLoopFuture<Void> {
         let futures = [ mDNSListener.stop(), mDNSBrowser.stop() ]
         return EventLoopFuture.andAllComplete( futures, on: serverEventLoopGroup.next() )
@@ -90,7 +108,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    //
+    // MARK: publishMdns
     func publishMdns(){
         print(DEBUG_TAG+"publishing mDNS...")
         mDNSListener.startListening()
@@ -101,7 +119,7 @@ final class MainCoordinator: NSObject, Coordinator {
     
     
     //
-    //
+    // MARK: removeMdns
     func removeMdns(){
         print(DEBUG_TAG+"removing mDNS...")
         mDNSListener.removeService()
@@ -118,21 +136,25 @@ final class MainCoordinator: NSObject, Coordinator {
 
         print(DEBUG_TAG+"starting servers...")
         
+        DispatchQueue.main.async {
+            (self.navController.visibleViewController as? MainViewController)?.removeErrorScreen()
+        }
+        
+        
         guard !server.isRunning else {
             print(DEBUG_TAG+"Server is already running")
             return serverEventLoopGroup.next().makeSucceededVoidFuture()
         }
         
+        
         DispatchQueue.main.async {
-            if let vc = self.navController.visibleViewController as? ViewController {
-                vc.showLoadingScreen()
-            }
+            (self.navController.visibleViewController as? MainViewController)?.showLoadingScreen()
         }
         
         
         //
         if SettingsManager.shared.refreshCredentials {
-            print(DEBUG_TAG+" refresh credentials:  deleting...")
+            print(DEBUG_TAG+"\t\t refreshing credentials...")
             Authenticator.shared.deleteCredentials()
         }
         
@@ -147,32 +169,17 @@ final class MainCoordinator: NSObject, Coordinator {
 //
 //        return promise?.futureResult
         
-        let future = server.start()
-        
-        future.whenComplete { _ in
-            DispatchQueue.main.async {
-                (self.navController.visibleViewController as? ViewController)?.removeLoadingScreen()
-            }
-        }
-        
-//        return server.start()
-        return future
-        // what to do if server fails to start
-//            .flatMapError { error in
-//                return self.serverEventLoopGroup.next().makeFailedFuture(error)
-//            }
-        
-        // return future that completes when registrationServer starts up
-            .flatMap { _ in
+        // start server
+        return server.start()
+            .flatMap {  // then -> start registrationServer
                 return self.registrationServer.start()
             }
+            .map { _ in // when complete -> remove loading screen
+                DispatchQueue.main.async {
+                    (self.navController.visibleViewController as? MainViewController)?.removeLoadingScreen()
+                }
+            }
     }
-    
-    
-    func shutdownConnections() -> EventLoopFuture<Void> {
-            return remoteManager.shutdownAllRemotes()
-    }
-    
     
     
     //
@@ -181,21 +188,17 @@ final class MainCoordinator: NSObject, Coordinator {
         
         print(DEBUG_TAG+"stopping servers... ")
         
-        self.removeMdns()
+        removeMdns()
         
-        let remoteFuture = shutdownConnections()
-        
-        // I thiink is how you chain futures together
-        return remoteFuture.flatMap { _ -> EventLoopFuture<Void> in
+        return remoteManager.shutdownAllRemotes()
+            .flatMap { _ -> EventLoopFuture<Void> in // when remotes have finished shutting down -> shutdown servers
             print(self.DEBUG_TAG+"stopping registration server")
-            
-            return self.registrationServer.stop()
+            return self.registrationServer.stop() // registrationServer first, to stop accepting new connections
         }
         .flatMap {
             print(self.DEBUG_TAG+"stopping server")
-            return self.server.stop()
+            return self.server.stop() // main server second
         }
-        
     }
     
     
@@ -203,16 +206,22 @@ final class MainCoordinator: NSObject, Coordinator {
     // MARK: restart servers
     func restartServers(){
         
+        DispatchQueue.main.async {
+            (self.navController.visibleViewController as? MainViewController)?.showLoadingScreen()
+        }
         
-        // remove ourselves from mDNS
+        // unregister ourselves from mDNS
         removeMdns()
-        
         
         // shutdown mDNS
         shutdownMdns()
         // then -> shutdown servers
             .flatMap { _ in
                 return self.stopServers()
+            }
+        // then -> check network connection
+            .flatMap{ Void in
+                return self.waitForNetwork()
             }
         // then -> start up  servers
             .flatMap { _ in
@@ -222,13 +231,9 @@ final class MainCoordinator: NSObject, Coordinator {
             .flatMap { _ in
                 return self.startupMdns()
             }
-        
-        // TODO: flatmap expected errors here so they don't get wrapped, which destroys the localDescription
-        // ex.              "No Internet, could not secure IP address"   (actual description)
-        //      becomes:    "The operation couldn’t be completed. (Warpinator.Server.ServerError error 0.)"
             .whenComplete { result in
                 
-                print(self.DEBUG_TAG+"startup result is \(result)")
+                print(self.DEBUG_TAG+" restart result is \(result)")
                 
                 switch result {
                 case .success(_): break
@@ -236,13 +241,18 @@ final class MainCoordinator: NSObject, Coordinator {
                     
                     switch error {
                     
-                        // Any errors mean we don't publish ourselves
-                        // to mDNS, except these two
-                        // TODO: This scenario is probably better handled by just returning a succeeded future
-                    case MDNSBrowser.ServiceError.ALREADY_RUNNING: break
+                    case NetworkMonitor.ServiceError.LOCAL_NETWORK_PERMISSION_DENIED:
+                        print(self.DEBUG_TAG+"We DO NOT have access to the local network!")
+                        self.reportError(error,
+                                         withMessage: "Please enable local network access in your system settings (Settings App -> Privacy -> Local Network)")
+                    case Server.ServerError.NO_INTERNET:
+                        self.reportError(error,
+                                         withMessage: "Please make sure wifi is turned on before restarting")
                         
-                    default:   print(self.DEBUG_TAG+"Error starting up: \(error)")
-                        self.reportError(error, withMessage: "Server encountered an error starting up:\n\(error.localizedDescription)")
+                    default:
+                        print(self.DEBUG_TAG+"Warpinator encountered an error starting up: \(error)")
+                        self.reportError(error,
+                                         withMessage: "Warpinator encountered an error starting up:\n\(error)")
                         return
                     }
                 }
@@ -257,13 +267,13 @@ final class MainCoordinator: NSObject, Coordinator {
         
         // if the previously exists in the stack, rewind
         if let mainMenuVC = navController.viewControllers.first(where: { controller in
-            return controller is ViewController
+            return controller is MainViewController
         }) {
             navController.popToViewController(mainMenuVC, animated: false)
         } else {
             
             let bundle = Bundle(for: type(of: self))
-            let mainMenuVC = ViewController(nibName: "MainView", bundle: bundle)
+            let mainMenuVC = MainViewController(nibName: "MainViewController", bundle: bundle)
             
             mainMenuVC.coordinator = self
             mainMenuVC.settingsManager = SettingsManager.shared
@@ -272,6 +282,8 @@ final class MainCoordinator: NSObject, Coordinator {
             
             navController.pushViewController(mainMenuVC, animated: false)
         }
+        
+        
     }
     
     
@@ -352,7 +364,7 @@ extension MainCoordinator: ErrorDelegate {
         DispatchQueue.main.async {
             
             // only the main controller has an error screen, for now
-            if let vc = self.navController.visibleViewController as? ViewController {
+            if let vc = self.navController.visibleViewController as? MainViewController {
                 vc.showErrorScreen(error, withMessage: message)
             }
         }
@@ -398,3 +410,34 @@ extension MainCoordinator: MDNSListenerDelegate {
 //        }
 //    }
 //}
+
+
+
+
+extension MainCoordinator: NetworkDelegate {
+    
+    
+    //
+    //
+    func didLoseLocalNetworkConnectivity() {
+        print(self.DEBUG_TAG+" lost wifi connectivity")
+        
+        
+        DispatchQueue.main.async {
+            // cast .visibleVC as? MainVC, anything else and .updateInfo() fizzles
+            (self.navController.visibleViewController as? MainViewController)?.updateInfo()
+        }
+    }
+    
+    
+    //
+    //
+    func didGainLocalNetworkConnectivity() {
+        print(self.DEBUG_TAG+" gained wifi connectivity")
+        
+        DispatchQueue.main.async {
+            // cast .visibleVC as? MainVC, anything else and .updateInfo() fizzles
+            (self.navController.visibleViewController as? MainViewController)?.updateInfo()
+        }
+    }
+}

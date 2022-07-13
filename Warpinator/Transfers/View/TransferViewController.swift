@@ -28,7 +28,6 @@ final class TransferViewController: UIViewController {
     @IBOutlet var operationsStack: UIStackView!
     
     
-    
     var remoteViewModel: RemoteViewModel?
     var transferViewModel: TransferOperationViewModel?
     
@@ -100,8 +99,7 @@ final class TransferViewController: UIViewController {
         transferStatusLabel.text = "\(transferViewModel.status)"
         
         transferDescriptionLabel.text = transferViewModel.transferDescription + " \(remoteViewModel.displayName)"
-//
-        
+
         transferProgressLabel.text = transferViewModel.progressString
         
         // TODO: I don't like this, there's got to be a better way than
@@ -167,14 +165,20 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     var onInfoUpdated: ()->Void = {}
     var onFileAdded: ()->Void = {}
     
+    
+    //
     var UUID: UInt64 {
         return operation.UUID
     }
     
+    
+    //
     var fileCount: String {
         return "\(operation.fileCount)"
     }
 
+    
+    //
     var transferDescription: String {
         
         let filesCount: Int = operation.fileCount
@@ -186,7 +190,7 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
         return "Transferring \(filesCountString) \(directionString)"
     }
     
-    
+    //
     var progressString: String {
         
         let formatter = ByteCountFormatter()
@@ -195,20 +199,21 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
         return "\(formatter.string(fromByteCount: Int64(operation.bytesTransferred) ) )/\(formatter.string(fromByteCount: Int64(operation.totalSize) ))"
     }
     
+    //
     var status: TransferStatus {
         return operation.status
     }
     
+    //
     var direction: String {
         return "\(operation.direction)"
     }
     
+    //
     var files: [ListedFileViewModel] {
         
         var viewModels: [ListedFileViewModel] = []
         
-        // TODO: this is not ideal. There must be a more gooder way
-        // to arrange this.
         if let transfer = operation as? SendFileOperation {
             
             for reader in transfer.fileReaders {
@@ -248,11 +253,15 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
         return viewModels
     }
     
+    
+    //
     var progress: Double {
         return operation.progress
     }
     
     
+    //
+    //
     init(for operation: TransferOperation) {
         self.operation = operation
         super.init()
@@ -260,6 +269,8 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     }
     
     
+    //
+    //
     func buttonStatus() -> (pressable: Bool, text: String) {
         
         var pressable: Bool = false
@@ -289,6 +300,8 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     }
     
     
+    //
+    //
     func infoDidUpdate(){
         DispatchQueue.main.async { // update UI on main thread
             self.onInfoUpdated()
@@ -296,6 +309,8 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     }
     
     
+    //
+    //
     func fileAdded() {
         DispatchQueue.main.async { // update UI on main thread
             self.onFileAdded()
