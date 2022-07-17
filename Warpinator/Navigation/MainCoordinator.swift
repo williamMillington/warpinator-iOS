@@ -39,7 +39,6 @@ final class MainCoordinator: NSObject, Coordinator {
     }()
     
     
-    
     lazy var server: Server = Server(eventloopGroup: serverEventLoopGroup,
                                      provider: warpinatorServiceProvider)
     lazy var registrationServer: RegistrationServer = RegistrationServer(eventloopGroup: remoteEventLoopGroup)

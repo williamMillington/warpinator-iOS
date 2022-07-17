@@ -172,14 +172,20 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
         
-        let systemPhoneImage = UIImage(systemName: "iphone")!.withRenderingMode(.alwaysTemplate)
-        let avatarImg = SettingsManager.shared.avatarImage ?? systemPhoneImage
+//        let systemPhoneImage = UIImage(systemName: "iphone")!.withRenderingMode(.alwaysTemplate)
+//        let avatarImg = SettingsManager.shared.avatarImage ?? systemPhoneImage
 
-        let avatarImgBytes = avatarImg.pngData()
+//        let avatarImgBytes = avatarImg.pngData()
 
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
 
-        if let bytes = avatarImgBytes {
+        
+        if let avatarImg = SettingsManager.shared.avatarImage,
+           let bytes = avatarImg.pngData() {
+            
+//        }
+//
+//        if let bytes = avatarImgBytes {
             
             sendingAvaratChunksQueue.async {
                 

@@ -62,7 +62,7 @@ class NetworkMonitor {
     
     
     //
-    //
+    // MARK: wifiIsAvailable
     var wifiIsAvailable: Bool {
         print(DEBUG_TAG+"checking availability of (\(monitor.currentPath))")
         print(DEBUG_TAG+"checking wifi availablility (\(monitor.currentPath.status))")
@@ -81,6 +81,7 @@ class NetworkMonitor {
     var attempts: Int = 0
     let ATTEMPT_LIMIT: Int = 10 // 10 attempts, 1 second apart
     
+    // MARK: waitForWifiAvailable
     func waitForWifiAvailable()  -> EventLoopFuture<Void> {
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
@@ -117,6 +118,7 @@ class NetworkMonitor {
     
     
     
+    // MARK: updateHandler
     func updateHandler(path: NWPath) {
         
         print(self.DEBUG_TAG+"path \(path) status is \(path.status)")
