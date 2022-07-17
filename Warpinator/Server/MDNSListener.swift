@@ -49,6 +49,7 @@ final class MDNSListener {
     
     
     lazy var listener: NWListener = createListener()
+    var currentState: NWListener.State = .setup
     
     var eventloopGroup: EventLoopGroup
     
@@ -84,13 +85,23 @@ final class MDNSListener {
     // MARK: start
     func start() -> EventLoopFuture<Void> {
         
+        print(DEBUG_TAG+"starting up listener")
+        
         let promise = eventloopGroup.next().makePromise(of: Void.self)
         
-        switch listener.state {
-        case .ready:
-            promise.succeed( Void() )
+        
+        /* apparently iOS 13 has a bug (whaaaaaaaaaaaat? no, so crazy...)
+         where listener.state isn't actually accessible, and somebody forgot to put a property wrapper on it,
+         so we only find out at runtime, not compile time.
+        */
+        switch currentState {
+        case .ready: // if we already have an NWListener, and it's 'ready', we're done
+            
+            // make sure we 'succeed' AFTER we return the result
+            defer {  promise.succeed( Void() )   }
+            
             return promise.futureResult
-        case .setup: break // creating the listener if the one we have is still good
+        case .setup: break // avoid creating a new listener if the one we have is still good
         default:
             listener = createListener()
         }
@@ -101,6 +112,7 @@ final class MDNSListener {
         
         listener.start(queue: listenerQueue )
         
+        print(DEBUG_TAG+"returning start promise")
         return promise.futureResult
     }
     
@@ -114,8 +126,8 @@ final class MDNSListener {
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
         
-        switch listener.state {
-        case .cancelled, .failed(_), .setup:
+        switch currentState {
+        case .cancelled, .failed(_), .setup: // 'succeed' the promise if listener is already stopped/not-started
             promise.succeed( Void() )
         default:
             configure(promise, toSucceedForState: .cancelled)
@@ -141,7 +153,7 @@ final class MDNSListener {
         listener.stateUpdateHandler = { updatedState in
             
             print(self.DEBUG_TAG+"\t\t\t listener update to \(updatedState) while waiting for \(state)")
-            
+            self.currentState = updatedState
             // we have to be careful not to let a promise go unfullfilled
             switch updatedState {
             case .failed(let error):
@@ -196,8 +208,8 @@ final class MDNSListener {
         
         print(DEBUG_TAG+"\tpublishing for reals...")
         
-        guard listener.state == .ready else {
-            print(DEBUG_TAG+"\tlistener is not ready (\(listener.state))")
+        guard currentState == .ready else {
+            print(DEBUG_TAG+"\tlistener is not ready (\(currentState))")
             return
         }
         
@@ -232,7 +244,7 @@ final class MDNSListener {
     // MARK: flushPublish
     func flushPublish(){
 
-        guard listener.state == .ready  else {
+        guard currentState == .ready  else {
             print(DEBUG_TAG+"\tlistener is not ready (\(listener.state))")
             return
         }
@@ -277,7 +289,7 @@ final class MDNSListener {
     private func stateDidUpdate(state: NWListener.State ) {
         
         print(DEBUG_TAG+" state updated -> \(state)")
-        
+        currentState = state
 //        switch state {
 //        case .cancelled:
 //            print(DEBUG_TAG+"\t\t cancelled")

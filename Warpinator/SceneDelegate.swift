@@ -62,7 +62,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
             print(self.DEBUG_TAG+"warpinator startup completed")
             return self.coordinator!.startupMdns()
-
         }
         .whenComplete { result in
 
