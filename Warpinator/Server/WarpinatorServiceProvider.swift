@@ -102,13 +102,15 @@ final public class WarpinatorServiceProvider: WarpProvider {
 
         func checkDuplex() -> Bool {
             print(DEBUG_TAG+"\t\tchecking duplex for uuid: \(uuid)")
-//            print(DEBUG_TAG+"\t\tmanager: \(self.remoteManager)")
-//            print(DEBUG_TAG+"\t\tremote: \(self.remoteManager?.containsRemote(for: uuid))")
             if let remote = self.remoteManager?.containsRemote(for: uuid) {
-                // TODO: if our MdnsBrowser hasn't told us that a remote we know about is available, having our duplex checked is an indication that it's nevertheless online, and should trigger us to connect
-                print(DEBUG_TAG+"\t\t\t remote found (status: \(remote.details.status))")
                 
-                return [.AquiringDuplex, .Connected].contains( remote.details.status )
+                print(DEBUG_TAG+"\t\t\t remote found (status: \(remote.details.status))")
+                if [.AquiringDuplex, .Connected].contains( remote.details.status ) {
+                    return true
+                }
+                
+                print(DEBUG_TAG+"\t\t\t\trestarting connection...")
+                remote.startupConnection()
             }
             return false
         }
@@ -121,10 +123,10 @@ final public class WarpinatorServiceProvider: WarpProvider {
             
             var count = 0
             
-            // repeats 4 times a second, for a total of 20 times if client times out at ~5 seconds
+            // repeats 4 times a second, for a total of 10 times if client times out at ~5 seconds
             self.timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { timer in
                 count += 1
-                guard count < 20 else {
+                guard count < 10 else {
                     timer.invalidate();
                     duplexPromise.fail(DuplexError.DuplexTimeout)
                     return
@@ -140,9 +142,6 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         return duplexPromise
     }
-    
-    
-    
     
     
     
@@ -172,34 +171,23 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
         
-//        let systemPhoneImage = UIImage(systemName: "iphone")!.withRenderingMode(.alwaysTemplate)
-//        let avatarImg = SettingsManager.shared.avatarImage ?? systemPhoneImage
-
-//        let avatarImgBytes = avatarImg.pngData()
-
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
 
         
         if let avatarImg = SettingsManager.shared.avatarImage,
            let bytes = avatarImg.pngData() {
             
-//        }
-//
-//        if let bytes = avatarImgBytes {
-            
             sendingAvaratChunksQueue.async {
-                
-                for (i, chunk) in bytes.extended.iterator(withChunkSize: 1024 * 1024).enumerated(){ 
-                    
-                    let result = context.sendResponse( RemoteMachineAvatar.with {
-                        $0.avatarChunk = chunk
-                    })
-                    
-                    
-                    // wait for confirmation of this chunk before sending the next one
-                    do {     try result.wait() }
+                bytes.extended.iterator(withChunkSize: 1024 * 1024).enumerated().forEach { (index, chunk) in
+                    do {
+                        print(self.DEBUG_TAG+"\t\t sending  chunk #\(index + 1) ")
+                        try context.sendResponse( RemoteMachineAvatar.with {
+                            $0.avatarChunk = chunk
+                        }).wait() // wait for confirmation of this chunk before sending the next one
+                        print(self.DEBUG_TAG+"\t\t chunk #\(index + 1) sent successfully")
+                    }
                     catch {
-                        print(self.DEBUG_TAG+"avatar chunk \(i) prevented from waiting. Reason: \(error)")
+                        print(self.DEBUG_TAG+"avatar chunk \(index) prevented from waiting. Reason: \(error)")
                     }
                 }
                 
@@ -257,7 +245,6 @@ final public class WarpinatorServiceProvider: WarpProvider {
             print(DEBUG_TAG+"Transfer was automatically accepted")
             remote.callClientStartTransfer(for: operation)
         }
-        
         
         
         return context.eventLoop.makeSucceededFuture(VoidType())

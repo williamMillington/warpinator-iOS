@@ -32,14 +32,14 @@ final class RemoteManager {
     func addRemote(_ remote: Remote){
         print(DEBUG_TAG+"adding remote with UUID: \(remote.details.uuid)")
         
-        remote.eventloopGroup = remoteEventloopGroup 
+        remote.eventLoopGroup = remoteEventloopGroup
         remotes[remote.details.uuid] = remote
         
         DispatchQueue.main.async {
             self.remotesViewController?.remoteAdded(remote)
         }
         
-        remote.startConnection()
+        remote.startupConnection()
     }
     
     
@@ -52,7 +52,7 @@ final class RemoteManager {
             return
         }
         
-        remote.startConnection()
+        remote.startupConnection()
     }
     
     
@@ -136,7 +136,7 @@ final class RemoteManager {
 
 
 
-extension RemoteManager: MDNSBrowserDelegate {
+extension RemoteManager: BrowserDelegate {
     
     
     
@@ -202,7 +202,7 @@ extension RemoteManager: MDNSBrowserDelegate {
             // Are we connected?
             if [ .Disconnected, .Idle, .Error ].contains( remote.details.status ) {
                 print(DEBUG_TAG+"\t\t\t not connected: reconnecting...")
-                remote.startConnection()
+                remote.startupConnection()
             }
             return
         }
@@ -217,7 +217,7 @@ extension RemoteManager: MDNSBrowserDelegate {
         details.status = .Disconnected
         
         
-        let newRemote = Remote(details: details)
+        let newRemote = Remote(details: details, eventLoopGroup: remoteEventloopGroup)
         
         addRemote(newRemote)
         

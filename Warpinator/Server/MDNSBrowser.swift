@@ -9,7 +9,7 @@ import Foundation
 import Network
 import NIOCore
 
-protocol MDNSBrowserDelegate {
+protocol BrowserDelegate {
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result)
     func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result)
 }
@@ -18,7 +18,7 @@ protocol MDNSBrowserDelegate {
 final class MDNSBrowser {
     
     
-    enum ServiceError: Error {
+    enum Error: Swift.Error {
         case ALREADY_RUNNING
         case UNKNOWN_SERVICE
         case CANCELLED
@@ -29,7 +29,7 @@ final class MDNSBrowser {
     private let SERVICE_TYPE = "_warpinator._tcp."
     private let SERVICE_DOMAIN = ""
     
-    var delegate: MDNSBrowserDelegate?
+    var delegate: BrowserDelegate?
     
     
     lazy var browser: NWBrowser = createBrowser()
@@ -120,7 +120,6 @@ final class MDNSBrowser {
         
         
         browser.stateUpdateHandler = { updatedState in
-            
 //            print(self.DEBUG_TAG+"\t\t\t browser updated to \(updatedState) while waiting for \(state)")
             
             // we have to be careful not to let a promise go unfullfilled
@@ -134,7 +133,7 @@ final class MDNSBrowser {
                 // those states (ex. .ready, .watiting )  can never be reached again and we just
                 // create a new listener (which will leave the promise hanging)
                 if state != .cancelled {
-                    promise.fail(  ServiceError.CANCELLED  )
+                    promise.fail(  Error.CANCELLED  )
                     return
                 }
                 
@@ -198,7 +197,10 @@ final class MDNSBrowser {
             
             switch change {
             case .added(let result):  delegate?.mDNSBrowserDidAddResult(result)
-            case .changed(old: _, new: let new, flags: let flags):
+            case .changed(old: let old, new: let new, flags: let flags):
+                print(self.DEBUG_TAG+"change registered in \(old): ")
+                print(self.DEBUG_TAG+"\t\t flags \(flags) ")
+                print(self.DEBUG_TAG+"\t\t new registration: \(new): ")
                 if case .metadataChanged = flags {
                     delegate?.mDNSBrowserDidAddResult(new)
                 }

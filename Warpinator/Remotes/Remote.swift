@@ -27,7 +27,7 @@ struct RemoteDetails {
     
     static let NO_IP_ADDRESS = "No_IPAddress"
     
-    lazy var DEBUG_TAG: String = "RemoteDetails (hostname: \"\(hostname)\"): "
+    lazy var DEBUG_TAG: String = "RemoteDetails (\"\(hostname)\"): "
     
     var endpoint: NWEndpoint
     
@@ -82,11 +82,19 @@ extension RemoteDetails {
 // MARK: - Remote
 public class Remote {
     
-    lazy var DEBUG_TAG: String = "REMOTE (hostname: \"\(details.hostname)\"): "
+    lazy var DEBUG_TAG: String = "REMOTE (\"\(details.hostname)\"): "
     
     var details: RemoteDetails {
         didSet {  informObserversInfoDidChange()  }
     }
+    
+    
+    enum Error: Swift.Error {
+        case REMOTE_PROCESSING_ERROR
+        case UNKNOWN_ERROR
+    }
+    
+    
     
     var sendingOperations: [SendFileOperation] = []
     var receivingOperations: [ReceiveFileOperation] = []
@@ -94,7 +102,7 @@ public class Remote {
     var channel: ClientConnection?
     var warpClient: WarpClient?
     
-    var eventloopGroup: EventLoopGroup?
+    var eventLoopGroup: EventLoopGroup
     
     var authenticationConnection: AuthenticationConnection?
     var authenticationCertificate: NIOSSLCertificate?
@@ -125,111 +133,153 @@ public class Remote {
     
     
     
-    init(details: RemoteDetails){
-        self.details = details
-        
-    }
-    
-    init(details: RemoteDetails, certificate: NIOSSLCertificate){
-        self.details = details
-        authenticationCertificate = certificate
+    init(details deets: RemoteDetails, eventLoopGroup group: EventLoopGroup){
+        details = deets
+        eventLoopGroup = group
     }
     
     
     //
-    // MARK: startConnection
-    func startConnection(){
+    // MARK: +startupConnection
+    @discardableResult
+    func startupConnection() -> EventLoopFuture<Void> {
         
-        print(DEBUG_TAG+"Starting connection...")
+        print(DEBUG_TAG+"Initiating connection with remote...")
+        
+        // return success if we're already connected, or connecting
+        if let state = channel?.connectivity.state {
+           
+            if [.ready, .connecting].contains( state ) {
+                return eventLoopGroup.next().makeSucceededVoidFuture()
+            }
+            
+            // if idle, just ping
+            if let client = warpClient,
+                state == .idle {
+                
+                let ping = client.ping( lookupName )
+                return ping.status.flatMap { status in
+                    switch status { // status okay, we're still connected
+                    case .ok:  return self.eventLoopGroup.next().makeSucceededVoidFuture()
+                    case .processingError : return self.eventLoopGroup.next().makeFailedFuture(Remote.Error.REMOTE_PROCESSING_ERROR)
+                    default: return self.eventLoopGroup.next().makeFailedFuture( Remote.Error.UNKNOWN_ERROR )
+                    }
+                }
+                // error while pinging triggers a connection restart
+                .flatMapError { error in
+                    print(self.DEBUG_TAG+"ERROR pinging: \(error), assume disconnected ")
+                    
+                    // ensures we enter the .Disconnected state we this isn't an
+                    // infinite loop
+                    return self.disconnect(error)
+                }.flatMap {
+                    // try again! :D
+                    self.startupConnection()
+                }
+            }
+        }
         
         duplexAttempts = 0
         transientFailureCount = 0
         
-        if let certificate = authenticationCertificate {
-            connect(withCertificate: certificate)
-        } else {
-//            obtainCertificate()
+        return connect()
+            .flatMapError { error in
+                print(self.DEBUG_TAG+"Failed to connect \(error)")
+                return self.eventLoopGroup.next().makeFailedFuture(error)
+            }
+    }
+    
+    
+    
+    // MARK: authenticate
+    private func authenticate() -> EventLoopFuture<NIOSSLCertificate> {
+        
+        guard let certificate = authenticationCertificate else {
             
             if details.api == "1" { // API_V1
-                authenticationConnection = UDPConnection(onEventLoopGroup: eventloopGroup!,
+                authenticationConnection = UDPConnection(onEventLoopGroup: eventLoopGroup,
                                      endpoint: details.endpoint)
             } else { // API_V2
-                authenticationConnection = GRPCConnection(onEventLoopGroup: eventloopGroup!,
+                authenticationConnection = GRPCConnection(onEventLoopGroup: eventLoopGroup,
                                       details: details)
             }
             
-            authenticationConnection?.requestCertificate()?.whenComplete { result in
-                switch result {
-                case .success(let info):
+            return authenticationConnection!.requestCertificate()
+                .flatMap { info in
                     
                     self.details.ipAddress = info.address
                     self.details.port = info.port
                     
-                    self.connect(withCertificate: info.certificate)
+                    self.authenticationCertificate = info.certificate
                     
-                    self.authenticationConnection = nil
-                    
-                case .failure(let error): print(self.DEBUG_TAG+"Failed to connect \(error)")
+                    return self.eventLoopGroup.next().makeSucceededFuture(info.certificate)
                 }
-            }
-            
         }
+        
+        return self.eventLoopGroup.next().makeSucceededFuture(certificate)
     }
     
     
     //
-    // MARK: connect
-    func connect(withCertificate certificate: NIOSSLCertificate) {
+    // MARK: - connect
+    private func connect() -> EventLoopFuture<Void> {
         
-        authenticationCertificate = certificate
         
-        guard let eventloopGroup = eventloopGroup else {
-            print(DEBUG_TAG+"No eventloopGroup")
-            return
-        }
-        
-        details.status = .OpeningConnection
+        return authenticate() // get certificate
+            .flatMap { certificate in
+                
+                print(self.DEBUG_TAG+"\t connecting...")
+                
+                self.details.status = .OpeningConnection
 
-        var keepalive = ClientConnectionKeepalive()
-        keepalive.permitWithoutCalls = true
-        
-        let channelBuilder = ClientConnection.usingTLSBackedByNIOSSL(on: eventloopGroup)
-            .withTLS(trustRoots: .certificates([certificate]) )
-            .withKeepalive(keepalive)
-            .withConnectivityStateDelegate(self)
-            .withErrorDelegate(self)
-//            .withBackgroundActivityLogger(logger)
-        
-        
-        let hostname =  details.ipAddress
-        let port = details.port
-        
-        print(self.DEBUG_TAG+"creating channel for \(hostname):\(port)")
-        channel = channelBuilder.connect(host: hostname, port: port)
-            
-        warpClient = WarpClient(channel: channel!)
-        
-        let duplexFuture = aquireDuplex()
-        
-        duplexFuture.whenComplete(){ result in
-            
-            switch result {
-            case .success(let haveDuplex):
-                print(self.DEBUG_TAG+" haveDuplex result: \(haveDuplex.response) (attempt:  \(self.duplexAttempts))")
+                var keepalive = ClientConnectionKeepalive()
+                keepalive.permitWithoutCalls = true
                 
-                if haveDuplex.response {
-                    self.details.status = .Connected
-                    self.retrieveRemoteInfo()
+                let client = ClientConnection.usingTLSBackedByNIOSSL(on: self.eventLoopGroup)
+                    .withTLS(trustRoots: .certificates([certificate]) )
+                    .withKeepalive(keepalive)
+                    .withConnectivityStateDelegate(self)
+                    .withErrorDelegate(self)
+        //            .withBackgroundActivityLogger(logger)
+                
+                
+                let hostname =  self.details.ipAddress
+                let port = self.details.port
+                
+                print(self.DEBUG_TAG+"creating channel for \(hostname):\(port)")
+                self.channel = client.connect(host: hostname, port: port)
+                
+                self.warpClient = WarpClient(channel: self.channel!)
+                
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
+            }
+            .flatMap {
+                self.aquireDuplex()
+            }
+        
+            // TODO: I need to create some extension methods that more transparently communicate the steps involved
+        
+            .flatMap { haveDuplex in // Duplex call succeeded
+
+                print(self.DEBUG_TAG+" duplex result: \(haveDuplex.response) (attempt:  \(self.duplexAttempts))")
+
+                // if call succeeded, but answer was 'no'
+                guard haveDuplex.response else {
+                    return self.eventLoopGroup.next().makeFailedFuture(DuplexError.DuplexNotEstablished)
                 }
-                
-            case .failure(let error):
+
+                // we're connected, get info
+                self.details.status = .Connected
+                return self.retrieveRemoteInfo()
+            }
+            .flatMapError { error in // duplex failed
+
                 print(self.DEBUG_TAG+"duplex not established")
                 print(self.DEBUG_TAG+"\t\t error: \(error)")
-                
-                    _ = self.disconnect( DuplexError.DuplexNotEstablished )
-                
+
+                _ = self.disconnect( DuplexError.DuplexNotEstablished )
+                return self.eventLoopGroup.next().makeFailedFuture(error)
             }
-        }
         
     }
     
@@ -238,7 +288,7 @@ public class Remote {
     
     //
     // MARK: disconnect
-    func disconnect(_ error: Error? = nil) -> EventLoopFuture<Void> {
+    func disconnect(_ error: Swift.Error? = nil) -> EventLoopFuture<Void> {
         
         print(DEBUG_TAG+"disconnecting remote...")
         print(DEBUG_TAG+"\twith error: \( String(describing:error) )")
@@ -246,7 +296,7 @@ public class Remote {
         
         guard let channel = channel else {
             print(DEBUG_TAG+"\tremote already disconnected")
-            return eventloopGroup!.next().makeSucceededVoidFuture()
+            return eventLoopGroup.next().makeSucceededVoidFuture()
         }
         
         // stop all transfers
@@ -262,22 +312,19 @@ public class Remote {
             }
         }
         
-        
-        
-        let future = channel.close()
-        
-        future.whenComplete { response in
-            
-            switch response {
-                case .success(_): print(self.DEBUG_TAG + "\t\tchannel closed successfully")
-                case .failure(let error): print(self.DEBUG_TAG + "\t\tchannel closed with error: \(error)")
+        return channel.close()
+            .flatMap {
+                print(self.DEBUG_TAG + "\t\tchannel closed successfully")
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
             }
-            
-            self.warpClient = nil
-            self.details.status = .Disconnected
-        }
-        
-        return future
+            .flatMapError{ error in
+                print(self.DEBUG_TAG + "\t\tchannel closed with error: \(error)")
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
+            }
+            .map {
+                self.warpClient = nil
+                self.details.status = .Disconnected
+            }
     }
     
     
@@ -317,7 +364,7 @@ extension Remote {
         
         guard let warpClient = warpClient else {
             print(DEBUG_TAG+"NO CLIENT")
-            return eventloopGroup!.next().makeFailedFuture( DuplexError.UnknownRemote )
+            return eventLoopGroup.next().makeFailedFuture( DuplexError.UnknownRemote )
         }
         
         details.status = .AquiringDuplex
@@ -334,7 +381,6 @@ extension Remote {
             duplex = warpClient.waitingForDuplex(lookupName)//, callOptions: options)
         }
         
-        
         return duplex.response.flatMapThrowing { haveDuplex in
             
             // throw error if duplex wasn't established, despite a successful call
@@ -345,10 +391,11 @@ extension Remote {
         }.flatMapError { error in
             
             guard self.duplexAttempts < 10 else {
-                return self.eventloopGroup!.next().makeFailedFuture(error)
+                return self.eventLoopGroup.next().makeFailedFuture(error)
             }
             
-            return self.eventloopGroup!.next().flatScheduleTask(in: .seconds(2)  ) {
+            // try again in 2 seconds
+            return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)  ) {
                 return self.aquireDuplex()
             }.futureResult
             
@@ -362,7 +409,7 @@ extension Remote {
         
         guard let client = warpClient else {
             print(DEBUG_TAG+"no client connection")
-            return eventloopGroup!.next().makeFailedFuture( NSError() )
+            return eventLoopGroup.next().makeFailedFuture( NSError() )
         }
         
         print(DEBUG_TAG+"pinging")
@@ -374,59 +421,102 @@ extension Remote {
     
     
     // MARK: remoteInfo
-    func retrieveRemoteInfo(){
+    func retrieveRemoteInfo() -> EventLoopFuture<Void>{
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
         
         guard let client = warpClient else {
             print(DEBUG_TAG+"\t no client connection")
-            return //eventloopGroup!.next().makeFailedFuture( NSError() )
+            return eventLoopGroup.next().makeFailedFuture( NSError() )
         }
         
         // get info
-        let infoCallFuture = client.getRemoteMachineInfo(lookupName).response
-        
-        infoCallFuture.whenComplete { result in
-            
-            switch result {
-            case .success(let info):
+        //        let infoCallFuture = client.getRemoteMachineInfo(lookupName).response
+        return client.getRemoteMachineInfo(lookupName).response
+            .flatMap { info in
                 self.details.displayName = info.displayName
                 self.details.username = info.userName
                 self.details.status = .Connected
                 
                 print(self.DEBUG_TAG+"Remote display name: \(self.details.displayName)")
                 print(self.DEBUG_TAG+"Remote username: \(self.details.username)")
-            case .failure(let error):
-                print(self.DEBUG_TAG+"failed to retrieve machine info \n\t\t error: \(error)")
+                
+                var avatarBytes: Data = Data()
+                
+                return client.getRemoteMachineAvatar( self.lookupName) { avatar in
+                    avatarBytes.append( avatar.avatarChunk ) // store each chunk as it comes
+                }.status.flatMap { status in
+                    
+                    switch status {
+                    case .ok:
+                        
+                        // assemble bytes into uiimage
+                        self.details.userImage = UIImage(data:  avatarBytes  )
+                        self.informObserversInfoDidChange()
+                    case .processingError:
+                        print(self.DEBUG_TAG+"")
+                        return self.eventLoopGroup.next().makeFailedFuture(NSError())
+                    default: break
+//                    case .failure(let error):
+//                        print(self.DEBUG_TAG+"failed to retrieve remote avatar")
+//                        print(self.DEBUG_TAG+"\t\t error: \(error)")
+//                    }
+                }
+                
+                
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
+//                return client.getRemoteMachineAvatar(lookupName) { avatar in
+//                    avatarBytes.append( avatar.avatarChunk ) // store each chunk as it comes
+//                }
+                
+//                self.eventLoopGroup.next().makeSucceededFuture(info)
             }
             
-        }
+//            .flatMapError { error in
+//                print(self.DEBUG_TAG+"failed to retrieve machine info \n\t\t error: \(error)")
+//            }
+        
+//        infoCallFuture.whenComplete { result in
+//
+//            switch result {
+//            case .success(let info):
+//                self.details.displayName = info.displayName
+//                self.details.username = info.userName
+//                self.details.status = .Connected
+//
+//                print(self.DEBUG_TAG+"Remote display name: \(self.details.displayName)")
+//                print(self.DEBUG_TAG+"Remote username: \(self.details.username)")
+//            case .failure(let error):
+//                print(self.DEBUG_TAG+"failed to retrieve machine info \n\t\t error: \(error)")
+//            }
+            
+//        }
         
         // holder for avatar bytes
-        var avatarBytes: Data = Data()
-        
-        let imageCallFuture = client.getRemoteMachineAvatar(lookupName) { avatar in
-            avatarBytes.append( avatar.avatarChunk ) // store each chunk as it comes
-        }.status
-        
-        imageCallFuture.whenComplete { result in
-            
-            switch result {
-            case .success(_):
-                
-                // assemble bytes into uiimage
-                self.details.userImage = UIImage(data:  avatarBytes  )
-                self.informObserversInfoDidChange()
-                
-            case .failure(let error):
-                print(self.DEBUG_TAG+"failed to retrieve remote avatar")
-                print(self.DEBUG_TAG+"\t\t error: \(error)")
+//        var avatarBytes: Data = Data()
+//
+//        let imageCallFuture = client.getRemoteMachineAvatar(lookupName) { avatar in
+//            avatarBytes.append( avatar.avatarChunk ) // store each chunk as it comes
+//        }.status
+//
+//        imageCallFuture.whenComplete { result in
+//
+//            switch result {
+//            case .success(_):
+//
+//                // assemble bytes into uiimage
+//                self.details.userImage = UIImage(data:  avatarBytes  )
+//                self.informObserversInfoDidChange()
+//
+//            case .failure(let error):
+//                print(self.DEBUG_TAG+"failed to retrieve remote avatar")
+//                print(self.DEBUG_TAG+"\t\t error: \(error)")
+//            }
+//
+//        }
             }
-            
-        }
     }
 }
-
 
 
 
@@ -452,7 +542,7 @@ extension Remote {
     
     //
     // MARK: stop Transfer
-    func requestStop(forOperationWithUUID uuid: UInt64, error: Error?) {
+    func requestStop(forOperationWithUUID uuid: UInt64, error: Swift.Error?) {
         
         print(DEBUG_TAG+"callClientStopTransfer")
         
@@ -476,7 +566,7 @@ extension Remote {
     
     //
     // MARK: Decline Receive Request
-    func informOperationWasDeclined(forUUID uuid: UInt64, error: Error? = nil) {
+    func informOperationWasDeclined(forUUID uuid: UInt64, error: Swift.Error? = nil) {
         
         if let op = findTransferOperation(for: uuid) {
             
@@ -729,7 +819,7 @@ extension Remote: ClientErrorDelegate {
     
     //
     // MARK: caught error
-    public func didCatchError(_ error: Error, logger: Logger, file: StaticString, line: Int) {
+    public func didCatchError(_ error: Swift.Error, logger: Logger, file: StaticString, line: Int) {
         
         print(DEBUG_TAG+"ERROR (\(file):\(line)): \(error)")
         
@@ -739,7 +829,7 @@ extension Remote: ClientErrorDelegate {
             authenticationCertificate = nil
             
             _ = disconnect()
-            startConnection()
+            startupConnection()
         } else {
             print(DEBUG_TAG+"Unknown error: \(error)")
         }
@@ -754,10 +844,10 @@ extension Remote: ClientErrorDelegate {
 extension Remote {
     func getAuthenticationConnection() -> AuthenticationConnection {
         if details.api == "1" { // API_V1
-            return UDPConnection(onEventLoopGroup: eventloopGroup!,
+            return UDPConnection(onEventLoopGroup: eventLoopGroup,
                                  endpoint: details.endpoint)
         } else { // API_V2
-            return GRPCConnection(onEventLoopGroup: eventloopGroup!,
+            return GRPCConnection(onEventLoopGroup: eventLoopGroup,
                                   details: details)
         }
     }

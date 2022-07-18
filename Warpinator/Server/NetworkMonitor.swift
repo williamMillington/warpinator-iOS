@@ -139,7 +139,7 @@ class NetworkMonitor {
     // and that is makes more sense for me to waste time and system resources attempting
     // to connect regardless of where or not I can.  So, here we are.
     
-    var browser: NWBrowser! //declare here so we don't lose them
+    var browser: NWBrowser! // declare here so we don't lose them
     var listener: NWListener!
     
     func waitForMDNSPermission() -> EventLoopFuture<Void> {
@@ -199,9 +199,9 @@ class NetworkMonitor {
                 self.listener.cancel()
             }
         }
-        browser.browseResultsChangedHandler = { (_,_) in
-//            print(self.DEBUG_TAG+"MDNSCHECKER BROWSER RESULTS CHANGED")
-        }
+//        browser.browseResultsChangedHandler = { (_,_) in
+////            print(self.DEBUG_TAG+"MDNSCHECKER BROWSER RESULTS CHANGED")
+//        }
         
         browser.start(queue: queue)
         listener.start(queue: queue)

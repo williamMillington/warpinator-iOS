@@ -20,7 +20,7 @@ import Logging
 //
 //
 protocol AuthenticationConnection {
-    func requestCertificate() -> EventLoopFuture<AuthenticationInfo>?
+    func requestCertificate() -> EventLoopFuture<AuthenticationInfo>
 }
 
 //
@@ -51,7 +51,7 @@ final class UDPConnection: AuthenticationConnection {
     let endpoint: NWEndpoint
     var connection: NWConnection
     
-    weak var eventloopGroup: EventLoopGroup?
+    let eventloopGroup: EventLoopGroup
     
     init(onEventLoopGroup group: EventLoopGroup, endpoint: NWEndpoint) {
         
@@ -74,9 +74,9 @@ final class UDPConnection: AuthenticationConnection {
     
     //
     // MARK: requestCertificate
-    func requestCertificate() -> EventLoopFuture<AuthenticationInfo>? {
+    func requestCertificate() -> EventLoopFuture<AuthenticationInfo> {
         
-        let promise = eventloopGroup!.next().makePromise(of: AuthenticationInfo.self)
+        let promise = eventloopGroup.next().makePromise(of: AuthenticationInfo.self)
         
         connection.stateUpdateHandler = { [weak self] state in
             
@@ -91,14 +91,15 @@ final class UDPConnection: AuthenticationConnection {
                     port = addressInfo.port
                 }
                 
-                self.sendCertificateRequest().whenComplete { result in
+                self.sendCertificateRequest()
+                    .whenComplete { result in
                     switch result {
                     case .success(let certificate):
-                        let info = AuthenticationInfo(certificate: certificate,
-                                                  address: address,
-                                                  port: port)
-                        promise.succeed(info)
-                    case .failure(let error): promise.fail(error)
+                        promise.succeed( AuthenticationInfo(certificate: certificate,
+                                                           address: address,
+                                                           port: port) )
+                    case .failure(let error):
+                        promise.fail(error)
                     }
                 }
                 
@@ -119,7 +120,7 @@ final class UDPConnection: AuthenticationConnection {
     // MARK: sendRequest
     private func sendCertificateRequest() -> EventLoopFuture<NIOSSLCertificate> {
         
-        let promise = eventloopGroup!.next().makePromise(of: NIOSSLCertificate.self)
+        let promise = eventloopGroup.next().makePromise(of: NIOSSLCertificate.self)
         
         connection.send(content: "REQUEST".bytes ,
                         completion: .contentProcessed { error in
@@ -148,7 +149,7 @@ final class UDPConnection: AuthenticationConnection {
     // MARK: receiveCertificate
     private func receiveCertificate() -> EventLoopFuture<NIOSSLCertificate> {
         
-        let promise = eventloopGroup!.next().makePromise(of: NIOSSLCertificate.self)
+        let promise = eventloopGroup.next().makePromise(of: NIOSSLCertificate.self)
         
         // RECEIVING CERTIFICATE
         connection.receiveMessage  { [weak self] (data, context, isComplete, error) in
@@ -176,29 +177,6 @@ final class UDPConnection: AuthenticationConnection {
                 self.connection.cancel()
                 
                 
-                
-//                guard let concrete_data = data else {
-//                    print(self.DEBUG_TAG+"Error: data is nil")
-//                    promise.fail( AuthenticationError.CertificateError )
-//                    return
-//                }
-//                guard let decodedCertificateData = Data(base64Encoded: concrete_data,
-//                                                        options: .ignoreUnknownCharacters  ) else {
-//                    print("Failed to decode certificate")
-//                    promise.fail( AuthenticationError.CertificateError )
-//                    return
-//                }
-//
-//                guard let certificate = Authenticator.shared.unlockCertificate(decodedCertificateData) else {
-//                    print(self.DEBUG_TAG+"failed to unlock certificate");
-//                    promise.fail( AuthenticationError.CertificateError )
-//                    return
-//                }
-//
-//                promise.succeed(certificate)
-//
-//                self.connection.cancel()
-                
             } else {
                 print("No data received")
                 promise.fail( AuthenticationError.CertificateError )
@@ -207,7 +185,6 @@ final class UDPConnection: AuthenticationConnection {
         
         return promise.futureResult
     }
-    
 }
 
 
@@ -232,7 +209,7 @@ final class GRPCConnection: AuthenticationConnection {
     
     var warpClient: WarpRegistrationClient?
     
-    weak var eventloopGroup: EventLoopGroup?
+    let eventloopGroup: EventLoopGroup
     init(onEventLoopGroup group: EventLoopGroup, details: RemoteDetails) {
         
         eventloopGroup = group
@@ -259,9 +236,9 @@ final class GRPCConnection: AuthenticationConnection {
     
     //
     // MARK: start request
-    func requestCertificate() -> EventLoopFuture<AuthenticationInfo>? {
+    func requestCertificate() -> EventLoopFuture<AuthenticationInfo> {
         
-        let promise = eventloopGroup!.next().makePromise(of: AuthenticationInfo.self )
+        let promise = eventloopGroup.next().makePromise(of: AuthenticationInfo.self )
         
         ipConnection.stateUpdateHandler = { [weak self] state in
             
@@ -305,9 +282,7 @@ final class GRPCConnection: AuthenticationConnection {
     // MARK: send request
     func sendCertificateRequest() -> EventLoopFuture<AuthenticationInfo> {
         
-//        guard let group = eventloopGroup else { return }
-        
-        let channel = ClientConnection.insecure(group: eventloopGroup!).connect(host: details.ipAddress,
+        let channel = ClientConnection.insecure(group: eventloopGroup).connect(host: details.ipAddress,
                                                                                 port: details.authPort)
         
         warpClient = WarpRegistrationClient(channel: channel)

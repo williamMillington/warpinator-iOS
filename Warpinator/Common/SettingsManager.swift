@@ -58,7 +58,12 @@ class SettingsManager {
         didSet { writeToSettings(userName, forKey: StorageKey.userName) }
     }
     
-    var avatarImage: UIImage? = nil     {
+    var avatarImage: UIImage? = {
+        return UIImage(systemName: "iphone")?.withRenderingMode(.alwaysTemplate)
+//        return avatarImg = SettingsManager.shared.avatarImage ?? systemPhoneImage
+
+//        let avatarImgBytes = avatarImg.pngData()
+    }()     {
         didSet { writeToSettings(avatarImage, forKey: StorageKey.avatarImage) }
     }
     
