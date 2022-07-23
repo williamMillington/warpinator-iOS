@@ -183,6 +183,12 @@ public class Remote {
         transientFailureCount = 0
         
         return connect()
+//            .flatMap {
+//                // try again in 2 seconds
+//                return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)  ) {
+//                    return self.ping()
+//                }.futureResult
+//            }
             .flatMapError { error in
                 print(self.DEBUG_TAG+"Failed to connect \(error)")
                 return self.eventLoopGroup.next().makeFailedFuture(error)
@@ -405,18 +411,24 @@ extension Remote {
     
     //
     // MARK: Ping
-    public func ping() ->EventLoopFuture<Void> {
+    public func ping() -> EventLoopFuture<Void> {
         
-        guard let client = warpClient else {
-            print(DEBUG_TAG+"no client connection")
-            return eventLoopGroup.next().makeFailedFuture( NSError() )
-        }
+//        guard let client = warpClient else {
+//            print(DEBUG_TAG+"no client connection")
+//            return eventLoopGroup.next().makeFailedFuture( NSError() )
+//        }
         
         print(DEBUG_TAG+"pinging")
         
-        return client.ping(lookupName).response.map { _ in
-            return // transforms "VoidType" into regular swift-type "Void"
-        }
+//        return client.ping(lookupName).response.map { _ in
+//            return // transforms "VoidType" into regular swift-type "Void"
+//        }
+        
+        return warpClient != nil ? // nil check warpclient before proceeding
+        warpClient!.ping(lookupName).response.map { _ in
+            print(self.DEBUG_TAG+"pinging")
+        } : eventLoopGroup.next().makeFailedFuture( NSError() )
+        
     }
     
     
@@ -430,6 +442,8 @@ extension Remote {
             return eventLoopGroup.next().makeFailedFuture( NSError() )
         }
         
+        var avatarBytes: Data = Data()
+        
         // get info
         //        let infoCallFuture = client.getRemoteMachineInfo(lookupName).response
         return client.getRemoteMachineInfo(lookupName).response
@@ -438,82 +452,27 @@ extension Remote {
                 self.details.username = info.userName
                 self.details.status = .Connected
                 
-                print(self.DEBUG_TAG+"Remote display name: \(self.details.displayName)")
-                print(self.DEBUG_TAG+"Remote username: \(self.details.username)")
-                
-                var avatarBytes: Data = Data()
+                print(self.DEBUG_TAG+"\t\tRetrieved display name: \(self.details.displayName)")
+                print(self.DEBUG_TAG+"\t\tRetrieved username: \(self.details.username)")
                 
                 return client.getRemoteMachineAvatar( self.lookupName) { avatar in
                     avatarBytes.append( avatar.avatarChunk ) // store each chunk as it comes
-                }.status.flatMap { status in
-                    
-                    switch status {
-                    case .ok:
-                        
-                        // assemble bytes into uiimage
-                        self.details.userImage = UIImage(data:  avatarBytes  )
-                        self.informObserversInfoDidChange()
-                    case .processingError:
-                        print(self.DEBUG_TAG+"")
-                        return self.eventLoopGroup.next().makeFailedFuture(NSError())
-                    default: break
-//                    case .failure(let error):
-//                        print(self.DEBUG_TAG+"failed to retrieve remote avatar")
-//                        print(self.DEBUG_TAG+"\t\t error: \(error)")
-//                    }
-                }
+                }.status
                 
-                
-                return self.eventLoopGroup.next().makeSucceededVoidFuture()
-//                return client.getRemoteMachineAvatar(lookupName) { avatar in
-//                    avatarBytes.append( avatar.avatarChunk ) // store each chunk as it comes
-//                }
-                
-//                self.eventLoopGroup.next().makeSucceededFuture(info)
             }
-            
-//            .flatMapError { error in
-//                print(self.DEBUG_TAG+"failed to retrieve machine info \n\t\t error: \(error)")
-//            }
-        
-//        infoCallFuture.whenComplete { result in
-//
-//            switch result {
-//            case .success(let info):
-//                self.details.displayName = info.displayName
-//                self.details.username = info.userName
-//                self.details.status = .Connected
-//
-//                print(self.DEBUG_TAG+"Remote display name: \(self.details.displayName)")
-//                print(self.DEBUG_TAG+"Remote username: \(self.details.username)")
-//            case .failure(let error):
-//                print(self.DEBUG_TAG+"failed to retrieve machine info \n\t\t error: \(error)")
-//            }
-            
-//        }
-        
-        // holder for avatar bytes
-//        var avatarBytes: Data = Data()
-//
-//        let imageCallFuture = client.getRemoteMachineAvatar(lookupName) { avatar in
-//            avatarBytes.append( avatar.avatarChunk ) // store each chunk as it comes
-//        }.status
-//
-//        imageCallFuture.whenComplete { result in
-//
-//            switch result {
-//            case .success(_):
-//
-//                // assemble bytes into uiimage
-//                self.details.userImage = UIImage(data:  avatarBytes  )
-//                self.informObserversInfoDidChange()
-//
-//            case .failure(let error):
-//                print(self.DEBUG_TAG+"failed to retrieve remote avatar")
-//                print(self.DEBUG_TAG+"\t\t error: \(error)")
-//            }
-//
-//        }
+            .flatMap { (status: GRPCStatus) in
+                switch status {
+                case .ok:
+                    // assemble bytes into uiimage
+                    self.details.userImage = UIImage(data:  avatarBytes  )
+                    self.informObserversInfoDidChange()
+                case .processingError:
+                    print(self.DEBUG_TAG+"\t processing error")
+                    return self.eventLoopGroup.next().makeFailedFuture(NSError())
+                default: break
+                    
+                }
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
             }
     }
 }
