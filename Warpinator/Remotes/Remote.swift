@@ -418,7 +418,7 @@ extension Remote {
 //            return eventLoopGroup.next().makeFailedFuture( NSError() )
 //        }
         
-        print(DEBUG_TAG+"pinging")
+//        print(DEBUG_TAG+"pinging")
         
 //        return client.ping(lookupName).response.map { _ in
 //            return // transforms "VoidType" into regular swift-type "Void"
@@ -643,7 +643,7 @@ extension Remote {
     //
     // MARK: send
     // create sending operation from selection of files
-    func sendFiles(_ selections: [TransferSelection]){
+    func sendFiles(_ selections: [TransferSelection]) {
         
         let operation = SendFileOperation(for: selections) 
 
@@ -654,39 +654,29 @@ extension Remote {
     
     //
     // send client a message that we have files we want to send
-    func sendRequest(toTransfer operation: SendFileOperation ){
+    func sendRequest(toTransfer operation: SendFileOperation ) -> EventLoopFuture<Void> {
         
         print(DEBUG_TAG+"Sending request: \(operation.transferRequest)")
+        print(DEBUG_TAG+"\t\t info: \(operation.transferRequest.info)")
+        print(DEBUG_TAG+"\t\t sender: \(operation.transferRequest.senderName)")
+        print(DEBUG_TAG+"\t\t size: \(operation.transferRequest.size)")
+        print(DEBUG_TAG+"\t\t count: \(operation.transferRequest.count)")
         
-        // check if we're connected
-        guard let client = warpClient else {
-            print(DEBUG_TAG+"cancelled sending; no client connection"); return
-        }
         
-        // ping to wake up before sending, if idle
-        guard details.status != .Idle else {
-            
-            let result = client.ping(lookupName)
-            
-            result.response.whenComplete { result in
-                switch result {
-                case .success(_):
-                    self.details.status = .Connected
-                    self.sendRequest(toTransfer: operation) // if still connected, proceed with sending
-                case .failure(let error): _ = self.disconnect(error) // if connection is dead, signal disconnect
-                }
+        return clientNilCheck( ping() )
+            .flatMap { client in
+                return client.processTransferOpRequest(operation.transferRequest).response
             }
-            return
+            .flatMap { VoidType in // convert VoidType -> Void
+                print(self.DEBUG_TAG+"process request completed")
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
+            }
+            .flatMapError { error in
+                print(self.DEBUG_TAG+"process request failed: \(error)")
+                return self.disconnect(error) // if connection is dead, signal disconnect
+            }
         }
         
-        
-        let response = client.processTransferOpRequest(operation.transferRequest)
-        
-        response.response.whenComplete { result in
-            print(self.DEBUG_TAG+"process request completed; result: \(result)")
-        }
-        
-    }
 }
 
 
@@ -743,6 +733,22 @@ extension Remote {
 extension Remote: ConnectivityStateDelegate {
     
     
+    private func clientNilCheck<T>(_: EventLoopFuture<T>) -> EventLoopFuture<WarpClient> {
+        
+        let promise = eventLoopGroup.next().makePromise(of: WarpClient.self)
+        
+        defer {
+            if let client = warpClient {
+                promise.succeed(client)
+            } else {
+                promise.fail(Error.UNKNOWN_ERROR)
+            }
+        }
+        
+        return promise.futureResult
+    }
+    
+    
     //
     //MARK: - connectivityStateDidChange
     public func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
@@ -780,7 +786,7 @@ extension Remote: ClientErrorDelegate {
     // MARK: caught error
     public func didCatchError(_ error: Swift.Error, logger: Logger, file: StaticString, line: Int) {
         
-        print(DEBUG_TAG+"ERROR (\(file):\(line)): \(error)")
+        print(DEBUG_TAG+"ERROR (\(file):q\(line)): \(error)")
         
         // if certificate is bad
         if case NIOSSLError.handshakeFailed(_) = error {
