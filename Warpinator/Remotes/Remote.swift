@@ -183,12 +183,6 @@ public class Remote {
         transientFailureCount = 0
         
         return connect()
-//            .flatMap {
-//                // try again in 2 seconds
-//                return self.eventLoopGroup.next().flatScheduleTask(in: .seconds(2)  ) {
-//                    return self.ping()
-//                }.futureResult
-//            }
             .flatMapError { error in
                 print(self.DEBUG_TAG+"Failed to connect \(error)")
                 return self.eventLoopGroup.next().makeFailedFuture(error)
@@ -229,7 +223,6 @@ public class Remote {
     //
     // MARK: - connect
     private func connect() -> EventLoopFuture<Void> {
-        
         
         return authenticate() // get certificate
             .flatMap { certificate in
@@ -300,11 +293,6 @@ public class Remote {
         print(DEBUG_TAG+"\twith error: \( String(describing:error) )")
         
         
-        guard let channel = channel else {
-            print(DEBUG_TAG+"\tremote already disconnected")
-            return eventLoopGroup.next().makeSucceededVoidFuture()
-        }
-        
         // stop all transfers
         for operation in sendingOperations {
             if [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION].contains(operation.status) {
@@ -318,19 +306,25 @@ public class Remote {
             }
         }
         
-        return channel.close()
-            .flatMap {
-                print(self.DEBUG_TAG + "\t\tchannel closed successfully")
-                return self.eventLoopGroup.next().makeSucceededVoidFuture()
-            }
-            .flatMapError{ error in
-                print(self.DEBUG_TAG + "\t\tchannel closed with error: \(error)")
-                return self.eventLoopGroup.next().makeSucceededVoidFuture()
-            }
-            .map {
+        return channel?.close()
+            .map { // clean up
                 self.warpClient = nil
                 self.details.status = .Disconnected
             }
+            .flatMap { // report success
+                print(self.DEBUG_TAG + "\t\t channel closed successfully")
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
+            }
+            .flatMapError{ error in // report error, but succeed because channel is closed
+                print(self.DEBUG_TAG + "\t\t channel closed with error: \(error)")
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
+            }
+        ?? eventLoopGroup.next().makeSucceededVoidFuture()
+            .flatMap {
+                print(self.DEBUG_TAG + "\t\t channel was already closed")
+                return self.eventLoopGroup.next().makeSucceededVoidFuture()
+        }
+            
     }
     
     
@@ -413,22 +407,13 @@ extension Remote {
     // MARK: Ping
     public func ping() -> EventLoopFuture<Void> {
         
-//        guard let client = warpClient else {
-//            print(DEBUG_TAG+"no client connection")
-//            return eventLoopGroup.next().makeFailedFuture( NSError() )
-//        }
-        
-//        print(DEBUG_TAG+"pinging")
-        
-//        return client.ping(lookupName).response.map { _ in
-//            return // transforms "VoidType" into regular swift-type "Void"
-//        }
-        
-        return warpClient != nil ? // nil check warpclient before proceeding
-        warpClient!.ping(lookupName).response.map { _ in
-            print(self.DEBUG_TAG+"pinging")
-        } : eventLoopGroup.next().makeFailedFuture( NSError() )
-        
+        return client()
+            .flatMap { client in
+                return client.ping(self.lookupName).response
+            }
+            .map { _ in
+                print(self.DEBUG_TAG+"pinging")
+        }
     }
     
     
@@ -643,13 +628,12 @@ extension Remote {
     //
     // MARK: send
     // create sending operation from selection of files
-    func sendFiles(_ selections: [TransferSelection]) {
+    func sendFiles(_ selections: [TransferSelection]) -> EventLoopFuture<Void> {
         
         let operation = SendFileOperation(for: selections) 
 
         addSendingOperation(operation)
-        sendRequest(toTransfer: operation)
-        
+        return sendRequest(toTransfer: operation)
     }
     
     //
@@ -663,14 +647,14 @@ extension Remote {
         print(DEBUG_TAG+"\t\t count: \(operation.transferRequest.count)")
         
         
-        return clientNilCheck( ping() )
+        return ping()
+            .flatMap{
+                return self.client()
+            }
             .flatMap { client in
                 return client.processTransferOpRequest(operation.transferRequest).response
             }
-            .flatMap { VoidType in // convert VoidType -> Void
-                print(self.DEBUG_TAG+"process request completed")
-                return self.eventLoopGroup.next().makeSucceededVoidFuture()
-            }
+            .convertVoidTypeToVoid()
             .flatMapError { error in
                 print(self.DEBUG_TAG+"process request failed: \(error)")
                 return self.disconnect(error) // if connection is dead, signal disconnect
@@ -733,19 +717,14 @@ extension Remote {
 extension Remote: ConnectivityStateDelegate {
     
     
-    private func clientNilCheck<T>(_: EventLoopFuture<T>) -> EventLoopFuture<WarpClient> {
+    // fails if client has been disconnected
+    private func client() -> EventLoopFuture<WarpClient> {
         
-        let promise = eventLoopGroup.next().makePromise(of: WarpClient.self)
-        
-        defer {
-            if let client = warpClient {
-                promise.succeed(client)
-            } else {
-                promise.fail(Error.UNKNOWN_ERROR)
-            }
+        if let client = warpClient {
+            return eventLoopGroup.next().makeSucceededFuture(client)
         }
         
-        return promise.futureResult
+        return eventLoopGroup.next().makeFailedFuture(Error.UNKNOWN_ERROR)
     }
     
     
