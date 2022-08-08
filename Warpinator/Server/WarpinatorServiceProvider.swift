@@ -80,8 +80,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         print(DEBUG_TAG+"(API_V1) Duplex is being checked by \(request.readableName) (\(request.id))")
         
-        let duplexPromise = checkDuplex(forUUID: request.id, context)
-        return duplexPromise.futureResult
+//        let duplexPromise = checkDuplex(forUUID: request.id, context)
+        return checkDuplex(forUUID: request.id, context) // duplexPromise.futureResult
     }
     
     
@@ -91,56 +91,81 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         print(DEBUG_TAG+"(API_V2) Duplex is being waited for by \(request.readableName) (\(request.id))")
 
-        let duplexPromise = checkDuplex(forUUID: request.id, context)
-        return duplexPromise.futureResult
+//        let duplexPromise = checkDuplex(forUUID: request.id, context)
+        return checkDuplex(forUUID: request.id, context)  // duplexPromise.futureResult
     }
     
     
     
     // MARK: checkDuplex
-    private func checkDuplex(forUUID uuid: String, _ context: StatusOnlyCallContext) -> EventLoopPromise<HaveDuplex> {
+    private func checkDuplex(forUUID uuid: String, _ context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
 
-        func checkDuplex() -> Bool {
-            print(DEBUG_TAG+"\t\tchecking duplex for uuid: \(uuid)")
-            if let remote = self.remoteManager?.containsRemote(for: uuid) {
-                
-                print(DEBUG_TAG+"\t\t\t remote found (status: \(remote.details.status))")
-                if [.AquiringDuplex, .Connected].contains( remote.details.status ) {
-                    return true
-                }
-                
-                print(DEBUG_TAG+"\t\t\t\trestarting connection...")
-                remote.startupConnection()
+        
+        print(DEBUG_TAG+"\t\t checking duplex for uuid: \(uuid)")
+        if let remote = self.remoteManager?.containsRemote(for: uuid) {
+            
+            print(DEBUG_TAG+"\t\t\t remote found (status: \(remote.details.status))")
+            
+            if [.AquiringDuplex, .Connected].contains( remote.details.status ) {
+                return context.eventLoop.makeSucceededFuture( .with{ $0.response = true } )
             }
-            return false
+            
+            print(DEBUG_TAG+"\t\t\t\t re-initiating connection...")
+            remote.startupConnection()
         }
         
+        return context.eventLoop.makeFailedFuture(DuplexError.DuplexNotEstablished)
         
-        let duplexPromise = context.eventLoop.makePromise(of: HaveDuplex.self)
-
+        
+//        func checkDuplex() -> Bool {
+//            print(DEBUG_TAG+"\t\t checking duplex for uuid: \(uuid)")
+//            if let remote = self.remoteManager?.containsRemote(for: uuid) {
+//
+//                print(DEBUG_TAG+"\t\t\t remote found (status: \(remote.details.status))")
+//                if [.AquiringDuplex, .Connected].contains( remote.details.status ) {
+//                    return true
+//                }
+//
+//                print(DEBUG_TAG+"\t\t\t\t restarting connection...")
+//                remote.startupConnection()
+//            }
+//            return false
+//        }
+        
+        
+//        let duplexPromise = context.eventLoop.makePromise(of: HaveDuplex.self)
+//
+//
+//        if checkDuplex() {
+//            duplexPromise.succeed( .with { $0.response = true })
+////            timer.invalidate()
+//        }
+        
+        
         // for some reason this only works on main queue
-        DispatchQueue.main.async {
+//        DispatchQueue.main.async {
+//
+//            var count = 0
+//
+//            // repeats 4 times a second, for a total of 10 times if client times out at ~5 seconds
+//            self.timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { timer in
+//                count += 1
+//                guard count < 10 else {
+//                    timer.invalidate();
+//                    duplexPromise.fail(DuplexError.DuplexTimeout)
+//                    return
+//                }
+//
+//                let duplexExists = checkDuplex()
+//                if duplexExists {
+//                    duplexPromise.succeed( .with { $0.response = true })
+//                    timer.invalidate()
+//                }
+//            }
+//        }
+//
+//        return duplexPromise.futureResult
             
-            var count = 0
-            
-            // repeats 4 times a second, for a total of 10 times if client times out at ~5 seconds
-            self.timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { timer in
-                count += 1
-                guard count < 10 else {
-                    timer.invalidate();
-                    duplexPromise.fail(DuplexError.DuplexTimeout)
-                    return
-                }
-                
-                let duplexExists = checkDuplex()
-                if duplexExists {
-                    duplexPromise.succeed( .with { $0.response = true })
-                    timer.invalidate()
-                }
-            }
-        }
-        
-        return duplexPromise
     }
     
     
@@ -151,7 +176,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
     //
     // MARK: get info
     // handle request for information about this device
-    public func getRemoteMachineInfo(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<RemoteMachineInfo> {
+    public func getRemoteMachineInfo(request: LookupName,
+                                     context: StatusOnlyCallContext) -> EventLoopFuture<RemoteMachineInfo> {
         
         print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
         
@@ -167,7 +193,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
     //
     // MARK: get avatar image
     // handle request for avatar image
-    public func getRemoteMachineAvatar(request: LookupName, context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
+    public func getRemoteMachineAvatar(request: LookupName,
+                                       context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
         
         print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
         
@@ -193,7 +220,6 @@ final public class WarpinatorServiceProvider: WarpProvider {
                 
                 promise.succeed(.ok)
             }
-            
         } else {
             // no image
             promise.succeed(GRPCStatus.init(code: .notFound, message: "No avatar image found"))
@@ -221,8 +247,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
             print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
-            let error = AuthenticationError.ConnectionError
-            return context.eventLoop.makeFailedFuture(error)
+//            let error =
+            return context.eventLoop.makeFailedFuture(AuthenticationError.ConnectionError)
         }
         
         print(DEBUG_TAG+"\t\(request)")

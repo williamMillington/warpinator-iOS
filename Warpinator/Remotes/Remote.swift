@@ -146,6 +146,10 @@ public class Remote {
         
         print(DEBUG_TAG+"Initiating connection with remote...")
         
+        guard ![.Connected, .AquiringDuplex ].contains( details.status ) else {     //  details.status != .Connected else {
+            return eventLoopGroup.next().makeSucceededVoidFuture()
+        }
+        
         // return success if we're already connected, or connecting
         if let state = channel?.connectivity.state {
            
@@ -157,13 +161,14 @@ public class Remote {
             if let client = warpClient,
                 state == .idle {
                 
-                let ping = client.ping( lookupName )
-                return ping.status.flatMap { status in
-                    switch status { // status okay, we're still connected
-                    case .ok:  return self.eventLoopGroup.next().makeSucceededVoidFuture()
-                    case .processingError : return self.eventLoopGroup.next().makeFailedFuture(Remote.Error.REMOTE_PROCESSING_ERROR)
-                    default: return self.eventLoopGroup.next().makeFailedFuture( Remote.Error.UNKNOWN_ERROR )
-                    }
+//                let ping = client.ping( lookupName )
+                return client.ping( lookupName ).status
+                    .flatMap { status in
+                        switch status { // status okay, we're still connected
+                        case .ok:  return self.eventLoopGroup.next().makeSucceededVoidFuture()
+                        case .processingError : return self.eventLoopGroup.next().makeFailedFuture(Remote.Error.REMOTE_PROCESSING_ERROR)
+                        default: return self.eventLoopGroup.next().makeFailedFuture( Remote.Error.UNKNOWN_ERROR )
+                        }
                 }
                 // error while pinging triggers a connection restart
                 .flatMapError { error in
@@ -194,16 +199,18 @@ public class Remote {
     // MARK: authenticate
     private func authenticate() -> EventLoopFuture<NIOSSLCertificate> {
         
+        // if we've already got the certificate, just return that
         guard let certificate = authenticationCertificate else {
             
-            if details.api == "1" { // API_V1
+            if details.api == "1" { // API_V1, UDP connection
                 authenticationConnection = UDPConnection(onEventLoopGroup: eventLoopGroup,
                                      endpoint: details.endpoint)
-            } else { // API_V2
+            } else { // API_V2, GRPC call
                 authenticationConnection = GRPCConnection(onEventLoopGroup: eventLoopGroup,
                                       details: details)
             }
             
+            // Otherwise, fetch the certificate
             return authenticationConnection!.requestCertificate()
                 .flatMap { info in
                     
@@ -383,7 +390,7 @@ extension Remote {
         
         return duplex.response.flatMapThrowing { haveDuplex in
             
-            // throw error if duplex wasn't established, despite a successful call
+            // throw error if call was successful, but duplex not established
             if !haveDuplex.response {
                 throw DuplexError.DuplexNotEstablished
             }
@@ -562,7 +569,7 @@ extension Remote {
     
     //
     //MARK: start
-    func callClientStartTransfer(for operation: ReceiveFileOperation){
+    func callClientStartTransfer(for operation: ReceiveFileOperation) {
         
         print(DEBUG_TAG+"callClientStartTransfer ")
         
@@ -610,8 +617,8 @@ extension Remote {
         informObserversOperationAdded(operation)
         
         operation.status = .WAITING_FOR_PERMISSION
-
     }
+    
     
     //
     // MARK: find

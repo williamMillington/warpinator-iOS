@@ -140,14 +140,15 @@ class FileWriter: WritesFile {
     // MARK: processChunk
     func processChunk(_ chunk: FileChunk) throws {
         
+        defer {
+            updateObserversInfo()
+        }
+        
         // Check if chunk belongs with current file
         guard chunk.relativePath == downloadRelativePath else {
             throw WritingError.FILENAME_MISMATCH
         }
         
-        defer {
-            updateObserversInfo()
-        }
         
         guard let handle = fileHandle else {
             print(DEBUG_TAG+"UnexpectedError: fileHandle not found?")

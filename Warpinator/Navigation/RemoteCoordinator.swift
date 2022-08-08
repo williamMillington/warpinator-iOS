@@ -158,12 +158,12 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     //
     // MARK: retry transfer
-    func retryTransfer(forTransferUUID uuid: UInt64){
+    func retryTransfer(forTransferUUID uuid: UInt64) {
         
         print(DEBUG_TAG+"user elected to re-attempt transfer with uuid \(uuid)")
         
         if let operation = remote.findSendOperation(withStartTime: uuid) {
-            print(DEBUG_TAG+"\t send transfer found")
+            print(DEBUG_TAG+"\t transfer found")
             
             operation.prepareToSend()
             

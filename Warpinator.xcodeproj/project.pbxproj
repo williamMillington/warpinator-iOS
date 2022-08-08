@@ -32,6 +32,7 @@
 		7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B0702753B538001FA7C9 /* ListedTransferView.swift */; };
 		7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */; };
 		79372494288F9665005C7F9E /* EventloopFuture+Void.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79372493288F9665005C7F9E /* EventloopFuture+Void.swift */; };
+		7937995E2898BF900032B7CA /* String+nil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7937995D2898BF900032B7CA /* String+nil.swift */; };
 		79395589279F468F00D5EC8B /* FolderWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79395588279F468F00D5EC8B /* FolderWriter.swift */; };
 		7954F92F2795F98900F255AE /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7954F92E2795F98900F255AE /* SettingsManager.swift */; };
 		796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796328232757FF930056F76B /* RemoteCoordinator.swift */; };
@@ -108,6 +109,7 @@
 		7936B0702753B538001FA7C9 /* ListedTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedTransferView.swift; sourceTree = "<group>"; };
 		7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewController.swift; sourceTree = "<group>"; };
 		79372493288F9665005C7F9E /* EventloopFuture+Void.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventloopFuture+Void.swift"; sourceTree = "<group>"; };
+		7937995D2898BF900032B7CA /* String+nil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+nil.swift"; sourceTree = "<group>"; };
 		79395588279F468F00D5EC8B /* FolderWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderWriter.swift; sourceTree = "<group>"; };
 		7954F92E2795F98900F255AE /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		796328232757FF930056F76B /* RemoteCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoordinator.swift; sourceTree = "<group>"; };
@@ -368,6 +370,7 @@
 				79DCBB4427EA1A8500E1B847 /* NIOSSLCertificate+PEM.swift */,
 				79B8A0E927449EB500369E62 /* String+substring.swift */,
 				7914DDF5281CCE7C00A9BB51 /* String+NSAttributedString.swift */,
+				7937995D2898BF900032B7CA /* String+nil.swift */,
 				7922BF7F285A1C2F00B0B6CF /* UIColor+hexstring.swift */,
 			);
 			path = Extensions;
@@ -480,6 +483,7 @@
 				799E39F42746A0E500E60FFC /* RemoteViewController.swift in Sources */,
 				79B8A0ED27449EE300369E62 /* ExtensionManagement.swift in Sources */,
 				799E39EB2746989000E60FFC /* AutoLayoutDebugView.swift in Sources */,
+				7937995E2898BF900032B7CA /* String+nil.swift in Sources */,
 				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
 				79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,

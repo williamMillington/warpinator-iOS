@@ -239,11 +239,14 @@ extension ReceiveFileOperation {
             
             currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
             fileWriters.append(currentWriter!)
+            updateObserversFileAdded()
             
         } else { // If file
             
             currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
             fileWriters.append(currentWriter!)
+            updateObserversFileAdded()
+            
             
             do {
                 try currentWriter?.processChunk(chunk)
@@ -255,63 +258,6 @@ extension ReceiveFileOperation {
         
         
         updateObserversInfo()
-        
-        
-        
-        //  IF WE HAVE A WRITER CURRENTLY GOING
-//        if let writer = currentWriter {
-//
-//            // TODO I don't like this nested-do. MEH.
-//            do {
-//                do {
-//                    // TRY TO WRITE TO CURRENT WRITER
-//                    try writer.processChunk(chunk)
-//
-//                    return // successfully processed (no errors)
-//
-//                } catch WritingError.FILENAME_MISMATCH { // WRITING FAILS
-//                    print(DEBUG_TAG+"New file!")
-//
-//                    // close old writer
-//                    writer.close()
-//
-//
-//                    // If folder
-//                    if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
-//                        currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
-//                    } else {
-//                        currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
-//                        try currentWriter?.processChunk(chunk)
-//                    }
-//
-//                } catch { throw error }
-//            } catch {
-//                print(DEBUG_TAG+" Unexpected Error: \(error)")
-//            }
-//
-//        }
-        
-        // Create writer to handle chunk
-//        do {
-//
-//            // If folder
-//            if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
-//                currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
-//                fileWriters.append(currentWriter!)
-//            } else {
-//                currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
-//                fileWriters.append(currentWriter!)
-//
-//                try currentWriter?.processChunk(chunk)
-//            }
-//
-//        } catch {
-//            print(DEBUG_TAG+"Unexpected error: \(error)")
-//
-//        }
-        
-//
-//        updateObserversInfo()
     }
     
     

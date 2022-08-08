@@ -100,7 +100,7 @@ final class ListedFileOperationView: UIView {
     
     //
     // MARK: setUpView
-    func setUpView(){
+    private func setUpView(){
         
         var constraints: [NSLayoutConstraint] = []
         
@@ -162,11 +162,7 @@ final class ListedFileOperationView: UIView {
         fileTypeLabel.text = "\(viewModel.type)"
     }
     
-
 }
-
-
-
 
 
 
@@ -174,7 +170,6 @@ final class ListedFileOperationView: UIView {
 extension ListedFileOperationView {
     override func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
-        
         setUpView()
     }
 }
@@ -199,6 +194,11 @@ protocol ListedFileViewModel {
 }
 
 
+var formatter: ByteCountFormatter = {
+    let f = ByteCountFormatter()
+    f.countStyle = .file
+    return f
+}()
 
 //
 // MARK: - FileReader VM
@@ -206,7 +206,6 @@ final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFi
     
     private let operation: FileReader
     var onUpdated: () -> Void = {}
-    
     
     var name: String {
         return operation.filename
@@ -217,12 +216,7 @@ final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFi
     }
     
     var size: String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        
-        let bytesCount = operation.totalBytes
-        
-        return formatter.string(fromByteCount:  Int64( bytesCount) )
+        return formatter.string(fromByteCount:  Int64( operation.totalBytes) )
     }
     
     var progress: Double {
@@ -262,16 +256,11 @@ final class ListedFolderReaderViewModel: NSObject, ListedFileViewModel, Observes
     }
     
     var type: String {
-        return "File"
+        return "Folder"
     }
     
     var size: String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        
-        let bytesCount = operation.totalBytes
-        
-        return formatter.string(fromByteCount:  Int64( bytesCount) )
+        return formatter.string(fromByteCount:  Int64( operation.totalBytes) )
     }
     
     var progress: Double {
@@ -311,18 +300,11 @@ final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFi
     }
     
     var name: String {
-        
         return operation.downloadName
     }
     
     var size: String {
-        
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        
-        let bytes = operation.bytesWritten
-        
-        return formatter.string(fromByteCount:  Int64( bytes) )
+        return formatter.string(fromByteCount:  Int64( operation.bytesWritten) )
     }
     
     
@@ -366,13 +348,7 @@ final class ListedFolderWriterViewModel: NSObject, ListedFileViewModel, Observes
     }
     
     var size: String {
-        
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        
-        let bytes = operation.bytesWritten
-        
-        return formatter.string(fromByteCount:  Int64( bytes) )
+        return formatter.string(fromByteCount:  Int64( operation.bytesWritten ) )
     }
     
     
@@ -400,3 +376,31 @@ final class ListedFolderWriterViewModel: NSObject, ListedFileViewModel, Observes
 
 
 
+//
+// MARK: - MockFileReader VM
+final class MockListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
+    
+    var onUpdated: () -> Void = {}
+    
+    var name: String {
+        return "Mock File name.mp3"
+    }
+    
+    var type: String {
+        return "mp3"
+    }
+    
+    var size: String {
+        return "10 kB"
+    }
+    
+    var progress: Double {
+        return 0
+    }
+    
+    func infoDidUpdate(){
+        DispatchQueue.main.async {
+            self.onUpdated()
+        }
+    }
+}

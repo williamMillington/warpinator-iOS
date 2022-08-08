@@ -36,22 +36,6 @@
                         <action selector="back" destination="-1" eventType="touchUpInside" id="Ts6-sx-17l"/>
                     </connections>
                 </button>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wp0-nD-LWt" userLabel="RetryButton">
-                    <rect key="frame" x="16" y="491" width="288" height="57"/>
-                    <color key="backgroundColor" red="0.19028060129999999" green="0.63705700389999997" blue="0.20341046970000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
-                    <state key="normal" title="Retry">
-                        <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                    </state>
-                    <userDefinedRuntimeAttributes>
-                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                            <integer key="value" value="5"/>
-                        </userDefinedRuntimeAttribute>
-                    </userDefinedRuntimeAttributes>
-                    <connections>
-                        <action selector="retry" destination="-1" eventType="touchUpInside" id="oNn-x0-2ya"/>
-                    </connections>
-                </button>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ELl-yr-ABZ" userLabel="CancelButton">
                     <rect key="frame" x="16" y="491" width="288" height="57"/>
                     <color key="backgroundColor" red="0.78319321070000003" green="0.11715850749999999" blue="0.006766619796" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -66,6 +50,22 @@
                     </userDefinedRuntimeAttributes>
                     <connections>
                         <action selector="cancel" destination="-1" eventType="touchUpInside" id="bXe-jw-3Y6"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wp0-nD-LWt" userLabel="RetryButton">
+                    <rect key="frame" x="16" y="491" width="288" height="57"/>
+                    <color key="backgroundColor" red="0.19028060129999999" green="0.63705700389999997" blue="0.20341046970000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>
+                    <state key="normal" title="Retry">
+                        <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="retry" destination="-1" eventType="touchUpInside" id="oNn-x0-2ya"/>
                     </connections>
                 </button>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="1000" text="Transfer Description" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uI6-ji-m5W">

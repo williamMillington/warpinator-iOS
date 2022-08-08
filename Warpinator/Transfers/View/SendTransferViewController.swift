@@ -169,8 +169,7 @@ final class SendTransferViewController: UIViewController {
     // MARK: send
     @IBAction @objc func send(){
         
-        let files = Array(selections.keys)
-        coordinator?.sendFiles(files)
+        coordinator?.sendFiles(  Array( selections.keys )  )
         
     }
     
