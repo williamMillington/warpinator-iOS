@@ -16,7 +16,7 @@ final class FolderWriter: NSObject, WritesFile {
     
     
     // Names of files, as provided by the client.
-    // Used in determining the file in which a given chunk belongs, which may change,
+    // Used in determining the file in which a given chunk belongs,
     // depending if we have to rename due to name conflicts
     var downloadName: String
     var downloadRelativePath: String
@@ -40,17 +40,6 @@ final class FolderWriter: NSObject, WritesFile {
     var currentWriter: WritesFile? = nil
     
     var bytesWritten: Int {
-//
-//        do {
-//            let attributes = try FileManager.default.attributesOfItem(atPath: itemURL.path )
-//            if let size = attributes[FileAttributeKey.size] as? NSNumber {
-//                print(DEBUG_TAG+"\t\t FileAttributeKey.size is \( size.doubleValue )" )
-//            }
-//        } catch {
-//            print("Error: \(error)")
-//        }
-        
-        
         let currWriterBytes = (currentWriter?.bytesWritten ?? 0) + 4096
         return currWriterBytes + completedFiles.map { return $0.bytesWritten  }.reduce(0, +)
     }
@@ -90,7 +79,6 @@ final class FolderWriter: NSObject, WritesFile {
                     fileSystemName = rename(downloadName)
                 }
             }
-            
         }
         
         
@@ -158,6 +146,7 @@ final class FolderWriter: NSObject, WritesFile {
                     completedFiles.append(writer)
             }
         }
+        
         
         // Create writer to handle chunk
         

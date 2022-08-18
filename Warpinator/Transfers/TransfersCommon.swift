@@ -58,7 +58,7 @@ typealias FileName = (name: String, ext: String)
 // MARK: TransferError
 enum TransferError: Error {
     case ConnectionInterrupted
-    case PermissionDeclined
+    case TransferDeclined, PermissionDeclined
     case TransferCancelled
     case TransferNotFound
     case UnknownError
@@ -79,7 +79,6 @@ enum TransferStatus: Equatable {
     static func == (lhs: TransferStatus, rhs: TransferStatus) -> Bool {
         
         switch (lhs, rhs){
-        
         case (INITIALIZING, INITIALIZING),
              (WAITING_FOR_PERMISSION,WAITING_FOR_PERMISSION),
              (CANCELLED, CANCELLED),

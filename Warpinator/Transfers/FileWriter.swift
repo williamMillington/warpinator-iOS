@@ -113,12 +113,13 @@ class FileWriter: WritesFile {
     // TODO: rewrite to be gooder?
     private func rename(_ name: String) -> String {
         
-        print(DEBUG_TAG+"Renaming \(name) (\(renameCount))")
+        print(DEBUG_TAG+"Renaming \(name) (attempt: \(renameCount))")
         
         var newName = "File_Renaming_Failed"
         
         //
-        //
+        // 1000 is probably enough,
+        // rihgt?
         while renameCount <= 1000 {
             renameCount += 1
             
@@ -130,7 +131,7 @@ class FileWriter: WritesFile {
             }
         }
         
-        print(DEBUG_TAG+"\tnew name is \(newName)")
+        print(DEBUG_TAG+"\tnew name:  \(newName)")
         return newName
     }
     
@@ -139,6 +140,7 @@ class FileWriter: WritesFile {
     
     // MARK: processChunk
     func processChunk(_ chunk: FileChunk) throws {
+        
         
         defer {
             updateObserversInfo()

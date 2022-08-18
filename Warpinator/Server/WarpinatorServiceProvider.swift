@@ -254,22 +254,28 @@ final public class WarpinatorServiceProvider: WarpProvider {
         print(DEBUG_TAG+"\t\(request)")
         
         // if this is a retry of a previous operation
-        if let operation = remote.findTransferOperation(for: request.info.timestamp) as? ReceiveFileOperation {
-            operation.prepareReceive()
-            return context.eventLoop.makeSucceededFuture(VoidType())
+        let operation: ReceiveFileOperation
+        if let op = remote.findTransfer(withUUID: request.info.timestamp) as? ReceiveFileOperation {
+//            operation.prepareReceive()
+            operation = op
+//            return context.eventLoop.makeSucceededFuture(VoidType())
+        } else {
+            
+            operation = ReceiveFileOperation(request, forRemote: remote)
+            remote.addReceivingOperation(operation)
         }
-        
-        let operation = ReceiveFileOperation(request, forRemote: remote)
+//
+//        let operation = ReceiveFileOperation(request, forRemote: remote)
         operation.prepareReceive()
         
         print(DEBUG_TAG+"processing request, compression is \( request.info.useCompression ? "on" : "off" )")
         
-        remote.addReceivingOperation(operation)
+//        remote.addReceivingOperation(operation)
         
         
         if SettingsManager.shared.automaticAccept {
             print(DEBUG_TAG+"Transfer was automatically accepted")
-            remote.callClientStartTransfer(for: operation)
+            remote.startTransfer(for: operation)
         }
         
         
@@ -320,7 +326,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        guard let transfer = remote.findTransferOperation(for: request.timestamp) else {
+        guard let transfer = remote.findTransfer(withUUID: request.timestamp) else {
             print(DEBUG_TAG+"Remote has no operations with requested timestamp")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
@@ -356,7 +362,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
         }
         
         
-        guard let transfer = remote.findTransferOperation(for: request.info.timestamp) else {
+        guard let transfer = remote.findTransfer(withUUID: request.info.timestamp) else {
             print(DEBUG_TAG+"Remote has no operations with requested timestamp")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)

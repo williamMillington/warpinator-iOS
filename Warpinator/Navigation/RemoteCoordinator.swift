@@ -75,16 +75,16 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     // MARK: userSelectedTransfer
     func userSelectedTransfer(withUUID uuid: UInt64 ){
         
-        if let operation = remote.findTransferOperation(for: uuid){
+        if let operation = remote.findTransfer(withUUID: uuid){
             
             // If we need to accept the transfer first
             if operation.status == .WAITING_FOR_PERMISSION &&
                 operation.direction == .RECEIVING {
                 
-                openAcceptTransferViewController(forTransferOperation: operation)
+                openAcceptTransferViewController(forOperation: operation)
                 
             } else {
-                openTransferViewController(forTransferOperation: operation)
+                openTransferViewController(forOperation: operation)
             }
         }
     }
@@ -92,7 +92,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     //
     // MARK: openTransferViewController
-    private func openTransferViewController(forTransferOperation operation: TransferOperation){
+    private func openTransferViewController(forOperation operation: TransferOperation){
         
         let vm = TransferOperationViewModel(for: operation)
         let rm = RemoteViewModel(remote)
@@ -105,7 +105,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     //
     // MARK: view transfer request
-    private func openAcceptTransferViewController(forTransferOperation operation: TransferOperation){
+    private func openAcceptTransferViewController(forOperation operation: TransferOperation){
         
         let vm = ReceiveTransferViewModel(operation: operation, from: remote)
         let vc = ReceiveTransferViewController(withViewModel: vm)
@@ -123,7 +123,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         print(DEBUG_TAG+"user approved transfer with uuid \(uuid)")
         
         if let operation = remote.findReceiveOperation(withStartTime: uuid) {
-            remote.callClientStartTransfer(for: operation)
+            remote.startTransfer(for: operation)
             showRemote()
         }
     }
@@ -135,11 +135,16 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         print(DEBUG_TAG+"user declined transfer with uuid \(uuid)")
         
-        if let operation = remote.findReceiveOperation(withStartTime: uuid) {
-            print(DEBUG_TAG+"\t transfer found")
-            operation.decline(nil)
-            showRemote()
-        }
+        
+        remote.stopTransfer(withUUID: uuid, error: TransferError.TransferDeclined)
+        
+        
+        showRemote()
+//        if let operation = remote.findReceiveOperation(withStartTime: uuid) {
+//            print(DEBUG_TAG+"\t transfer found")
+//            operation.decline( TransferError.TransferDeclined )
+//            showRemote()
+//        }
     }
     
     
@@ -149,7 +154,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         print(DEBUG_TAG+"user cancelled transfer with uuid \(uuid)")
         
-        if let operation = remote.findTransferOperation(for: uuid) {
+        if let operation = remote.findTransfer(withUUID: uuid) {
             print(DEBUG_TAG+"\t transfer found")
             operation.orderStop(nil)
         }
@@ -160,12 +165,10 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     // MARK: retry transfer
     func retryTransfer(forTransferUUID uuid: UInt64) {
         
-        print(DEBUG_TAG+"user elected to re-attempt transfer with uuid \(uuid)")
+        print(DEBUG_TAG+"user elected to re-send transfer with uuid \(uuid)")
         
         if let operation = remote.findSendOperation(withStartTime: uuid) {
             print(DEBUG_TAG+"\t transfer found")
-            
-            operation.prepareToSend()
             
             remote.sendRequest(toTransfer: operation)
             

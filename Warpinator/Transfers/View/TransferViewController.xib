@@ -52,7 +52,7 @@
                         <action selector="cancel" destination="-1" eventType="touchUpInside" id="bXe-jw-3Y6"/>
                     </connections>
                 </button>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wp0-nD-LWt" userLabel="RetryButton">
+                <button hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wp0-nD-LWt" userLabel="RetryButton">
                     <rect key="frame" x="16" y="491" width="288" height="57"/>
                     <color key="backgroundColor" red="0.19028060129999999" green="0.63705700389999997" blue="0.20341046970000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     <fontDescription key="fontDescription" type="system" weight="medium" pointSize="20"/>

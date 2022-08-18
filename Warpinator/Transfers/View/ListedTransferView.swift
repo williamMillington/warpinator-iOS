@@ -212,7 +212,7 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
     }
     
     
-    func fileAdded() {
+    func fileAdded(_ vm: ListedFileViewModel) { 
         
     }
     

@@ -479,7 +479,7 @@ extension Remote {
     
     //
     // MARK: find transfer operation
-    func findTransferOperation(for uuid: UInt64) -> TransferOperation? {
+    func findTransfer(withUUID uuid: UInt64) -> TransferOperation? {
         
         if let operation = findReceiveOperation(withStartTime: uuid) {
             return operation  }
@@ -493,21 +493,40 @@ extension Remote {
     
     //
     // MARK: stop Transfer
-    func requestStop(forOperationWithUUID uuid: UInt64, error: Swift.Error?) {
+    func stopTransfer(withUUID uuid: UInt64, error: Swift.Error?) {
         
-        print(DEBUG_TAG+"callClientStopTransfer")
+        print(DEBUG_TAG+"stopping transfer...")
         
-        if let op = findTransferOperation(for: uuid) {
+        if let op = findTransfer(withUUID: uuid) {
             
-            let stopInfo: StopInfo = .with {
-                $0.info = op.operationInfo
-                $0.error = (error != nil)
+            
+            if let error = error as? TransferError,
+                error == .TransferDeclined {
+                
+                let result = warpClient?.cancelTransferOpRequest(op.operationInfo)
+                result?.response.whenComplete { result in
+                    print(self.DEBUG_TAG+"request to cancel transfer had result: \(result)")
+                    (op as? ReceiveFileOperation)?.receiveWasCancelled()
+                }
+                
+            } else {
+                
+//                let stopInfo: StopInfo = .with {
+//                    $0.info = op.operationInfo
+//                    $0.error = (error != nil)
+//                }
+                
+//                let result =
+                warpClient?.stopTransfer( .with {
+                    $0.info = op.operationInfo
+                    $0.error = (error != nil)
+                })
+//                result?
+                    .response.whenComplete { result in
+                    print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
+                }
             }
             
-            let result = warpClient?.stopTransfer(stopInfo)
-            result?.response.whenComplete { result in
-                print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
-            }
         } else {
             print(DEBUG_TAG+"Couldn't find operation: \(uuid)")
         }
@@ -519,7 +538,7 @@ extension Remote {
     // MARK: Decline Receive Request
     func informOperationWasDeclined(forUUID uuid: UInt64, error: Swift.Error? = nil) {
         
-        if let op = findTransferOperation(for: uuid) {
+        if let op = findTransfer(withUUID: uuid) {
             
             let result = warpClient?.cancelTransferOpRequest(op.operationInfo)
             result?.response.whenComplete { result in
@@ -569,35 +588,54 @@ extension Remote {
     
     //
     //MARK: start
-    func callClientStartTransfer(for operation: ReceiveFileOperation) {
+    func startTransfer(for operation: ReceiveFileOperation) {
         
-        print(DEBUG_TAG+"callClientStartTransfer ")
+        print(DEBUG_TAG+"startTransfer ")
         
-        guard let client = warpClient else {
-//            requestStop(forOperationWithUUID: operation.UUID, error: TransferError.ConnectionInterrupted )
-            print(DEBUG_TAG+"cancel receiving; no client connection "); return
-        }
-        
-        // ping to wake up before sending, if idle
-        guard details.status != .Idle else {
+        let f: EventLoopFuture<Void> = client().flatMap { client in
             
-            let result = client.ping(lookupName)
-            
-            result.response.whenComplete { result in
-                switch result {
-                case .success(_):
-                    self.details.status = .Connected
-                    operation.startReceive(usingClient: client) // if still connected, proceed with sending
-                case .failure(let error): _ = self.disconnect(error) // if connection is dead, signal disconnect
+            guard self.details.status != .Idle else {
+                return client.ping(self.lookupName).status.flatMap { voidType in
+                    print(self.DEBUG_TAG+"client connection verified")
+                    return operation.startReceive(usingClient: client)
                 }
             }
-            return
+            
+            return operation.startReceive(usingClient: client)
         }
         
         
-        operation.startReceive(usingClient: client)
+        
+        
+        
+        
+//        guard let client = warpClient else {
+////            requestStop(forOperationWithUUID: operation.UUID, error: TransferError.ConnectionInterrupted )
+//            print(DEBUG_TAG+"cancel receiving; no client connection "); return
+//        }
+//
+//        // ping to wake up before sending, if idle
+//        guard details.status != .Idle else {
+//
+//            let result = client.ping(lookupName)
+//
+//            result.response.whenComplete { result in
+//                switch result {
+//                case .success(_):
+//                    self.details.status = .Connected
+//                    operation.startReceive(usingClient: client) // if still connected, proceed with sending
+//                case .failure(let error): _ = self.disconnect(error) // if connection is dead, signal disconnect
+//                }
+//            }
+//            return
+//        }
+//
+//
+//        operation.startReceive(usingClient: client)
         
     }
+    
+    
 }
 
 
@@ -653,9 +691,10 @@ extension Remote {
         print(DEBUG_TAG+"\t\t size: \(operation.transferRequest.size)")
         print(DEBUG_TAG+"\t\t count: \(operation.transferRequest.count)")
         
+        operation.prepareToSend()
         
         return ping()
-            .flatMap{
+            .flatMap {
                 return self.client()
             }
             .flatMap { client in
@@ -709,7 +748,6 @@ extension Remote {
             observer.operationAdded(operation)
         }
     }
-    
 }
 
 
@@ -720,7 +758,7 @@ extension Remote {
 
 
 //
-// MARK: connectivity
+// MARK: ConnectivityStateDelegate
 extension Remote: ConnectivityStateDelegate {
     
     
@@ -736,7 +774,7 @@ extension Remote: ConnectivityStateDelegate {
     
     
     //
-    //MARK: - connectivityStateDidChange
+    //MARK: - stateDidChange
     public func connectivityStateDidChange(from oldState: ConnectivityState, to newState: ConnectivityState) {
         print(DEBUG_TAG+"channel state has moved from \(oldState) to \(newState)".uppercased())
         switch newState {
@@ -790,19 +828,19 @@ extension Remote: ClientErrorDelegate {
 
 
 
+////
+//// MARK: - Authentication
+//extension Remote {
+//    func getAuthenticationConnection() -> AuthenticationConnection {
+//        if details.api == "1" { // API_V1
+//            return UDPConnection(onEventLoopGroup: eventLoopGroup,
+//                                 endpoint: details.endpoint)
+//        } else { // API_V2
+//            return GRPCConnection(onEventLoopGroup: eventLoopGroup,
+//                                  details: details)
+//        }
+//    }
 //
-// MARK: - Authentication
-extension Remote {
-    func getAuthenticationConnection() -> AuthenticationConnection {
-        if details.api == "1" { // API_V1
-            return UDPConnection(onEventLoopGroup: eventLoopGroup,
-                                 endpoint: details.endpoint)
-        } else { // API_V2
-            return GRPCConnection(onEventLoopGroup: eventLoopGroup,
-                                  details: details)
-        }
-    }
-    
-}
+//}
 
 

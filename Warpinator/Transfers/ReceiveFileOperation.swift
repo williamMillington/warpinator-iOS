@@ -8,6 +8,7 @@
 import Foundation
 
 import GRPC
+import NIO
 
 
 // MARK: ReceiveFileOperation
@@ -90,7 +91,7 @@ final class ReceiveFileOperation: TransferOperation {
     
     
     lazy var queueLabel = "RECEIVE_\(owningRemoteUUID)_\(UUID)"
-    lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
+    lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
     var dataStream: ServerStreamingCall<OpInfo, FileChunk>? = nil
     
     var operationInfo: OpInfo
@@ -159,123 +160,212 @@ extension ReceiveFileOperation {
     
     
     //MARK: start
-    func startReceive(usingClient client: WarpClient){
+    func startReceive(usingClient client: WarpClient) -> EventLoopFuture<Void> {
         
         print(DEBUG_TAG+" starting receive operation")
         
         status = .TRANSFERRING
         
-        
-        receivingChunksQueue.async {
+        let datastream = client.startTransfer(self.operationInfo) { chunk in
             
-            self.dataStream = client.startTransfer(self.operationInfo) { chunk in
+            guard self.status == .TRANSFERRING else {
+                print(self.DEBUG_TAG+"canceling chunk processing")
+                return
+            }
+            
+            
+            let workItem = DispatchWorkItem() { [weak self] in
                 
-                guard self.status == .TRANSFERRING else {
-                    print("canceling chunk processing")
-                    return
+                guard let self = self else { return }
+                
+                //process the chunk
+                print(self.DEBUG_TAG+" reading chunk:")
+                print(self.DEBUG_TAG+"\t size: \(chunk.chunk.count )")
+                print(self.DEBUG_TAG+"\t relativePath: \(chunk.relativePath)")
+                print(self.DEBUG_TAG+"\t file/folder: \( TransferItemType(rawValue: chunk.fileType)!) ")
+                
+                // make sure we always update our observers
+                defer {  self.updateObserversInfo()  }
+                
+                //
+                // if we've got a writer going, try it
+                if let writer = self.currentWriter {
+                    
+                    do {
+                        // Try to process the chunk
+                        try writer.processChunk(chunk)
+                        
+                        return // successfully processed (no errors)
+                        
+                    } catch WritingError.FILENAME_MISMATCH { // Names don't match, new file!,
+                        print(self.DEBUG_TAG+"New file!")
+                        
+                        // close old writer before proceeding on to create a new one
+                        writer.close()
+                        
+                    }
+                    catch {  print(self.DEBUG_TAG+"Unexpected error: \(error)")   }
+                    
                 }
                 
-                self.processChunk(chunk)
-            }
-            
-            self.dataStream?.status.whenComplete { result in
                 
-                print(self.DEBUG_TAG+"completed with result \(result)")
+                // If folder
+                let vm: ListedFileViewModel
+                if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+                    
+                    let writer = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+                    self.currentWriter =  writer //FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+                    vm = ListedFolderWriterViewModel(writer)
+                    
+                } else { // If file
+                    
+//                    self.currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+                    let writer = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+                    self.currentWriter = writer
+                    vm = ListedFileWriterViewModel(writer)
+                    
+                    do {
+                        try self.currentWriter?.processChunk(chunk)
+                    } catch {
+                        print(self.DEBUG_TAG+"Unexpected error: \(error)")
+                    }
+                }
                 
+                
+                print(self.DEBUG_TAG+"\t file added")
+                // Create writer to handle chunk
+//                self.updateObserversFileAdded(vm)
+                
+                
+                self.fileWriters.append(self.currentWriter!)
+                self.updateObserversInfo()
+                self.updateObserversFileAdded(vm)
             }
             
-            self.dataStream?.status.whenSuccess { status in
-                print(self.DEBUG_TAG+"transfer finished successfully with status \(status)")
-                self.finishReceive()
-            }
             
-            self.dataStream?.status.whenFailure { error in
-                print(self.DEBUG_TAG+"transfer failed: \(error)")
+            self.receivingChunksQueue.async(execute: workItem)
+            
+//            self.receivingChunksQueue.async {
+                
+//                //process the chunk
+//                print(self.DEBUG_TAG+" reading chunk:")
+//                print(self.DEBUG_TAG+"\t size: \(chunk.chunk.count )")
+//                print(self.DEBUG_TAG+"\t relativePath: \(chunk.relativePath)")
+//                print(self.DEBUG_TAG+"\t file/folder: \( TransferItemType(rawValue: chunk.fileType)!) ")
+//
+//                // make sure we always update our observers
+//                defer {  self.updateObserversInfo()  }
+//
+//                //
+//                // if we've got a writer going, try it
+//                if let writer = self.currentWriter {
+//
+//                    do {
+//                        // Try to process the chunk
+//                        try writer.processChunk(chunk)
+//
+//                        return // successfully processed (no errors)
+//
+//                    } catch WritingError.FILENAME_MISMATCH { // Names don't match, new file!,
+//                        print(self.DEBUG_TAG+"New file!")
+//
+//                        // close old writer before proceeding on to create a new one
+//                        writer.close()
+//
+//                    }
+//                    catch {  print(self.DEBUG_TAG+"Unexpected error: \(error)")   }
+//
+//                }
+//
+//
+//                // If folder
+//                let vm: ListedFileViewModel
+//                if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
+//
+//                    let writer = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+//                    self.currentWriter =  writer //FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
+//                    vm = ListedFolderWriterViewModel(writer)
+//
+//                } else { // If file
+//
+////                    self.currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+//                    let writer = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
+//                    self.currentWriter = writer
+//                    vm = ListedFileWriterViewModel(writer)
+//
+//                    do {
+//                        try self.currentWriter?.processChunk(chunk)
+//                    } catch {
+//                        print(self.DEBUG_TAG+"Unexpected error: \(error)")
+//                    }
+//                }
+//
+//
+//                print(self.DEBUG_TAG+"\t file added")
+//                // Create writer to handle chunk
+////                self.updateObserversFileAdded(vm)
+//
+//
+//                self.fileWriters.append(self.currentWriter!)
+//                self.updateObserversInfo()
+//                self.updateObserversFileAdded(vm)
+                
+//            }
+        }
+        
+        dataStream = datastream
+        
+        return datastream.status
+            .flatMap { status in
+                print(self.DEBUG_TAG+"\t transfer finished with status \(status)")
+                
+//                if status != .TRANSFERRING {
+//                    receiveWasCancelled()
+//                    return
+//                }
+                
+                let closeWorkItem = DispatchWorkItem() {
+                    self.currentWriter?.close()
+                    self.status = .FINISHED
+                    print(self.DEBUG_TAG+"\t\tFinished")
+                }
+                
+                self.receivingChunksQueue.async(execute: closeWorkItem)
+                
+                return self.dataStream!.eventLoop.makeSucceededVoidFuture()
+            }
+            .flatMapError { error in
+                print(self.DEBUG_TAG+"\t transfer failed: \(error)")
                 self.receiveWasCancelled()
+                return self.dataStream!.eventLoop.makeSucceededVoidFuture()
             }
-            
-        }
-        
-    }
-    
-    
-    // MARK: processChunk
-    func processChunk(_ chunk: FileChunk){
-        
-        print(DEBUG_TAG+" reading chunk:")
-        print(DEBUG_TAG+"\t size: \(chunk.chunk.count )")
-        print(DEBUG_TAG+"\t relativePath: \(chunk.relativePath)")
-        print(DEBUG_TAG+"\t file/folder: \( TransferItemType(rawValue: chunk.fileType)!) ")
-        
-        // make sure we always update our observers
-        defer {  updateObserversInfo()  }
-        
-        
-        //
-        // if we've got a writer going
-        if let writer = currentWriter {
-            
-            do {
-                // Try to process the chunk
-                try writer.processChunk(chunk)
-                
-                return // successfully processed (no errors)
-                
-            } catch WritingError.FILENAME_MISMATCH { // Names don't match, new file!,
-                print(DEBUG_TAG+"New file!")
-                
-                // close old writer before proceeding on to create a new one
-                writer.close()
-                
-            } catch {  print(DEBUG_TAG+"Unexpected error: \(error)")   }
-            
-        }
-        
-        // Create writer to handle chunk
-        
-        
-        // If folder
-        if chunk.fileType == TransferItemType.DIRECTORY.rawValue {
-            
-            currentWriter = FolderWriter(withRelativePath: chunk.relativePath, overwrite: false )
-            fileWriters.append(currentWriter!)
-            updateObserversFileAdded()
-            
-        } else { // If file
-            
-            currentWriter = FileWriter(withRelativePath: chunk.relativePath, overwrite: false)
-            fileWriters.append(currentWriter!)
-            updateObserversFileAdded()
-            
-            
-            do {
-                try currentWriter?.processChunk(chunk)
-            } catch {
-                print(DEBUG_TAG+"Unexpected error: \(error)")
-            }
-        }
-        
-        
-        
-        updateObserversInfo()
     }
     
     
     //
     // MARK: finish
-    func finishReceive(){
-        print(DEBUG_TAG+" Receive operation finished")
+//    func finishReceive(){
+//        print(DEBUG_TAG+" finishing")
+//
+//        if status != .TRANSFERRING {
+//            receiveWasCancelled()
+//            return
+//        }
+//
+//        let closeWorkItem = DispatchWorkItem() {
+//            self.currentWriter?.close()
+//            self.status = .FINISHED
+//            print(self.DEBUG_TAG+"\t\tFinished")
+//        }
         
-        if status != .TRANSFERRING {
-            receiveWasCancelled()
-            return
-        }
         
-        currentWriter?.close()
+        //        currentWriter?.close()
         
-        status = .FINISHED
-        print(DEBUG_TAG+"\t\tFinished")
-    }
+        
+        
+//        status = .FINISHED
+//        print(DEBUG_TAG+"\t\tFinished")
+//    }
 
     
     
@@ -284,7 +374,7 @@ extension ReceiveFileOperation {
     // this side calls stop
     func orderStop(_ error: Error? = nil){
         print(self.DEBUG_TAG+"ordering stop, error: \(String(describing: error))")
-        owningRemote?.requestStop(forOperationWithUUID: UUID, error: error)
+        owningRemote?.stopTransfer(withUUID: UUID, error: error)
         stopRequested(error)
     }
     
@@ -314,6 +404,14 @@ extension ReceiveFileOperation {
     }
     
     
+    
+    
+    
+    //TODO: change this to be a single cancel, which can respond to an error of DECLINED
+    
+    
+    
+    
     //
     // MARK: decline
     func decline(_ error: Error? = nil){
@@ -337,6 +435,8 @@ extension ReceiveFileOperation {
 extension ReceiveFileOperation {
     
     func addObserver(_ model: ObservesTransferOperation){
+        
+        print(DEBUG_TAG+"\t added observer")
         observers.append(model)
     }
     
@@ -355,9 +455,9 @@ extension ReceiveFileOperation {
         }
     }
     
-    func updateObserversFileAdded(){
+    func updateObserversFileAdded(_ vm: ListedFileViewModel){
         observers.forEach { observer in
-            observer.fileAdded()
+            observer.fileAdded(vm)
         }
     }
 }
