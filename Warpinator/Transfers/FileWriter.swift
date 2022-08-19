@@ -113,8 +113,6 @@ class FileWriter: WritesFile {
     // TODO: rewrite to be gooder?
     private func rename(_ name: String) -> String {
         
-        print(DEBUG_TAG+"Renaming \(name) (attempt: \(renameCount))")
-        
         var newName = "File_Renaming_Failed"
         
         //
@@ -123,11 +121,16 @@ class FileWriter: WritesFile {
         while renameCount <= 1000 {
             renameCount += 1
             
-            newName = extensionlessFileSystemName + "\(renameCount)"
-            let path = baseURL.path + "/" + fileSystemParentPath + "\(newName)" + fileExtension
+            print(DEBUG_TAG+"Renaming \(name) (attempt: \(renameCount))")
+            
+            let nameCheck = extensionlessFileSystemName + "\(renameCount)"
+            let path = baseURL.path + "/" + fileSystemParentPath + "\(nameCheck)" + "." + fileExtension
             
             if !FileManager.default.fileExists(atPath: path)  {
-                break // return rename(fileSystemName)
+                print(DEBUG_TAG+"\t\t \"\(nameCheck + fileExtension)\" not found at path: \n\t\t \(path)")
+                print(DEBUG_TAG+"\t\t proceeding... ")
+                newName = nameCheck
+                break
             }
         }
         
