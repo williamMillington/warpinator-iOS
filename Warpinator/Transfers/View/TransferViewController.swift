@@ -79,8 +79,6 @@ final class TransferViewController: UIViewController {
         
         // load intial info
         
-                
-        
         operationsStack.arrangedSubviews.forEach { subview in
             subview.removeFromSuperview()
         }
@@ -117,9 +115,9 @@ final class TransferViewController: UIViewController {
         var pressable: Bool = false
         var text: String = ""
         
-        print(DEBUG_TAG+"button targets: \(cancelButton.allTargets)")
+//        print(DEBUG_TAG+"button xtargets: \(cancelButton.allTargets)")
         cancelButton.allTargets.forEach { target in
-            print(self.DEBUG_TAG+"removing target \(target)")
+//            print(self.DEBUG_TAG+"removing target \(target)")
             cancelButton.removeTarget(target, action: nil, for: .allEvents)
         }
         

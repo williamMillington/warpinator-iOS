@@ -185,7 +185,7 @@ final class SendFileOperation: TransferOperation {
                     try result.wait()
                 } catch {
                     print(self.DEBUG_TAG+"chunk \(i) prevented from waiting. Reason: \(error)")
-                    if self.status == .TRANSFERRING {  self.orderStop( error ) }
+                    if self.status == .TRANSFERRING {  self.stop( error ) }
                 }
                 
                 
@@ -236,7 +236,7 @@ final class SendFileOperation: TransferOperation {
     
     //
     // MARK: stopping
-    func orderStop(_ error: Error? = nil){
+    func stop(_ error: Error? = nil){
         
         print(self.DEBUG_TAG+"ordering stop, error: \(String(describing: error))")
         owningRemote?.stopTransfer(withUUID: UUID, error: error)

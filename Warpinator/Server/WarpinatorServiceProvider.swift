@@ -334,7 +334,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         
         if let receive = transfer as? ReceiveFileOperation {
-            receive.receiveWasCancelled()
+//            receive.receiveWasCancelled()
+            receive.stop( TransferError.TransferCancelled )
         }
         
         if let send = transfer as? SendFileOperation {
@@ -370,9 +371,9 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         
         if request.error {
-            transfer.stopRequested( TransferError.UnknownError )
+            transfer.stop( request.error ? TransferError.UnknownError : nil )
         } else {
-            transfer.stopRequested(nil)
+            transfer.stop(nil)
         }
         
         

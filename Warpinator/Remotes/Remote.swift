@@ -263,7 +263,7 @@ public class Remote {
                 self.aquireDuplex()
             }
         
-            // TODO: I need to create some extension methods that more transparently communicate the steps involved
+            // TODO: extension methods that more transparently communicate the steps involved
         
             .flatMap { haveDuplex in // Duplex call succeeded
 
@@ -303,13 +303,13 @@ public class Remote {
         // stop all transfers
         for operation in sendingOperations {
             if [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION].contains(operation.status) {
-                operation.orderStop(TransferError.ConnectionInterrupted)
+                operation.stop(TransferError.ConnectionInterrupted)
             }
         }
         
         for operation in receivingOperations {
             if [.TRANSFERRING, .INITIALIZING].contains(operation.status) {
-                operation.orderStop( TransferError.ConnectionInterrupted )
+                operation.stop( TransferError.ConnectionInterrupted )
             }
         }
         
@@ -342,13 +342,13 @@ public class Remote {
         if status == .SENDING {
             for operation in sendingOperations {
                 if [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION].contains(operation.status) {
-                    operation.orderStop(TransferError.ConnectionInterrupted)
+                    operation.stop(TransferError.ConnectionInterrupted)
                 }
             }
         } else {
             for operation in receivingOperations {
                 if [.TRANSFERRING, .INITIALIZING].contains(operation.status) {
-                    operation.orderStop( TransferError.ConnectionInterrupted )
+                    operation.stop( TransferError.ConnectionInterrupted )
                 }
             }
         }
@@ -498,37 +498,14 @@ extension Remote {
         print(DEBUG_TAG+"stopping transfer...")
         
         if let op = findTransfer(withUUID: uuid) {
-            
-            
-            if let error = error as? TransferError,
-                error == .TransferDeclined {
-                
-                let result = warpClient?.cancelTransferOpRequest(op.operationInfo)
-                result?.response.whenComplete { result in
-                    print(self.DEBUG_TAG+"request to cancel transfer had result: \(result)")
-                    (op as? ReceiveFileOperation)?.receiveWasCancelled()
-                }
-                
-            } else {
-                
-//                let stopInfo: StopInfo = .with {
-//                    $0.info = op.operationInfo
-//                    $0.error = (error != nil)
-//                }
-                
-//                let result =
-                warpClient?.stopTransfer( .with {
-                    $0.info = op.operationInfo
-                    $0.error = (error != nil)
-                })
-//                result?
-                    .response.whenComplete { result in
+            warpClient?.stopTransfer( .with {
+                $0.info = op.operationInfo
+                $0.error = (error != nil)
+            })
+                .response.whenComplete { result in
                     print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
+                    
                 }
-            }
-            
-        } else {
-            print(DEBUG_TAG+"Couldn't find operation: \(uuid)")
         }
     }
     
@@ -536,7 +513,7 @@ extension Remote {
     
     //
     // MARK: Decline Receive Request
-    func informOperationWasDeclined(forUUID uuid: UInt64, error: Swift.Error? = nil) {
+    func declineTransfer(withUUID uuid: UInt64, error: Swift.Error? = nil) {
         
         if let op = findTransfer(withUUID: uuid) {
             
@@ -544,7 +521,6 @@ extension Remote {
             result?.response.whenComplete { result in
                 print(self.DEBUG_TAG+"request to cancel transfer had result: \(result)")
             }
-            
         } else {
             print(DEBUG_TAG+"error trying to find operation for UUID: \(uuid)")
         }
@@ -592,7 +568,7 @@ extension Remote {
         
         print(DEBUG_TAG+"startTransfer ")
         
-        let f: EventLoopFuture<Void> = client().flatMap { client in
+        let _: EventLoopFuture<Void> = client().flatMap { client in
             
             guard self.details.status != .Idle else {
                 return client.ping(self.lookupName).status.flatMap { voidType in
@@ -603,39 +579,8 @@ extension Remote {
             
             return operation.startReceive(usingClient: client)
         }
-        
-        
-        
-        
-        
-        
-//        guard let client = warpClient else {
-////            requestStop(forOperationWithUUID: operation.UUID, error: TransferError.ConnectionInterrupted )
-//            print(DEBUG_TAG+"cancel receiving; no client connection "); return
-//        }
-//
-//        // ping to wake up before sending, if idle
-//        guard details.status != .Idle else {
-//
-//            let result = client.ping(lookupName)
-//
-//            result.response.whenComplete { result in
-//                switch result {
-//                case .success(_):
-//                    self.details.status = .Connected
-//                    operation.startReceive(usingClient: client) // if still connected, proceed with sending
-//                case .failure(let error): _ = self.disconnect(error) // if connection is dead, signal disconnect
-//                }
-//            }
-//            return
-//        }
-//
-//
-//        operation.startReceive(usingClient: client)
-        
     }
-    
-    
+        
 }
 
 
@@ -824,23 +769,3 @@ extension Remote: ClientErrorDelegate {
         }
     }
 }
-
-
-
-
-////
-//// MARK: - Authentication
-//extension Remote {
-//    func getAuthenticationConnection() -> AuthenticationConnection {
-//        if details.api == "1" { // API_V1
-//            return UDPConnection(onEventLoopGroup: eventLoopGroup,
-//                                 endpoint: details.endpoint)
-//        } else { // API_V2
-//            return GRPCConnection(onEventLoopGroup: eventLoopGroup,
-//                                  details: details)
-//        }
-//    }
-//
-//}
-
-

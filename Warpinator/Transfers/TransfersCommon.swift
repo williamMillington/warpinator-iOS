@@ -74,8 +74,15 @@ public enum TransferDirection: String {
 
 //
 // MARK: TransferStatus
-enum TransferStatus: Equatable {
-    
+enum TransferStatus { //}: Equatable {
+    case INITIALIZING
+    case WAITING_FOR_PERMISSION
+    case CANCELLED
+    case TRANSFERRING, FINISHED
+    case FAILED(Error)
+}
+
+extension TransferStatus: Equatable {
     static func == (lhs: TransferStatus, rhs: TransferStatus) -> Bool {
         
         switch (lhs, rhs){
@@ -94,12 +101,6 @@ enum TransferStatus: Equatable {
              (FAILED(_),_): return false
         }
     }
-    
-    case INITIALIZING
-    case WAITING_FOR_PERMISSION
-    case CANCELLED
-    case TRANSFERRING, FINISHED
-    case FAILED(Error)
 }
 
 
@@ -127,8 +128,8 @@ protocol TransferOperation {
     
     var observers: [ObservesTransferOperation] { get }
     
-    func orderStop(_ error: Error?)
-    func stopRequested(_ error: Error?)
+    func stop(_ error: Error?)
+//    func stopRequested(_ error: Error?)
     
     
     func addObserver(_ model: ObservesTransferOperation)
@@ -186,7 +187,7 @@ final class MockReceiveTransfer: TransferOperation {
     }
     
     
-    func orderStop(_ error: Error? = nil){
+    func stop(_ error: Error? = nil){
         status = .CANCELLED
     }
     
