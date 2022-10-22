@@ -199,7 +199,12 @@ extension RemoteManager: BrowserDelegate {
             
             print(DEBUG_TAG+"\t\t Service already added")
             
-            // Are we connected?
+            guard remote.details.status != .Connected else {
+                print(DEBUG_TAG+"\t\t\t Remote is connected")
+                return
+            }
+            
+            // Should we try reconnecting?
             if [ .Disconnected, .Idle, .Error ].contains( remote.details.status ) {
                 print(DEBUG_TAG+"\t\t\t not connected: reconnecting...")
                 remote.startupConnection()
@@ -229,8 +234,7 @@ extension RemoteManager: BrowserDelegate {
         
         print(DEBUG_TAG+"REMOVED result \(result.endpoint)")
         
-        // check metadata for "type",
-        // and if type is 'flush', then ignore
+        // ignore anything with type "flush"
         if case let NWBrowser.Result.Metadata.bonjour(record) = result.metadata,
            let type = record.dictionary["type"],
            type == "flush" {

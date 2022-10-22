@@ -127,7 +127,7 @@ class FileWriter: WritesFile {
             let path = baseURL.path + "/" + fileSystemParentPath + "\(nameCheck)" + "." + fileExtension
             
             if !FileManager.default.fileExists(atPath: path)  {
-                print(DEBUG_TAG+"\t\t \"\(nameCheck + fileExtension)\" not found at path: \n\t\t \(path)")
+                print(DEBUG_TAG+"\t\t \"\(nameCheck).\(fileExtension) not found at path: \n\t\t \(path)")
                 print(DEBUG_TAG+"\t\t proceeding... ")
                 newName = nameCheck
                 break

@@ -47,7 +47,7 @@ final class MDNSBrowser {
     
     private func createBrowser() -> NWBrowser {
         
-        print(DEBUG_TAG+"\t Creating browser")
+//        print(DEBUG_TAG+"\t Creating browser")
         
         let params = NWParameters()
         params.allowLocalEndpointReuse = true
@@ -62,7 +62,7 @@ final class MDNSBrowser {
     }
     
     
-    
+    // MARK: start
     func start() -> EventLoopFuture<Void> {
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
@@ -85,13 +85,14 @@ final class MDNSBrowser {
     }
     
     
-    
+    // MARK: stop
     func stop() -> EventLoopFuture<Void> {
         
 //        print(DEBUG_TAG+"\t\tstopping... (current state:  \(browser.state) )")
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
         
+        // If we're already stopped, succeed promise
         switch browser.state {
         case .cancelled, .failed(_), .setup:
             promise.succeed( Void() )
@@ -114,7 +115,6 @@ final class MDNSBrowser {
     //
     // Allows a promise to be configured to fire for a number of different states
     //      - NOTE: .failure() will ALWAYS fail the promise
-    // MARK: configurePromise
     private func configure(_ promise: EventLoopPromise<Void>,
                            toSucceedForState state: NWBrowser.State) {
         
@@ -154,9 +154,8 @@ final class MDNSBrowser {
     
     //
     // MARK: startBrowsing
-    func startBrowsing(){
-        print(DEBUG_TAG+" start browsing")
-        
+    func beginBrowsing(){
+//        print(DEBUG_TAG+" start browsing")
         
 //        let results = browser.browseResults
         /* any mDNS services that existed BEFORE we started browsing
@@ -174,7 +173,7 @@ final class MDNSBrowser {
     //
     // MARK: stopBrowsing
     func stopBrowsing(){
-        print(DEBUG_TAG+" stop browsing")
+//        print(DEBUG_TAG+" stop browsing")
         browser.browseResultsChangedHandler = { _, _ in  }
     }
     

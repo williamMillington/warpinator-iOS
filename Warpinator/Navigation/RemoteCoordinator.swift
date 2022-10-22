@@ -118,7 +118,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     //
     // MARK: accept transfer
-    func acceptTransfer(forTransferUUID uuid: UInt64){
+    func acceptTransfer(withUUID uuid: UInt64){
         
         print(DEBUG_TAG+"user approved transfer with uuid \(uuid)")
         
@@ -135,17 +135,9 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         print(DEBUG_TAG+"user declined transfer with uuid \(uuid)")
         
-        
-//        remote.stopTransfer(withUUID: uuid, error: TransferError.TransferDeclined)
         remote.declineTransfer(withUUID: uuid)
         
-        
         showRemote()
-//        if let operation = remote.findReceiveOperation(withStartTime: uuid) {
-//            print(DEBUG_TAG+"\t transfer found")
-//            operation.decline( TransferError.TransferDeclined )
-//            showRemote()
-//        }
     }
     
     
@@ -154,11 +146,11 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     func cancelTransfer(forTransferUUID uuid: UInt64){
         
         print(DEBUG_TAG+"user cancelled transfer with uuid \(uuid)")
-        
-        if let operation = remote.findTransfer(withUUID: uuid) {
-            print(DEBUG_TAG+"\t transfer found")
-            operation.stop(nil)
-        }
+        remote.findTransfer(withUUID: uuid)?.stop(TransferError.TransferCancelled)
+//        if let operation = remote.findTransfer(withUUID: uuid) {
+//            print(DEBUG_TAG+"\t transfer found")
+//            operation.stop(nil)
+//        }
     }
     
     
@@ -171,8 +163,8 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         if let operation = remote.findSendOperation(withStartTime: uuid) {
             print(DEBUG_TAG+"\t transfer found")
             
-            remote.sendRequest(toTransfer: operation)
-            
+            // TODO: use result of sendRequest to update ui
+            let _ = remote.sendRequest(toTransfer: operation)
         }
     }
     

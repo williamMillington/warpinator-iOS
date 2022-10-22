@@ -66,7 +66,7 @@ final class MDNSListener {
     
     private func createListener() -> NWListener {
         
-        print(DEBUG_TAG+"\t Creating listener")
+//        print(DEBUG_TAG+"\t Creating listener")
         
         let params = NWParameters.udp
         params.allowLocalEndpointReuse = true
@@ -85,7 +85,7 @@ final class MDNSListener {
     // MARK: start
     func start() -> EventLoopFuture<Void> {
         
-        print(DEBUG_TAG+"starting up listener")
+        print(DEBUG_TAG+" starting up listener")
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
         
@@ -112,7 +112,7 @@ final class MDNSListener {
         
         listener.start(queue: listenerQueue )
         
-        print(DEBUG_TAG+"returning start promise")
+//        print(DEBUG_TAG+"returning start promise")
         return promise.futureResult
     }
     
@@ -152,7 +152,7 @@ final class MDNSListener {
         
         listener.stateUpdateHandler = { updatedState in
             
-            print(self.DEBUG_TAG+"\t\t\t listener update to \(updatedState) while waiting for \(state)")
+//            print(self.DEBUG_TAG+"\t\t\t listener update to \(updatedState) while waiting for \(state)")
             self.currentState = updatedState
             // we have to be careful not to let a promise go unfullfilled
             switch updatedState {
@@ -206,10 +206,10 @@ final class MDNSListener {
     // MARK: publishService
     func publishService(){
         
-        print(DEBUG_TAG+"\tpublishing for reals...")
+        print(DEBUG_TAG+"\tpublishing service...")
         
         guard currentState == .ready else {
-            print(DEBUG_TAG+"\tlistener is not ready (\(currentState))")
+//            print(DEBUG_TAG+"\t\tlistener is not ready (\(currentState))")
             return
         }
         
@@ -243,16 +243,17 @@ final class MDNSListener {
     //
     // MARK: flushPublish
     func flushPublish(){
-
+        
+        print(DEBUG_TAG+"\tFlushing...")
+        
         guard currentState == .ready  else {
-            print(DEBUG_TAG+"\tlistener is not ready (\(listener.state))")
+//            print(DEBUG_TAG+"\t\tlistener is not ready (\(listener.state))")
             return
         }
         
         stopListening()
         listener.stateUpdateHandler = stateDidUpdate(state:)
         
-        print(DEBUG_TAG+"\tFlushing...")
         flushing = true
 
         
@@ -266,7 +267,6 @@ final class MDNSListener {
                                               type: SERVICE_TYPE,
                                               domain: SERVICE_DOMAIN,
                                               txtRecord:  NWTXTRecord(properties) )
-        
         
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -288,7 +288,7 @@ final class MDNSListener {
     // MARK: stateDidUpdate
     private func stateDidUpdate(state: NWListener.State ) {
         
-        print(DEBUG_TAG+" state updated -> \(state)")
+//        print(DEBUG_TAG+" state updated -> \(state)")
         currentState = state
 //        switch state {
 //        case .cancelled:

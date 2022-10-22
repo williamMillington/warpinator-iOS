@@ -112,7 +112,7 @@ final class MainCoordinator: NSObject, Coordinator {
         print(DEBUG_TAG+"publishing mDNS...")
         mDNSListener.startListening()
         mDNSListener.flushPublish()
-        mDNSBrowser.startBrowsing()
+        mDNSBrowser.beginBrowsing()
     }
     
     
@@ -376,7 +376,7 @@ extension MainCoordinator: ErrorDelegate {
 // MARK: - MDNSListenerDelegate
 extension MainCoordinator: MDNSListenerDelegate {
     func mDNSListenerIsReady() {
-        mDNSBrowser.startBrowsing()
+        mDNSBrowser.beginBrowsing()
     }
 }
 

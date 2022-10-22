@@ -196,7 +196,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
     public func getRemoteMachineAvatar(request: LookupName,
                                        context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
         
-        print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
+//        print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
         
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
 
@@ -207,11 +207,11 @@ final public class WarpinatorServiceProvider: WarpProvider {
             sendingAvaratChunksQueue.async {
                 bytes.extended.iterator(withChunkSize: 1024 * 1024).enumerated().forEach { (index, chunk) in
                     do {
-                        print(self.DEBUG_TAG+"\t\t sending  chunk #\(index + 1) ")
+//                        print(self.DEBUG_TAG+"\t\t sending  chunk #\(index + 1) ")
                         try context.sendResponse( RemoteMachineAvatar.with {
                             $0.avatarChunk = chunk
                         }).wait() // wait for confirmation of this chunk before sending the next one
-                        print(self.DEBUG_TAG+"\t\t chunk #\(index + 1) sent successfully")
+//                        print(self.DEBUG_TAG+"\t\t chunk #\(index + 1) sent successfully")
                     }
                     catch {
                         print(self.DEBUG_TAG+"avatar chunk \(index) prevented from waiting. Reason: \(error)")
@@ -241,7 +241,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
     // receive request from remote to transfer data to this device
     public func processTransferOpRequest(request: TransferOpRequest, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        print(DEBUG_TAG+"Received PROCESS TRANSFER request from \(request.info.ident)")
+        print(DEBUG_TAG+"Received request from \(request.info.ident)")
         
         let remoteUUID: String = request.info.ident
         
@@ -304,9 +304,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        let promise = transfer.start(using: context)
         
-        return promise.futureResult
+        return transfer.start(using: context)//promise.futureResult
     }
     
     
@@ -333,6 +332,9 @@ final public class WarpinatorServiceProvider: WarpProvider {
         }
         
         
+        transfer.stop( TransferError.TransferCancelled )
+        
+        
         if let receive = transfer as? ReceiveFileOperation {
 //            receive.receiveWasCancelled()
             receive.stop( TransferError.TransferCancelled )
@@ -352,7 +354,11 @@ final public class WarpinatorServiceProvider: WarpProvider {
     // receive instruction to stop operation (transfer) specified in OpInfo
     public func stopTransfer(request: StopInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        print(DEBUG_TAG+"Received STOP request for transfer - \(request.info)")
+        print(DEBUG_TAG+"Received STOP request for transfer")
+        print(DEBUG_TAG+"\t\t info: \(request.info)")
+        print(DEBUG_TAG+"\t\t error: \(request.error )")
+        print(DEBUG_TAG+"\t\t description: \( request.debugDescription )")
+        print(DEBUG_TAG+"\t\t\t\t : (\( request ))")
         
         let remoteUUID: String = request.info.ident
         
@@ -370,11 +376,13 @@ final public class WarpinatorServiceProvider: WarpProvider {
         }
         
         
-        if request.error {
-            transfer.stop( request.error ? TransferError.UnknownError : nil )
-        } else {
-            transfer.stop(nil)
-        }
+        print(DEBUG_TAG+"\( request.info.readableName )")
+        
+//        if request.error {
+        transfer.stop( request.error ?  TransferError.UnknownError :  TransferError.TransferCancelled )
+//        } else {
+//            transfer.stop(nil)
+//        }
         
         
         return context.eventLoop.makeSucceededFuture( VoidType() )

@@ -11,6 +11,11 @@ import GRPC
 import NIO
 
 
+
+let STATUS_CANCELLED = GRPCStatus.init(code: GRPCStatus.Code.cancelled, message:"Transfer Cancelled")
+
+
+
 // MARK: ReceiveFileOperation
 final class ReceiveFileOperation: TransferOperation {
     
@@ -92,6 +97,7 @@ final class ReceiveFileOperation: TransferOperation {
     
     lazy var queueLabel = "RECEIVE_\(owningRemoteUUID)_\(UUID)"
     lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
+    var  receivingChunksQueueDispatchItems: [DispatchWorkItem] = []
     var dataStream: ServerStreamingCall<OpInfo, FileChunk>? = nil
     
     var operationInfo: OpInfo
@@ -170,6 +176,8 @@ extension ReceiveFileOperation {
             
             guard self.status == .TRANSFERRING else {
                 print(self.DEBUG_TAG+"canceling chunk processing")
+//                self.dataStream?.cancel(promise: nil)
+                self.stop( TransferError.TransferCancelled )
                 return
             }
             
@@ -182,14 +190,6 @@ extension ReceiveFileOperation {
                 defer {  self.updateObserversInfo()  }
                 
                 
-                //process the chunk
-                print(self.DEBUG_TAG+" reading chunk:")
-                print(self.DEBUG_TAG+"\t size: \(chunk.chunk.count )")
-                print(self.DEBUG_TAG+"\t relativePath: \(chunk.relativePath)")
-                print(self.DEBUG_TAG+"\t file/folder: \( TransferItemType(rawValue: chunk.fileType)!) ")
-                
-                
-                //
                 // if we've got a writer going, try it
                 if let writer = self.currentWriter {
                     
@@ -241,6 +241,8 @@ extension ReceiveFileOperation {
             }
             
             
+            self.receivingChunksQueueDispatchItems.append(workItem)
+            
             self.receivingChunksQueue.async(execute: workItem)
             
         }
@@ -248,152 +250,79 @@ extension ReceiveFileOperation {
         dataStream = datastream
         
         
-        let closeWorkItem = DispatchWorkItem() {
+//        let closeWorkItem = DispatchWorkItem() {
             
-            if self.status != .TRANSFERRING {
-                self.status = .CANCELLED
-                self.currentWriter?.fail()
-                
-                print(self.DEBUG_TAG+"\t\tCancelled")
-            } else {
-                
-                self.status =  .FINISHED
-                self.currentWriter?.close()
-                print(self.DEBUG_TAG+"\t\tFinished")
-            }
+//            if self.status != .TRANSFERRING {
+//                self.status = .CANCELLED
+//                self.currentWriter?.fail()
+//
+//                print(self.DEBUG_TAG+"\t\tCancelled")
+//            } else {
+//
+//                self.status =  .FINISHED
+//                self.currentWriter?.close()
+//                print(self.DEBUG_TAG+"\t\tFinished")
+//            }
             
-        }
+//        }
         
         
         return datastream.status
-            .flatMap { status in
+            .flatMapThrowing { status in
                 print(self.DEBUG_TAG+"\t transfer finished with status \(status)")
                 
-                self.receivingChunksQueue.async(execute: closeWorkItem)
+                switch status {
+                case STATUS_CANCELLED: throw TransferError.TransferCancelled
+                case .processingError: throw TransferError.UnknownError
+                default: break
+                }
                 
-                return datastream.eventLoop.makeSucceededVoidFuture()
+                self.receivingChunksQueue.async {
+                    self.status = .FINISHED
+                    self.currentWriter?.close()
+                }
             }
             .flatMapError { error in
+                
                 print(self.DEBUG_TAG+"\t transfer failed: \(error)")
-//                self.receiveWasCancelled()
                 
-                self.receivingChunksQueue.async(execute: closeWorkItem)
+                self.receivingChunksQueue.async {
+                    self.stop(error)
+                }
                 
-                return self.dataStream!.eventLoop.makeFailedFuture(error)
+                return datastream.eventLoop.makeFailedFuture(error)
             }
     }
     
-    
-    //
-    // MARK: finish
-//    func finishReceive(){
-//        print(DEBUG_TAG+" finishing")
-//
-//        if status != .TRANSFERRING {
-////            receiveWasCancelled()
-//            return
-//        }
-//
-//        let closeWorkItem = DispatchWorkItem() {
-//            self.currentWriter?.close()
-//            self.status = .FINISHED
-//            print(self.DEBUG_TAG+"\t\tFinished")
-//        }
-        
-        
-        //        currentWriter?.close()
-        
-        
-        
-//        status = .FINISHED
-//        print(DEBUG_TAG+"\t\tFinished")
-//    }
-
     
     
     //
     // MARK: stop
     // stop the transfer
-    func stop(_ error: Error? = nil){
-        print(self.DEBUG_TAG+"ordering stop, error: \(String(describing: error))")
-//        stopRequested(error)
+    func stop(_ error: Error){
         
-        owningRemote?.stopTransfer(withUUID: UUID, error: error)
+        print(self.DEBUG_TAG+"stop receiving, error: \(String(describing: error))")
         
-        guard let error = error else {
-            status = .FINISHED
-            currentWriter?.close()
-            return
+        
+        receivingChunksQueueDispatchItems.forEach { $0.cancel() }
+        receivingChunksQueueDispatchItems.removeAll()
+        
+        
+        var stat: TransferStatus = .FAILED(error)
+        
+        // if WE'RE cancelling this receive, politely tell
+        // the remote to step sending
+        if (error as? TransferError) == .TransferCancelled {
+            owningRemote?.sendStop(forUUID: UUID, error: TransferError.TransferCancelled)
+            stat = .CANCELLED
         }
         
-//        if let error = error {
-            
-        status = (error as? TransferError) == TransferError.TransferCancelled ? .CANCELLED : .FAILED(error)
+        status = stat
             
         currentWriter?.fail()
-//            if (error as? TransferError) == TransferError.TransferCancelled {
-//
-//            }
-//        }
         
-        
-//        guard let error = error else {
-//            return
-//        }
-//
-//
-//
-//        if let error = (error as? TransferError), error == .TransferCancelled {
-//            status = .CANCELLED
-//        } else {
-//
-//        }
-        
-//        owningRemote?.stopTransfer(withUUID: UUID, error: error)
+        updateObserversInfo()
     }
-    
-    
-    //
-    // other side calls stop
-//    func stopRequested(_ error: Error? = nil){
-//
-////        print(DEBUG_TAG+"stopped with error: \(String(describing: error))")
-//
-//    }
-//
-    
-//    func receiveWasCancelled(){
-//
-//        print(DEBUG_TAG+" request cancelled")
-//        status = .CANCELLED
-//
-//        // cancel current writing operation
-//        currentWriter?.fail()
-//    }
-    
-    
-    
-    
-    
-    //TODO change this to be a single cancel, which can respond to an error of DECLINED
-    
-    
-    
-    
-    //
-    // MARK decline
-//    func decline(_ error: Error? = nil){
-//
-//        print(DEBUG_TAG+" declining request...")
-//
-//        owningRemote?.informOperationWasDeclined(forUUID: UUID, error: error)
-//        status = .CANCELLED
-//
-//        currentWriter?.fail()
-//    }
-    
-    
-    
 }
 
 

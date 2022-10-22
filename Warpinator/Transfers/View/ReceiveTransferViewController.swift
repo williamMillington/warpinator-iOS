@@ -130,7 +130,7 @@ final class ReceiveTransferViewController: UIViewController {
     //
     // MARK: accept
     @objc func accept(){
-        coordinator?.acceptTransfer(forTransferUUID: viewmodel!.transferUUID)
+        coordinator?.acceptTransfer(withUUID: viewmodel!.transferUUID)
     }
     
     //

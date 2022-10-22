@@ -92,6 +92,7 @@ public class Remote {
     enum Error: Swift.Error {
         case REMOTE_PROCESSING_ERROR
         case UNKNOWN_ERROR
+        case SSL_ERROR
     }
     
     
@@ -437,7 +438,7 @@ extension Remote {
         var avatarBytes: Data = Data()
         
         // get info
-        //        let infoCallFuture = client.getRemoteMachineInfo(lookupName).response
+        // let infoCallFuture = client.getRemoteMachineInfo(lookupName).response
         return client.getRemoteMachineInfo(lookupName).response
             .flatMap { info in
                 self.details.displayName = info.displayName
@@ -492,20 +493,29 @@ extension Remote {
     
     
     //
-    // MARK: stop Transfer
-    func stopTransfer(withUUID uuid: UInt64, error: Swift.Error?) {
+    // MARK: request stop transfer
+    // tell the remote to stop sending the transfer with given uuid
+    func sendStop(forUUID uuid: UInt64, error: Swift.Error?) {
         
-        print(DEBUG_TAG+"stopping transfer...")
+        print(DEBUG_TAG+"sending stop request...")
+            
+        
+        // "Cancelled" is only considered an error internally
+        let err = (error as? TransferError) == .TransferCancelled ? false : true
         
         if let op = findTransfer(withUUID: uuid) {
-            warpClient?.stopTransfer( .with {
-                $0.info = op.operationInfo
-                $0.error = (error != nil)
-            })
-                .response.whenComplete { result in
-                    print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
-                    
-                }
+            
+            // if WE'RE cancelling this receive, politely tell
+            // the remote to step sending
+            if op.direction == .RECEIVING {
+                warpClient?.stopTransfer( .with {
+                    $0.info = op.operationInfo
+                    $0.error = err
+                })
+                    .response.whenComplete { result in
+                        print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
+                    }
+            }
         }
     }
     
@@ -516,6 +526,8 @@ extension Remote {
     func declineTransfer(withUUID uuid: UInt64, error: Swift.Error? = nil) {
         
         if let op = findTransfer(withUUID: uuid) {
+            
+            op.stop(TransferError.TransferCancelled)
             
             let result = warpClient?.cancelTransferOpRequest(op.operationInfo)
             result?.response.whenComplete { result in
@@ -626,8 +638,9 @@ extension Remote {
         return sendRequest(toTransfer: operation)
     }
     
+    
     //
-    // send client a message that we have files we want to send
+    // send remote a message that we have files we want to send
     func sendRequest(toTransfer operation: SendFileOperation ) -> EventLoopFuture<Void> {
         
         print(DEBUG_TAG+"Sending request: \(operation.transferRequest)")
@@ -658,7 +671,7 @@ extension Remote {
 
 
 
-//MARK: - observers
+//MARK: - Observers
 extension Remote {
     
     //
@@ -762,7 +775,7 @@ extension Remote: ClientErrorDelegate {
             print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
             authenticationCertificate = nil
             
-            _ = disconnect()
+            _ = disconnect( Error.SSL_ERROR )
             startupConnection()
         } else {
             print(DEBUG_TAG+"Unknown error: \(error)")

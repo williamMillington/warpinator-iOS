@@ -128,7 +128,7 @@ protocol TransferOperation {
     
     var observers: [ObservesTransferOperation] { get }
     
-    func stop(_ error: Error?)
+    func stop(_ error: Error)
 //    func stopRequested(_ error: Error?)
     
     
@@ -187,7 +187,7 @@ final class MockReceiveTransfer: TransferOperation {
     }
     
     
-    func stop(_ error: Error? = nil){
+    func stop(_ error: Error){
         status = .CANCELLED
     }
     

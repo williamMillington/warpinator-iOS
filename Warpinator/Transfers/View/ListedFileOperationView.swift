@@ -201,7 +201,7 @@ var formatter: ByteCountFormatter = {
 }()
 
 //
-// MARK: - FileReader VM
+// MARK: - Reader VMs
 final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
     private let operation: FileReader
@@ -244,7 +244,6 @@ final class ListedFileReaderViewModel: NSObject, ListedFileViewModel, ObservesFi
 
 
 //
-// MARK: - FolderReader VM
 final class ListedFolderReaderViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
     private let operation: FolderReader
@@ -288,7 +287,7 @@ final class ListedFolderReaderViewModel: NSObject, ListedFileViewModel, Observes
 
 
 //
-// MARK: - FileWriterVM
+// MARK: - Writer VMs
 final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
     private var operation: FileWriter
@@ -332,7 +331,6 @@ final class ListedFileWriterViewModel: NSObject, ListedFileViewModel, ObservesFi
 
 
 //
-// MARK: - FolderWriterVM
 final class ListedFolderWriterViewModel: NSObject, ListedFileViewModel, ObservesFileOperation {
     
     private var operation: FolderWriter
