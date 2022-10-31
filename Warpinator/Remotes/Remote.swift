@@ -19,6 +19,7 @@ import Logging
 
 // MARK: Remote Details
 struct RemoteDetails {
+    
     enum ConnectionStatus: String {
         case OpeningConnection, FetchingCredentials, AquiringDuplex
         case Error
@@ -37,8 +38,8 @@ struct RemoteDetails {
     
     var hostname: String = "hostname"
     var ipAddress: String = RemoteDetails.NO_IP_ADDRESS
-    var port: Int = 0 //"No_Port"
-    var authPort: Int = 0 //"No_Auth_Port"
+    var port: Int = 4200
+    var authPort: Int = 4200
     
     var uuid: String = "NO_UUID"
     var api: String = "1"
@@ -46,7 +47,6 @@ struct RemoteDetails {
     var status: ConnectionStatus = .Disconnected
     
     var serviceAvailable: Bool = false
-    
 }
 
 extension RemoteDetails {
@@ -85,7 +85,7 @@ public class Remote {
     lazy var DEBUG_TAG: String = "REMOTE (\"\(details.hostname)\"): "
     
     var details: RemoteDetails {
-        didSet {  informObserversInfoDidChange()  }
+        didSet {  updateObserversInfoDidChange()  }
     }
     
     
@@ -148,38 +148,33 @@ public class Remote {
         print(DEBUG_TAG+"Initiating connection with remote...")
         
         guard ![.Connected, .AquiringDuplex ].contains( details.status ) else {     //  details.status != .Connected else {
-            return eventLoopGroup.next().makeSucceededVoidFuture()
+            
+            // if there's the problem with the connection, it'll be revealed by ping()
+            return ping()
         }
         
-        // return success if we're already connected, or connecting
-        if let state = channel?.connectivity.state {
+        
+        // return success if channel is established
+        if let state = channel?.connectivity.state,
+           [.ready, .connecting].contains( state ) {
            
             if [.ready, .connecting].contains( state ) {
                 return eventLoopGroup.next().makeSucceededVoidFuture()
             }
             
             // if idle, just ping
-            if let client = warpClient,
-                state == .idle {
+            if state == .idle {
                 
-//                let ping = client.ping( lookupName )
-                return client.ping( lookupName ).status
-                    .flatMap { status in
-                        switch status { // status okay, we're still connected
-                        case .ok:  return self.eventLoopGroup.next().makeSucceededVoidFuture()
-                        case .processingError : return self.eventLoopGroup.next().makeFailedFuture(Remote.Error.REMOTE_PROCESSING_ERROR)
-                        default: return self.eventLoopGroup.next().makeFailedFuture( Remote.Error.UNKNOWN_ERROR )
-                        }
-                }
+                return ping()
                 // error while pinging triggers a connection restart
                 .flatMapError { error in
-                    print(self.DEBUG_TAG+"ERROR pinging: \(error), assume disconnected ")
+                    print(self.DEBUG_TAG+"ERROR pinging: \(error), assuming disconnected ")
                     
                     // ensures we enter the .Disconnected state we this isn't an
                     // infinite loop
                     return self.disconnect(error)
                 }.flatMap {
-                    // try again! :D
+                    // try again once disconnection is completed! :D
                     self.startupConnection()
                 }
             }
@@ -298,59 +293,42 @@ public class Remote {
     func disconnect(_ error: Swift.Error? = nil) -> EventLoopFuture<Void> {
         
         print(DEBUG_TAG+"disconnecting remote...")
-        print(DEBUG_TAG+"\twith error: \( String(describing:error) )")
+        print(DEBUG_TAG+"\twith error: \( error.debugDescription )")
+        
+        stopAllTransfers()
         
         
-        // stop all transfers
-        for operation in sendingOperations {
-            if [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION].contains(operation.status) {
-                operation.stop(TransferError.ConnectionInterrupted)
-            }
-        }
-        
-        for operation in receivingOperations {
-            if [.TRANSFERRING, .INITIALIZING].contains(operation.status) {
-                operation.stop( TransferError.ConnectionInterrupted )
-            }
-        }
-        
-        return channel?.close()
+        // MAYBE BRACKETS?
+        return  channel?.close() ?? eventLoopGroup.next().makeSucceededVoidFuture() // if channel is nil return successful
             .map { // clean up
                 self.warpClient = nil
                 self.details.status = .Disconnected
-            }
-            .flatMap { // report success
+                
+                self.updateObserversInfoDidChange()
+                
                 print(self.DEBUG_TAG + "\t\t channel closed successfully")
-                return self.eventLoopGroup.next().makeSucceededVoidFuture()
             }
             .flatMapError{ error in // report error, but succeed because channel is closed
-                print(self.DEBUG_TAG + "\t\t channel closed with error: \(error)")
+                
+                print(self.DEBUG_TAG + "\t\t channel encountered error while closing: \(error)")
+                self.updateObserversInfoDidChange()
                 return self.eventLoopGroup.next().makeSucceededVoidFuture()
             }
-        ?? eventLoopGroup.next().makeSucceededVoidFuture()
-            .flatMap {
-                print(self.DEBUG_TAG + "\t\t channel was already closed")
-                return self.eventLoopGroup.next().makeSucceededVoidFuture()
-        }
             
     }
     
     
     //
     // MARK: stopAllTransfers
-    func stopAllTransfers(forStatus status: TransferDirection){
+    func stopAllTransfers(){
         
-        if status == .SENDING {
-            for operation in sendingOperations {
-                if [.TRANSFERRING, .INITIALIZING, .WAITING_FOR_PERMISSION].contains(operation.status) {
-                    operation.stop(TransferError.ConnectionInterrupted)
-                }
-            }
-        } else {
-            for operation in receivingOperations {
-                if [.TRANSFERRING, .INITIALIZING].contains(operation.status) {
-                    operation.stop( TransferError.ConnectionInterrupted )
-                }
+        let operations = (sendingOperations + receivingOperations) as [TransferOperation]
+        
+        // stop all transfers
+        for operation in operations {
+            switch operation.status {
+            case .FINISHED, .CANCELLED, .FAILED(_): break
+            default: operation.stop( TransferError.ConnectionInterruption )
             }
         }
     }
@@ -417,10 +395,16 @@ extension Remote {
         
         return client()
             .flatMap { client in
-                return client.ping(self.lookupName).response
+                return client.ping(self.lookupName).status
             }
-            .map { _ in
-                print(self.DEBUG_TAG+"pinging")
+            .flatMap { status in
+                print(self.DEBUG_TAG+"\tpinged, response: \(status)")
+                
+                switch status { // status okay, we're still connected
+                case .ok:  return self.eventLoopGroup.next().makeSucceededVoidFuture()
+                case .processingError : return self.eventLoopGroup.next().makeFailedFuture(Remote.Error.REMOTE_PROCESSING_ERROR)
+                default: return self.eventLoopGroup.next().makeFailedFuture( Remote.Error.UNKNOWN_ERROR )
+                }
         }
     }
     
@@ -458,7 +442,7 @@ extension Remote {
                 case .ok:
                     // assemble bytes into uiimage
                     self.details.userImage = UIImage(data:  avatarBytes  )
-                    self.informObserversInfoDidChange()
+                    self.updateObserversInfoDidChange()
                 case .processingError:
                     print(self.DEBUG_TAG+"\t processing error")
                     return self.eventLoopGroup.next().makeFailedFuture(NSError())
@@ -482,13 +466,14 @@ extension Remote {
     // MARK: find transfer operation
     func findTransfer(withUUID uuid: UInt64) -> TransferOperation? {
         
-        if let operation = findReceiveOperation(withStartTime: uuid) {
-            return operation  }
+        let operations = (receivingOperations + sendingOperations) as [TransferOperation]
         
-        if let operation = findSendOperation(withStartTime: uuid){
-            return operation  }
+        let matching_operations = operations.compactMap { return  $0.UUID == uuid ? $0 : nil }
         
-        return nil
+        //debug potential duplicates
+        print(DEBUG_TAG+" number of matching operations: \(matching_operations.count) ")
+        
+        return matching_operations.first
     }
     
     
@@ -498,7 +483,6 @@ extension Remote {
     func sendStop(forUUID uuid: UInt64, error: Swift.Error?) {
         
         print(DEBUG_TAG+"sending stop request...")
-            
         
         // "Cancelled" is only considered an error internally
         let err = (error as? TransferError) == .TransferCancelled ? false : true
@@ -506,7 +490,7 @@ extension Remote {
         if let op = findTransfer(withUUID: uuid) {
             
             // if WE'RE cancelling this receive, politely tell
-            // the remote to step sending
+            // the remote to stop sending
             if op.direction == .RECEIVING {
                 warpClient?.stopTransfer( .with {
                     $0.info = op.operationInfo
@@ -522,22 +506,18 @@ extension Remote {
     
     
     //
-    // MARK: Decline Receive Request
+    // MARK: Decline Receive
     func declineTransfer(withUUID uuid: UInt64, error: Swift.Error? = nil) {
         
-        if let op = findTransfer(withUUID: uuid) {
-            
-            op.stop(TransferError.TransferCancelled)
-            
-            let result = warpClient?.cancelTransferOpRequest(op.operationInfo)
-            result?.response.whenComplete { result in
-                print(self.DEBUG_TAG+"request to cancel transfer had result: \(result)")
-            }
-        } else {
+        guard let op = findTransfer(withUUID: uuid) else {
             print(DEBUG_TAG+"error trying to find operation for UUID: \(uuid)")
+            return
+        }
+        
+        warpClient?.cancelTransferOpRequest(op.operationInfo).response.whenComplete { result in
+            print(self.DEBUG_TAG+"request to cancel transfer had result: \(result)")
         }
     }
-    
 }
 
 
@@ -556,7 +536,7 @@ extension Remote {
         operation.owningRemote = self
         
         receivingOperations.append(operation)
-        informObserversOperationAdded(operation)
+        updateObserversOperationAdded(operation)
         
         operation.status = .WAITING_FOR_PERMISSION
     }
@@ -583,8 +563,10 @@ extension Remote {
         let _: EventLoopFuture<Void> = client().flatMap { client in
             
             guard self.details.status != .Idle else {
+                
+                // give it a quick ping before starting
                 return client.ping(self.lookupName).status.flatMap { voidType in
-                    print(self.DEBUG_TAG+"client connection verified")
+                    print(self.DEBUG_TAG+"\tclient connection verified")
                     return operation.startReceive(usingClient: client)
                 }
             }
@@ -592,7 +574,6 @@ extension Remote {
             return operation.startReceive(usingClient: client)
         }
     }
-        
 }
 
 
@@ -609,7 +590,7 @@ extension Remote {
         operation.owningRemote = self
         
         sendingOperations.append(operation)
-        informObserversOperationAdded(operation)
+        updateObserversOperationAdded(operation)
         
         operation.status = .WAITING_FOR_PERMISSION
     }
@@ -693,7 +674,7 @@ extension Remote {
     
     //
     // MARK: inform info changed
-    func informObserversInfoDidChange(){
+    func updateObserversInfoDidChange(){
         observers.forEach { observer in
             observer.infoDidUpdate()
         }
@@ -701,7 +682,7 @@ extension Remote {
     
     //
     // MARK: inform op added
-    func informObserversOperationAdded(_ operation: TransferOperation){
+    func updateObserversOperationAdded(_ operation: TransferOperation){
         observers.forEach { observer in
             observer.operationAdded(operation)
         }
@@ -772,13 +753,15 @@ extension Remote: ClientErrorDelegate {
         
         // if certificate is bad
         if case NIOSSLError.handshakeFailed(_) = error {
-            print(DEBUG_TAG+"Handshake error, bad cert: \(error)")
+            print(DEBUG_TAG+"\tHandshake error, bad cert: \(error)")
             authenticationCertificate = nil
             
-            _ = disconnect( Error.SSL_ERROR )
-            startupConnection()
+            _ = disconnect( Error.SSL_ERROR ).map {
+                self.startupConnection()
+            }
+            
         } else {
-            print(DEBUG_TAG+"Unknown error: \(error)")
+            print(DEBUG_TAG+"\tUnknown error: \(error)")
         }
     }
 }

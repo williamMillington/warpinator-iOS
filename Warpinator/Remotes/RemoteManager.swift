@@ -66,21 +66,9 @@ final class RemoteManager {
             return
         }
         
+        // possibly grey out disconnected remotes?
         
-        print(DEBUG_TAG+" trying out just like not removing them?")
-        
-//        let future = remote.disconnect()
-//
-//        future.whenComplete { [weak self] result in
-//
-//            self?.remotes.removeValue(forKey: remote.details.uuid)
-//
-//            DispatchQueue.main.async {
-//                self?.remotesViewController?.remoteRemoved(with: uuid)
-//            }
-//
-//            print((self?.DEBUG_TAG ?? "RemoteManager is nil")+"\tremote removed")
-//        }
+        _ = remote.disconnect()
     }
     
     
@@ -89,12 +77,9 @@ final class RemoteManager {
     @discardableResult
     func containsRemote(for uuid: String) -> Remote? {
         
-        if let remote = remotes.first(where: { (key, entry) in
-            return entry.details.uuid == uuid })?.value {
-            return remote
-        }
+        // return first instance of any remotes whose uuid matches
+        return remotes.values.compactMap { $0.details.uuid == uuid ? $0 : nil }.first
         
-        return nil
     }
     
     
@@ -103,17 +88,13 @@ final class RemoteManager {
         
         print(DEBUG_TAG+"shutting down all remotes")
         
-//        guard let eventloop = remoteEventloopGroup.next() else {
-//            print(DEBUG_TAG+"No eventloop")
-//            return nil
-//        }
-        
+        // for each remote, get a future for when it completes its disconnection process
         let futures = remotes.values.compactMap { remote in
             return remote.disconnect()
         }
         
-        //
-        // whoops a hack
+        
+        // when all remotes have finished disconnecting
         let future = EventLoopFuture.whenAllComplete(futures, on: remoteEventloopGroup.next() ).map { _ -> Void in
             print("RemoteManager: Remotes have finished shutting down")
         }
@@ -124,9 +105,9 @@ final class RemoteManager {
             
             do {
                 try response.get()
-                print(self.DEBUG_TAG+"remotes finished: ")
+                print(self.DEBUG_TAG+"\tremotes finished disconnecting successfully.")
             } catch {
-                print(self.DEBUG_TAG+"error: \(error)")
+                print(self.DEBUG_TAG+"\terror occured while disconnecting remotes: \(error)")
             }
         }
         
@@ -136,6 +117,13 @@ final class RemoteManager {
 
 
 
+
+
+
+
+
+
+// MARK: BrowserDelegate
 extension RemoteManager: BrowserDelegate {
     
     
@@ -143,7 +131,9 @@ extension RemoteManager: BrowserDelegate {
     // MARK: mDNS result added
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result) {
         
-        print(DEBUG_TAG+"ADDED result \(result.endpoint)")
+        let endpoint = result.endpoint
+        
+        print(DEBUG_TAG+"ADDED result \(endpoint)")
         
         // ignore result:
         // - if result has metadata,
@@ -155,72 +145,36 @@ extension RemoteManager: BrowserDelegate {
             print(DEBUG_TAG+"\t\t service is flushing; ignore"); return
         }
         
-        
-        var serviceName = "unknown_service"
-        switch result.endpoint {
-        case .service(name: let name, type: _, domain: _, interface: _):
-            
-            serviceName = name
-            
-            // Check if we found our own MDNS record
-            if name == SettingsManager.shared.uuid {
-                print(DEBUG_TAG+"\t\t Found myself"); return
-            } else {
-                print(DEBUG_TAG+"\t\t New service discovered: \(name)")
-            }
-            
-        default: print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
+        guard case let .service(name: serviceName, type: _, domain: _, interface: _) = endpoint else {
+            print(DEBUG_TAG+"unknown service endpoint type: \(result.endpoint)"); return
         }
         
         
-        // some default values
-        var hostname = serviceName
-        var api = "1"
-        var authPort = 42000
-        
-        // parse TXT record for metadata
-        if case let NWBrowser.Result.Metadata.bonjour(txtRecord) = result.metadata {
-            
-            for (key, value) in txtRecord.dictionary {
-                switch key {
-                case "hostname": hostname = value
-                case "api-version": api = value
-                case "auth-port": authPort = Int(value) ?? 42000
-                case "type": break
-                default: print("unknown TXT record type: \"\(key)\":\"\(value)\"")
-                }
-            }
+        // Check if we found our own MDNS record
+        guard serviceName != SettingsManager.shared.uuid else {
+            print(DEBUG_TAG+"\t\t Found myself"); return
         }
-        
         
         
         // check if we already know this remote
         if let remote = containsRemote(for: serviceName) {
             
-            print(DEBUG_TAG+"\t\t Service already added")
+            print(DEBUG_TAG+"\t\t\t Remote is connected")
             
-            guard remote.details.status != .Connected else {
-                print(DEBUG_TAG+"\t\t\t Remote is connected")
-                return
-            }
-            
-            // Should we try reconnecting?
-            if [ .Disconnected, .Idle, .Error ].contains( remote.details.status ) {
+            if remote.details.status != .Connected  {
                 print(DEBUG_TAG+"\t\t\t not connected: reconnecting...")
                 remote.startupConnection()
             }
             return
         }
         
+        print(DEBUG_TAG+"\t\t New service discovered: \(serviceName)")
         
-        var details = RemoteDetails(endpoint: result.endpoint)
-        details.hostname = hostname
-        details.uuid = serviceName
-        details.api = api
-        details.port = 42000
-        details.authPort = authPort //"42000"
-        details.status = .Disconnected
-        
+        let details = RemoteDetails(endpoint: result.endpoint,
+                                    hostname: record.dictionary["hostname"] ?? serviceName,
+                                    authPort: Int( record.dictionary["auth-port"] ?? "4200" ) ?? 42000,
+                                    uuid: serviceName,
+                                    api:  record.dictionary["api"] ?? "1")
         
         let newRemote = Remote(details: details, eventLoopGroup: remoteEventloopGroup)
         

@@ -77,6 +77,7 @@ final class SendFileOperation: TransferOperation {
     }
     
     // MARK: TransferOpRequest
+    // computer
     var transferRequest: TransferOpRequest {
         return .with {
             $0.info = operationInfo
@@ -175,8 +176,6 @@ final class SendFileOperation: TransferOperation {
             // create a work item
             let workItem = DispatchWorkItem() { [weak self] in
                 
-//                let c = context.sendResponse(chunk)
-                
                 do {
                     try context.sendResponse(chunk).map { Void in
                         
@@ -189,28 +188,21 @@ final class SendFileOperation: TransferOperation {
                         self?.updateObserversInfo()
                     }.wait()
                     
-//                    // calculate bytes per second
-//                    let now = Date().timeIntervalSince1970 * 1000
-//                    self?.bytesTransferred += chunk.chunk.count
-//                    self?.bytesPerSecond = (chunk.chunk.count / (now - (self?.lastTransferTimeStamp ?? 0.0)) / 1000)
-//                    self?.lastTransferTimeStamp = now
-//
-//                    self?.updateObserversInfo()
-                    
                 } catch {
                     promise.fail(error)
+                    self?.status = .FAILED(error)
                 }
+                
+                self?.updateObserversInfo()
             }
             
             sendingChunksQueueDispatchItems.append(workItem)
-            
-//            sendingChunksQueue.async(execute: workItem)
-            
         }
         
         // last item in the queue will inform caller of success
-        let finalWorkItem = DispatchWorkItem {
+        let finalWorkItem = DispatchWorkItem { [weak self] in
             promise.succeed(.ok)
+            self?.updateObserversInfo()
         }
         
         sendingChunksQueueDispatchItems.append(finalWorkItem)
@@ -218,44 +210,10 @@ final class SendFileOperation: TransferOperation {
         sendingChunksQueueDispatchItems.forEach { self.sendingChunksQueue.async(execute: $0) }
         
         
-//        let futures = chunkIterator.enumerated().compactMap { (i, chunk) in
-            
-//            let workItem = DispatchWorkItem() { [weak self] in
-//                print("SAD")
-//            }
-            
-            
-            
-            
-//            return context.sendResponse(chunk).map {
-//                // calculate bytes per second
-//                let now = Date().timeIntervalSince1970 * 1000
-//                self.bytesTransferred += chunk.chunk.count
-//                self.bytesPerSecond = (chunk.chunk.count / (now - self.lastTransferTimeStamp) / 1000)
-//                self.lastTransferTimeStamp = now
-//
-//                self.updateObserversInfo()
-//            }
-            
-//        }
-        
-//        context.
-        
-        
-//        let future =
-//        EventLoopFuture.whenAllComplete(futures, on: context.eventLoop.next() )
-//            .whenComplete  { _ in
-//            print("all chunks completed")
-//            promise.succeed(.ok)
-//        }
-        
         self.transferPromise = promise
         
         context.closeFuture.whenComplete { result in
             print(self.DEBUG_TAG+"\tOperation closed with result: \(result)")
-
-            // prevent a successful call-finish from overwriting an earlier .FAILED status
-//            if self.status != .TRANSFERRING { return }
 
             switch result {
             case .success():
@@ -264,8 +222,8 @@ final class SendFileOperation: TransferOperation {
                 self.status = .FAILED(error)
             }
 
+            // cleanup call
             self.fileReaders.forEach { $0.close() }
-
             self.transferPromise = nil
         }
         
@@ -279,244 +237,40 @@ final class SendFileOperation: TransferOperation {
             }
         }
         
-        
-//        promise.futureResult.whenComplete { result in
-//            
-//            
-//            switch result {
-//            case .success(let status):
-//                
-//                
-//                switch status {
-//                case STATUS_CANCELLED: self.status = .CANCELLED
-//                case .ok: self.status = .FINISHED
-//                default: break
-//                }
-//                
-//                
-//                
-//                self.status = (self.status != .TRANSFERRING) ? self.status : .FINISHED
-//            case .failure(let error):
-//                self.status = .FAILED(error)
-//            }
-//            
-//            
-//        }
-        
-        
-        
-        
         return promise.futureResult
         
     }
-//        if let chunk = chunkIterator.nextChunk() {
-//
-//            context.sendResponse(chunk).whenCompleteBlocking(onto: sendingChunksQueue) { result in
-//
-//                switch result {
-//                case .success():
-//                    break
-//                case .failure(let error):
-//                    print(self.DEBUG_TAG+"chunk (\(chunk.relativePath))  transmission failed: ")
-//                    print(self.DEBUG_TAG+"\t error: \(error)")
-//
-//                    if self.status == .TRANSFERRING {
-//                        self.stop(error)
-//                    }
-//                }
-//
-//
-//                self.updateObserversInfo()
-//
-//                // calculate bytes per second
-//                let now = Date().timeIntervalSince1970 * 1000
-//                self.bytesTransferred += chunk.chunk.count
-//                self.bytesPerSecond = (chunk.chunk.count / (now - self.lastTransferTimeStamp) / 1000)
-//                self.lastTransferTimeStamp = now
-//
-//
-//
-//
-//            }
-//
-//        } else {
-//            promise.succeed(.ok)
-//        }
-        
-        
-        
-        
-        
-        
-        
-        
-//
-//        sendingChunksQueue.async {
-//
-//
-//
-//
-//            for (i, chunk) in chunkIterator.enumerated() {
-//
-//                if self.status != .TRANSFERRING {
-//                    promise.fail( TransferError.TransferCancelled )
-//                    return
-//                }
-//
-//                print(self.DEBUG_TAG+"sending chunk \(i) (\(chunk.relativePath))")
-//                let result = context.sendResponse(chunk)
-//
-//                do {
-//                    // wait for result before sending next chunk
-//                    // if we don't do this, then the chunks can end up out of order on
-//                    // troublesome networks, which causes failure
-//                    try result.wait()
-//                } catch {
-//                    print(self.DEBUG_TAG+"chunk \(i) prevented from waiting. Reason: \(error)")
-//                    if self.status == .TRANSFERRING {  self.stop( error ) }
-//                }
-//
-//
-//                //
-////                result.whenSuccess { result in
-////
-//                    // calculate bytes per second
-////                    let now = Date().timeIntervalSince1970 * 1000
-////                    self.bytesTransferred += chunk.chunk.count
-////                    self.bytesPerSecond = (chunk.chunk.count / (now - self.lastTransferTimeStamp) / 1000)
-////                    self.lastTransferTimeStamp = now
-////
-//                    self.updateObserversInfo()
-////                }
-//
-////                result.whenFailure { error in
-//////                    print(self.DEBUG_TAG+"chunk \(i) (\(chunk.relativePath))  transmission failed: ")
-//////                    print(self.DEBUG_TAG+"\t error: \(error)")
-//////
-//////                    if self.status == .TRANSFERRING {
-//////
-////////                        self.stopRequested(error)
-//////                        self.stop(error)
-//////
-//////                    }
-////
-////                }
-//            }
-//
-//            promise.succeed(.ok)
-//        }
-        
-        // when entire transfer is completed
-//        context.closeFuture.whenComplete { result in
-//            print(self.DEBUG_TAG+"\tOperation closed with result: \(result)")
-//
-//            // prevent a successful call-finish from overwriting an earlier .FAILED status
-//            if self.status != .TRANSFERRING { return }
-//
-//            switch result {
-//            case .success():
-//                self.status = .FINISHED
-//            case .failure(let error):
-//                self.status = .FAILED(error)
-//            }
-//
-//            self.fileReaders.forEach { $0.close() }
-//
-//        }
-//            do {
-//                try result.get()
-//                self.status = .FINISHED
-//
-//            } catch {
-////                self.status = .CANCELLED
-//
-////                if let error = error {
-////                    self.status = .FAILED(error)
-////                } else {
-//                    self.status = .CANCELLED
-////                }
-//        //        closeOutOperation()
-//                self.fileReaders.forEach { $0.close() }
-//            }
-//        }
-        
-//        return promise
-//    }
-    
     
     //
     // MARK: stopping
     func stop(_ error: Error){
         
         print(self.DEBUG_TAG+"\tStop Sending. Error: \(String(describing: error))")
-//        owningRemote?.stopTransfer(withUUID: UUID, error: error)
-//        stopRequested(error)
-        
-//        guard let error = error else {
-//            return
-//        }
         
         sendingChunksQueueDispatchItems.forEach { $0.cancel() }
         sendingChunksQueueDispatchItems.removeAll()
         
-        
-        if (error as? TransferError) == TransferError.TransferCancelled {
-            transferPromise?.succeed(STATUS_CANCELLED)
-        }
-        
-        
-        transferPromise?.fail(error)
-        
         fileReaders.forEach { $0.close() }
         
+        if (error as? TransferError) == .TransferCancelled {
+            transferPromise?.succeed(STATUS_CANCELLED)
+        } else {
+            transferPromise?.fail(error)
+        }
         
-        
-//        if let error = error {
-            status = .FAILED(error)
-//        } else {
-//            status = .CANCELLED
-//        }
-//        closeOutOperation()
-//        fileReaders.forEach { $0.close() }
+        status = .FAILED(error)
         
     }
-    
-    //
-    //
-//    func stopRequested(_ error: Error? = nil){
-//        print(DEBUG_TAG+"stopped with error: \(String(describing: error))")
-//
-//        if let error = error {
-//            status = .FAILED(error)
-//        } else {
-//            status = .CANCELLED
-//        }
-////        closeOutOperation()
-//        fileReaders.forEach { reader in
-//            reader.close()
-//        }
-//    }
-    
     
     //
     // MARK: onDecline
     func onDecline(_ error: Error? = nil){
-        print(DEBUG_TAG+"operation was declined")
-        status = .CANCELLED
-//        closeOutOperation()
-        fileReaders.forEach { $0.close() }
+//        print(DEBUG_TAG+"operation was declined")
+//        status = .CANCELLED
+////        closeOutOperation()
+//        fileReaders.forEach { $0.close() }
+//        updateObserversInfo()
     }
-    
-    
-    //
-    // MARK closeOutOperation
-//    func closeOutOperation(){
-//
-//        fileReaders.forEach { reader in
-//            reader.close()
-//        }
-//
-//    }
     
 }
 

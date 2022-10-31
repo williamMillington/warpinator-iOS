@@ -57,7 +57,7 @@ typealias FileName = (name: String, ext: String)
 //
 // MARK: TransferError
 enum TransferError: Error {
-    case ConnectionInterrupted
+    case ConnectionInterruption
     case TransferDeclined, PermissionDeclined
     case TransferCancelled
     case TransferNotFound
@@ -74,12 +74,10 @@ public enum TransferDirection: String {
 
 //
 // MARK: TransferStatus
-enum TransferStatus { //}: Equatable {
-    case INITIALIZING
-    case WAITING_FOR_PERMISSION
-    case CANCELLED
-    case TRANSFERRING, FINISHED
-    case FAILED(Error)
+enum TransferStatus {
+    case INITIALIZING, WAITING_FOR_PERMISSION
+    case TRANSFERRING
+    case FINISHED, CANCELLED, FAILED(Error)
 }
 
 extension TransferStatus: Equatable {

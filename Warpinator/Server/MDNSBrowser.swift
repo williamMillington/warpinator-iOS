@@ -161,7 +161,7 @@ final class MDNSBrowser {
         /* any mDNS services that existed BEFORE we started browsing
          aren't guaranteed to trigger resultsDidChange, but will still be listed
          in browser.browseResults. No harm in adding them twice,
-         as mDNSBrowserDidAddResult() can handle duplicates */
+         as mDNSBrowserDidAddResult() will handle duplicates */
         browser.browseResults.forEach { result in
             self.delegate?.mDNSBrowserDidAddResult(result)
         }
@@ -197,9 +197,9 @@ final class MDNSBrowser {
             switch change {
             case .added(let result):  delegate?.mDNSBrowserDidAddResult(result)
             case .changed(old: let old, new: let new, flags: let flags):
-                print(self.DEBUG_TAG+"change registered in \(old): ")
-                print(self.DEBUG_TAG+"\t\t flags \(flags) ")
-                print(self.DEBUG_TAG+"\t\t new registration: \(new): ")
+//                print(self.DEBUG_TAG+"change registered in \(old): ")
+//                print(self.DEBUG_TAG+"\t\t flags \(flags) ")
+//                print(self.DEBUG_TAG+"\t\t new registration: \(new): ")
                 if case .metadataChanged = flags {
                     delegate?.mDNSBrowserDidAddResult(new)
                 }

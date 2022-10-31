@@ -293,10 +293,17 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
             return "Waiting"
         case .FINISHED:
                 return "Finished"
-        case .CANCELLED: return "Cancelled"
         case .FAILED(let error):
             print("TransferviewController:\t\t Failed with \(error)")
-                return "Failed"
+            
+            // .
+            if (error as? TransferError) == .TransferCancelled {
+                fallthrough
+            }
+            
+            return "Failed"
+            
+        case .CANCELLED: return "Cancelled"
         default: return "Error"
             
         }

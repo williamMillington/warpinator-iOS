@@ -147,10 +147,6 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         print(DEBUG_TAG+"user cancelled transfer with uuid \(uuid)")
         remote.findTransfer(withUUID: uuid)?.stop(TransferError.TransferCancelled)
-//        if let operation = remote.findTransfer(withUUID: uuid) {
-//            print(DEBUG_TAG+"\t transfer found")
-//            operation.stop(nil)
-//        }
     }
     
     

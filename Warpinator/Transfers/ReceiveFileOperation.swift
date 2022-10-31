@@ -172,6 +172,7 @@ extension ReceiveFileOperation {
         
         status = .TRANSFERRING
         
+        
         let datastream = client.startTransfer(self.operationInfo) { chunk in
             
             guard self.status == .TRANSFERRING else {
@@ -271,9 +272,51 @@ extension ReceiveFileOperation {
             .flatMapThrowing { status in
                 print(self.DEBUG_TAG+"\t transfer finished with status \(status)")
                 
+                var updatedStatus = self.status
+                
+                defer {
+                    self.receivingChunksQueue.async {
+                        self.status = updatedStatus
+                        self.currentWriter?.close()
+                    }
+                }
+                
+                
+                guard status.code != .unavailable else {
+                    
+                    let error = TransferError.ConnectionInterruption
+                    
+                    updatedStatus = .FAILED(error)
+//                    self.receivingChunksQueue.async {
+//                        self.status = .FAILED( error  )
+//                        self.currentWriter?.close()
+//                    }
+                    throw error
+                }
+                
+                let stat = GRPCStatus.Code.unavailable.description
+                print(self.DEBUG_TAG+"unavailable description\(stat)")
                 switch status {
-                case STATUS_CANCELLED: throw TransferError.TransferCancelled
-                case .processingError: throw TransferError.UnknownError
+                case STATUS_CANCELLED:
+                    
+                    updatedStatus = .CANCELLED
+//                    self.receivingChunksQueue.async {
+//                        self.status = .CANCELLED
+//                        self.currentWriter?.close()
+//                    }
+                    
+                    throw TransferError.TransferCancelled
+//                case GRPCStatus.Code.unavailable: break
+                case .processingError:
+                    
+//                    self.receivingChunksQueue.async {
+//                        self.status = .FINISHED
+//                        self.currentWriter?.close()
+//                    }
+                    updatedStatus = .FAILED( TransferError.UnknownError )
+                    
+                    throw TransferError.UnknownError
+                    
                 default: break
                 }
                 
