@@ -172,7 +172,7 @@ final class MockReceiveTransfer: TransferOperation {
     
     
     init(){
-//        owningRemote = Remote(details: RemoteDetails.MOCK_DETAILS )
+//        owningRemote = Remote(details: Details.MOCK_DETAILS )
         
         // random number
         UUID = 0 + UInt64.random(in: 0...9) + UInt64.random(in: 0...9) + UInt64.random(in: 0...9) + UInt64.random(in: 0...9)

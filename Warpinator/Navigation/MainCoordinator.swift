@@ -398,7 +398,7 @@ extension MainCoordinator: MDNSListenerDelegate {
 //
 //            for i in 0..<2 {
 //
-//                var mockDetails = RemoteDetails.MOCK_DETAILS
+//                var mockDetails = Details.MOCK_DETAILS
 //                mockDetails.uuid = mockDetails.uuid + "__\(i)\(i+1)"
 //
 //                let mockRemote = Remote(details: mockDetails)

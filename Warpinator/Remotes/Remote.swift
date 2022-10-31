@@ -17,57 +17,57 @@ import Logging
 
 
 
-// MARK: Remote Details
-struct RemoteDetails {
-    
-    enum ConnectionStatus: String {
-        case OpeningConnection, FetchingCredentials, AquiringDuplex
-        case Error
-        case Connected, Idle, Disconnected
-    }
-    
-    static let NO_IP_ADDRESS = "No_IPAddress"
-    
-    lazy var DEBUG_TAG: String = "RemoteDetails (\"\(hostname)\"): "
-    
-    var endpoint: NWEndpoint
-    
-    var displayName: String = "Name"
-    var username: String = "username"
-    var userImage: UIImage?
-    
-    var hostname: String = "hostname"
-    var ipAddress: String = RemoteDetails.NO_IP_ADDRESS
-    var port: Int = 4200
-    var authPort: Int = 4200
-    
-    var uuid: String = "NO_UUID"
-    var api: String = "1"
-    
-    var status: ConnectionStatus = .Disconnected
-    
-    var serviceAvailable: Bool = false
-}
+//// MARK: Details
+//struct Details {
+//
+//    enum ConnectionStatus: String {
+//        case OpeningConnection, FetchingCredentials, AquiringDuplex
+//        case Error
+//        case Connected, Idle, Disconnected
+//    }
+//
+//    static let NO_IP_ADDRESS = "No_IPAddress"
+//
+//    lazy var DEBUG_TAG: String = "Details (\"\(hostname)\"): "
+//
+//    var endpoint: NWEndpoint
+//
+//    var displayName: String = "Name"
+//    var username: String = "username"
+//    var userImage: UIImage?
+//
+//    var hostname: String = "hostname"
+//    var ipAddress: String = Details.NO_IP_ADDRESS
+//    var port: Int = 4200
+//    var authPort: Int = 4200
+//
+//    var uuid: String = "NO_UUID"
+//    var api: String = "1"
+//
+//    var status: ConnectionStatus = .Disconnected
+//
+//    var serviceAvailable: Bool = false
+//}
 
-extension RemoteDetails {
-    static var MOCK_DETAILS: RemoteDetails = {
-        let mockEndpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("So.me.Ho.st") ,
-                                               port: NWEndpoint.Port(integerLiteral: 8080))
-        let mock = RemoteDetails(DEBUG_TAG: "MoCkReMoTe",
-                                 endpoint: mockEndpoint,
-                                 displayName: "mOcK ReMoTe",
-                                 username: "mOcK uSeR",
-                                 hostname: "mOcK hOsT",
-                                 ipAddress: "Som.eAd.dre.ss",
-                                 port: 8080,
-                                 authPort: 8081,
-                                 uuid: "mOcK uUiD",
-                                 api: "2",
-                                 status: .Disconnected,
-                                 serviceAvailable: false)
-        return mock
-    }()
-}
+//extension Details {
+//    static var MOCK_DETAILS: Details = {
+//        let mockEndpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("So.me.Ho.st") ,
+//                                               port: NWEndpoint.Port(integerLiteral: 8080))
+//        let mock = Details(DEBUG_TAG: "MoCkReMoTe",
+//                                 endpoint: mockEndpoint,
+//                                 displayName: "mOcK ReMoTe",
+//                                 username: "mOcK uSeR",
+//                                 hostname: "mOcK hOsT",
+//                                 ipAddress: "Som.eAd.dre.ss",
+//                                 port: 8080,
+//                                 authPort: 8081,
+//                                 uuid: "mOcK uUiD",
+//                                 api: "2",
+//                                 status: .Disconnected,
+//                                 serviceAvailable: false)
+//        return mock
+//    }()
+//}
 
 
 
@@ -84,7 +84,7 @@ public class Remote {
     
     lazy var DEBUG_TAG: String = "REMOTE (\"\(details.hostname)\"): "
     
-    var details: RemoteDetails {
+    var details: Details {
         didSet {  updateObserversInfoDidChange()  }
     }
     
@@ -94,6 +94,47 @@ public class Remote {
         case UNKNOWN_ERROR
         case SSL_ERROR
     }
+    
+    
+    
+    
+    // MARK: Details
+    struct Details {
+        
+        enum ConnectionStatus: String {
+            case OpeningConnection, FetchingCredentials, AquiringDuplex
+            case Error
+            case Connected, Idle, Disconnected
+        }
+        
+        static let NO_IP_ADDRESS = "No_IPAddress"
+        
+        lazy var DEBUG_TAG: String = "Details (\"\(hostname)\"): "
+        
+        var endpoint: NWEndpoint
+        
+        var displayName: String = "Name"
+        var username: String = "username"
+        var userImage: UIImage?
+        
+        var hostname: String = "hostname"
+        var ipAddress: String = Details.NO_IP_ADDRESS
+        var port: Int = 4200
+        var authPort: Int = 4200
+        
+        var uuid: String = "NO_UUID"
+        var api: String = "1"
+        
+        var status: ConnectionStatus = .Disconnected
+        
+        var serviceAvailable: Bool = false
+    }
+    
+    
+    
+    
+    
+    
     
     
     
@@ -134,7 +175,7 @@ public class Remote {
     
     
     
-    init(details deets: RemoteDetails, eventLoopGroup group: EventLoopGroup){
+    init(details deets: Details, eventLoopGroup group: EventLoopGroup){
         details = deets
         eventLoopGroup = group
     }

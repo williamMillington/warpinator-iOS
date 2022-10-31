@@ -198,7 +198,7 @@ final class GRPCConnection: AuthenticationConnection {
     
     private lazy var DEBUG_TAG: String = "GRPCConnection (\(details.endpoint)): "
     
-    var details: RemoteDetails
+    var details: Remote.Details
     
     let ipConnection: NWConnection
     
@@ -210,7 +210,7 @@ final class GRPCConnection: AuthenticationConnection {
     var warpClient: WarpRegistrationClient?
     
     let eventloopGroup: EventLoopGroup
-    init(onEventLoopGroup group: EventLoopGroup, details: RemoteDetails) {
+    init(onEventLoopGroup group: EventLoopGroup, details: Remote.Details) {
         
         eventloopGroup = group
         self.details = details

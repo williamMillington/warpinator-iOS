@@ -170,7 +170,7 @@ extension RemoteManager: BrowserDelegate {
         
         print(DEBUG_TAG+"\t\t New service discovered: \(serviceName)")
         
-        let details = RemoteDetails(endpoint: result.endpoint,
+        let details = Remote.Details(endpoint: result.endpoint,
                                     hostname: record.dictionary["hostname"] ?? serviceName,
                                     authPort: Int( record.dictionary["auth-port"] ?? "4200" ) ?? 42000,
                                     uuid: serviceName,
