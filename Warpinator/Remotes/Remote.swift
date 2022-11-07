@@ -83,20 +83,13 @@ import Logging
 public class Remote {
     
     lazy var DEBUG_TAG: String = "REMOTE (\"\(details.hostname)\"): "
-    
-    var details: Details {
-        didSet {  updateObserversInfoDidChange()  }
-    }
-    
-    
+   
     enum Error: Swift.Error {
         case REMOTE_PROCESSING_ERROR
         case UNKNOWN_ERROR
+        case DISCONNECTED
         case SSL_ERROR
     }
-    
-    
-    
     
     // MARK: Details
     struct Details {
@@ -132,11 +125,9 @@ public class Remote {
     
     
     
-    
-    
-    
-    
-    
+    var details: Details {
+        didSet {  updateObserversInfoDidChange()  }
+    }
     
     var sendingOperations: [SendFileOperation] = []
     var receivingOperations: [ReceiveFileOperation] = []
@@ -227,6 +218,7 @@ public class Remote {
         return connect()
             .flatMapError { error in
                 print(self.DEBUG_TAG+"Failed to connect \(error)")
+                _ = self.disconnect()
                 return self.eventLoopGroup.next().makeFailedFuture(error)
             }
     }
@@ -313,6 +305,7 @@ public class Remote {
 
                 // we're connected, get info
                 self.details.status = .Connected
+                self.updateObserversInfoDidChange()
                 return self.retrieveRemoteInfo()
             }
             .flatMapError { error in // duplex failed
@@ -390,7 +383,7 @@ extension Remote {
         
         
         guard let warpClient = warpClient else {
-            print(DEBUG_TAG+"NO CLIENT")
+            print(DEBUG_TAG+"No client connection...")
             return eventLoopGroup.next().makeFailedFuture( DuplexError.UnknownRemote )
         }
         
@@ -414,6 +407,7 @@ extension Remote {
             if !haveDuplex.response {
                 throw DuplexError.DuplexNotEstablished
             }
+            self.details.status = .Connected
             return haveDuplex
         }.flatMapError { error in
             
@@ -434,6 +428,7 @@ extension Remote {
     // MARK: Ping
     public func ping() -> EventLoopFuture<Void> {
         
+        
         return client()
             .flatMap { client in
                 return client.ping(self.lookupName).status
@@ -441,9 +436,10 @@ extension Remote {
             .flatMap { status in
                 print(self.DEBUG_TAG+"\tpinged, response: \(status)")
                 
-                switch status { // status okay, we're still connected
-                case .ok:  return self.eventLoopGroup.next().makeSucceededVoidFuture()
-                case .processingError : return self.eventLoopGroup.next().makeFailedFuture(Remote.Error.REMOTE_PROCESSING_ERROR)
+                switch status.code {
+                case .ok:  return self.eventLoopGroup.next().makeSucceededVoidFuture() // status ok, we're still connected
+                case .unavailable: print(self.DEBUG_TAG+"unavailable")
+                    return self.eventLoopGroup.next().makeFailedFuture( Remote.Error.DISCONNECTED )
                 default: return self.eventLoopGroup.next().makeFailedFuture( Remote.Error.UNKNOWN_ERROR )
                 }
         }
@@ -469,29 +465,32 @@ extension Remote {
                 self.details.displayName = info.displayName
                 self.details.username = info.userName
                 self.details.status = .Connected
-                
+                self.updateObserversInfoDidChange()
                 print(self.DEBUG_TAG+"\t\tRetrieved display name: \(self.details.displayName)")
                 print(self.DEBUG_TAG+"\t\tRetrieved username: \(self.details.username)")
                 
                 return client.getRemoteMachineAvatar( self.lookupName) { avatar in
                     avatarBytes.append( avatar.avatarChunk ) // store each chunk as it comes
                 }.status
-                
+                    .flatMap { (status: GRPCStatus) in
+                        switch status {
+                        case .ok:
+                            // assemble bytes into uiimage
+                            self.details.userImage = UIImage(data:  avatarBytes  )
+                        case .processingError:
+                            print(self.DEBUG_TAG+"\t processing error")
+                            self.updateObserversInfoDidChange()
+                            return self.eventLoopGroup.next().makeFailedFuture(NSError())
+                        default: break
+                            
+                        }
+                        
+                        self.updateObserversInfoDidChange()
+                        
+                        return self.eventLoopGroup.next().makeSucceededVoidFuture()
+                    }
             }
-            .flatMap { (status: GRPCStatus) in
-                switch status {
-                case .ok:
-                    // assemble bytes into uiimage
-                    self.details.userImage = UIImage(data:  avatarBytes  )
-                    self.updateObserversInfoDidChange()
-                case .processingError:
-                    print(self.DEBUG_TAG+"\t processing error")
-                    return self.eventLoopGroup.next().makeFailedFuture(NSError())
-                default: break
-                    
-                }
-                return self.eventLoopGroup.next().makeSucceededVoidFuture()
-            }
+            
     }
 }
 
@@ -504,7 +503,7 @@ extension Remote {
     
     
     //
-    // MARK: find transfer operation
+    // MARK: find operation
     func findTransfer(withUUID uuid: UInt64) -> TransferOperation? {
         
         let operations = (receivingOperations + sendingOperations) as [TransferOperation]
@@ -518,15 +517,29 @@ extension Remote {
     }
     
     
+    
+    // MARK: add operation
+    func addTransfer(_ operation: TransferOperation ){
+        
+        if let op = operation as? SendFileOperation {
+            sendingOperations.append(op)
+        }
+        
+        if let op = operation as? ReceiveFileOperation {
+            receivingOperations.append(op)
+        }
+        
+        updateObserversOperationAdded(operation)
+        
+    }
+    
+    
     //
     // MARK: request stop transfer
     // tell the remote to stop sending the transfer with given uuid
     func sendStop(forUUID uuid: UInt64, error: Swift.Error?) {
         
         print(DEBUG_TAG+"sending stop request...")
-        
-        // "Cancelled" is only considered an error internally
-        let err = (error as? TransferError) == .TransferCancelled ? false : true
         
         if let op = findTransfer(withUUID: uuid) {
             
@@ -535,13 +548,40 @@ extension Remote {
             if op.direction == .RECEIVING {
                 warpClient?.stopTransfer( .with {
                     $0.info = op.operationInfo
-                    $0.error = err
+                    $0.error = (error as? TransferError) == .TransferCancelled ? false : true // "Cancelled" is only considered an error internally
                 })
                     .response.whenComplete { result in
                         print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
                     }
             }
         }
+    }
+    
+    
+    func sendStop(withStopInfo info: StopInfo) {
+        
+        print(DEBUG_TAG+"sending stop request...")
+              
+        warpClient?.stopTransfer(info).response.whenComplete { result in
+            print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
+        }
+//        { client in
+//            client.stopTransfer(info)
+//        }
+//        if let op = findTransfer(withUUID: uuid) {
+            
+            // if WE'RE cancelling this receive, politely tell
+            // the remote to stop sending
+//            if op.direction == .RECEIVING {
+//                warpClient?.stopTransfer( .with {
+//                    $0.info = op.operationInfo
+////                    $0.error = (error as? TransferError) == .TransferCancelled ? false : true // "Cancelled" is only considered an error internally
+//                })
+//                    .response.whenComplete { result in
+//                        print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
+//                    }
+//            }
+//        }
     }
     
     
@@ -571,28 +611,28 @@ extension Remote {
     
     
     //
-    // MARK: add
-    func addReceivingOperation(_ operation: ReceiveFileOperation){
-        
-        operation.owningRemote = self
-        
-        receivingOperations.append(operation)
-        updateObserversOperationAdded(operation)
-        
-        operation.status = .WAITING_FOR_PERMISSION
-    }
+    // MARK add
+//    func addReceivingOperation(_ operation: ReceiveFileOperation){
+//
+//        operation.owningRemote = self
+//
+//        receivingOperations.append(operation)
+//        updateObserversOperationAdded(operation)
+//
+//        operation.status = .WAITING_FOR_PERMISSION
+//    }
     
     
     //
-    // MARK: find
-    func findReceiveOperation(withStartTime time: UInt64 ) -> ReceiveFileOperation? {
-        for operation in receivingOperations {
-            if operation.timestamp == time {
-                return operation
-            }
-        }
-        return nil
-    }
+    // MARK find
+//    func findReceiveOperation(withStartTime time: UInt64 ) -> ReceiveFileOperation? {
+//        for operation in receivingOperations {
+//            if operation.timestamp == time {
+//                return operation
+//            }
+//        }
+//        return nil
+//    }
     
     
     //
@@ -625,16 +665,16 @@ extension Remote {
 extension Remote {
     
     //
-    // MARK: add
-    func addSendingOperation(_ operation: SendFileOperation){
-        
-        operation.owningRemote = self
-        
-        sendingOperations.append(operation)
-        updateObserversOperationAdded(operation)
-        
-        operation.status = .WAITING_FOR_PERMISSION
-    }
+    // MARK add
+//    func addSendingOperation(_ operation: SendFileOperation){
+//
+//        operation.owningRemote = self
+//
+//        sendingOperations.append(operation)
+//        updateObserversOperationAdded(operation)
+//
+//        operation.status = .WAITING_FOR_PERMISSION
+//    }
     
     
     //
@@ -656,7 +696,7 @@ extension Remote {
         
         let operation = SendFileOperation(for: selections) 
 
-        addSendingOperation(operation)
+        addTransfer(operation)
         return sendRequest(toTransfer: operation)
     }
     

@@ -196,7 +196,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
             operation = op
         } else {
             operation = ReceiveFileOperation(request, forRemote: remote)
-            remote.addReceivingOperation(operation)
+//            remote.addReceivingOperation(operation)
+            remote.addTransfer(operation)
         }
 
         operation.prepareReceive()
@@ -229,14 +230,14 @@ final public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        guard let transfer = remote.findSendOperation(withStartTime: request.timestamp) else {
+        guard let transfer = remote.findTransfer(withUUID: request.timestamp) as? SendFileOperation else {
             print(DEBUG_TAG+"\tRemote has no sending operations with requested timestamp")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
         
-        return transfer.start(using: context)//promise.futureResult
+        return transfer.start(using: context) //promise.futureResult
     }
     
     

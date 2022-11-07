@@ -172,7 +172,6 @@ extension ReceiveFileOperation {
         
         status = .TRANSFERRING
         
-        
         let datastream = client.startTransfer(self.operationInfo) { chunk in
             
             guard self.status == .TRANSFERRING else {
@@ -354,9 +353,13 @@ extension ReceiveFileOperation {
         var stat: TransferStatus = .FAILED(error)
         
         // if WE'RE cancelling this receive, politely tell
-        // the remote to step sending
+        // the remote to stop sending
         if (error as? TransferError) == .TransferCancelled {
-            owningRemote?.sendStop(forUUID: UUID, error: TransferError.TransferCancelled)
+//            owningRemote?.sendStop(forUUID: UUID, error: TransferError.TransferCancelled)
+            owningRemote?.sendStop(withStopInfo:  .with {
+                $0.info = operationInfo
+                $0.error = (error as? TransferError) == .TransferCancelled ? false : true // "Cancelled" is only considered an error internally
+            })
             stat = .CANCELLED
         }
         
@@ -387,7 +390,7 @@ extension ReceiveFileOperation {
                 observers.remove(at: i)
             }
         }
-    }
+    }     
     
     func updateObserversInfo(){
         observers.forEach { observer in

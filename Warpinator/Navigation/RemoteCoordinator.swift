@@ -122,7 +122,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         print(DEBUG_TAG+"user approved transfer with uuid \(uuid)")
         
-        if let operation = remote.findReceiveOperation(withStartTime: uuid) {
+        if let operation =  remote.findTransfer(withUUID: uuid)  as? ReceiveFileOperation { //}   remote.findReceiveOperation(withStartTime: uuid) {
             remote.startTransfer(for: operation)
             showRemote()
         }
@@ -156,7 +156,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         print(DEBUG_TAG+"user elected to re-send transfer with uuid \(uuid)")
         
-        if let operation = remote.findSendOperation(withStartTime: uuid) {
+        if let operation = remote.findTransfer(withUUID: uuid) as? SendFileOperation {
             print(DEBUG_TAG+"\t transfer found")
             
             // TODO: use result of sendRequest to update ui
@@ -198,7 +198,8 @@ extension RemoteCoordinator {
     func mockReceiveTransfer(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
-            self.remote.addReceivingOperation(mockOp)
+//            self.remote.addReceivingOperation(mockOp)
+            self.remote.addTransfer(mockOp)
         }
     }
     

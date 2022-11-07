@@ -102,6 +102,7 @@ final class SendFileOperation: TransferOperation {
     var transferPromise: EventLoopPromise<GRPCStatus>? = nil
     
     
+    // MARK: init
     init(for filenames: [TransferSelection] ) {
         
         direction = .SENDING
@@ -170,6 +171,35 @@ final class SendFileOperation: TransferOperation {
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
         let chunkIterator = ChunkIterator(for: fileReaders)
         
+        promise.futureResult.whenSuccess { status in
+            switch status {
+            case STATUS_CANCELLED: self.status = .CANCELLED
+            case .ok: self.status = .FINISHED
+            default: break
+            }
+        }
+        
+        
+        
+        self.transferPromise = promise
+        
+        
+        context.closeFuture.whenComplete { result in
+            print(self.DEBUG_TAG+"\tOperation closed with result: \(result)")
+
+            switch result {
+            case .success():
+                self.status = (self.status != .TRANSFERRING) ? self.status : .FINISHED
+            case .failure(let error):
+                self.status = .FAILED(error)
+            }
+
+            // cleanup call
+            self.fileReaders.forEach { $0.close() }
+            self.transferPromise = nil
+        }
+        
+        
         
         chunkIterator.enumerated().forEach { (i, chunk) in
             
@@ -189,8 +219,9 @@ final class SendFileOperation: TransferOperation {
                     }.wait()
                     
                 } catch {
-                    promise.fail(error)
-                    self?.status = .FAILED(error)
+//                    promise.fail(error)
+//                    self?.status = .FAILED(error)
+                    self?.stop(error)
                 }
                 
                 self?.updateObserversInfo()
@@ -210,32 +241,8 @@ final class SendFileOperation: TransferOperation {
         sendingChunksQueueDispatchItems.forEach { self.sendingChunksQueue.async(execute: $0) }
         
         
-        self.transferPromise = promise
-        
-        context.closeFuture.whenComplete { result in
-            print(self.DEBUG_TAG+"\tOperation closed with result: \(result)")
-
-            switch result {
-            case .success():
-                self.status = (self.status != .TRANSFERRING) ? self.status : .FINISHED
-            case .failure(let error):
-                self.status = .FAILED(error)
-            }
-
-            // cleanup call
-            self.fileReaders.forEach { $0.close() }
-            self.transferPromise = nil
-        }
-        
-        
-        promise.futureResult.whenSuccess { status in
-            
-            switch status {
-            case STATUS_CANCELLED: self.status = .CANCELLED
-            case .ok: self.status = .FINISHED
-            default: break
-            }
-        }
+//        self.transferPromise = promise
+       
         
         return promise.futureResult
         
@@ -259,7 +266,6 @@ final class SendFileOperation: TransferOperation {
         }
         
         status = .FAILED(error)
-        
     }
     
     //
