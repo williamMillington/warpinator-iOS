@@ -48,9 +48,9 @@ final class SendFileOperation: TransferOperation {
     }
     
     var bytesTransferred: Int = 0
-    var progress: Double {
-        return Double(bytesTransferred) / totalSize
-    }
+//    var progress: Double {
+//        return Double(bytesTransferred) / totalSize
+//    }
     
     var lastTransferTimeStamp: Double = 0
     var bytesPerSecond: Double = 0
@@ -179,10 +179,7 @@ final class SendFileOperation: TransferOperation {
             }
         }
         
-        
-        
         self.transferPromise = promise
-        
         
         context.closeFuture.whenComplete { result in
             print(self.DEBUG_TAG+"\tOperation closed with result: \(result)")
@@ -240,16 +237,12 @@ final class SendFileOperation: TransferOperation {
         
         sendingChunksQueueDispatchItems.forEach { self.sendingChunksQueue.async(execute: $0) }
         
-        
-//        self.transferPromise = promise
-       
-        
         return promise.futureResult
         
     }
     
     //
-    // MARK: stopping
+    // MARK: stop
     func stop(_ error: Error){
         
         print(self.DEBUG_TAG+"\tStop Sending. Error: \(String(describing: error))")

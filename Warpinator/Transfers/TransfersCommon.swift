@@ -120,7 +120,7 @@ protocol TransferOperation {
     var bytesTransferred: Int { get }
     var bytesPerSecond: Double { get }
     
-    var progress: Double { get }
+//    var progress: Double { get }
     
     var operationInfo: OpInfo { get }
     

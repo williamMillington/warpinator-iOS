@@ -19,7 +19,7 @@ let STATUS_CANCELLED = GRPCStatus.init(code: GRPCStatus.Code.cancelled, message:
 // MARK: ReceiveFileOperation
 final class ReceiveFileOperation: TransferOperation {
     
-    lazy var DEBUG_TAG: String = "ReceiveFileOperation (\(owningRemoteUUID),\(direction)): "
+    lazy var DEBUG_TAG: String = "ReceiveFileOperation (\(owningRemote?.details.uuid),\(direction)): "
     
     
     struct MockOperation {
@@ -49,12 +49,12 @@ final class ReceiveFileOperation: TransferOperation {
     var request: TransferOpRequest
     
     weak var owningRemote: Remote?
-    var owningRemoteUUID: String {
-        return request.info.ident
-    }
+//    var owningRemoteUUID: String {
+//        return request.info.ident
+//    }
     
-    var direction: TransferDirection
-    var status: TransferStatus {
+    var direction: TransferDirection = .RECEIVING
+    var status: TransferStatus = .INITIALIZING {
         didSet {
             updateObserversInfo()
         }
@@ -65,20 +65,14 @@ final class ReceiveFileOperation: TransferOperation {
     
     var totalSize: Int
     var bytesTransferred: Int {
-        
-//        let currWriterBytes = currentWriter?.bytesWritten ?? 0
-//        return currWriterBytes +
-        //
         return fileWriters.map { return $0.bytesWritten }.reduce(0, +)
     }
     var bytesPerSecond: Double = 0
-    var progress: Double {
-        return Double(bytesTransferred) / Int(totalSize)
-    }
+//    var progress: Double {
+//        return Double(bytesTransferred) / Int(totalSize)
+//    }
     
-    var spaceIsAvailable: Bool = false
-    
-    var cancelled: Bool = false
+//    var spaceIsAvailable: Bool = false
     
     var fileCount: Int = 1
     
@@ -95,7 +89,7 @@ final class ReceiveFileOperation: TransferOperation {
     var observers: [ObservesTransferOperation] = []
     
     
-    lazy var queueLabel = "RECEIVE_\(owningRemoteUUID)_\(UUID)"
+    lazy var queueLabel = "RECEIVE_\(owningRemote?.details.uuid ?? "\(Int.random(in: 0...9999))")_\(UUID)"
     lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
     var  receivingChunksQueueDispatchItems: [DispatchWorkItem] = []
     var dataStream: ServerStreamingCall<OpInfo, FileChunk>? = nil
@@ -109,10 +103,6 @@ final class ReceiveFileOperation: TransferOperation {
         request = transferRequest
         owningRemote = remote
         
-        direction = .RECEIVING
-        status = .INITIALIZING
-        
-        
         timestamp = transferRequest.info.timestamp
         totalSize = Int(transferRequest.size)
         fileCount = Int(transferRequest.count)
@@ -124,7 +114,6 @@ final class ReceiveFileOperation: TransferOperation {
             $0.timestamp = transferRequest.info.timestamp
             $0.readableName = SettingsManager.shared.displayName
         }
-        
     }
 }
 
@@ -137,21 +126,19 @@ extension ReceiveFileOperation {
     //MARK: prepare
     func prepareReceive(){
         
-        print(DEBUG_TAG+" preparing to receive...")
+        print(DEBUG_TAG+"preparing to receive...")
         
         // check if space exists
         let availableSpace = Utils.queryAvailableDiskSpace()
-        print(DEBUG_TAG+" available space \(availableSpace) vs transfer size \(totalSize)")
+        print(DEBUG_TAG+"\t\tavailable space \(availableSpace) vs transfer size \(totalSize)")
         guard availableSpace > totalSize else {
             print(DEBUG_TAG+"\t Not enough space"); return
         }
         
-        print(DEBUG_TAG+"\t Space is available");
+//        print(DEBUG_TAG+"\t Space is available");
         
-        // In case of retry
+        // reset
         bytesPerSecond = 0
-        
-        // reset filewriters
         fileWriters = []
         currentRelativePath = ""
         currentWriter = nil
@@ -176,7 +163,6 @@ extension ReceiveFileOperation {
             
             guard self.status == .TRANSFERRING else {
                 print(self.DEBUG_TAG+"canceling chunk processing")
-//                self.dataStream?.cancel(promise: nil)
                 self.stop( TransferError.TransferCancelled )
                 return
             }
@@ -250,23 +236,6 @@ extension ReceiveFileOperation {
         dataStream = datastream
         
         
-//        let closeWorkItem = DispatchWorkItem() {
-            
-//            if self.status != .TRANSFERRING {
-//                self.status = .CANCELLED
-//                self.currentWriter?.fail()
-//
-//                print(self.DEBUG_TAG+"\t\tCancelled")
-//            } else {
-//
-//                self.status =  .FINISHED
-//                self.currentWriter?.close()
-//                print(self.DEBUG_TAG+"\t\tFinished")
-//            }
-            
-//        }
-        
-        
         return datastream.status
             .flatMapThrowing { status in
                 print(self.DEBUG_TAG+"\t transfer finished with status \(status)")
@@ -286,10 +255,6 @@ extension ReceiveFileOperation {
                     let error = TransferError.ConnectionInterruption
                     
                     updatedStatus = .FAILED(error)
-//                    self.receivingChunksQueue.async {
-//                        self.status = .FAILED( error  )
-//                        self.currentWriter?.close()
-//                    }
                     throw error
                 }
                 
@@ -299,23 +264,10 @@ extension ReceiveFileOperation {
                 case STATUS_CANCELLED:
                     
                     updatedStatus = .CANCELLED
-//                    self.receivingChunksQueue.async {
-//                        self.status = .CANCELLED
-//                        self.currentWriter?.close()
-//                    }
-                    
                     throw TransferError.TransferCancelled
-//                case GRPCStatus.Code.unavailable: break
                 case .processingError:
-                    
-//                    self.receivingChunksQueue.async {
-//                        self.status = .FINISHED
-//                        self.currentWriter?.close()
-//                    }
                     updatedStatus = .FAILED( TransferError.UnknownError )
-                    
                     throw TransferError.UnknownError
-                    
                 default: break
                 }
                 
@@ -355,7 +307,6 @@ extension ReceiveFileOperation {
         // if WE'RE cancelling this receive, politely tell
         // the remote to stop sending
         if (error as? TransferError) == .TransferCancelled {
-//            owningRemote?.sendStop(forUUID: UUID, error: TransferError.TransferCancelled)
             owningRemote?.sendStop(withStopInfo:  .with {
                 $0.info = operationInfo
                 $0.error = (error as? TransferError) == .TransferCancelled ? false : true // "Cancelled" is only considered an error internally

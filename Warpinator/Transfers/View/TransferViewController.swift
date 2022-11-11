@@ -354,7 +354,9 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     
     //
     var progress: Double {
-        return operation.progress
+        
+        return Double(operation.bytesTransferred / operation.totalSize)
+//        return operation.progress
     }
     
     
