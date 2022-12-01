@@ -163,8 +163,12 @@ final class TransferViewController: UIViewController {
     
     // MARK: retry
     @IBAction @objc func retry(){
-        coordinator?.retryTransfer(forTransferUUID: transferViewModel!.UUID)
-        updateDisplay()
+        
+        let _ = coordinator!.retryTransfer(forTransferUUID: transferViewModel!.UUID).whenComplete { result in
+            print(self.DEBUG_TAG+"Attemp to retry transfer had result \(result)")
+            self.updateDisplay() 
+        }
+//        updateDisplay()
     }
     
     

@@ -428,7 +428,6 @@ extension Remote {
     // MARK: Ping
     public func ping() -> EventLoopFuture<Void> {
         
-        
         return client()
             .flatMap { client in
                 return client.ping(self.lookupName).status
@@ -714,6 +713,17 @@ extension Remote {
         operation.prepareToSend()
         
         return ping()
+            .flatMapErrorThrowing { error in // if pinging returns an error
+                
+                
+                
+                // for any error EXCEPT for .DISCONNECTED, try to restart the connection
+                guard error as? Remote.Error == .DISCONNECTED else {
+                    throw error
+                }
+                
+                self.startupConnection()
+            }
             .flatMap {
                 return self.client()
             }

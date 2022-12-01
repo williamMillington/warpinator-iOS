@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import NIOCore
 
 
 
@@ -152,16 +153,20 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     //
     // MARK: retry transfer
-    func retryTransfer(forTransferUUID uuid: UInt64) {
+    func retryTransfer(forTransferUUID uuid: UInt64) -> EventLoopFuture<Void> {
+//        func retryTransfer(forTransferUUID uuid: UInt64) {
+
         
-        print(DEBUG_TAG+"user elected to re-send transfer with uuid \(uuid)")
+        print(DEBUG_TAG+"retry transfer with uuid \(uuid)")
         
-        if let operation = remote.findTransfer(withUUID: uuid) as? SendFileOperation {
-            print(DEBUG_TAG+"\t transfer found")
-            
-            // TODO: use result of sendRequest to update ui
-            let _ = remote.sendRequest(toTransfer: operation)
+        guard let operation = remote.findTransfer(withUUID: uuid) as? SendFileOperation else {
+            print(DEBUG_TAG+"\t transfer not found")
+            return remote.eventLoopGroup.next().makeFailedFuture(TransferError.TransferNotFound)
         }
+        
+        // TODO use result of sendRequest to update ui
+//        let _ =
+        return remote.sendRequest(toTransfer: operation)
     }
     
     
