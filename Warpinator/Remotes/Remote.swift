@@ -333,7 +333,7 @@ public class Remote {
         
         
         // MAYBE BRACKETS?
-        return  channel?.close() ?? eventLoopGroup.next().makeSucceededVoidFuture() // if channel is nil return successful
+        return  (channel?.close() ?? eventLoopGroup.next().makeSucceededVoidFuture()) // if channel is nil return successful
             .map { // clean up
                 self.warpClient = nil
                 self.details.status = .Disconnected
@@ -564,23 +564,6 @@ extension Remote {
         warpClient?.stopTransfer(info).response.whenComplete { result in
             print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
         }
-//        { client in
-//            client.stopTransfer(info)
-//        }
-//        if let op = findTransfer(withUUID: uuid) {
-            
-            // if WE'RE cancelling this receive, politely tell
-            // the remote to stop sending
-//            if op.direction == .RECEIVING {
-//                warpClient?.stopTransfer( .with {
-//                    $0.info = op.operationInfo
-////                    $0.error = (error as? TransferError) == .TransferCancelled ? false : true // "Cancelled" is only considered an error internally
-//                })
-//                    .response.whenComplete { result in
-//                        print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
-//                    }
-//            }
-//        }
     }
     
     
@@ -607,32 +590,6 @@ extension Remote {
 //
 //MARK: - Receive operations
 extension Remote {
-    
-    
-    //
-    // MARK add
-//    func addReceivingOperation(_ operation: ReceiveFileOperation){
-//
-//        operation.owningRemote = self
-//
-//        receivingOperations.append(operation)
-//        updateObserversOperationAdded(operation)
-//
-//        operation.status = .WAITING_FOR_PERMISSION
-//    }
-    
-    
-    //
-    // MARK find
-//    func findReceiveOperation(withStartTime time: UInt64 ) -> ReceiveFileOperation? {
-//        for operation in receivingOperations {
-//            if operation.timestamp == time {
-//                return operation
-//            }
-//        }
-//        return nil
-//    }
-    
     
     //
     //MARK: start
@@ -662,18 +619,6 @@ extension Remote {
 //
 // MARK: - Sending operations
 extension Remote {
-    
-    //
-    // MARK add
-//    func addSendingOperation(_ operation: SendFileOperation){
-//
-//        operation.owningRemote = self
-//
-//        sendingOperations.append(operation)
-//        updateObserversOperationAdded(operation)
-//
-//        operation.status = .WAITING_FOR_PERMISSION
-//    }
     
     
     //
@@ -821,9 +766,12 @@ extension Remote: ConnectivityStateDelegate {
             }
 //        case .idle:
 //            details.status = .Idle
-//        case .shutdown:  _ = disconnect()
+        case .shutdown:
+            _ = disconnect( AuthenticationError.ConnectionError )
         default: break
         }
+        
+        updateObserversInfoDidChange()
         
     }
 }
