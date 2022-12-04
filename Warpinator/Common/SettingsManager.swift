@@ -50,7 +50,7 @@ class SettingsManager {
     
     
     // MARK: user settings
-    var displayName: String = "iOS Device"  {
+    var displayName: String =  UIDevice.current.name {
         didSet { writeToSettings(displayName, forKey: StorageKey.displayName) }
     }
     
@@ -60,9 +60,6 @@ class SettingsManager {
     
     var avatarImage: UIImage? = {
         return UIImage(systemName: "iphone")?.withRenderingMode(.alwaysTemplate)
-//        return avatarImg = SettingsManager.shared.avatarImage ?? systemPhoneImage
-
-//        let avatarImgBytes = avatarImg.pngData()
     }()     {
         didSet { writeToSettings(avatarImage, forKey: StorageKey.avatarImage) }
     }
