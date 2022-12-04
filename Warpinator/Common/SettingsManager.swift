@@ -50,7 +50,7 @@ class SettingsManager {
     
     
     // MARK: user settings
-    var displayName: String = "iOS Device"  {
+    var displayName: String =  UIDevice.current.name { //} ?? "iOS Device"  {
         didSet { writeToSettings(displayName, forKey: StorageKey.displayName) }
     }
     
