@@ -162,7 +162,7 @@ final class ListedRemoteView: UIView {
     // MARK: updateDisplay
     func updateDisplay(){
         
-        guard let viewModel = viewModel else { return }
+        guard let viewModel = viewModel else { print(DEBUG_TAG+"no viewmodel"); return }
         
         let bold = UIFont.boldSystemFont(ofSize:  self.frame.size.height / 3)
         let standard = UIFont.systemFont(ofSize:  self.frame.size.height / 4)
@@ -231,6 +231,7 @@ final class ListedRemoteViewModel: NSObject, ObservesRemote {
         case .FetchingCredentials,
              .AquiringDuplex, 
              .OpeningConnection : return "Connecting"
+        case .Connected: return "Connected"
         case .Error: return "Error"
         default: return remote.details.status.rawValue
         }

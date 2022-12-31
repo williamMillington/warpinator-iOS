@@ -166,9 +166,11 @@ final class TransferViewController: UIViewController {
         
         let _ = coordinator!.retryTransfer(forTransferUUID: transferViewModel!.UUID).whenComplete { result in
             print(self.DEBUG_TAG+"Attemp to retry transfer had result \(result)")
-            self.updateDisplay() 
+            
+            DispatchQueue.main.async { // update UI on main thread
+                self.updateDisplay()
+            }
         }
-//        updateDisplay()
     }
     
     
@@ -360,7 +362,6 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     var progress: Double {
         
         return Double(operation.bytesTransferred / operation.totalSize)
-//        return operation.progress
     }
     
     

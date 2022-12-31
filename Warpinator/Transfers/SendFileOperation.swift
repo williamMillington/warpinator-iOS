@@ -15,7 +15,7 @@ import NIO
 // MARK: SendFileOperation
 final class SendFileOperation: TransferOperation {
     
-    lazy var DEBUG_TAG: String = "SendFileOperation (\(remoteUUID)):"
+    lazy var DEBUG_TAG: String = "SendFileOperation (\(owningRemote?.details.uuid ?? "Owning remote not set")):"
     
     public static let chunk_size: Int = 1024 * 512  // 512 kB
     
@@ -48,9 +48,6 @@ final class SendFileOperation: TransferOperation {
     }
     
     var bytesTransferred: Int = 0
-//    var progress: Double {
-//        return Double(bytesTransferred) / totalSize
-//    }
     
     var lastTransferTimeStamp: Double = 0
     var bytesPerSecond: Double = 0
@@ -216,8 +213,6 @@ final class SendFileOperation: TransferOperation {
                     }.wait()
                     
                 } catch {
-//                    promise.fail(error)
-//                    self?.status = .FAILED(error)
                     self?.stop(error)
                 }
                 
@@ -245,6 +240,14 @@ final class SendFileOperation: TransferOperation {
     // MARK: stop
     func stop(_ error: Error){
         
+        
+        // Only proceed with stop actions if we're transferring or waiting
+        // This stops the reciever and sender from endlessly sending stop signals back and forth
+        guard [.TRANSFERRING, .WAITING_FOR_PERMISSION].contains( status ) else {
+            print(DEBUG_TAG+"")
+            return
+        }
+        
         print(self.DEBUG_TAG+"\tStop Sending. Error: \(String(describing: error))")
         
         sendingChunksQueueDispatchItems.forEach { $0.cancel() }
@@ -252,23 +255,21 @@ final class SendFileOperation: TransferOperation {
         
         fileReaders.forEach { $0.close() }
         
+        
         if (error as? TransferError) == .TransferCancelled {
+            print(DEBUG_TAG+"( stop() ) succeeding promise with status CANCELLED")
             transferPromise?.succeed(STATUS_CANCELLED)
         } else {
             transferPromise?.fail(error)
         }
         
+        
+        // sender must inform receiver of stop in case receiver has not opened datastream yet,
+        // and therefore cannot infer a stop from a closed datastream
+        owningRemote?.sendStop(forUUID: UUID, error: error)
+        
+        
         status = .FAILED(error)
-    }
-    
-    //
-    // MARK: onDecline
-    func onDecline(_ error: Error? = nil){
-//        print(DEBUG_TAG+"operation was declined")
-//        status = .CANCELLED
-////        closeOutOperation()
-//        fileReaders.forEach { $0.close() }
-//        updateObserversInfo()
     }
     
 }

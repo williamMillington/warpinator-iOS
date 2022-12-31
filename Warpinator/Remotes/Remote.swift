@@ -15,75 +15,14 @@ import GRPC
 import Logging
 
 
-
-
-//// MARK: Details
-//struct Details {
-//
-//    enum ConnectionStatus: String {
-//        case OpeningConnection, FetchingCredentials, AquiringDuplex
-//        case Error
-//        case Connected, Idle, Disconnected
-//    }
-//
-//    static let NO_IP_ADDRESS = "No_IPAddress"
-//
-//    lazy var DEBUG_TAG: String = "Details (\"\(hostname)\"): "
-//
-//    var endpoint: NWEndpoint
-//
-//    var displayName: String = "Name"
-//    var username: String = "username"
-//    var userImage: UIImage?
-//
-//    var hostname: String = "hostname"
-//    var ipAddress: String = Details.NO_IP_ADDRESS
-//    var port: Int = 4200
-//    var authPort: Int = 4200
-//
-//    var uuid: String = "NO_UUID"
-//    var api: String = "1"
-//
-//    var status: ConnectionStatus = .Disconnected
-//
-//    var serviceAvailable: Bool = false
-//}
-
-//extension Details {
-//    static var MOCK_DETAILS: Details = {
-//        let mockEndpoint = NWEndpoint.hostPort(host: NWEndpoint.Host("So.me.Ho.st") ,
-//                                               port: NWEndpoint.Port(integerLiteral: 8080))
-//        let mock = Details(DEBUG_TAG: "MoCkReMoTe",
-//                                 endpoint: mockEndpoint,
-//                                 displayName: "mOcK ReMoTe",
-//                                 username: "mOcK uSeR",
-//                                 hostname: "mOcK hOsT",
-//                                 ipAddress: "Som.eAd.dre.ss",
-//                                 port: 8080,
-//                                 authPort: 8081,
-//                                 uuid: "mOcK uUiD",
-//                                 api: "2",
-//                                 status: .Disconnected,
-//                                 serviceAvailable: false)
-//        return mock
-//    }()
-//}
-
-
-
-
-
-
-
-
-
-
 //
 // MARK: - Remote
 public class Remote {
     
     lazy var DEBUG_TAG: String = "REMOTE (\"\(details.hostname)\"): "
    
+    
+    // MARK: subtype definitions
     enum Error: Swift.Error {
         case REMOTE_PROCESSING_ERROR
         case UNKNOWN_ERROR
@@ -91,7 +30,6 @@ public class Remote {
         case SSL_ERROR
     }
     
-    // MARK: Details
     struct Details {
         
         enum ConnectionStatus: String {
@@ -125,6 +63,8 @@ public class Remote {
     
     
     
+    
+    // MARK: properties
     var details: Details {
         didSet {  updateObserversInfoDidChange()  }
     }
@@ -166,6 +106,8 @@ public class Remote {
     
     
     
+    
+    // MARK: +init
     init(details deets: Details, eventLoopGroup group: EventLoopGroup){
         details = deets
         eventLoopGroup = group
@@ -225,7 +167,7 @@ public class Remote {
     
     
     
-    // MARK: authenticate
+    // MARK: -authenticate
     private func authenticate() -> EventLoopFuture<NIOSSLCertificate> {
         
         // if we've already got the certificate, just return that
@@ -257,7 +199,7 @@ public class Remote {
     
     
     //
-    // MARK: - connect
+    // MARK: -connect
     private func connect() -> EventLoopFuture<Void> {
         
         return authenticate() // get certificate
@@ -323,7 +265,7 @@ public class Remote {
     
     
     //
-    // MARK: disconnect
+    // MARK: +disconnect
     func disconnect(_ error: Swift.Error? = nil) -> EventLoopFuture<Void> {
         
         print(DEBUG_TAG+"disconnecting remote...")
@@ -353,7 +295,7 @@ public class Remote {
     
     
     //
-    // MARK: stopAllTransfers
+    // MARK: +stopAllTransfers
     func stopAllTransfers(){
         
         let operations = (sendingOperations + receivingOperations) as [TransferOperation]
@@ -370,15 +312,12 @@ public class Remote {
 
 
 
-
-
-
 //
 // MARK: - Duplex
 extension Remote {
     
     //
-    // MARK: acquireDuplex
+    // MARK: -acquireDuplex
     private func aquireDuplex() -> EventLoopFuture<HaveDuplex> {
         
         
@@ -425,7 +364,7 @@ extension Remote {
 
     
     //
-    // MARK: Ping
+    // MARK: +ping
     public func ping() -> EventLoopFuture<Void> {
         
         return client()
@@ -445,7 +384,7 @@ extension Remote {
     }
     
     
-    // MARK: remoteInfo
+    // MARK: +retrieveRemoteInfo
     func retrieveRemoteInfo() -> EventLoopFuture<Void>{
         
         print(DEBUG_TAG+"Retrieving information from \(details.hostname)")
@@ -502,7 +441,7 @@ extension Remote {
     
     
     //
-    // MARK: find operation
+    // MARK: +findTransfer
     func findTransfer(withUUID uuid: UInt64) -> TransferOperation? {
         
         let operations = (receivingOperations + sendingOperations) as [TransferOperation]
@@ -517,7 +456,7 @@ extension Remote {
     
     
     
-    // MARK: add operation
+    // MARK: +addTransfer
     func addTransfer(_ operation: TransferOperation ){
         
         if let op = operation as? SendFileOperation {
@@ -534,7 +473,7 @@ extension Remote {
     
     
     //
-    // MARK: request stop transfer
+    // MARK: +sendStop
     // tell the remote to stop sending the transfer with given uuid
     func sendStop(forUUID uuid: UInt64, error: Swift.Error?) {
         
@@ -542,17 +481,13 @@ extension Remote {
         
         if let op = findTransfer(withUUID: uuid) {
             
-            // if WE'RE cancelling this receive, politely tell
-            // the remote to stop sending
-            if op.direction == .RECEIVING {
-                warpClient?.stopTransfer( .with {
-                    $0.info = op.operationInfo
-                    $0.error = (error as? TransferError) == .TransferCancelled ? false : true // "Cancelled" is only considered an error internally
-                })
-                    .response.whenComplete { result in
-                        print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
-                    }
-            }
+            warpClient?.stopTransfer( .with {
+                $0.info = op.operationInfo
+                $0.error = (error as? TransferError) == .TransferCancelled ? false : true // "Cancelled" is only considered an error internally
+            })
+                .response.whenComplete { result in
+                    print(self.DEBUG_TAG+"request to stop transfer had result: \(result)")
+                }
         }
     }
     
@@ -569,7 +504,7 @@ extension Remote {
     
     
     //
-    // MARK: Decline Receive
+    // MARK: +declineTransfer
     func declineTransfer(withUUID uuid: UInt64, error: Swift.Error? = nil) {
         
         guard let op = findTransfer(withUUID: uuid) else {
@@ -592,7 +527,7 @@ extension Remote {
 extension Remote {
     
     //
-    //MARK: start
+    //MARK: +startTransfer
     func startTransfer(for operation: ReceiveFileOperation) {
         
         print(DEBUG_TAG+"startTransfer ")
@@ -634,18 +569,19 @@ extension Remote {
     
     
     //
-    // MARK: send
+    // MARK: +send
     // create sending operation from selection of files
     func sendFiles(_ selections: [TransferSelection]) -> EventLoopFuture<Void> {
         
-        let operation = SendFileOperation(for: selections) 
+        let operation = SendFileOperation(for: selections)
+        operation.owningRemote = self
 
         addTransfer(operation)
         return sendRequest(toTransfer: operation)
     }
     
     
-    //
+    // MARK: +sendRequest
     // send remote a message that we have files we want to send
     func sendRequest(toTransfer operation: SendFileOperation ) -> EventLoopFuture<Void> {
         
@@ -659,8 +595,6 @@ extension Remote {
         
         return ping()
             .flatMapErrorThrowing { error in // if pinging returns an error
-                
-                
                 
                 // for any error EXCEPT for .DISCONNECTED, try to restart the connection
                 guard error as? Remote.Error == .DISCONNECTED else {

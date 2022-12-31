@@ -196,10 +196,10 @@ final public class WarpinatorServiceProvider: WarpProvider {
             operation = op
         } else {
             operation = ReceiveFileOperation(request, forRemote: remote)
-//            remote.addReceivingOperation(operation)
             remote.addTransfer(operation)
         }
 
+        operation.owningRemote = remote
         operation.prepareReceive()
         
         print(DEBUG_TAG+"\tprocessing request, compression is \( request.info.useCompression ? "on" : "off" )")
@@ -275,31 +275,28 @@ final public class WarpinatorServiceProvider: WarpProvider {
     // receive instruction to stop operation (transfer) specified in OpInfo
     public func stopTransfer(request: StopInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        print(DEBUG_TAG+"Received STOP request for transfer")
-        print(DEBUG_TAG+"\t\t info: \(request.info)")
+        print(DEBUG_TAG+"Received STOP request for transfer \(request.info.readableName)")
         print(DEBUG_TAG+"\t\t error: \(request.error )")
-        print(DEBUG_TAG+"\t\t description: \( request.debugDescription )")
-        print(DEBUG_TAG+"\t\t\t\t : (\( request ))")
+        print(DEBUG_TAG+"\t\t\t\t full request: (\( request ))")
         
         let remoteUUID: String = request.info.ident
         
         guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
-            print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
+            print(DEBUG_TAG+"\t No remote with uuid \"\(remoteUUID)\" exists")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
         
         guard let transfer = remote.findTransfer(withUUID: request.info.timestamp) else {
-            print(DEBUG_TAG+"Remote has no operations with requested timestamp")
+            print(DEBUG_TAG+"\t Remote has no operations with requested timestamp")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        print(DEBUG_TAG+"\( request.info.readableName )")
+//        print(DEBUG_TAG+"\( request.info.readableName )")
         
         transfer.stop( request.error ?  TransferError.UnknownError :  TransferError.TransferCancelled )
-        
         
         return context.eventLoop.makeSucceededFuture( VoidType() )
     }
