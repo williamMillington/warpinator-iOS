@@ -208,16 +208,19 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     
     
     //
+    // MARK: UUID
     var UUID: UInt64 {
         return operation.UUID
     }
     
     
-    //
+    // MARK: fileCount
     var fileCount: String {
         return "\(operation.fileCount)"
     }
-
+    
+    
+    // MARK: buttonTitle
     var buttonTitle: String {
         
         switch operation.status {
@@ -242,6 +245,7 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     }
     
     
+    // MARK: buttonStatus
     var buttonStatus: Bool {
         
         switch operation.status {
@@ -253,7 +257,7 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
                 return true
             }
             
-            // "else" returns false after exiting switch
+            // "else" return false after exiting switch
             
         case .CANCELLED, .FAILED(_):
             
@@ -263,10 +267,12 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
             }
         default: break
         }
+        
         return false
     }
     
     //
+    // MARK: transferDescription
     var transferDescription: String {
         
         let filesCount: Int = operation.fileCount
@@ -277,7 +283,8 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
         return "Transferring \(filesCountString) \(directionString)"
     }
     
-    //
+    
+    // MARK: progressDescription
     var progressDescription: String {
         
         let formatter = ByteCountFormatter()
@@ -287,41 +294,41 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     }
     
     //
+    // MARK: status
     var status: TransferStatus {
         return operation.status
     }
     
     //
+    // MARK: statusDescription
     var statusDescription: String {
         
         switch operation.status {
-        case .TRANSFERRING, .WAITING_FOR_PERMISSION:
-            return "Waiting"
-        case .FINISHED:
-                return "Finished"
+        case .INITIALIZING: return "Initializing"
+        case .WAITING_FOR_PERMISSION: return "Waiting"
+        case .TRANSFERRING: return "Transferring"
         case .FAILED(let error):
-            print("TransferviewController:\t\t Failed with \(error)")
-            
-            // .
-            if (error as? TransferError) == .TransferCancelled {
-                fallthrough
+            guard let error = error as? TransferError, error != .TransferCancelled else {
+                fallthrough // fallthrough to .Cancelled
             }
             
             return "Failed"
-            
         case .CANCELLED: return "Cancelled"
-        default: return "Error"
+        case .FINISHED: return "Finished"
             
         }
     }
     
     
     //
+    // MARK: direction
     var direction: String {
         return "\(operation.direction)"
     }
     
+    
     //
+    // MARK: files
     var files: [ListedFileViewModel] {
         
         var viewModels: [ListedFileViewModel] = []
@@ -359,8 +366,8 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     
     
     //
+    // MARK: progress
     var progress: Double {
-        
         return Double(operation.bytesTransferred / operation.totalSize)
     }
     

@@ -81,7 +81,7 @@ final class ReceiveFileOperation: TransferOperation {
     var observers: [ObservesTransferOperation] = []
     
     
-    lazy var queueLabel = "RECEIVE_\(owningRemote?.details.uuid ?? "\(Int.random(in: 0...9999))")_\(UUID)"
+    lazy var queueLabel = "RECEIVE_\(UUID)"
     lazy var receivingChunksQueue = DispatchQueue(label: queueLabel, qos: .userInitiated)
     var  receivingChunksQueueDispatchItems: [DispatchWorkItem] = []
     var dataStream: ServerStreamingCall<OpInfo, FileChunk>? = nil
@@ -227,7 +227,6 @@ extension ReceiveFileOperation {
         
         dataStream = datastream
         
-        
         return datastream.status
             .flatMapThrowing { status in
                 
@@ -235,6 +234,8 @@ extension ReceiveFileOperation {
                 
                 print(self.DEBUG_TAG+"\t transfer finished with status \(status)")
                 
+                
+                // TODO: this will give the wrong error for "status unavailable (14): The RPC has already completed"
                 guard status.code != .unavailable else {
                     throw TransferError.ConnectionInterruption
                 }

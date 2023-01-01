@@ -184,7 +184,6 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
             print(DEBUG_TAG+"\tNo remote with uuid \"\(remoteUUID)\" exists")
-//            let error =
             return context.eventLoop.makeFailedFuture(AuthenticationError.ConnectionError)
         }
         
@@ -237,7 +236,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
         }
         
         
-        return transfer.start(using: context) //promise.futureResult
+        return transfer.start(using: context)
     }
     
     

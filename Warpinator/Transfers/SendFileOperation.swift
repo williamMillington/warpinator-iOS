@@ -27,12 +27,6 @@ final class SendFileOperation: TransferOperation {
     }
     
     weak var owningRemote: Remote?
-    var remoteUUID: String {
-        guard let owningRemote = owningRemote else {
-            return "Owning remote not set"
-        }
-        return owningRemote.details.uuid
-    }
     
     var UUID: UInt64 { return timestamp }
     var timestamp: UInt64
@@ -90,7 +84,7 @@ final class SendFileOperation: TransferOperation {
     
     var observers: [ObservesTransferOperation] = [] 
     
-    lazy var queueLabel = "SEND_\(remoteUUID)_\(UUID)"
+    lazy var queueLabel = "SEND_\(UUID)"
     
     lazy var sendingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
