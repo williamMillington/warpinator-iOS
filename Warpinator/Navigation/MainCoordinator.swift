@@ -159,21 +159,11 @@ final class MainCoordinator: NSObject, Coordinator {
         
         
         
-        //
-        // Test server failure
-//        let promise = serverEventLoopGroup.next().makePromise(of: GRPC.Server.self)
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//            promise.fail(Server.ServerError.SERVER_FAILURE)
-//        }
-//
-//        return promise?.futureResult
-        
-        // start server
-        return server.start()
-            .flatMap {  // then -> start registrationServer
+        return server.start() // start server
+            .flatMap {  // then start registrationServer
                 return self.registrationServer.start()
             }
-            .map { _ in // when complete -> remove loading screen
+            .map { _ in // remove loading screen when complete
                 DispatchQueue.main.async {
                     (self.navController.visibleViewController as? MainViewController)?.removeLoadingScreen()
                 }
@@ -212,51 +202,48 @@ final class MainCoordinator: NSObject, Coordinator {
         // unregister ourselves from mDNS
         removeMdns()
         
-        // shutdown mDNS
-        shutdownMdns()
-        // then -> shutdown servers
-            .flatMap { _ in
+        shutdownMdns()      // shutdown mDNS
+            .flatMap { _ in // then shutdown servers
                 return self.stopServers()
-            }
-        // then -> check network connection
-            .flatMap{ Void in
-                return self.waitForNetwork()
-            }
-        // then -> start up  servers
-            .flatMap { _ in
-                return self.startServers()
-            }
-        // then -> start up mDNS again
-            .flatMap { _ in
-                return self.startupMdns()
-            }
-            .whenComplete { result in
+            } .flatMap{ _ in
+                return self.waitForNetwork() // then check network connection
+            }.flatMap { _ in
+                return self.startServers() // then start up  servers
+            }.flatMap { _ in
+                return self.startupMdns() // then -> start up mDNS again
+            }.whenComplete { result in
                 
-                print(self.DEBUG_TAG+" restart result is \(result)")
                 
                 switch result {
-                case .success(_): break
                 case .failure(let error):
                     
-                    switch error {
+                    print(self.DEBUG_TAG+"restart failed: \(error)")
                     
+                    switch error {
+                        
                     case NetworkMonitor.ServiceError.LOCAL_NETWORK_PERMISSION_DENIED:
                         print(self.DEBUG_TAG+"We DO NOT have access to the local network!")
                         self.reportError(error,
                                          withMessage: "Please enable local network access in your system settings (Settings App -> Privacy -> Local Network)")
-                    case Server.ServerError.NO_INTERNET:
+                    case NetworkError.NO_INTERNET:
                         self.reportError(error,
                                          withMessage: "Please make sure wifi is turned on before restarting")
                         
                     default:
                         print(self.DEBUG_TAG+"Warpinator encountered an error starting up: \(error)")
                         self.reportError(error,
-                                         withMessage: "Warpinator encountered an error starting up:\n\(error)")
-                        return
+                                         withMessage: "Warpinator encountered an error starting up: \n\(error)")
                     }
+                    
+                    
+                case .success(_):
+                    
+                    print(self.DEBUG_TAG+"restart succeeded, publishing...")
+                    self.publishMdns()
+                    
                 }
                 
-                self.publishMdns()
+                
             }
     }
     

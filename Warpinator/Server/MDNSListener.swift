@@ -22,12 +22,6 @@ protocol MDNSListenerDelegate: AnyObject {
 
 final class MDNSListener {
     
-    enum ServiceError: Error {
-        case CANCELLED
-        case ALREADY_RUNNING
-        case UNKNOWN_SERVICE
-    }
-    
     private let DEBUG_TAG = "MDNSListener: "
     
      let SERVICE_TYPE = "_warpinator._tcp"
@@ -165,7 +159,7 @@ final class MDNSListener {
                 // those states (ex. .ready, .watiting )  can never be reached again and we just
                 // create a new listener (which will leave the promise hanging)
                 if state != .cancelled {
-                    promise.fail(  ServiceError.CANCELLED  )
+                    promise.fail(  MDNSError.CANCELLED  )
                     return
                 }
                 

@@ -17,13 +17,6 @@ protocol BrowserDelegate {
 
 final class MDNSBrowser {
     
-    
-    enum Error: Swift.Error {
-        case ALREADY_RUNNING
-        case UNKNOWN_SERVICE
-        case CANCELLED
-    }
-    
     private let DEBUG_TAG = "MDNSBrowser: "
     
     private let SERVICE_TYPE = "_warpinator._tcp."
@@ -133,7 +126,7 @@ final class MDNSBrowser {
                 // those states (ex. .ready, .watiting )  can never be reached again and we just
                 // create a new listener (which will leave the promise hanging)
                 if state != .cancelled {
-                    promise.fail(  Error.CANCELLED  )
+                    promise.fail(  MDNSError.CANCELLED  )
                     return
                 }
                 
@@ -194,9 +187,11 @@ final class MDNSBrowser {
         
         for change in changes {
             
+            //TODO: catch self publishing duplicate ( "... (2)" )
+            
             switch change {
             case .added(let result):  delegate?.mDNSBrowserDidAddResult(result)
-            case .changed(old: let old, new: let new, flags: let flags):
+            case .changed(old: _, new: let new, flags: let flags):
 //                print(self.DEBUG_TAG+"change registered in \(old): ")
 //                print(self.DEBUG_TAG+"\t\t flags \(flags) ")
 //                print(self.DEBUG_TAG+"\t\t new registration: \(new): ")

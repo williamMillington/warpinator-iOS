@@ -23,12 +23,12 @@ public class Remote {
    
     
     // MARK: subtype definitions
-    enum Error: Swift.Error {
-        case REMOTE_PROCESSING_ERROR
-        case UNKNOWN_ERROR
-        case DISCONNECTED
-        case SSL_ERROR
-    }
+//    enum Error: Swift.Error {
+//        case REMOTE_PROCESSING_ERROR
+//        case UNKNOWN_ERROR
+//        case DISCONNECTED
+//        case SSL_ERROR
+//    }
     
     struct Details {
         
@@ -696,12 +696,12 @@ extension Remote: ConnectivityStateDelegate {
             print(DEBUG_TAG+"\tTransientFailure #\(transientFailureCount)")
             
             if transientFailureCount == 10 {
-                _ = disconnect( AuthenticationError.ConnectionError )
+                _ = disconnect( Remote.Error.DISCONNECTED )
             }
 //        case .idle:
 //            details.status = .Idle
         case .shutdown:
-            _ = disconnect( AuthenticationError.ConnectionError )
+            _ = disconnect( Remote.Error.DISCONNECTED )
         default: break
         }
         

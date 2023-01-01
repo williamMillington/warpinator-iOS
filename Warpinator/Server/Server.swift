@@ -18,30 +18,30 @@ import Logging
 
 final class Server {
     
-    //
-    // MARK: ServerError
-    enum ServerError: Error {
-        case NO_INTERNET
-        case ADDRESS_UNAVAILABLE
-        case CREDENTIALS_INVALID
-        case CREDENTIALS_UNAVAILABLE
-        case CREDENTIALS_GENERATION_ERROR
-        case SERVER_FAILURE
-        case UKNOWN_ERROR
-        
-        var localizedDescription: String {
-            switch self {
-            case .NO_INTERNET: return "No Internet, could not secure IP address"
-            case .ADDRESS_UNAVAILABLE: return "IP address is unavailable."
-            case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"
-            case .CREDENTIALS_UNAVAILABLE: return "Server certificate and/or private key could not be found"
-            case .CREDENTIALS_GENERATION_ERROR: return "Server credentials could not be created"
-            case .SERVER_FAILURE: return "Server failed to start"
-            case .UKNOWN_ERROR: return "Server has encountered an unknown error"
-                
-            }
-        }
-    }
+//    //
+//    // MARK ServerError
+//    enum ServerError: Error {
+//        case NO_INTERNET
+//        case ADDRESS_UNAVAILABLE
+//        case CREDENTIALS_INVALID
+//        case CREDENTIALS_UNAVAILABLE
+//        case CREDENTIALS_GENERATION_ERROR
+//        case SERVER_FAILURE
+//        case UKNOWN_ERROR
+//
+//        var localizedDescription: String {
+//            switch self {
+//            case .NO_INTERNET: return "No Internet, could not secure IP address"
+//            case .ADDRESS_UNAVAILABLE: return "IP address is unavailable."
+//            case .CREDENTIALS_INVALID: return "Server certificate and/or private key are invalid"
+//            case .CREDENTIALS_UNAVAILABLE: return "Server certificate and/or private key could not be found"
+//            case .CREDENTIALS_GENERATION_ERROR: return "Server credentials could not be created"
+//            case .SERVER_FAILURE: return "Server failed to start"
+//            case .UKNOWN_ERROR: return "Server has encountered an unknown error"
+//
+//            }
+//        }
+//    }
     
     
     private let DEBUG_TAG: String = "Server: "
@@ -82,7 +82,7 @@ final class Server {
     func start() -> EventLoopFuture<Void>  {
         
         guard let credentials = try? Authenticator.shared.getServerCredentials() else {
-            return eventLoopGroup.next().makeFailedFuture( ServerError.CREDENTIALS_GENERATION_ERROR )
+            return eventLoopGroup.next().makeFailedFuture( AuthenticationError.CREDENTIALS_GENERATION_ERROR )
         }
         
         attempts = 0
@@ -113,8 +113,8 @@ final class Server {
             .flatMapError { error in
                 
                 if case SocketAddressError.unknown(host: _, port: _) = error {
-                    print( self.DEBUG_TAG + "transfer server failed: \(error))")
-                    return self.eventLoopGroup.next().makeFailedFuture( ServerError.NO_INTERNET )
+                    print( self.DEBUG_TAG + "transfer server failed to start: \(error))")
+                    return self.eventLoopGroup.next().makeFailedFuture( NetworkError.NO_INTERNET )
                 }
                 
                 
@@ -122,10 +122,10 @@ final class Server {
                     
                     if case .posix(_) = error as? NWError {
 //                        print(self.DEBUG_TAG+" error: \(error), code: \(code)")
-                        return self.eventLoopGroup.next().makeFailedFuture( ServerError.ADDRESS_UNAVAILABLE )
+                        return self.eventLoopGroup.next().makeFailedFuture( NetworkError.ADDRESS_UNAVAILABLE )
                     }
                     
-                    return self.eventLoopGroup.next().makeFailedFuture( ServerError.UKNOWN_ERROR )
+                    return self.eventLoopGroup.next().makeFailedFuture( Server.Error.UKNOWN_ERROR )
                 }
                 
                 

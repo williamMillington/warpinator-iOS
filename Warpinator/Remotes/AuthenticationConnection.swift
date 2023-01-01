@@ -30,11 +30,11 @@ typealias AuthenticationInfo = (certificate: NIOSSLCertificate, address: String,
 
 //
 //
-enum AuthenticationError: Error {
-    case TimeOut
-    case ConnectionError
-    case CertificateError
-}
+//enum AuthenticationError: Error {
+//    case TimeOut
+//    case ConnectionError
+//    case CertificateError
+//}
 
 
 
@@ -127,7 +127,7 @@ final class UDPConnection: AuthenticationConnection {
             
             guard error == nil else {
                 print(self.DEBUG_TAG+"request failed: \(String(describing: error))")
-                promise.fail( AuthenticationError.ConnectionError )
+                promise.fail( AuthenticationError.AUTHENTICATION_FAILED )
                 return
             }
             
@@ -156,7 +156,7 @@ final class UDPConnection: AuthenticationConnection {
             
             guard let self = self ,error == nil else {
                 print("AuthenticationError: \(String(describing: error))");
-                promise.fail( AuthenticationError.ConnectionError )
+                promise.fail( AuthenticationError.AUTHENTICATION_FAILED )
                 return
             } 
             
@@ -170,7 +170,7 @@ final class UDPConnection: AuthenticationConnection {
                     promise.succeed(certificate)
                     
                 } else {
-                    promise.fail( AuthenticationError.CertificateError )
+                    promise.fail( AuthenticationError.CREDENTIALS_INVALID )
                 }
                 
                 
@@ -179,7 +179,7 @@ final class UDPConnection: AuthenticationConnection {
                 
             } else {
                 print("No data received")
-                promise.fail( AuthenticationError.CertificateError )
+                promise.fail( AuthenticationError.CREDENTIALS_UNAVAILABLE )
             }
         }
         
@@ -299,7 +299,7 @@ final class GRPCConnection: AuthenticationConnection {
                                           port:self.details.port)
                 return channel.eventLoop.makeSucceededFuture(info)
             } else {
-                return channel.eventLoop.makeFailedFuture( AuthenticationError.CertificateError  )
+                return channel.eventLoop.makeFailedFuture( AuthenticationError.CREDENTIALS_UNAVAILABLE  )
             }
         }
         
