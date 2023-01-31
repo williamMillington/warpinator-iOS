@@ -133,6 +133,7 @@ final class ListedRemoteView: UIView {
             
             displayNameLabel.leadingAnchor.constraint(equalTo: userImageView.trailingAnchor, constant: 5),
             displayNameLabel.bottomAnchor.constraint(equalTo: centerYAnchor),
+            displayNameLabel.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, multiplier: 0.6),
             
             deviceNameLabel.leadingAnchor.constraint(equalTo: displayNameLabel.leadingAnchor),
             deviceNameLabel.topAnchor.constraint(equalTo: centerYAnchor),
