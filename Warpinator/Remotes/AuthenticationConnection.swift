@@ -63,9 +63,11 @@ final class UDPConnection: AuthenticationConnection {
         params.allowLocalEndpointReuse = true
         params.requiredInterfaceType = .wifi
         
-        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-            inetOptions.version = .v4
-        }
+        
+        // force ipv4
+        let ip =  params.defaultProtocolStack.internetProtocol! as! NWProtocolIP.Options
+        ip.version = .v4
+        
         
         connection = NWConnection(to: endpoint, using: params)
         
@@ -192,6 +194,18 @@ final class UDPConnection: AuthenticationConnection {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 //
 // MARK: - GRPCConnection
 final class GRPCConnection: AuthenticationConnection {
@@ -221,10 +235,9 @@ final class GRPCConnection: AuthenticationConnection {
         params.requiredInterfaceType = .wifi
         
         
-        if let inetOptions =  params.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
-//            print(DEBUG_TAG+"restrict connection to v4")
-            inetOptions.version = .v4
-        }
+        // force ipv4
+        let ip =  params.defaultProtocolStack.internetProtocol! as! NWProtocolIP.Options
+        ip.version = .v4
         
         
         // We need to start by resolving a regular ol' NWConnection in order
