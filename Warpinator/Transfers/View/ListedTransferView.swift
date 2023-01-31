@@ -164,7 +164,6 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
     
     var onInfoUpdated: ()->Void = {}
     
-    
     var UUID: UInt64 {
         return operation.UUID
     }
@@ -179,19 +178,13 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
     
     
     var fileCount: String {
-        var fileString = "File"
-        
-        if operation.fileCount != 1 {
-            fileString = fileString + "s"
-        }
-        
-        return "\(operation.fileCount) " + fileString
+        return "\(operation.fileCount) File" + ( operation.fileCount != 1 ? "s" : "" )
     }
     
     
     var status: String {
         switch operation.status {
-        case .FAILED(_): return "FAILED"
+        case .FAILED(let error): return  (error as? TransferError) == .TransferCancelled ? "CANCELLED" :  "FAILED"
         case .WAITING_FOR_PERMISSION: return "WAITING"
         default: return "\(operation.status)"
         }
@@ -212,7 +205,7 @@ final class ListedTransferViewModel: NSObject, ObservesTransferOperation {
     }
     
     
-    func fileAdded() {
+    func fileAdded(_ vm: ListedFileViewModel) { 
         
     }
     

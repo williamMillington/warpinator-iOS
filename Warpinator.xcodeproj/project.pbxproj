@@ -10,6 +10,7 @@
 		7914DDF22819C81A00A9BB51 /* LoadingMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7914DDF12819C81A00A9BB51 /* LoadingMessageView.swift */; };
 		7914DDF42819C99200A9BB51 /* ErrorMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7914DDF32819C99200A9BB51 /* ErrorMessageView.swift */; };
 		7914DDF6281CCE7D00A9BB51 /* String+NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7914DDF5281CCE7C00A9BB51 /* String+NSAttributedString.swift */; };
+		7915D86A2961AE49000D271A /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7915D8692961AE49000D271A /* Errors.swift */; };
 		791D77E72767B244008140CC /* SendTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77E62767B244008140CC /* SendTransferViewController.swift */; };
 		791D77EF2767DF3B008140CC /* CreateTransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */; };
 		791D77F62769910A008140CC /* ListedFileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791D77F52769910A008140CC /* ListedFileSelectionView.swift */; };
@@ -31,6 +32,8 @@
 		79360ED5270A29B0008349D2 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79360ED4270A29B0008349D2 /* Remote.swift */; };
 		7936B0712753B538001FA7C9 /* ListedTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B0702753B538001FA7C9 /* ListedTransferView.swift */; };
 		7936B07427554CB2001FA7C9 /* ReceiveTransferViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */; };
+		79372494288F9665005C7F9E /* EventloopFuture+Void.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79372493288F9665005C7F9E /* EventloopFuture+Void.swift */; };
+		7937995E2898BF900032B7CA /* String+nil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7937995D2898BF900032B7CA /* String+nil.swift */; };
 		79395589279F468F00D5EC8B /* FolderWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79395588279F468F00D5EC8B /* FolderWriter.swift */; };
 		7954F92F2795F98900F255AE /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7954F92E2795F98900F255AE /* SettingsManager.swift */; };
 		796328242757FF930056F76B /* RemoteCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796328232757FF930056F76B /* RemoteCoordinator.swift */; };
@@ -84,6 +87,7 @@
 		7914DDF12819C81A00A9BB51 /* LoadingMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingMessageView.swift; sourceTree = "<group>"; };
 		7914DDF32819C99200A9BB51 /* ErrorMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessageView.swift; sourceTree = "<group>"; };
 		7914DDF5281CCE7C00A9BB51 /* String+NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+NSAttributedString.swift"; sourceTree = "<group>"; };
+		7915D8692961AE49000D271A /* Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		791D77E62767B244008140CC /* SendTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendTransferViewController.swift; sourceTree = "<group>"; };
 		791D77EE2767DF3B008140CC /* CreateTransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTransferCoordinator.swift; sourceTree = "<group>"; };
 		791D77F52769910A008140CC /* ListedFileSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedFileSelectionView.swift; sourceTree = "<group>"; };
@@ -106,6 +110,8 @@
 		79360ED4270A29B0008349D2 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
 		7936B0702753B538001FA7C9 /* ListedTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListedTransferView.swift; sourceTree = "<group>"; };
 		7936B07327554CB2001FA7C9 /* ReceiveTransferViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveTransferViewController.swift; sourceTree = "<group>"; };
+		79372493288F9665005C7F9E /* EventloopFuture+Void.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventloopFuture+Void.swift"; sourceTree = "<group>"; };
+		7937995D2898BF900032B7CA /* String+nil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+nil.swift"; sourceTree = "<group>"; };
 		79395588279F468F00D5EC8B /* FolderWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderWriter.swift; sourceTree = "<group>"; };
 		7954F92E2795F98900F255AE /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		796328232757FF930056F76B /* RemoteCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoordinator.swift; sourceTree = "<group>"; };
@@ -237,6 +243,7 @@
 				791D781427717575008140CC /* Observable.swift */,
 				7954F92E2795F98900F255AE /* SettingsManager.swift */,
 				797C12B9270FC86A00A2795C /* Authenticator.swift */,
+				7915D8692961AE49000D271A /* Errors.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -360,11 +367,13 @@
 				791D7825277378F0008140CC /* Array+Index_nillable.swift */,
 				79CBD45727A34273002C29D3 /* Data+ChunkIterator.swift */,
 				799E39FD2746DFC600E60FFC /* Double+Int.swift */,
+				79372493288F9665005C7F9E /* EventloopFuture+Void.swift */,
 				79B8A0EC27449EE300369E62 /* ExtensionManagement.swift */,
 				79D089DF273F0BC200B14FAB /* FileManager+Misc.swift */,
 				79DCBB4427EA1A8500E1B847 /* NIOSSLCertificate+PEM.swift */,
 				79B8A0E927449EB500369E62 /* String+substring.swift */,
 				7914DDF5281CCE7C00A9BB51 /* String+NSAttributedString.swift */,
+				7937995D2898BF900032B7CA /* String+nil.swift */,
 				7922BF7F285A1C2F00B0B6CF /* UIColor+hexstring.swift */,
 			);
 			path = Extensions;
@@ -477,6 +486,7 @@
 				799E39F42746A0E500E60FFC /* RemoteViewController.swift in Sources */,
 				79B8A0ED27449EE300369E62 /* ExtensionManagement.swift in Sources */,
 				799E39EB2746989000E60FFC /* AutoLayoutDebugView.swift in Sources */,
+				7937995E2898BF900032B7CA /* String+nil.swift in Sources */,
 				79360ED5270A29B0008349D2 /* Remote.swift in Sources */,
 				79CCFB9F273ED5EF00852EBD /* TransfersCommon.swift in Sources */,
 				79C002AE270A92EC002DB22B /* warp.grpc.swift in Sources */,
@@ -505,11 +515,13 @@
 				79B002302719FCCB003CEBCC /* MDNSListener.swift in Sources */,
 				79B8A0F7274561C600369E62 /* Coordinator.swift in Sources */,
 				791D781527717575008140CC /* Observable.swift in Sources */,
+				7915D86A2961AE49000D271A /* Errors.swift in Sources */,
 				79395589279F468F00D5EC8B /* FolderWriter.swift in Sources */,
 				79B0029E27308798003CEBCC /* RegistrationServer.swift in Sources */,
 				796B5A89278BB3CB009CEF73 /* FolderReader.swift in Sources */,
 				7914DDF6281CCE7D00A9BB51 /* String+NSAttributedString.swift in Sources */,
 				79360EB427069897008349D2 /* AppDelegate.swift in Sources */,
+				79372494288F9665005C7F9E /* EventloopFuture+Void.swift in Sources */,
 				79360EB627069897008349D2 /* SceneDelegate.swift in Sources */,
 				79B002262717BDF6003CEBCC /* CertificateServer.swift in Sources */,
 				791D7826277378F0008140CC /* Array+Index_nillable.swift in Sources */,
@@ -676,7 +688,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 96DC6YV3DR;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/Warpinator/Info.plist";
@@ -685,7 +697,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.2;
+				MARKETING_VERSION = 0.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.millington.Warpinator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -700,7 +712,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 96DC6YV3DR;
 				ENABLE_TESTING_SEARCH_PATHS = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/Warpinator/Info.plist";
@@ -709,7 +721,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.2;
+				MARKETING_VERSION = 0.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.millington.Warpinator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

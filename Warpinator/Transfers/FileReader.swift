@@ -111,25 +111,23 @@ final class FileReader: NSObject, ReadsFile {
         } catch {
             print("FileReader: Could not load bookmarked URL: \(error)")
         }
-        
     }
     
     
     // MARK: readNextChunk
     func readNextChunk() -> FileChunk? {
         
+        defer { updateObserversInfo() }
+        
         guard fileIsBeingAccessed,
               fileHandle.offsetInFile < totalBytes else {
             
-            updateObserversInfo()
-            
+//            updateObserversInfo()
             print(DEBUG_TAG+"No more data.")
             return nil
         }
         
-        
         fileHandle.seek(toFileOffset: readHead)
-        
         
         let datachunk = fileHandle.readData(ofLength: SendFileOperation.chunk_size)
         
@@ -142,7 +140,7 @@ final class FileReader: NSObject, ReadsFile {
         sent += datachunk.count
         readHead += UInt64( datachunk.count )
 
-        updateObserversInfo()
+//        updateObserversInfo()
         
         return fileChunk
     }
@@ -151,20 +149,20 @@ final class FileReader: NSObject, ReadsFile {
     // MARK: close
     func close(){
         
+        defer { updateObserversInfo() }
+        
         guard fileIsBeingAccessed else { return }
         
         fileHandle.closeFile()
         fileIsBeingAccessed = false
         fileURL.stopAccessingSecurityScopedResource()
         
-        updateObserversInfo()
-        
         print(DEBUG_TAG+"File is closed")
     }
     
     
     deinit {
-        if fileIsBeingAccessed { // in case of interruption
+        if fileIsBeingAccessed { // in case of interruption during access
             close()
         }
     }

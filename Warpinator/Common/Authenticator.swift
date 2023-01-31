@@ -152,7 +152,7 @@ final class Authenticator {
     
     
     
-    // MARK: getServer Credentials
+    // MARK: getServerCredentials
     typealias Credentials = (certificate: NIOSSLCertificate, key: NIOSSLPrivateKey)
     var credential_generation_attempts: Int = 0
     
@@ -163,7 +163,7 @@ final class Authenticator {
         // if, for some unknown reason, we can't generate credentials,
         // don't attempt endlessly.
         guard credential_generation_attempts < 5 else {
-            throw Server.ServerError.CREDENTIALS_GENERATION_ERROR
+            throw AuthenticationError.CREDENTIALS_GENERATION_ERROR
         }
         
         
@@ -176,12 +176,12 @@ final class Authenticator {
             
             // check cert is still valid  (certs only last 1 month)
             guard verify(certificate: cert) else {
-                throw Server.ServerError.CREDENTIALS_INVALID
+                throw AuthenticationError.CREDENTIALS_INVALID
             }
             
             credentials = (cert, key)
             
-        } catch Server.ServerError.CREDENTIALS_INVALID, KeyMaster.KeyMasterError.itemNotFound {
+        } catch AuthenticationError.CREDENTIALS_INVALID, KeyMaster.KeyMasterError.itemNotFound {
             
             //TODO: unnecessary to catch invalid credentials. But need to catch itemnotfound
             
@@ -244,6 +244,7 @@ final class Authenticator {
         
         print(DEBUG_TAG+"generating new server certificate...")
         
+        //
         // CREATE KEYS
         let keypair = try! SecKeyPair.Builder(type: .rsa, keySize: 2048).generate()
 
@@ -255,6 +256,7 @@ final class Authenticator {
         let privateKey = keypair.privateKey
         
         
+        //
         // SET VALIDITY TIME FRAME
         let day_seconds: Double = 60 * 60 * 24      // seconds in a day
         let expirationTime: Double = 30 * day_seconds // one month
@@ -266,18 +268,23 @@ final class Authenticator {
         let endTime = AnyTime(date: endDate, timeZone: .init(secondsFromGMT: 0)  ?? .current  )
         
         
+        //
         // COMMON NAME
         let hostname = "WarpinatorIOS"
         let x500Name = try! NameBuilder.parse(string:"CN="+hostname)
         
         
+        //
         // SERIAL NUMBER
         let currentTime = Double(Date.timeIntervalBetween1970AndReferenceDate + Date.timeIntervalSinceReferenceDate)
         let serialNumber = TBSCertificate.SerialNumber( String(currentTime) )
         
         
-        // -- EXTENSIONS
         
+        // -- CERTIFICATE EXTENSIONS --
+        
+        
+        //
         // Subject Alternative Name: IP address
         let ipAddress = Utils.getIP_V4_Address()
         
@@ -291,14 +298,17 @@ final class Authenticator {
         let ipAddressExtension = GeneralName.ipAddress( Data( IPparts ) )
         
         
+        //
         // SUBJECT AND ISSUER KEY IDENTIFIERS (self-signed, so same identifier for both)
         let keyID: KeyIdentifier = Digester.digest( publicKeyEncoded, using: .sha1)
         
+        //
         // EXTENDED KEY USAGES
         let kp = iso.org.dod.internet.security.mechanisms.pkix.kp.self
         let usages: Set<OID> = [ kp.clientAuth.oid, kp.serverAuth.oid  ]
         
         
+        //
         // CREATE CERTIFICATE BUILDER
         let certBuilder = try! Certificate.Builder(serialNumber: serialNumber,
                                               issuer: x500Name,
@@ -313,6 +323,7 @@ final class Authenticator {
             .extendedKeyUsage(keyPurposes: usages , isCritical: true)
             
             
+        //
         // CREATE/SIGN CERTIFICATE
         let digestAlgorithm = Digester.Algorithm.sha256
         let certificate = try! certBuilder.build(signingKey: privateKey,

@@ -57,8 +57,8 @@ typealias FileName = (name: String, ext: String)
 //
 // MARK: TransferError
 enum TransferError: Error {
-    case ConnectionInterrupted
-    case PermissionDeclined
+    case ConnectionInterruption
+    case TransferDeclined, PermissionDeclined
     case TransferCancelled
     case TransferNotFound
     case UnknownError
@@ -74,12 +74,16 @@ public enum TransferDirection: String {
 
 //
 // MARK: TransferStatus
-enum TransferStatus: Equatable {
-    
+enum TransferStatus {
+    case INITIALIZING, WAITING_FOR_PERMISSION
+    case TRANSFERRING
+    case FINISHED, CANCELLED, FAILED(Error)
+}
+
+extension TransferStatus: Equatable {
     static func == (lhs: TransferStatus, rhs: TransferStatus) -> Bool {
         
         switch (lhs, rhs){
-        
         case (INITIALIZING, INITIALIZING),
              (WAITING_FOR_PERMISSION,WAITING_FOR_PERMISSION),
              (CANCELLED, CANCELLED),
@@ -95,12 +99,6 @@ enum TransferStatus: Equatable {
              (FAILED(_),_): return false
         }
     }
-    
-    case INITIALIZING
-    case WAITING_FOR_PERMISSION
-    case CANCELLED
-    case TRANSFERRING, FINISHED
-    case FAILED(Error)
 }
 
 
@@ -122,14 +120,14 @@ protocol TransferOperation {
     var bytesTransferred: Int { get }
     var bytesPerSecond: Double { get }
     
-    var progress: Double { get }
+//    var progress: Double { get }
     
     var operationInfo: OpInfo { get }
     
     var observers: [ObservesTransferOperation] { get }
     
-    func orderStop(_ error: Error?)
-    func stopRequested(_ error: Error?)
+    func stop(_ error: Error)
+//    func stopRequested(_ error: Error?)
     
     
     func addObserver(_ model: ObservesTransferOperation)
@@ -174,7 +172,7 @@ final class MockReceiveTransfer: TransferOperation {
     
     
     init(){
-        owningRemote = Remote(details: RemoteDetails.MOCK_DETAILS )
+//        owningRemote = Remote(details: Details.MOCK_DETAILS )
         
         // random number
         UUID = 0 + UInt64.random(in: 0...9) + UInt64.random(in: 0...9) + UInt64.random(in: 0...9) + UInt64.random(in: 0...9)
@@ -187,7 +185,7 @@ final class MockReceiveTransfer: TransferOperation {
     }
     
     
-    func orderStop(_ error: Error? = nil){
+    func stop(_ error: Error){
         status = .CANCELLED
     }
     
@@ -204,7 +202,7 @@ final class MockReceiveTransfer: TransferOperation {
         
     }
     
-    func updateObserversInfo() {
+    func updateObserversInfo( ) {
         
     }
     

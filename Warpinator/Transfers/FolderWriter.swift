@@ -16,7 +16,7 @@ final class FolderWriter: NSObject, WritesFile {
     
     
     // Names of files, as provided by the client.
-    // Used in determining the file in which a given chunk belongs, which may change,
+    // Used in determining the file in which a given chunk belongs,
     // depending if we have to rename due to name conflicts
     var downloadName: String
     var downloadRelativePath: String
@@ -40,17 +40,6 @@ final class FolderWriter: NSObject, WritesFile {
     var currentWriter: WritesFile? = nil
     
     var bytesWritten: Int {
-//
-//        do {
-//            let attributes = try FileManager.default.attributesOfItem(atPath: itemURL.path )
-//            if let size = attributes[FileAttributeKey.size] as? NSNumber {
-//                print(DEBUG_TAG+"\t\t FileAttributeKey.size is \( size.doubleValue )" )
-//            }
-//        } catch {
-//            print("Error: \(error)")
-//        }
-        
-        
         let currWriterBytes = (currentWriter?.bytesWritten ?? 0) + 4096
         return currWriterBytes + completedFiles.map { return $0.bytesWritten  }.reduce(0, +)
     }
@@ -75,7 +64,7 @@ final class FolderWriter: NSObject, WritesFile {
         super.init()
         
         let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: itemURL.path) {
+        if fileManager.fileExists(atPath: itemURL.path) { // name conflict
             
             // Rename
             if !overwrite {
@@ -90,7 +79,6 @@ final class FolderWriter: NSObject, WritesFile {
                     fileSystemName = rename(downloadName)
                 }
             }
-            
         }
         
         
@@ -137,13 +125,14 @@ final class FolderWriter: NSObject, WritesFile {
     // MARK: processChunk
     func processChunk(_ chunk: FileChunk) throws {
         
+        defer { updateObserversInfo() }
+        
         // Check chunk belongs in this folder
         guard isValidSubPath(chunk.relativePath) else {
             print(DEBUG_TAG+"\t\(chunk.relativePath) does not belong in \(downloadRelativePath)")
             throw WritingError.FILENAME_MISMATCH
         }
         
-        defer { updateObserversInfo() }
         
         //
         // if we have a writer, try it
@@ -157,6 +146,7 @@ final class FolderWriter: NSObject, WritesFile {
                     completedFiles.append(writer)
             }
         }
+        
         
         // Create writer to handle chunk
         
@@ -188,20 +178,19 @@ final class FolderWriter: NSObject, WritesFile {
         let pathParts = downloadRelativePath.components(separatedBy: "/")
         let subpathParts = otherPath.components(separatedBy: "/")
         
-        // a subpath will contain it's parentpath, so subPathParts.count
-        // should always be greater than pathParts.count.
+        // subpathParts should always be bigger than pathParts, because a subpath is
+        // it's parents path, plus a bit
         // If equal, it's the same folder, OR a file with the same name; reject
         guard subpathParts.count > pathParts.count else {
             return false
         }
         
-        
-        for i in 0..<pathParts.count {
+        for (i,item) in pathParts.enumerated() {
             
             // if -at any point- these parts don't match up, then otherpath does not
             // belong in this folder
             guard let subpathComponent = subpathParts[nullable: i],
-                  subpathComponent == subpathParts[i] else {
+                  subpathComponent == item else {
                 return false
             }
         }

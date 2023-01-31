@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import NIOCore
 
 
 
@@ -75,16 +76,16 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     // MARK: userSelectedTransfer
     func userSelectedTransfer(withUUID uuid: UInt64 ){
         
-        if let operation = remote.findTransferOperation(for: uuid){
+        if let operation = remote.findTransfer(withUUID: uuid){
             
             // If we need to accept the transfer first
             if operation.status == .WAITING_FOR_PERMISSION &&
                 operation.direction == .RECEIVING {
                 
-                openAcceptTransferViewController(forTransferOperation: operation)
+                openAcceptTransferViewController(forOperation: operation)
                 
             } else {
-                openTransferViewController(forTransferOperation: operation)
+                openTransferViewController(forOperation: operation)
             }
         }
     }
@@ -92,7 +93,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     //
     // MARK: openTransferViewController
-    private func openTransferViewController(forTransferOperation operation: TransferOperation){
+    private func openTransferViewController(forOperation operation: TransferOperation){
         
         let vm = TransferOperationViewModel(for: operation)
         let rm = RemoteViewModel(remote)
@@ -105,7 +106,7 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     //
     // MARK: view transfer request
-    private func openAcceptTransferViewController(forTransferOperation operation: TransferOperation){
+    private func openAcceptTransferViewController(forOperation operation: TransferOperation){
         
         let vm = ReceiveTransferViewModel(operation: operation, from: remote)
         let vc = ReceiveTransferViewController(withViewModel: vm)
@@ -118,12 +119,12 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     
     //
     // MARK: accept transfer
-    func acceptTransfer(forTransferUUID uuid: UInt64){
+    func acceptTransfer(withUUID uuid: UInt64){
         
         print(DEBUG_TAG+"user approved transfer with uuid \(uuid)")
         
-        if let operation = remote.findReceiveOperation(withStartTime: uuid) {
-            remote.callClientStartTransfer(for: operation)
+        if let operation =  remote.findTransfer(withUUID: uuid)  as? ReceiveFileOperation { //}   remote.findReceiveOperation(withStartTime: uuid) {
+            remote.startTransfer(for: operation)
             showRemote()
         }
     }
@@ -135,11 +136,9 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
         
         print(DEBUG_TAG+"user declined transfer with uuid \(uuid)")
         
-        if let operation = remote.findReceiveOperation(withStartTime: uuid) {
-            print(DEBUG_TAG+"\t transfer found")
-            operation.decline(nil)
-            showRemote()
-        }
+        remote.declineTransfer(withUUID: uuid)
+        
+        showRemote()
     }
     
     
@@ -148,28 +147,26 @@ final class RemoteCoordinator: NSObject, Coordinator, SubCoordinator {
     func cancelTransfer(forTransferUUID uuid: UInt64){
         
         print(DEBUG_TAG+"user cancelled transfer with uuid \(uuid)")
-        
-        if let operation = remote.findTransferOperation(for: uuid) {
-            print(DEBUG_TAG+"\t transfer found")
-            operation.orderStop(nil)
-        }
+        remote.findTransfer(withUUID: uuid)?.stop(TransferError.TransferCancelled)
     }
     
     
     //
     // MARK: retry transfer
-    func retryTransfer(forTransferUUID uuid: UInt64){
+    func retryTransfer(forTransferUUID uuid: UInt64) -> EventLoopFuture<Void> {
+//        func retryTransfer(forTransferUUID uuid: UInt64) {
+
         
-        print(DEBUG_TAG+"user elected to re-attempt transfer with uuid \(uuid)")
+        print(DEBUG_TAG+"retry transfer with uuid \(uuid)")
         
-        if let operation = remote.findSendOperation(withStartTime: uuid) {
-            print(DEBUG_TAG+"\t send transfer found")
-            
-            operation.prepareToSend()
-            
-            remote.sendRequest(toTransfer: operation)
-            
+        guard let operation = remote.findTransfer(withUUID: uuid) as? SendFileOperation else {
+            print(DEBUG_TAG+"\t transfer not found")
+            return remote.eventLoopGroup.next().makeFailedFuture(TransferError.TransferNotFound)
         }
+        
+        // TODO use result of sendRequest to update ui
+//        let _ =
+        return remote.sendRequest(toTransfer: operation)
     }
     
     
@@ -206,7 +203,8 @@ extension RemoteCoordinator {
     func mockReceiveTransfer(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             let mockOp = ReceiveFileOperation.MockOperation.make(for: self.remote)
-            self.remote.addReceivingOperation(mockOp)
+//            self.remote.addReceivingOperation(mockOp)
+            self.remote.addTransfer(mockOp)
         }
     }
     

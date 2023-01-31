@@ -11,25 +11,35 @@ import UIKit
 //MARK: View Controller
 final class TransferViewController: UIViewController {
     
-    lazy var DEBUG_TAG: String = "TransferViewController:"
+    enum ButtonOptions {
+        case Cancel
+        case Resend
+        
+    }
+    
+    
+    lazy var DEBUG_TAG: String = "TransferViewController: "
     
     var coordinator: RemoteCoordinator?
     
     @IBOutlet var transferDescriptionLabel: UILabel!
     
     @IBOutlet var transferProgressLabel: UILabel!
-    @IBOutlet var transferStatusLabel: UILabel!
+    @IBOutlet var transferStatusLabel: UILabel?
     
     @IBOutlet var cancelButton: UIButton!
     @IBOutlet var retryButton: UIButton!
+    
+    
+    
     
     @IBOutlet var backButton: UIButton!
     
     @IBOutlet var operationsStack: UIStackView!
     
     
-    var remoteViewModel: RemoteViewModel?
-    var transferViewModel: TransferOperationViewModel?
+    var remoteViewModel: RemoteViewModel!
+    var transferViewModel: TransferOperationViewModel!
     
     
     init(withTransfer t_viewModel: TransferOperationViewModel,
@@ -40,16 +50,16 @@ final class TransferViewController: UIViewController {
         remoteViewModel = r_viewModel
         
         
-        transferViewModel?.onInfoUpdated = { [weak self] in
-            self?.updateDisplay()
+        transferViewModel.onInfoUpdated = {
+            self.updateDisplay()
         }
         
-        transferViewModel?.onFileAdded = {
-            
+        transferViewModel?.onFileAdded = { vm in
+            self.addFileViewToStack(withViewModel: vm)
         }
         
-        remoteViewModel?.onInfoUpdated = { [weak self] in
-            self?.updateDisplay()
+        remoteViewModel.onInfoUpdated = {
+            self.updateDisplay()
         }
         
     }
@@ -67,9 +77,15 @@ final class TransferViewController: UIViewController {
         
         view.backgroundColor = Utils.backgroundColour
         
-        for view in operationsStack.arrangedSubviews {   view.removeFromSuperview()  }
-        
         // load intial info
+        
+        operationsStack.arrangedSubviews.forEach { subview in
+            subview.removeFromSuperview()
+        }
+        
+        for viewmodel in transferViewModel.files {
+            addFileViewToStack(withViewModel: viewmodel)
+        }
         
         updateDisplay()
         
@@ -79,10 +95,10 @@ final class TransferViewController: UIViewController {
     // MARK: add fileView
     private func addFileViewToStack(withViewModel viewmodel: ListedFileViewModel){
         
+//        print(self.DEBUG_TAG+"adding file view to stack")
         let ltview = ListedFileOperationView(withViewModel: viewmodel)
         
         operationsStack.insertArrangedSubview(ltview, at: (operationsStack.arrangedSubviews.count))
-        
     }
     
     
@@ -90,59 +106,71 @@ final class TransferViewController: UIViewController {
     // MARK: udpateDisplay
     func updateDisplay(){
         
-//        print(DEBUG_TAG+"updating info")
+        transferStatusLabel?.text = "\(transferViewModel.statusDescription)"
+        transferDescriptionLabel?.text = transferViewModel.transferDescription + " \(remoteViewModel.displayName)"
+        transferProgressLabel?.text = transferViewModel.progressDescription
         
-        guard let remoteViewModel = remoteViewModel else { return }
-        guard let transferViewModel = transferViewModel else { return }
+        var pressable: Bool = false
         
+        cancelButton?.allTargets.forEach { target in
+            cancelButton?.removeTarget(target, action: nil, for: .allEvents)
+        }
         
-        transferStatusLabel.text = "\(transferViewModel.status)"
-        
-        transferDescriptionLabel.text = transferViewModel.transferDescription + " \(remoteViewModel.displayName)"
-
-        transferProgressLabel.text = transferViewModel.progressString
-        
-        // TODO: I don't like this, there's got to be a better way than
-        // flicking everything off->on every update
-        cancelButton.alpha = 0
-        cancelButton.isUserInteractionEnabled = false
-        retryButton.alpha = 0
-        retryButton.isUserInteractionEnabled = false
-        
-        let buttonStatus = transferViewModel.buttonStatus()
-        
-        if buttonStatus.pressable {
+        switch transferViewModel.status {
+        case .TRANSFERRING, .WAITING_FOR_PERMISSION:
             
-            if buttonStatus.text == "Retry" {
-                retryButton.alpha = 1
-                retryButton.isUserInteractionEnabled = true
-            } else {
-                cancelButton.alpha = 1
-                cancelButton.isUserInteractionEnabled = true
+            pressable = true
+            cancelButton?.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+            cancelButton?.backgroundColor = #colorLiteral(red: 0.7831932107, green: 0.1171585075, blue: 0.006766619796, alpha: 1)
+            
+        case .FINISHED:
+            
+            if transferViewModel.direction == "SENDING" {
+                pressable = true
+                cancelButton?.addTarget(self, action: #selector(retry), for: .touchUpInside)
+                cancelButton?.backgroundColor = #colorLiteral(red: 0.1902806013, green: 0.6370570039, blue: 0.2034104697, alpha: 1)
             }
+        case .CANCELLED, .FAILED(_):
             
-        }
+            // Only allow retry if sending. Otherwise, disable button
+            if transferViewModel.direction == "SENDING" {
+                print(DEBUG_TAG+"\t\t\t button pressable")
+                pressable = true
+                cancelButton?.addTarget(self, action: #selector(retry), for: .touchUpInside)
+                cancelButton?.backgroundColor = #colorLiteral(red: 0.1902806013, green: 0.6370570039, blue: 0.2034104697, alpha: 1)
 
-        operationsStack.arrangedSubviews.forEach { subview in
-            subview.removeFromSuperview()
+            }
+        default:
+            break
         }
         
-        for viewmodel in transferViewModel.files {
-            addFileViewToStack(withViewModel: viewmodel)
-        }
         
+        
+        
+        cancelButton?.setTitle(transferViewModel.buttonTitle, for: .normal)
+        cancelButton?.alpha = pressable ? 1 : 0.4
+        cancelButton?.isUserInteractionEnabled = pressable
+
     }
     
     
     // MARK: cancel
     @IBAction @objc func cancel(){
         coordinator?.cancelTransfer(forTransferUUID: transferViewModel!.UUID)
+        updateDisplay()
     }
     
     
     // MARK: retry
     @IBAction @objc func retry(){
-        coordinator?.retryTransfer(forTransferUUID: transferViewModel!.UUID)
+        
+        let _ = coordinator!.retryTransfer(forTransferUUID: transferViewModel!.UUID).whenComplete { result in
+            print(self.DEBUG_TAG+"Attemp to retry transfer had result \(result)")
+            
+            DispatchQueue.main.async { // update UI on main thread
+                self.updateDisplay()
+            }
+        }
     }
     
     
@@ -155,6 +183,19 @@ final class TransferViewController: UIViewController {
 
 
 
+extension TransferViewController {
+    override func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        
+        addFileViewToStack(withViewModel: MockListedFileReaderViewModel() )
+        
+    }
+}
+
+
+
+
+
 
 //
 //MARK:  - ViewModel
@@ -163,35 +204,88 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     private var operation: TransferOperation
     
     var onInfoUpdated: ()->Void = {}
-    var onFileAdded: ()->Void = {}
+    var onFileAdded: (ListedFileViewModel)->Void = { vm in }
     
     
     //
+    // MARK: UUID
     var UUID: UInt64 {
         return operation.UUID
     }
     
     
-    //
+    // MARK: fileCount
     var fileCount: String {
         return "\(operation.fileCount)"
     }
-
+    
+    
+    // MARK: buttonTitle
+    var buttonTitle: String {
+        
+        switch operation.status {
+        case .TRANSFERRING, .WAITING_FOR_PERMISSION:
+            return "Cancel"
+        case .FINISHED:
+            
+            if operation.direction == .SENDING {
+                return "Re-send"
+            }
+        case .CANCELLED, .FAILED(_):
+            
+            // Only allow retry if sending. Otherwise, disable button
+            if operation.direction == .SENDING {
+                return "Retry"
+            } else {
+                return "Cancelled"
+            }
+        default: break
+        }
+        return ""
+    }
+    
+    
+    // MARK: buttonStatus
+    var buttonStatus: Bool {
+        
+        switch operation.status {
+        case .TRANSFERRING, .WAITING_FOR_PERMISSION:
+            return true
+        case .FINISHED:
+            
+            if operation.direction == .SENDING {
+                return true
+            }
+            
+            // "else" return false after exiting switch
+            
+        case .CANCELLED, .FAILED(_):
+            
+            // Only allow retry if sending. Otherwise, disable button
+            if operation.direction == .SENDING {
+                return true
+            }
+        default: break
+        }
+        
+        return false
+    }
     
     //
+    // MARK: transferDescription
     var transferDescription: String {
         
         let filesCount: Int = operation.fileCount
         let filesCountString: String = "\(filesCount) file" + (filesCount == 1 ? "" : "s")
-        
         
         let directionString = operation.direction == .RECEIVING ? "from" : "to"
         
         return "Transferring \(filesCountString) \(directionString)"
     }
     
-    //
-    var progressString: String {
+    
+    // MARK: progressDescription
+    var progressDescription: String {
         
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
@@ -200,54 +294,71 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     }
     
     //
+    // MARK: status
     var status: TransferStatus {
         return operation.status
     }
     
     //
+    // MARK: statusDescription
+    var statusDescription: String {
+        
+        switch operation.status {
+        case .INITIALIZING: return "Initializing"
+        case .WAITING_FOR_PERMISSION: return "Waiting"
+        case .TRANSFERRING: return "Transferring"
+        case .FAILED(let error):
+            guard let error = error as? TransferError, error != .TransferCancelled else {
+                fallthrough // fallthrough to .Cancelled
+            }
+            
+            return "Failed"
+        case .CANCELLED: return "Cancelled"
+        case .FINISHED: return "Finished"
+            
+        }
+    }
+    
+    
+    //
+    // MARK: direction
     var direction: String {
         return "\(operation.direction)"
     }
     
+    
     //
+    // MARK: files
     var files: [ListedFileViewModel] {
         
         var viewModels: [ListedFileViewModel] = []
         
-        if let transfer = operation as? SendFileOperation {
+        (operation as? SendFileOperation)?.fileReaders.forEach {  reader in
             
-            for reader in transfer.fileReaders {
-                
-                // If not a file reader, must be a folderReader.
-                let vm: ListedFileViewModel
-                if let fileReader = reader as? FileReader {
-                    vm = ListedFileReaderViewModel(fileReader)
-                } else {
-                    let folderReader = reader as! FolderReader
-                    vm = ListedFolderReaderViewModel(folderReader)
-                }
-                
-                viewModels.append(vm)
+            // If not a file reader, must be a folderReader.
+            let vm: ListedFileViewModel
+            if let fileReader = reader as? FileReader {
+                vm = ListedFileReaderViewModel(fileReader)
+            } else {
+                vm = ListedFolderReaderViewModel( reader as! FolderReader )
             }
             
-        } else {
+            viewModels.append(vm)
+        }
+        
+        
+        (operation as? ReceiveFileOperation)?.fileWriters.forEach { writer in
             
-            let transfer = operation as! ReceiveFileOperation
-            
-            for writer in transfer.fileWriters {
-                
-                
-                let vm: ListedFileViewModel
-                if let fileWriter = writer as? FileWriter {
-                    vm = ListedFileWriterViewModel(fileWriter)
-                } else {
-                    let folderWriter = writer as! FolderWriter
-                    vm = ListedFolderWriterViewModel(folderWriter)
-                }
-                
-                viewModels.append(vm)
+            // If not a file writer, must be a folderWriter.
+            let vm: ListedFileViewModel
+            if let fileWriter = writer as? FileWriter {
+                vm = ListedFileWriterViewModel(fileWriter)
+            } else {
+                let folderWriter = writer as! FolderWriter
+                vm = ListedFolderWriterViewModel(folderWriter)
             }
             
+            viewModels.append(vm)
         }
         
         return viewModels
@@ -255,8 +366,9 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     
     
     //
+    // MARK: progress
     var progress: Double {
-        return operation.progress
+        return Double(operation.bytesTransferred / operation.totalSize)
     }
     
     
@@ -271,37 +383,6 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     
     //
     //
-    func buttonStatus() -> (pressable: Bool, text: String) {
-        
-        var pressable: Bool = false
-        var text: String = "Finished"
-        
-        switch operation.status {
-        case .TRANSFERRING, .WAITING_FOR_PERMISSION:
-            
-            pressable = true
-            text = "Cancel"
-            
-        case .CANCELLED, .FAILED(_):
-            
-            // Only allow retry if sending. Otherwise, disable button
-            guard operation.direction == .SENDING else {
-                text = "Failed"
-                fallthrough
-            }
-            
-            pressable = true
-            text = "Retry"
-        default: break
-        }
-        
-        
-        return (pressable, text)
-    }
-    
-    
-    //
-    //
     func infoDidUpdate(){
         DispatchQueue.main.async { // update UI on main thread
             self.onInfoUpdated()
@@ -311,9 +392,10 @@ class TransferOperationViewModel: NSObject, ObservesTransferOperation {
     
     //
     //
-    func fileAdded() {
+    func fileAdded(_ vm: ListedFileViewModel) {
+//        print("TRANSFERVIEWCONTROLLLER: FILE ADDED")
         DispatchQueue.main.async { // update UI on main thread
-            self.onFileAdded()
+            self.onFileAdded(vm)
         }
     }
     

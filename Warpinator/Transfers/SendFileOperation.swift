@@ -15,7 +15,7 @@ import NIO
 // MARK: SendFileOperation
 final class SendFileOperation: TransferOperation {
     
-    lazy var DEBUG_TAG: String = "SendFileOperation (\(remoteUUID)):"
+    lazy var DEBUG_TAG: String = "SendFileOperation (\(owningRemote?.details.uuid ?? "Owning remote not set")):"
     
     public static let chunk_size: Int = 1024 * 512  // 512 kB
     
@@ -27,12 +27,6 @@ final class SendFileOperation: TransferOperation {
     }
     
     weak var owningRemote: Remote?
-    var remoteUUID: String {
-        guard let owningRemote = owningRemote else {
-            return "Owning remote not set"
-        }
-        return owningRemote.details.uuid
-    }
     
     var UUID: UInt64 { return timestamp }
     var timestamp: UInt64
@@ -48,9 +42,6 @@ final class SendFileOperation: TransferOperation {
     }
     
     var bytesTransferred: Int = 0
-    var progress: Double {
-        return Double(bytesTransferred) / totalSize
-    }
     
     var lastTransferTimeStamp: Double = 0
     var bytesPerSecond: Double = 0
@@ -77,6 +68,7 @@ final class SendFileOperation: TransferOperation {
     }
     
     // MARK: TransferOpRequest
+    // computer
     var transferRequest: TransferOpRequest {
         return .with {
             $0.info = operationInfo
@@ -92,11 +84,16 @@ final class SendFileOperation: TransferOperation {
     
     var observers: [ObservesTransferOperation] = [] 
     
-    lazy var queueLabel = "SEND_\(remoteUUID)_\(UUID)"
+    lazy var queueLabel = "SEND_\(UUID)"
+    
     lazy var sendingChunksQueue = DispatchQueue(label: queueLabel, qos: .utility)
     
+    var  sendingChunksQueueDispatchItems: [DispatchWorkItem] = []
+    
+    var transferPromise: EventLoopPromise<GRPCStatus>? = nil
     
     
+    // MARK: init
     init(for filenames: [TransferSelection] ) {
         
         direction = .SENDING
@@ -157,7 +154,7 @@ final class SendFileOperation: TransferOperation {
     
     //
     //MARK: start
-    func start(using context: StreamingResponseCallContext<FileChunk>) -> EventLoopPromise<GRPCStatus> {
+    func start(using context: StreamingResponseCallContext<FileChunk>) -> EventLoopFuture<GRPCStatus> {
         
         status = .TRANSFERRING
         lastTransferTimeStamp = Date().timeIntervalSince1970 * 1000
@@ -165,116 +162,108 @@ final class SendFileOperation: TransferOperation {
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
         let chunkIterator = ChunkIterator(for: fileReaders)
         
-        
-        sendingChunksQueue.async {
-            
-            for (i, chunk) in chunkIterator.enumerated() {
-                
-                if self.status != .TRANSFERRING {
-                    promise.fail( TransferError.TransferCancelled )
-                    return
-                }
-                
-                print(self.DEBUG_TAG+"sending chunk \(i) (\(chunk.relativePath))")
-                let result = context.sendResponse(chunk)
-
-                do {
-                    // wait for result before sending next chunk
-                    // if we don't do this, then the chunks can end up out of order on
-                    // troublesome networks, which causes failure
-                    try result.wait()
-                } catch {
-                    print(self.DEBUG_TAG+"chunk \(i) prevented from waiting. Reason: \(error)")
-                    if self.status == .TRANSFERRING {  self.orderStop( error ) }
-                }
-                
-                
-                //
-                result.whenSuccess { result in
-                    
-                    // calculate bytes per second
-                    let now = Date().timeIntervalSince1970 * 1000
-                    self.bytesTransferred += chunk.chunk.count
-                    self.bytesPerSecond = (chunk.chunk.count / (now - self.lastTransferTimeStamp) / 1000)
-                    self.lastTransferTimeStamp = now
-                    
-                    self.updateObserversInfo()
-                }
-
-                result.whenFailure { error in
-                    print(self.DEBUG_TAG+"chunk \(i) (\(chunk.relativePath))  transmission failed: ")
-                    print(self.DEBUG_TAG+"\t error: \(error)")
-                    
-                    if self.status == .TRANSFERRING {  self.stopRequested(error) }
-                    
-                }
+        promise.futureResult.whenSuccess { status in
+            switch status {
+            case STATUS_CANCELLED: self.status = .CANCELLED
+            case .ok: self.status = .FINISHED
+            default: break
             }
-            
-            promise.succeed(.ok)
         }
         
+        self.transferPromise = promise
         
-        // when entire transfer is completed
         context.closeFuture.whenComplete { result in
-            print(self.DEBUG_TAG+"TransferOperation completed with result: \(result)")
-            
-            do {
-                // prevent a successful call-finish from overwriting an earlier .FAILED status
-                if self.status != .TRANSFERRING { return }
-                try result.get()
-                self.status = .FINISHED
-                
-            } catch {
-//                self.status = .CANCELLED
-                self.stopRequested(error)
+            print(self.DEBUG_TAG+"\tOperation closed with result: \(result)")
+
+            switch result {
+            case .success():
+                self.status = (self.status != .TRANSFERRING) ? self.status : .FINISHED
+            case .failure(let error):
+                self.status = .FAILED(error)
             }
+
+            // cleanup call
+            self.fileReaders.forEach { $0.close() }
+            self.transferPromise = nil
         }
         
-        return promise
+        
+        
+        chunkIterator.enumerated().forEach { (i, chunk) in
+            
+            // create a work item
+            let workItem = DispatchWorkItem() { [weak self] in
+                
+                do {
+                    try context.sendResponse(chunk).map { Void in
+                        
+                        // calculate bytes per second
+                        let now = Date().timeIntervalSince1970 * 1000
+                        self?.bytesTransferred += chunk.chunk.count
+                        self?.bytesPerSecond = (chunk.chunk.count / (now - (self?.lastTransferTimeStamp ?? 0.0)) / 1000)
+                        self?.lastTransferTimeStamp = now
+
+                        self?.updateObserversInfo()
+                    }.wait()
+                    
+                } catch {
+                    self?.stop(error)
+                }
+                
+                self?.updateObserversInfo()
+            }
+            
+            sendingChunksQueueDispatchItems.append(workItem)
+        }
+        
+        // last item in the queue will inform caller of success
+        let finalWorkItem = DispatchWorkItem { [weak self] in
+            promise.succeed(.ok)
+            self?.updateObserversInfo()
+        }
+        
+        sendingChunksQueueDispatchItems.append(finalWorkItem)
+        
+        sendingChunksQueueDispatchItems.forEach { self.sendingChunksQueue.async(execute: $0) }
+        
+        return promise.futureResult
+        
     }
     
-    
     //
-    // MARK: stopping
-    func orderStop(_ error: Error? = nil){
+    // MARK: stop
+    func stop(_ error: Error){
         
-        print(self.DEBUG_TAG+"ordering stop, error: \(String(describing: error))")
-        owningRemote?.requestStop(forOperationWithUUID: UUID, error: error)
-        stopRequested(error)
         
-    }
-    
-    //
-    //
-    func stopRequested(_ error: Error? = nil){
-        print(DEBUG_TAG+"stopped with error: \(String(describing: error))")
+        // Only proceed with stop actions if we're transferring or waiting
+        // This stops the reciever and sender from endlessly sending stop signals back and forth
+        guard [.TRANSFERRING, .WAITING_FOR_PERMISSION].contains( status ) else {
+            print(DEBUG_TAG+"")
+            return
+        }
         
-        if let error = error {
-            status = .FAILED(error)
+        print(self.DEBUG_TAG+"\tStop Sending. Error: \(String(describing: error))")
+        
+        sendingChunksQueueDispatchItems.forEach { $0.cancel() }
+        sendingChunksQueueDispatchItems.removeAll()
+        
+        fileReaders.forEach { $0.close() }
+        
+        
+        if (error as? TransferError) == .TransferCancelled {
+            print(DEBUG_TAG+"( stop() ) succeeding promise with status CANCELLED")
+            transferPromise?.succeed(STATUS_CANCELLED)
         } else {
-            status = .CANCELLED
-        }
-        closeOutOperation()
-    }
-    
-    
-    //
-    // MARK: onDecline
-    func onDecline(_ error: Error? = nil){
-        print(DEBUG_TAG+"operation was declined")
-        status = .CANCELLED
-        closeOutOperation()
-    }
-    
-    
-    //
-    // MARK: closeOutOperation
-    func closeOutOperation(){
-        
-        fileReaders.forEach { reader in
-            reader.close()
+            transferPromise?.fail(error)
         }
         
+        
+        // sender must inform receiver of stop in case receiver has not opened datastream yet,
+        // and therefore cannot infer a stop from a closed datastream
+        owningRemote?.sendStop(forUUID: UUID, error: error)
+        
+        
+        status = .FAILED(error)
     }
     
 }

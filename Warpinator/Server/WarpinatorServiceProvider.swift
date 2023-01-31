@@ -64,14 +64,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
     let avatarQueueLabel = "Serve_Avatar"
     lazy var sendingAvaratChunksQueue = DispatchQueue(label: avatarQueueLabel, qos: .utility)
     
-    // TODO: I thiiiiiink there needs to be a timer for each remote, otherwise we can only handle one duplex at a time?
-    // I think. I think?
-    var timer: Timer?
-    
-    
-    //
     // MARK: - Duplex
-    
     
     
     // MARK: v1
@@ -80,8 +73,7 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         print(DEBUG_TAG+"(API_V1) Duplex is being checked by \(request.readableName) (\(request.id))")
         
-        let duplexPromise = checkDuplex(forUUID: request.id, context)
-        return duplexPromise.futureResult
+        return checkDuplex(forUUID: request.id, context)
     }
     
     
@@ -91,58 +83,29 @@ final public class WarpinatorServiceProvider: WarpProvider {
         
         print(DEBUG_TAG+"(API_V2) Duplex is being waited for by \(request.readableName) (\(request.id))")
 
-        let duplexPromise = checkDuplex(forUUID: request.id, context)
-        return duplexPromise.futureResult
+        return checkDuplex(forUUID: request.id, context)  // duplexPromise.futureResult
     }
-    
     
     
     // MARK: checkDuplex
-    private func checkDuplex(forUUID uuid: String, _ context: StatusOnlyCallContext) -> EventLoopPromise<HaveDuplex> {
-
-        func checkDuplex() -> Bool {
-            print(DEBUG_TAG+"\t\tchecking duplex for uuid: \(uuid)")
-//            print(DEBUG_TAG+"\t\tmanager: \(self.remoteManager)")
-//            print(DEBUG_TAG+"\t\tremote: \(self.remoteManager?.containsRemote(for: uuid))")
-            if let remote = self.remoteManager?.containsRemote(for: uuid) {
-                // TODO: if our MdnsBrowser hasn't told us that a remote we know about is available, having our duplex checked is an indication that it's nevertheless online, and should trigger us to connect
-                print(DEBUG_TAG+"\t\t\t remote found (status: \(remote.details.status))")
-                
-                return [.AquiringDuplex, .Connected].contains( remote.details.status )
+    private func checkDuplex(forUUID uuid: String, _ context: StatusOnlyCallContext) -> EventLoopFuture<HaveDuplex> {
+        
+        print(DEBUG_TAG+"checking duplex for uuid: \(uuid)")
+        if let remote = self.remoteManager?.containsRemote(for: uuid) {
+            
+            print(DEBUG_TAG+"\t remote found (status: \(remote.details.status))")
+            
+            // return true if we're already connected, or also trying to connect
+            if [.AquiringDuplex, .Connected].contains( remote.details.status ) {
+                return context.eventLoop.makeSucceededFuture( .with{ $0.response = true } )
             }
-            return false
+            
+            print(DEBUG_TAG+"\t re-initiating connection...")
+            remote.startupConnection()
         }
         
-        
-        let duplexPromise = context.eventLoop.makePromise(of: HaveDuplex.self)
-
-        // for some reason this only works on main queue
-        DispatchQueue.main.async {
-            
-            var count = 0
-            
-            // repeats 4 times a second, for a total of 20 times if client times out at ~5 seconds
-            self.timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { timer in
-                count += 1
-                guard count < 20 else {
-                    timer.invalidate();
-                    duplexPromise.fail(DuplexError.DuplexTimeout)
-                    return
-                }
-                
-                let duplexExists = checkDuplex()
-                if duplexExists {
-                    duplexPromise.succeed( .with { $0.response = true })
-                    timer.invalidate()
-                }
-            }
-        }
-        
-        return duplexPromise
+        return context.eventLoop.makeFailedFuture(DuplexError.DuplexNotEstablished)
     }
-    
-    
-    
     
     
     
@@ -152,7 +115,8 @@ final public class WarpinatorServiceProvider: WarpProvider {
     //
     // MARK: get info
     // handle request for information about this device
-    public func getRemoteMachineInfo(request: LookupName, context: StatusOnlyCallContext) -> EventLoopFuture<RemoteMachineInfo> {
+    public func getRemoteMachineInfo(request: LookupName,
+                                     context: StatusOnlyCallContext) -> EventLoopFuture<RemoteMachineInfo> {
         
         print(DEBUG_TAG+"Info is being retrieved by \(request.readableName) (\(request.id))")
         
@@ -168,44 +132,31 @@ final public class WarpinatorServiceProvider: WarpProvider {
     //
     // MARK: get avatar image
     // handle request for avatar image
-    public func getRemoteMachineAvatar(request: LookupName, context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
+    public func getRemoteMachineAvatar(request: LookupName,
+                                       context: StreamingResponseCallContext<RemoteMachineAvatar>) -> EventLoopFuture<GRPCStatus> {
         
-        print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
+//        print(DEBUG_TAG+"Avatar is being requested by \(request.readableName) (\(request.id))")
         
-//        let systemPhoneImage = UIImage(systemName: "iphone")!.withRenderingMode(.alwaysTemplate)
-//        let avatarImg = SettingsManager.shared.avatarImage ?? systemPhoneImage
-
-//        let avatarImgBytes = avatarImg.pngData()
-
         let promise = context.eventLoop.makePromise(of: GRPCStatus.self)
 
         
         if let avatarImg = SettingsManager.shared.avatarImage,
            let bytes = avatarImg.pngData() {
             
-//        }
-//
-//        if let bytes = avatarImgBytes {
-            
             sendingAvaratChunksQueue.async {
-                
-                for (i, chunk) in bytes.extended.iterator(withChunkSize: 1024 * 1024).enumerated(){ 
-                    
-                    let result = context.sendResponse( RemoteMachineAvatar.with {
-                        $0.avatarChunk = chunk
-                    })
-                    
-                    
-                    // wait for confirmation of this chunk before sending the next one
-                    do {     try result.wait() }
+                bytes.extended.iterator(withChunkSize: 1024 * 1024).enumerated().forEach { (index, chunk) in
+                    do {
+                        try context.sendResponse( RemoteMachineAvatar.with {
+                            $0.avatarChunk = chunk
+                        }).wait() // wait for confirmation of this chunk before sending the next one
+                    }
                     catch {
-                        print(self.DEBUG_TAG+"avatar chunk \(i) prevented from waiting. Reason: \(error)")
+                        print(self.DEBUG_TAG+"avatar chunk \(index) prevented from waiting. Reason: \(error)")
                     }
                 }
                 
                 promise.succeed(.ok)
             }
-            
         } else {
             // no image
             promise.succeed(GRPCStatus.init(code: .notFound, message: "No avatar image found"))
@@ -227,37 +178,36 @@ final public class WarpinatorServiceProvider: WarpProvider {
     // receive request from remote to transfer data to this device
     public func processTransferOpRequest(request: TransferOpRequest, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        print(DEBUG_TAG+"Received PROCESS TRANSFER request from \(request.info.ident)")
+        print(DEBUG_TAG+"Received request from \(request.info.ident)")
         
         let remoteUUID: String = request.info.ident
         
         guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
-            print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
-            let error = AuthenticationError.ConnectionError
-            return context.eventLoop.makeFailedFuture(error)
+            print(DEBUG_TAG+"\tNo remote with uuid \"\(remoteUUID)\" exists")
+            return context.eventLoop.makeFailedFuture(Remote.Error.UNAVAILABLE)
         }
         
         print(DEBUG_TAG+"\t\(request)")
         
         // if this is a retry of a previous operation
-        if let operation = remote.findTransferOperation(for: request.info.timestamp) as? ReceiveFileOperation {
-            operation.prepareReceive()
-            return context.eventLoop.makeSucceededFuture(VoidType())
+        let operation: ReceiveFileOperation
+        if let op = remote.findTransfer(withUUID: request.info.timestamp) as? ReceiveFileOperation {
+            operation = op
+        } else {
+            operation = ReceiveFileOperation(request, forRemote: remote)
+            remote.addTransfer(operation)
         }
-        
-        let operation = ReceiveFileOperation(request, forRemote: remote)
+
+        operation.owningRemote = remote
         operation.prepareReceive()
         
-        print(DEBUG_TAG+"processing request, compression is \( request.info.useCompression ? "on" : "off" )")
-        
-        remote.addReceivingOperation(operation)
+        print(DEBUG_TAG+"\tprocessing request, compression is \( request.info.useCompression ? "on" : "off" )")
         
         
         if SettingsManager.shared.automaticAccept {
-            print(DEBUG_TAG+"Transfer was automatically accepted")
-            remote.callClientStartTransfer(for: operation)
+            print(DEBUG_TAG+"\ttransfer was automatically accepted")
+            remote.startTransfer(for: operation)
         }
-        
         
         
         return context.eventLoop.makeSucceededFuture(VoidType())
@@ -274,20 +224,19 @@ final public class WarpinatorServiceProvider: WarpProvider {
         let remoteUUID: String = request.ident
         
         guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
-            print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
+            print(DEBUG_TAG+"\tNo remote with uuid \"\(remoteUUID)\" exists")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        guard let transfer = remote.findSendOperation(withStartTime: request.timestamp) else {
-            print(DEBUG_TAG+"Remote has no sending operations with requested timestamp")
+        guard let transfer = remote.findTransfer(withUUID: request.timestamp) as? SendFileOperation else {
+            print(DEBUG_TAG+"\tRemote has no sending operations with requested timestamp")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        let promise = transfer.start(using: context)
         
-        return promise.futureResult
+        return transfer.start(using: context)
     }
     
     
@@ -307,21 +256,14 @@ final public class WarpinatorServiceProvider: WarpProvider {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        guard let transfer = remote.findTransferOperation(for: request.timestamp) else {
+        guard let transfer = remote.findTransfer(withUUID: request.timestamp) else {
             print(DEBUG_TAG+"Remote has no operations with requested timestamp")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
         
-        if let receive = transfer as? ReceiveFileOperation {
-            receive.receiveWasCancelled()
-        }
-        
-        if let send = transfer as? SendFileOperation {
-            send.onDecline()
-        }
-        
+        transfer.stop( TransferError.TransferCancelled )
         
         return context.eventLoop.makeSucceededFuture( VoidType() )
     }
@@ -332,30 +274,28 @@ final public class WarpinatorServiceProvider: WarpProvider {
     // receive instruction to stop operation (transfer) specified in OpInfo
     public func stopTransfer(request: StopInfo, context: StatusOnlyCallContext) -> EventLoopFuture<VoidType> {
         
-        print(DEBUG_TAG+"Received STOP request for transfer - \(request.info)")
+        print(DEBUG_TAG+"Received STOP request for transfer \(request.info.readableName)")
+        print(DEBUG_TAG+"\t\t error: \(request.error )")
+        print(DEBUG_TAG+"\t\t\t\t full request: (\( request ))")
         
         let remoteUUID: String = request.info.ident
         
         guard let remote = remoteManager?.containsRemote(for: remoteUUID) else {
-            print(DEBUG_TAG+"No remote with uuid \"\(remoteUUID)\" exists")
+            print(DEBUG_TAG+"\t No remote with uuid \"\(remoteUUID)\" exists")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
         
-        guard let transfer = remote.findTransferOperation(for: request.info.timestamp) else {
-            print(DEBUG_TAG+"Remote has no operations with requested timestamp")
+        guard let transfer = remote.findTransfer(withUUID: request.info.timestamp) else {
+            print(DEBUG_TAG+"\t Remote has no operations with requested timestamp")
             let error = TransferError.TransferNotFound
             return context.eventLoop.makeFailedFuture(error)
         }
         
+//        print(DEBUG_TAG+"\( request.info.readableName )")
         
-        if request.error {
-            transfer.stopRequested( TransferError.UnknownError )
-        } else {
-            transfer.stopRequested(nil)
-        }
-        
+        transfer.stop( request.error ?  TransferError.UnknownError :  TransferError.TransferCancelled )
         
         return context.eventLoop.makeSucceededFuture( VoidType() )
     }
@@ -372,8 +312,6 @@ final public class WarpinatorServiceProvider: WarpProvider {
         } else {
             debugString = debugString + "UNKNOWN REMOTE: \(request.readableName)"
         }
-        
-//        print(DEBUG_TAG+debugString)
         
         return context.eventLoop.makeCompletedFuture(Result(catching: {
             return VoidType()

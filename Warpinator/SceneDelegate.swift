@@ -77,7 +77,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     print(self.DEBUG_TAG+"We DO NOT HAVE access to the local network!")
                     self.coordinator?.reportError(error,
                                                   withMessage: "Please enable local network access in your system settings (Settings App -> Privacy -> Local Network)")
-                case Server.ServerError.NO_INTERNET:
+                case NetworkError.NO_INTERNET:
                     self.coordinator?.reportError(error,
                                                   withMessage: "Please make sure wifi is turned on before restarting")
                 default:

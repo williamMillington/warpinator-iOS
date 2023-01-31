@@ -113,24 +113,28 @@ class FileWriter: WritesFile {
     // TODO: rewrite to be gooder?
     private func rename(_ name: String) -> String {
         
-        print(DEBUG_TAG+"Renaming \(name) (\(renameCount))")
-        
         var newName = "File_Renaming_Failed"
         
         //
-        //
+        // 1000 is probably enough,
+        // rihgt?
         while renameCount <= 1000 {
             renameCount += 1
             
-            newName = extensionlessFileSystemName + "\(renameCount)"
-            let path = baseURL.path + "/" + fileSystemParentPath + "\(newName)" + fileExtension
+            print(DEBUG_TAG+"Renaming \(name) (attempt: \(renameCount))")
+            
+            let nameCheck = extensionlessFileSystemName + "\(renameCount)"
+            let path = baseURL.path + "/" + fileSystemParentPath + "\(nameCheck)" + "." + fileExtension
             
             if !FileManager.default.fileExists(atPath: path)  {
-                break // return rename(fileSystemName)
+                print(DEBUG_TAG+"\t\t \"\(nameCheck).\(fileExtension) not found at path: \n\t\t \(path)")
+                print(DEBUG_TAG+"\t\t proceeding... ")
+                newName = nameCheck
+                break
             }
         }
         
-        print(DEBUG_TAG+"\tnew name is \(newName)")
+        print(DEBUG_TAG+"\tnew name:  \(newName)")
         return newName
     }
     
@@ -140,14 +144,16 @@ class FileWriter: WritesFile {
     // MARK: processChunk
     func processChunk(_ chunk: FileChunk) throws {
         
+        
+        defer {
+            updateObserversInfo()
+        }
+        
         // Check if chunk belongs with current file
         guard chunk.relativePath == downloadRelativePath else {
             throw WritingError.FILENAME_MISMATCH
         }
         
-        defer {
-            updateObserversInfo()
-        }
         
         guard let handle = fileHandle else {
             print(DEBUG_TAG+"UnexpectedError: fileHandle not found?")

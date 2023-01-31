@@ -50,7 +50,7 @@ class SettingsManager {
     
     
     // MARK: user settings
-    var displayName: String = "iOS Device"  {
+    var displayName: String =  UIDevice.current.name {
         didSet { writeToSettings(displayName, forKey: StorageKey.displayName) }
     }
     
@@ -58,7 +58,9 @@ class SettingsManager {
         didSet { writeToSettings(userName, forKey: StorageKey.userName) }
     }
     
-    var avatarImage: UIImage? = nil     {
+    var avatarImage: UIImage? = {
+        return UIImage(systemName: "iphone")?.withRenderingMode(.alwaysTemplate)
+    }()     {
         didSet { writeToSettings(avatarImage, forKey: StorageKey.avatarImage) }
     }
     

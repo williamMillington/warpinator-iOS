@@ -9,7 +9,7 @@ import Foundation
 import Network
 import NIOCore
 
-protocol MDNSBrowserDelegate {
+protocol BrowserDelegate {
     func mDNSBrowserDidAddResult(_ result: NWBrowser.Result)
     func mDNSBrowserDidRemoveResult(_ result: NWBrowser.Result)
 }
@@ -17,19 +17,12 @@ protocol MDNSBrowserDelegate {
 
 final class MDNSBrowser {
     
-    
-    enum ServiceError: Error {
-        case ALREADY_RUNNING
-        case UNKNOWN_SERVICE
-        case CANCELLED
-    }
-    
     private let DEBUG_TAG = "MDNSBrowser: "
     
     private let SERVICE_TYPE = "_warpinator._tcp."
     private let SERVICE_DOMAIN = ""
     
-    var delegate: MDNSBrowserDelegate?
+    var delegate: BrowserDelegate?
     
     
     lazy var browser: NWBrowser = createBrowser()
@@ -47,7 +40,7 @@ final class MDNSBrowser {
     
     private func createBrowser() -> NWBrowser {
         
-        print(DEBUG_TAG+"\t Creating browser")
+//        print(DEBUG_TAG+"\t Creating browser")
         
         let params = NWParameters()
         params.allowLocalEndpointReuse = true
@@ -62,7 +55,7 @@ final class MDNSBrowser {
     }
     
     
-    
+    // MARK: start
     func start() -> EventLoopFuture<Void> {
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
@@ -85,13 +78,14 @@ final class MDNSBrowser {
     }
     
     
-    
+    // MARK: stop
     func stop() -> EventLoopFuture<Void> {
         
 //        print(DEBUG_TAG+"\t\tstopping... (current state:  \(browser.state) )")
         
         let promise = eventloopGroup.next().makePromise(of: Void.self)
         
+        // If we're already stopped, succeed promise
         switch browser.state {
         case .cancelled, .failed(_), .setup:
             promise.succeed( Void() )
@@ -114,13 +108,11 @@ final class MDNSBrowser {
     //
     // Allows a promise to be configured to fire for a number of different states
     //      - NOTE: .failure() will ALWAYS fail the promise
-    // MARK: configurePromise
     private func configure(_ promise: EventLoopPromise<Void>,
                            toSucceedForState state: NWBrowser.State) {
         
         
         browser.stateUpdateHandler = { updatedState in
-            
 //            print(self.DEBUG_TAG+"\t\t\t browser updated to \(updatedState) while waiting for \(state)")
             
             // we have to be careful not to let a promise go unfullfilled
@@ -134,7 +126,7 @@ final class MDNSBrowser {
                 // those states (ex. .ready, .watiting )  can never be reached again and we just
                 // create a new listener (which will leave the promise hanging)
                 if state != .cancelled {
-                    promise.fail(  ServiceError.CANCELLED  )
+                    promise.fail(  MDNSError.CANCELLED  )
                     return
                 }
                 
@@ -155,15 +147,14 @@ final class MDNSBrowser {
     
     //
     // MARK: startBrowsing
-    func startBrowsing(){
-        print(DEBUG_TAG+" start browsing")
-        
+    func beginBrowsing(){
+//        print(DEBUG_TAG+" start browsing")
         
 //        let results = browser.browseResults
         /* any mDNS services that existed BEFORE we started browsing
          aren't guaranteed to trigger resultsDidChange, but will still be listed
          in browser.browseResults. No harm in adding them twice,
-         as mDNSBrowserDidAddResult() can handle duplicates */
+         as mDNSBrowserDidAddResult() will handle duplicates */
         browser.browseResults.forEach { result in
             self.delegate?.mDNSBrowserDidAddResult(result)
         }
@@ -175,7 +166,7 @@ final class MDNSBrowser {
     //
     // MARK: stopBrowsing
     func stopBrowsing(){
-        print(DEBUG_TAG+" stop browsing")
+//        print(DEBUG_TAG+" stop browsing")
         browser.browseResultsChangedHandler = { _, _ in  }
     }
     
@@ -196,9 +187,14 @@ final class MDNSBrowser {
         
         for change in changes {
             
+            //TODO: catch self publishing duplicate ( "... (2)" )
+            
             switch change {
             case .added(let result):  delegate?.mDNSBrowserDidAddResult(result)
             case .changed(old: _, new: let new, flags: let flags):
+//                print(self.DEBUG_TAG+"change registered in \(old): ")
+//                print(self.DEBUG_TAG+"\t\t flags \(flags) ")
+//                print(self.DEBUG_TAG+"\t\t new registration: \(new): ")
                 if case .metadataChanged = flags {
                     delegate?.mDNSBrowserDidAddResult(new)
                 }
